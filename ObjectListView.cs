@@ -5,9 +5,15 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2008-06-23  JPP  - Broke the more generally useful CopyObjectsToClipboard() method 
+ *                    out of CopySelectionToClipboard()
+ * 2008-06-22  JPP  - Added AlwaysGroupByColumn and AlwaysGroupBySortOrder, which
+ *                    force the list view to always be grouped by a particular column.
+ * 2008-05-31  JPP  - Allow check boxes on FastObjectListViews
+ *                  - Added CheckedObject and CheckedObjects properties
  * 2008-05-11  JPP  - Allow selection foreground and background colors to be changed.
  *                    Windows doesn't allow this, so we can only make it happen when owner
- *                    drawing. Set the HighlightForegroundColor and  HighlightBackgroundColor 
+ *                    drawing. Set the HighlightForegroundColor and  HighlightBackgroundColor
  *                    properties and then call EnableCustomSelectionColors().
  * v1.12
  * 2008-05-08  JPP  - Fixed bug where the column select menu would not appear if the
@@ -323,6 +329,28 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// This property forces the ObjectListView to always group items by the given column.
+        /// </summary>
+        public OLVColumn AlwaysGroupByColumn
+        {
+            get { return alwaysGroupByColumn; }
+            set { alwaysGroupByColumn = value; }
+        }
+        private OLVColumn alwaysGroupByColumn;
+
+        /// <summary>
+        /// If AlwaysGroupByColumn is not null, this property will be used to decide how
+        /// those groups are sorted. If this property has the value SortOrder.None, then
+        /// the sort order will toggle according to the users last header click.
+        /// </summary>
+        public SortOrder AlwaysGroupBySortOrder
+        {
+            get { return alwaysGroupBySortOrder; }
+            set { alwaysGroupBySortOrder = value; }
+        }
+        private SortOrder alwaysGroupBySortOrder = SortOrder.None;
+
+        /// <summary>
         /// Give access to the image list that is actually being used by the control
         /// </summary>
         [Browsable(false)]
@@ -374,6 +402,71 @@ namespace BrightIdeasSoftware
             set { cellEditActivation = value; }
         }
         private CellEditActivateMode cellEditActivation = CellEditActivateMode.None;
+
+        /// <summary>
+        /// Return the model object of the row that is checked or null if no row is checked
+        /// or more than one row is checked
+        /// </summary>
+        public Object CheckedObject
+        {
+            get {
+                ArrayList checkedObjects = this.GetCheckedObjects();
+                if (checkedObjects.Count == 1)
+                    return checkedObjects[0];
+                else
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Get or set the collection of model objects that are checked.
+        /// When setting this property, any row whose model object isn't
+        /// in the given collection will be unchecked. Setting to null is
+        /// equivilent to unchecking all.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This property returns a simple collection. Changes made to the returned
+        /// collection do NOT affect the list. This is different to the behaviour of
+        /// CheckedIndicies collection.
+        /// </para>
+        /// <para>
+        /// The CheckedItems property is not helpful. It is just a short-hand for
+        /// iterating through the list looking for items that are checked.
+        /// </para>
+        /// <para>
+        /// The performance of this method is O(n). Be careful on long lists.
+        /// </para>
+        /// </remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public IList CheckedObjects
+        {
+            get {
+                ArrayList objects = new ArrayList();
+                if (this.CheckBoxes) {
+                    for (int i = 0; i < this.GetItemCount(); i++) {
+                        OLVListItem olvi = this.GetItem(i);
+                        if (olvi.Checked)
+                            objects.Add(olvi.RowObject);
+                    }
+                }
+                return objects;
+            }
+            set {
+                if (this.CheckBoxes) {
+                    if (value == null)
+                        value = new ArrayList();
+
+                    for (int i = 0; i < this.GetItemCount(); i++) {
+                        OLVListItem olvi = this.GetItem(i);
+                        bool newValue = value.Contains(olvi.RowObject);
+                        if (olvi.Checked != newValue)
+                            this.ChangeCheckItem(olvi, olvi.Checked, newValue);
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Get/set the list of columns that should be used when the list switches to tile view.
@@ -564,7 +657,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// What color should be used for the background of selected rows?
         /// </summary>
-        /// <remarks>Windows does not give the option of changing the selection background. 
+        /// <remarks>Windows does not give the option of changing the selection background.
         /// So this color is only used when control is owner drawn and when columns have a
         /// renderer installed -- a basic new BaseRenderer() will suffice.</remarks>
         [Category("Appearance"),
@@ -595,7 +688,7 @@ namespace BrightIdeasSoftware
         /// Setup the list so it will draw selected rows using custom colours.
         /// </summary>
         /// <remarks>
-        /// This method makes the list owner drawn, and ensures that all columns have at 
+        /// This method makes the list owner drawn, and ensures that all columns have at
         /// least a BaseRender installed.
         /// </remarks>
         public void EnableCustomSelectionColors()
@@ -610,7 +703,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// What color should be used for the foreground of selected rows?
         /// </summary>
-        /// <remarks>Windows does not give the option of changing the selection foreground (text color). 
+        /// <remarks>Windows does not give the option of changing the selection foreground (text color).
         /// So this color is only used when control is owner drawn and when columns have a
         /// renderer installed -- a basic new BaseRenderer() will suffice.</remarks>
         [Category("Appearance"),
@@ -634,7 +727,7 @@ namespace BrightIdeasSoftware
                 else
                     return this.HighlightForegroundColor;
             }
-        }	
+        }
 
         /// <summary>
         /// Return true if a cell edit operation is currently happening
@@ -800,7 +893,7 @@ namespace BrightIdeasSoftware
             set
             {
                 this.SelectedIndices.Clear();
-                if (value > -1 && value < this.Items.Count - 1)
+                if (value >= 0 && value < this.Items.Count)
                     this.SelectedIndices.Add(value);
             }
         }
@@ -1388,11 +1481,24 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Organise the view items into groups, based on the given column
         /// </summary>
+        /// <remarks>If the AlwaysGroupByColumn property is not null, 
+        /// the list view items will be organisd by that column,
+        /// and the 'column' parameter will be ignored.</remarks>
         /// <param name="column">The column whose values should be used for sorting.</param>
         virtual public void BuildGroups(OLVColumn column)
         {
             if (column == null)
                 column = this.GetColumn(0);
+
+            // If a specific column has been given as the group by column, we always
+            // group by that column, regardless of what the user just clicked.
+            OLVColumn groupByColumn = this.AlwaysGroupByColumn;
+            if (groupByColumn == null)
+                groupByColumn = column;
+
+            SortOrder groupSortOrder = this.AlwaysGroupBySortOrder;
+            if (groupSortOrder == SortOrder.None)
+                groupSortOrder = this.lastSortOrder;
 
             this.Groups.Clear();
 
@@ -1404,7 +1510,7 @@ namespace BrightIdeasSoftware
             // Separate the list view items into groups, using the group key as the descrimanent
             Dictionary<object, List<OLVListItem>> map = new Dictionary<object, List<OLVListItem>>();
             foreach (OLVListItem olvi in this.Items) {
-                object key = column.GetGroupKey(olvi.RowObject);
+                object key = groupByColumn.GetGroupKey(olvi.RowObject);
                 if (key == null)
                     key = "{null}"; // null can't be used as the key for a dictionary
                 if (!map.ContainsKey(key))
@@ -1415,21 +1521,21 @@ namespace BrightIdeasSoftware
             // Make a list of the required groups
             List<ListViewGroup> groups = new List<ListViewGroup>();
             foreach (object key in map.Keys) {
-                ListViewGroup lvg = new ListViewGroup(column.ConvertGroupKeyToTitle(key));
+                ListViewGroup lvg = new ListViewGroup(groupByColumn.ConvertGroupKeyToTitle(key));
                 lvg.Tag = key;
                 groups.Add(lvg);
             }
 
             // Sort the groups
-            groups.Sort(new ListViewGroupComparer(this.lastSortOrder));
+            groups.Sort(new ListViewGroupComparer(groupSortOrder));
 
             // Put each group into the list view, and give each group its member items.
             // The order of statements is important here:
             // - the header must be calculate before the group is added to the list view,
             //   otherwise changing the header causes a nasty redraw (even in the middle of a BeginUpdate...EndUpdate pair)
             // - the group must be added before it is given items, otherwise an exception is thrown (is this documented?)
-            string fmt = column.GroupWithItemCountFormatOrDefault;
-            string singularFmt = column.GroupWithItemCountSingularFormatOrDefault;
+            string fmt = groupByColumn.GroupWithItemCountFormatOrDefault;
+            string singularFmt = groupByColumn.GroupWithItemCountSingularFormatOrDefault;
             ColumnComparer itemSorter = new ColumnComparer((this.SortGroupItemsByPrimaryColumn ? this.GetColumn(0) : column),
                                                            this.lastSortOrder, this.SecondarySortColumn, this.SecondarySortOrder);
             foreach (ListViewGroup group in groups) {
@@ -1521,27 +1627,37 @@ namespace BrightIdeasSoftware
         /// From the user's point of view, your program will appear to have hung.</remarks>
         public void CopySelectionToClipboard()
         {
-            if (this.SelectedIndices.Count == 0)
-                return;
-
             //THINK: Do we want to include something like this?
             //if (this.SelectedIndices.Count > 10000)
             //    return;
+
+            this.CopyObjectsToClipboard(this.SelectedObjects);
+        }
+
+        /// <summary>
+        /// Copy a text and html representation of the given objects onto the clipboard.
+        /// </summary>
+        public void CopyObjectsToClipboard(IList objectsToCopy)
+        {
+            if (objectsToCopy.Count == 0)
+                return;
+
+            List<OLVColumn> columns = this.ColumnsInDisplayOrder;
 
             // Build text and html versions of the selection
             StringBuilder sbText = new StringBuilder();
             StringBuilder sbHtml = new StringBuilder("<table>");
 
-            foreach (int i in this.SelectedIndices) {
-                OLVListItem row = this.GetItem(i);
+            foreach (object modelObject in objectsToCopy) {
                 sbHtml.Append("<tr><td>");
-                for (int j = 0; j < row.SubItems.Count; j++) {
-                    if (j > 0) {
+                foreach (OLVColumn col in columns) {
+                    if (col != columns[0]) {
                         sbText.Append("\t");
                         sbHtml.Append("</td><td>");
                     }
-                    sbText.Append(row.SubItems[j].Text);
-                    sbHtml.Append(row.SubItems[j].Text);
+                    string strValue = col.GetStringValue(modelObject);
+                    sbText.Append(strValue);
+                    sbHtml.Append(strValue); //TODO: Should encode the string value
                 }
                 sbText.AppendLine();
                 sbHtml.AppendLine("</td></tr>");
@@ -1554,6 +1670,8 @@ namespace BrightIdeasSoftware
             dataObject.SetText(ConvertToHtmlFragment(sbHtml.ToString()), TextDataFormat.Html);
             Clipboard.SetDataObject(dataObject);
         }
+
+
 
         /// <summary>
         /// Convert the fragment of HTML into the Clipboards HTML format.
@@ -1906,8 +2024,12 @@ namespace BrightIdeasSoftware
         /// </remarks>
         protected bool HandleContextMenu(ref Message m)
         {
+            // Don't try to handle context menu commands at design time.
+            if (this.DesignMode)
+                return false;
+
             // If the context menu command was generated by the keyboard, LParam will be -1.
-            // We don't want to ignore these
+            // We don't want to process these. 
             if (((int)m.LParam) == -1)
                 return false;
 
@@ -2071,10 +2193,23 @@ namespace BrightIdeasSoftware
         /// <param name="pt">Where should the menu be placed</param>
         protected void ShowColumnSelectMenu(Point pt)
         {
-            ContextMenuStrip m = new ContextMenuStrip();
+            ContextMenuStrip m = this.MakeColumnSelectMenu(null);
+            m.Show(pt);
+        }
 
-            m.ItemClicked += new ToolStripItemClickedEventHandler(ColumnSelectMenu_ItemClicked);
-            m.Closing += new ToolStripDropDownClosingEventHandler(ColumnSelectMenu_Closing);
+        /// <summary>
+        /// Append the column selection menu items to the given menu strip.
+        /// </summary>
+        /// <param name="strip">The menu to which the items will be added. If this is null, a new
+        /// ContextMenuStrip will be created</param>
+        /// <returns>Return the menu to which the items were added</returns>
+        public ContextMenuStrip MakeColumnSelectMenu(ContextMenuStrip strip)
+        {
+            if (strip == null)
+                strip = new ContextMenuStrip();
+
+            strip.ItemClicked += new ToolStripItemClickedEventHandler(ColumnSelectMenu_ItemClicked);
+            strip.Closing += new ToolStripDropDownClosingEventHandler(ColumnSelectMenu_Closing);
 
             List<OLVColumn> columns = new List<OLVColumn>(this.AllColumns);
             columns.Sort(delegate(OLVColumn x, OLVColumn y) { return String.Compare(x.Text, y.Text, true); });
@@ -2086,9 +2221,10 @@ namespace BrightIdeasSoftware
                 // The 'Index' property returns -1 when the column is not visible, so if the
                 // column isn't visible we have to enable the item. Also the first column can't be turned off
                 mi.Enabled = !col.IsVisible || (col.Index > 0);
-                m.Items.Add(mi);
+                strip.Items.Add(mi);
             }
-            m.Show(pt);
+
+            return strip;
         }
 
         private void ColumnSelectMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
@@ -2192,6 +2328,105 @@ namespace BrightIdeasSoftware
             foreach (OLVColumn col in spaceFillingColumns) {
                 col.Width = (freeSpace * col.FreeSpaceProportion) / totalProportion;
             }
+        }
+
+        #endregion
+
+        #region Checkboxes
+
+        /// <summary>
+        /// Change the given item from the old check value to a new one
+        /// </summary>
+        /// <param name="olvi">The item to be change</param>
+        /// <param name="oldValue">The old value of the check</param>
+        /// <param name="newValue">The new value of the check</param>
+        protected void ChangeCheckItem(OLVListItem olvi, bool oldValue, bool newValue)
+        {
+            this.ChangeCheckItem(olvi,
+                (oldValue ? CheckState.Checked : CheckState.Unchecked),
+                (newValue ? CheckState.Checked : CheckState.Unchecked));
+        }
+
+        /// <summary>
+        /// Change the given item from the old check value to a new one
+        /// </summary>
+        /// <param name="olvi">The item to be change</param>
+        /// <param name="oldValue">The old value of the check</param>
+        /// <param name="newValue">The new value of the check</param>
+        protected void ChangeCheckItem(OLVListItem olvi, CheckState oldValue, CheckState newValue)
+        {
+            olvi.Checked = (newValue == CheckState.Checked);
+            if (this.CheckStatePutter != null)
+                this.CheckStatePutter(olvi.RowObject, newValue);
+            this.RefreshItem(olvi);
+        }
+
+        /// <summary>
+        /// Return true of the given object is checked
+        /// </summary>
+        /// <param name="modelObject">The model object whose checkedness is returned</param>
+        /// <returns>Is the given object checked?</returns>
+        /// <remarks>If the given object is not in the list, this method returns false.</remarks>
+        public bool IsChecked(object modelObject)
+        {
+            OLVListItem olvi = this.ModelToItem(modelObject);
+            if (olvi == null)
+                return false;
+            else
+                return olvi.Checked;
+        }
+
+        /// <summary>
+        /// Return the OLVListItem that displays the given model object
+        /// </summary>
+        /// <param name="modelObject">The modelObject whose item is to be found</param>
+        /// <returns>The OLVListItem that displays the model, or null</returns>
+        /// <remarks>This method has O(n) performance.</remarks>
+        protected OLVListItem ModelToItem(object modelObject)
+        {
+            if (modelObject == null)
+                return null;
+
+            OLVListItem olvi;
+            foreach (ListViewItem lvi in this.Items) {
+                olvi = (OLVListItem)lvi;
+                if (olvi.RowObject == modelObject)
+                    return olvi;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Toggle the checkedness of the given object
+        /// </summary>
+        /// <param name="modelObject">The model object to be checked</param>
+        public void ToggleCheckObject(object modelObject)
+        {
+            OLVListItem olvi = this.ModelToItem(modelObject);
+            if (olvi != null)
+                this.ChangeCheckItem(olvi, olvi.Checked, !olvi.Checked);
+        }
+
+        /// <summary>
+        /// Mark the given object as checked in the list
+        /// </summary>
+        /// <param name="modelObject">The model object to be checked</param>
+        public void CheckObject(object modelObject)
+        {
+            OLVListItem olvi = this.ModelToItem(modelObject);
+            if (olvi != null && !olvi.Checked)
+                this.ChangeCheckItem(olvi, false, true);
+        }
+
+        /// <summary>
+        /// Mark the given object as unchecked in the list
+        /// </summary>
+        /// <param name="modelObject">The model object to be unchecked</param>
+        public void UncheckObject(object modelObject)
+        {
+            OLVListItem olvi = this.ModelToItem(modelObject);
+            if (olvi != null && olvi.Checked)
+                this.ChangeCheckItem(olvi, true, false);
         }
 
         #endregion
@@ -2326,25 +2561,19 @@ namespace BrightIdeasSoftware
         /// or more than one row is checked
         /// </summary>
         /// <returns>Model object or null</returns>
+        /// <remarks>Use CheckedObject property instead of this method</remarks>
         virtual public object GetCheckedObject()
         {
-            if (this.CheckedIndices.Count == 1)
-                return this.GetModelObject(this.CheckedIndices[0]);
-            else
-                return null;
+            return this.CheckedObject;
         }
 
         /// <summary>
-        /// Return the model objects of the rows that are checked or an empty collection if no row is checked
+        /// Get the collection of model objects that are checked.
         /// </summary>
-        /// <returns>ArrayList</returns>
+        /// <remarks>Use CheckedObjects property instead of this method</remarks>
         virtual public ArrayList GetCheckedObjects()
         {
-            ArrayList objects = new ArrayList(this.CheckedIndices.Count);
-            foreach (int index in this.CheckedIndices)
-                objects.Add(this.GetModelObject(index));
-
-            return objects;
+            return (ArrayList)this.CheckedObjects;
         }
 
         /// <summary>
@@ -2359,16 +2588,9 @@ namespace BrightIdeasSoftware
 
             this.SelectedItems.Clear();
 
-            if (modelObject == null)
-                return;
-
-            //TODO: If this is too slow, we could keep a map of model object to ListViewItems
-            foreach (ListViewItem lvi in this.Items) {
-                if (((OLVListItem)lvi).RowObject == modelObject) {
-                    lvi.Selected = true;
-                    break;
-                }
-            }
+            OLVListItem olvi = this.ModelToItem(modelObject);
+            if (olvi != null)
+                olvi.Selected = true;
         }
 
         /// <summary>
@@ -2379,10 +2601,10 @@ namespace BrightIdeasSoftware
         {
             this.SelectedItems.Clear();
 
-            //TODO: If this is too slow, we could keep a map of model object to ListViewItems
-            foreach (ListViewItem lvi in this.Items) {
-                if (modelObjects.Contains(((OLVListItem)lvi).RowObject))
-                    lvi.Selected = true;
+            foreach (object modelObject in modelObjects) {
+                OLVListItem olvi = this.ModelToItem(modelObject);
+                if (olvi != null)
+                    olvi.Selected = true;
             }
         }
 
@@ -2424,9 +2646,9 @@ namespace BrightIdeasSoftware
                 this.Invoke((MethodInvoker)delegate { this.RefreshObjects(modelObjects); });
                 return;
             }
-            foreach (ListViewItem lvi in this.Items) {
-                OLVListItem olvi = (OLVListItem)lvi;
-                if (modelObjects.Contains(olvi.RowObject))
+            foreach (object modelObject in modelObjects) {
+                OLVListItem olvi = this.ModelToItem(modelObject);
+                if (olvi != null)
                     this.RefreshItem(olvi);
             }
         }
@@ -2916,7 +3138,6 @@ namespace BrightIdeasSoftware
         /// <returns>A new image list</returns>
         private ImageList MakeResizedImageList(int height, ImageList source)
         {
-            // Return a copy of the source image list, where each image has been resized to the given width and height
             ImageList il = new ImageList();
             il.ImageSize = new Size(height, height);
 
@@ -2980,7 +3201,7 @@ namespace BrightIdeasSoftware
         protected override void OnDrawItem(DrawListViewItemEventArgs e)
         {
             // If there is a custom renderer installed for the primary column,
-            // and we're not in details view, give it a chance to draw the item. 
+            // and we're not in details view, give it a chance to draw the item.
             // So the renderer on the primary column can have two distinct tasks,
             // in details view, it draws the primary cell; in non-details view,
             // it draws the whole item.
@@ -3508,6 +3729,9 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected void CleanupCellEdit()
         {
+            if (this.cellEditor == null)
+                return;
+
             this.cellEditor.Leave -= new EventHandler(CellEditor_Leave);
             this.Controls.Remove(this.cellEditor);
             this.cellEditor.Dispose(); //THINK: do we need to call this?
@@ -3862,12 +4086,12 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Which column did we last sort by
         /// </summary>
-        protected OLVColumn lastSortColumn;
+        public OLVColumn lastSortColumn;
 
         /// <summary>
         /// Which direction did we last sort
         /// </summary>
-        protected SortOrder lastSortOrder;
+        public SortOrder lastSortOrder;
 
 
         private Rectangle lastUpdateRectangle; // remember the update rect from the last WM_PAINT msg
@@ -4416,6 +4640,8 @@ namespace BrightIdeasSoftware
 
         #endregion
 
+        #region Commands
+
         /// <summary>
         /// Invalidate any cached information when we rebuild the list.
         /// </summary>
@@ -4435,7 +4661,45 @@ namespace BrightIdeasSoftware
             // do nothing
         }
 
+        /// <summary>
+        /// Refresh the given item in the list
+        /// </summary>
+        /// <param name="olvi">The item to refresh</param>
+        public override void RefreshItem(OLVListItem olvi)
+        {
+            this.ClearCachedInfo();
+            this.Invalidate();
+        }
+
+        #endregion
+
         #region Event handlers
+
+        /// <summary>
+        /// Handle a mouse down event
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            base.OnMouseDown(e);
+
+            // Did the user click the state icon? If so and check boxes are enable, toggle
+            // the clicked row. If the given row is selected, all selected rows are given
+            // the same checkedness.
+            ListViewHitTestInfo htInfo = this.HitTest(e.Location);
+            if (this.CheckBoxes && (htInfo.Location & ListViewHitTestLocations.StateImage) != 0) {
+                OLVListItem clickedItem = (OLVListItem)htInfo.Item;
+                this.ChangeCheckItem(clickedItem, clickedItem.Checked, !clickedItem.Checked);
+                if (clickedItem.Selected) {
+                    foreach (int i in this.SelectedIndices) {
+                        OLVListItem olvi = this.GetItem(i);
+                        if (olvi.Checked != clickedItem.Checked)
+                            this.ChangeCheckItem(olvi, olvi.Checked, clickedItem.Checked);
+                    }
+                }
+            }
+        }
+
 
         /// <summary>
         /// Handle a RetrieveVirtualItem
@@ -4471,6 +4735,9 @@ namespace BrightIdeasSoftware
 
                 this.CorrectSubItemColors(olvi);
             }
+            if (this.CheckBoxes)
+                olvi.StateImageIndex = (olvi.Checked ? 1 : 0);
+
             this.SetSubItemImages(itemIndex, olvi);
             return olvi;
         }
@@ -4525,6 +4792,13 @@ namespace BrightIdeasSoftware
     /// </para>
     /// <para>You can circumvent the limit on subitem images by making the list owner drawn, and giving the column
     /// a Renderer of BaseRenderer, e.g. <code>myColumnWithImage.Renderer = new BaseRenderer();</code> </para>
+    /// <para>
+    /// Although it isn't documented, virtual lists cannot have checkboxes. A FastObjectListView codes around this limitation,
+    /// but you must use the functions provided by FastObjectListView. If you call the normal "CheckedItems", it will throw an
+    /// exception. If you use CheckedObjects and its friends (declared in ObjectListView), you should not have any trouble.
+    /// The only exception is the "CheckBoxes" property itself. Once this is set, trying to unset it will throw an exception,
+    /// since the list is a virtual list.
+    /// </para>
     /// </remarks>
     public class FastObjectListView : VirtualObjectListView
     {
@@ -4597,9 +4871,12 @@ namespace BrightIdeasSoftware
         override public void SetObjects(IEnumerable collection)
         {
             if (this.InvokeRequired) {
-                this.Invoke((MethodInvoker)delegate { this.SetObjects(collection); }); // this seems neater
+                this.Invoke((MethodInvoker)delegate { this.SetObjects(collection); });
                 return;
             }
+
+            //if (this.CheckBoxes && this.StateImageList == null)
+            //    this.InitializeStateImageList();
 
             this.BeginUpdate();
             ArrayList newObjects = new ArrayList();
@@ -4624,6 +4901,25 @@ namespace BrightIdeasSoftware
             this.Sort();
             this.EndUpdate();
         }
+
+        private void InitializeStateImageList()
+        {
+            this.StateImageList = new ImageList();
+            this.StateImageList.ImageSize = new Size(16, 16);
+
+            this.AddCheckedImage(this.StateImageList, System.Windows.Forms.VisualStyles.CheckBoxState.CheckedNormal);
+            this.AddCheckedImage(this.StateImageList, System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedNormal);
+        }
+
+        private void AddCheckedImage(ImageList imageList, System.Windows.Forms.VisualStyles.CheckBoxState checkBoxState)
+        {
+            Bitmap bm = new Bitmap(imageList.ImageSize.Width, imageList.ImageSize.Height);
+            Graphics g = Graphics.FromImage(bm);
+            g.Clear(imageList.TransparentColor);
+            CheckBoxRenderer.DrawCheckBox(g, new Point(0, 0), checkBoxState);
+            imageList.Images.Add(bm);
+        }
+
 
         /// <summary>
         /// Add the given collection of model objects to this control.
@@ -4733,6 +5029,9 @@ namespace BrightIdeasSoftware
         /// <param name="modelObject">The object that gave data</param>
         override public void SelectObject(object modelObject)
         {
+            if (modelObject == null)
+                return;
+
             if (!this.objectsToIndexMap.ContainsKey(modelObject))
                 return;
 
@@ -5077,12 +5376,12 @@ namespace BrightIdeasSoftware
                 OLVColumn column = this.GetColumn(i);
                 if (column.AspectGetter == null && !String.IsNullOrEmpty(column.AspectName)) {
                     column.AspectGetter = delegate(object row) {
-                        try {
-                            // In most cases, rows will be DataRowView objects
-                            return ((DataRowView)row)[column.AspectName];
-                        } catch {
+                        // In most cases, rows will be DataRowView objects
+                        DataRowView drv = row as DataRowView;
+                        if (drv != null)
+                            return drv[column.AspectName];
+                        else
                             return column.GetAspectByName(row);
-                        }
                     };
                 }
                 if (column.IsEditable && column.AspectPutter == null && !String.IsNullOrEmpty(column.AspectName)) {
@@ -5913,6 +6212,8 @@ namespace BrightIdeasSoftware
             foreach (string property in this.aspectName.Split('.')) {
                 try {
                     source = source.GetType().InvokeMember(property, flags, null, source, null);
+                    if (source == null)
+                        break;
                 } catch (System.MissingMethodException) {
                     return String.Format("Cannot invoke '{0}' on a {1}", property, source.GetType());
                 }
@@ -7197,7 +7498,7 @@ namespace BrightIdeasSoftware
                 this.tickler.Change(1000, Timeout.Infinite);
             else {
                 if (this.ListView.InvokeRequired)
-                    this.ListView.Invoke((MethodInvoker)delegate { this.OnTimer(state); }); 
+                    this.ListView.Invoke((MethodInvoker)delegate { this.OnTimer(state); });
                 else
                     this.OnTimerInThread();
             }
