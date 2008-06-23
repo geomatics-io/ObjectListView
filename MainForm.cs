@@ -130,6 +130,13 @@ namespace ObjectListViewDemo
 
             this.comboBox6.SelectedIndex = 0;
 
+            this.listViewSimple.CheckStateGetter = delegate(object x) {
+                return ((Person)x).IsActive;
+            };
+            this.listViewSimple.CheckStatePutter = delegate(object x, CheckState newValue) {
+                ((Person)x).IsActive = (newValue == CheckState.Checked);
+                return newValue;
+            };
 			// Just one line of code make everything happen.
 			this.listViewSimple.SetObjects(list);
 		}
@@ -439,7 +446,14 @@ namespace ObjectListViewDemo
 
 		void InitializeVirtualListExample ()
 		{
-			this.listViewVirtual.VirtualListSize = 10000000;
+            this.listViewVirtual.CheckStateGetter = delegate(object x) {
+                return ((Person)x).IsActive;
+            };
+            this.listViewVirtual.CheckStatePutter = delegate(object x, CheckState newValue) {
+                ((Person)x).IsActive = (newValue == CheckState.Checked);
+                return newValue;
+            };
+            this.listViewVirtual.VirtualListSize = 10000000;
 			this.listViewVirtual.RowGetter = delegate (int i) {
 				Person p = masterList[i % masterList.Count];
 				p.serialNumber = i;
@@ -784,6 +798,7 @@ this.olvColumnAttributes.Renderer = attributesRenderer;
 
 		void Button5Click(object sender, System.EventArgs e)
 		{
+            this.listViewComplex.CopySelectionToClipboard();
             listViewComplex.SelectedObjects = listViewSimple.SelectedObjects;
             listViewComplex.Select();
 		}
@@ -1267,6 +1282,13 @@ this.olvColumnAttributes.Renderer = attributesRenderer;
 
         private void InitializeFastListExample(List<Person> list)
         {
+            this.olvFastList.CheckStateGetter = delegate(object x) {
+                return ((Person)x).IsActive;
+            };
+            this.olvFastList.CheckStatePutter = delegate(object x, CheckState newValue) {
+                ((Person)x).IsActive = (newValue == CheckState.Checked);
+                return newValue;
+            };
             this.olvColumn18.AspectGetter = delegate(object x) { return ((Person)x).Name; };
 
             this.olvColumn18.ImageGetter = delegate(object row) {
@@ -1416,10 +1438,27 @@ this.olvColumnAttributes.Renderer = attributesRenderer;
         {
 
         }
+
+        private void checkBox15_CheckedChanged(object sender, EventArgs e)
+        {
+            if (((CheckBox)sender).Checked) {
+                if (this.listViewSimple.ShowGroups)
+                    this.listViewSimple.AlwaysGroupByColumn = this.listViewSimple.lastSortColumn;
+            } else {
+                this.listViewSimple.AlwaysGroupByColumn = null;
+            }
+        }
+
+        private void button19_Click(object sender, EventArgs e)
+        {
+            this.olvFastList.CopyObjectsToClipboard(this.olvFastList.CheckedObjects);
+        }
     }
 
 	class Person
 	{
+        public bool IsActive = false;
+
 		public Person(string name)
 		{
 			this.name = name;

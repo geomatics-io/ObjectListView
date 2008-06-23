@@ -48,6 +48,7 @@ namespace ObjectListViewDemo
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.checkBox15 = new System.Windows.Forms.CheckBox();
             this.comboBox6 = new System.Windows.Forms.ComboBox();
             this.label21 = new System.Windows.Forms.Label();
             this.button7 = new System.Windows.Forms.Button();
@@ -228,6 +229,7 @@ namespace ObjectListViewDemo
             this.olvColumn6 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn11 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn16 = new BrightIdeasSoftware.OLVColumn();
+            this.button19 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.listViewSimple)).BeginInit();
@@ -301,6 +303,7 @@ namespace ObjectListViewDemo
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.checkBox15);
             this.tabPage1.Controls.Add(this.comboBox6);
             this.tabPage1.Controls.Add(this.label21);
             this.tabPage1.Controls.Add(this.button7);
@@ -318,6 +321,20 @@ namespace ObjectListViewDemo
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Simple Example";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // checkBox15
+            // 
+            this.checkBox15.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.checkBox15.Location = new System.Drawing.Point(260, 455);
+            this.checkBox15.Name = "checkBox15";
+            this.checkBox15.Size = new System.Drawing.Size(95, 24);
+            this.checkBox15.TabIndex = 9;
+            this.checkBox15.Text = "Lock &Group";
+            this.toolTip1.SetToolTip(this.checkBox15, "If the list is grouped when this is clicked, the current grouping will be locked." +
+                    " When the user clicks on a different column header, the rows will be resorted, b" +
+                    "ut the grouping will not change.");
+            this.checkBox15.UseVisualStyleBackColor = true;
+            this.checkBox15.CheckedChanged += new System.EventHandler(this.checkBox15_CheckedChanged);
             // 
             // comboBox6
             // 
@@ -400,9 +417,9 @@ namespace ObjectListViewDemo
             this.checkBox4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.checkBox4.Location = new System.Drawing.Point(103, 455);
             this.checkBox4.Name = "checkBox4";
-            this.checkBox4.Size = new System.Drawing.Size(175, 24);
+            this.checkBox4.Size = new System.Drawing.Size(141, 24);
             this.checkBox4.TabIndex = 2;
-            this.checkBox4.Text = "Show Item &Count on Groups";
+            this.checkBox4.Text = "Show Group Item &Count";
             this.checkBox4.UseVisualStyleBackColor = true;
             this.checkBox4.CheckedChanged += new System.EventHandler(this.CheckBox4CheckedChanged);
             // 
@@ -439,10 +456,13 @@ namespace ObjectListViewDemo
             this.listViewSimple.AllColumns.Add(this.columnHeader16);
             this.listViewSimple.AllColumns.Add(this.olvColumn34);
             this.listViewSimple.AlternateRowBackColor = System.Drawing.Color.Empty;
+            this.listViewSimple.AlwaysGroupByColumn = null;
+            this.listViewSimple.AlwaysGroupBySortOrder = System.Windows.Forms.SortOrder.None;
             this.listViewSimple.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.listViewSimple.CellEditActivation = BrightIdeasSoftware.ObjectListView.CellEditActivateMode.SingleClick;
+            this.listViewSimple.CheckBoxes = true;
             this.listViewSimple.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader11,
             this.columnHeader12,
@@ -735,6 +755,8 @@ namespace ObjectListViewDemo
             this.listViewComplex.AllColumns.Add(this.olvJokeColumn);
             this.listViewComplex.AllowColumnReorder = true;
             this.listViewComplex.AlternateRowBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            this.listViewComplex.AlwaysGroupByColumn = null;
+            this.listViewComplex.AlwaysGroupBySortOrder = System.Windows.Forms.SortOrder.None;
             this.listViewComplex.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -1023,6 +1045,8 @@ namespace ObjectListViewDemo
             this.listViewDataSet.AllColumns.Add(this.olvColumnGif);
             this.listViewDataSet.AllowColumnReorder = true;
             this.listViewDataSet.AlternateRowBackColor = System.Drawing.Color.Empty;
+            this.listViewDataSet.AlwaysGroupByColumn = null;
+            this.listViewDataSet.AlwaysGroupBySortOrder = System.Windows.Forms.SortOrder.None;
             this.listViewDataSet.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -1297,6 +1321,8 @@ namespace ObjectListViewDemo
             this.listViewVirtual.AllColumns.Add(this.olvColumn10);
             this.listViewVirtual.AllowColumnReorder = true;
             this.listViewVirtual.AlternateRowBackColor = System.Drawing.Color.Empty;
+            this.listViewVirtual.AlwaysGroupByColumn = null;
+            this.listViewVirtual.AlwaysGroupBySortOrder = System.Windows.Forms.SortOrder.None;
             this.listViewVirtual.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -1412,6 +1438,7 @@ namespace ObjectListViewDemo
             this.buttonSaveState.Size = new System.Drawing.Size(87, 23);
             this.buttonSaveState.TabIndex = 10;
             this.buttonSaveState.Text = "Save State";
+            this.toolTip1.SetToolTip(this.buttonSaveState, "Save the current state of the list");
             this.buttonSaveState.UseVisualStyleBackColor = true;
             this.buttonSaveState.Click += new System.EventHandler(this.buttonSaveState_Click);
             // 
@@ -1424,6 +1451,7 @@ namespace ObjectListViewDemo
             this.buttonRestoreState.Size = new System.Drawing.Size(83, 23);
             this.buttonRestoreState.TabIndex = 11;
             this.buttonRestoreState.Text = "Restore State";
+            this.toolTip1.SetToolTip(this.buttonRestoreState, "Restore the state of the list to be as it was when \"Save State\" was clicked");
             this.buttonRestoreState.UseVisualStyleBackColor = true;
             this.buttonRestoreState.Click += new System.EventHandler(this.buttonRestoreState_Click);
             // 
@@ -1435,6 +1463,7 @@ namespace ObjectListViewDemo
             this.button13.Size = new System.Drawing.Size(115, 23);
             this.button13.TabIndex = 12;
             this.button13.Text = "&Choose Columns...";
+            this.toolTip1.SetToolTip(this.button13, "Shows a dialog that allows the user to choose and reorder columns");
             this.button13.UseVisualStyleBackColor = true;
             this.button13.Click += new System.EventHandler(this.button13_Click);
             // 
@@ -1512,7 +1541,7 @@ namespace ObjectListViewDemo
             this.checkBox10.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.checkBox10.Location = new System.Drawing.Point(218, 459);
             this.checkBox10.Name = "checkBox10";
-            this.checkBox10.Size = new System.Drawing.Size(113, 19);
+            this.checkBox10.Size = new System.Drawing.Size(90, 19);
             this.checkBox10.TabIndex = 7;
             this.checkBox10.Text = "Owner &Draw";
             this.checkBox10.UseVisualStyleBackColor = true;
@@ -1563,6 +1592,8 @@ namespace ObjectListViewDemo
             this.listViewFiles.AllColumns.Add(this.olvColumnFileExtension);
             this.listViewFiles.AllowColumnReorder = true;
             this.listViewFiles.AlternateRowBackColor = System.Drawing.Color.Empty;
+            this.listViewFiles.AlwaysGroupByColumn = null;
+            this.listViewFiles.AlwaysGroupBySortOrder = System.Windows.Forms.SortOrder.None;
             this.listViewFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -2137,6 +2168,7 @@ namespace ObjectListViewDemo
             // 
             // tabPage7
             // 
+            this.tabPage7.Controls.Add(this.button19);
             this.tabPage7.Controls.Add(this.button18);
             this.tabPage7.Controls.Add(this.label26);
             this.tabPage7.Controls.Add(this.comboBox9);
@@ -2163,7 +2195,7 @@ namespace ObjectListViewDemo
             this.button18.Size = new System.Drawing.Size(101, 23);
             this.button18.TabIndex = 7;
             this.button18.Text = "Remove Selected";
-            this.toolTip1.SetToolTip(this.button18, "Time how long it takes to rebuild the list");
+            this.toolTip1.SetToolTip(this.button18, "Remove the selected rows from the list");
             this.button18.UseVisualStyleBackColor = true;
             this.button18.Click += new System.EventHandler(this.Button18Click);
             // 
@@ -2189,7 +2221,7 @@ namespace ObjectListViewDemo
             "Single Click",
             "Double Click",
             "F2 Only"});
-            this.comboBox9.Location = new System.Drawing.Point(294, 456);
+            this.comboBox9.Location = new System.Drawing.Point(215, 456);
             this.comboBox9.Name = "comboBox9";
             this.comboBox9.Size = new System.Drawing.Size(83, 21);
             this.comboBox9.TabIndex = 3;
@@ -2199,7 +2231,7 @@ namespace ObjectListViewDemo
             // 
             this.label24.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(240, 460);
+            this.label24.Location = new System.Drawing.Point(166, 460);
             this.label24.Name = "label24";
             this.label24.Size = new System.Drawing.Size(48, 13);
             this.label24.TabIndex = 2;
@@ -2209,7 +2241,7 @@ namespace ObjectListViewDemo
             // 
             this.label25.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(390, 460);
+            this.label25.Location = new System.Drawing.Point(303, 460);
             this.label25.Name = "label25";
             this.label25.Size = new System.Drawing.Size(33, 13);
             this.label25.TabIndex = 4;
@@ -2226,7 +2258,7 @@ namespace ObjectListViewDemo
             "List",
             "Tile",
             "Details"});
-            this.comboBox10.Location = new System.Drawing.Point(429, 456);
+            this.comboBox10.Location = new System.Drawing.Point(337, 456);
             this.comboBox10.Name = "comboBox10";
             this.comboBox10.Size = new System.Drawing.Size(83, 21);
             this.comboBox10.TabIndex = 5;
@@ -2251,7 +2283,7 @@ namespace ObjectListViewDemo
             this.button15.Size = new System.Drawing.Size(69, 23);
             this.button15.TabIndex = 6;
             this.button15.Text = "&Clear List";
-            this.toolTip1.SetToolTip(this.button15, "Select whatever is selected on the Simple tab");
+            this.toolTip1.SetToolTip(this.button15, "Remove all rows from this list");
             this.button15.UseVisualStyleBackColor = true;
             this.button15.Click += new System.EventHandler(this.button15_Click);
             // 
@@ -2263,12 +2295,13 @@ namespace ObjectListViewDemo
             this.button14.Size = new System.Drawing.Size(77, 23);
             this.button14.TabIndex = 8;
             this.button14.Text = "&Add 1000";
-            this.toolTip1.SetToolTip(this.button14, "Time how long it takes to rebuild the list");
+            this.toolTip1.SetToolTip(this.button14, "Add 1000 more rows to the list");
             this.button14.UseVisualStyleBackColor = true;
             this.button14.Click += new System.EventHandler(this.button14_Click);
             // 
             // olvFastList
             // 
+            this.olvFastList.CheckBoxes = true;
             this.olvFastList.AllColumns.Add(this.olvColumn18);
             this.olvFastList.AllColumns.Add(this.olvColumn19);
             this.olvFastList.AllColumns.Add(this.olvColumn26);
@@ -2280,6 +2313,8 @@ namespace ObjectListViewDemo
             this.olvFastList.AllColumns.Add(this.olvColumn33);
             this.olvFastList.AllowColumnReorder = true;
             this.olvFastList.AlternateRowBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            this.olvFastList.AlwaysGroupByColumn = null;
+            this.olvFastList.AlwaysGroupBySortOrder = System.Windows.Forms.SortOrder.None;
             this.olvFastList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -2307,7 +2342,7 @@ namespace ObjectListViewDemo
             this.olvFastList.ShowGroups = false;
             this.olvFastList.ShowImagesOnSubItems = true;
             this.olvFastList.ShowItemToolTips = true;
-            this.olvFastList.Size = new System.Drawing.Size(774, 400);
+            this.olvFastList.Size = new System.Drawing.Size(774, 401);
             this.olvFastList.SmallImageList = this.imageList1;
             this.olvFastList.TabIndex = 0;
             this.olvFastList.UseAlternatingBackColors = true;
@@ -2494,6 +2529,18 @@ namespace ObjectListViewDemo
             this.olvColumn16.DisplayIndex = 4;
             this.olvColumn16.IsVisible = false;
             this.olvColumn16.Text = "Five";
+            // 
+            // button19
+            // 
+            this.button19.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.button19.Location = new System.Drawing.Point(426, 454);
+            this.button19.Name = "button19";
+            this.button19.Size = new System.Drawing.Size(90, 23);
+            this.button19.TabIndex = 17;
+            this.button19.Text = "&Copy Checked";
+            this.toolTip1.SetToolTip(this.button19, "Copy the checked rows to the clipboard");
+            this.button19.UseVisualStyleBackColor = true;
+            this.button19.Click += new System.EventHandler(this.button19_Click);
             // 
             // MainForm
             // 
@@ -2726,6 +2773,8 @@ namespace ObjectListViewDemo
         private ToolStripMenuItem command2ToolStripMenuItem;
         private ToolStripMenuItem command3ToolStripMenuItem;
         private ToolStripMenuItem appearOnTheColumnHeadersToolStripMenuItem;
+        private CheckBox checkBox15;
+        private Button button19;
 
 	}
 }
