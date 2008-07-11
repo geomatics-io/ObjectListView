@@ -87,7 +87,6 @@ namespace ObjectListViewDemo
 			InitializeExplorerExample();
             InitializeListPrinting();
             InitializeFastListExample(list);
-
 #if MONO
             // As of 2008-03-23, grid lines on virtual lists on Windows Mono crashes the program
             this.listViewVirtual.GridLines = false;
@@ -1229,6 +1228,30 @@ this.olvColumnAttributes.Renderer = attributesRenderer;
             ((Person)cb.Tag).CulinaryRating = cb.SelectedIndex * 10;
         }
 
+        private void listViewComplex_CellEditValidating(object sender, ObjectListView.CellEditEventArgs e)
+        {
+            // Disallow professions from starting with "a" or "z" -- just to be arbitrary
+            if (e.Column.Text == "Occupation") {
+                string newValue = ((TextBox)e.Control).Text;
+                if (newValue.ToLowerInvariant().StartsWith("a") || newValue.ToLowerInvariant().StartsWith("z")) {
+                    e.Cancel = true;
+                    MessageBox.Show(this, "Occupations cannot begin with 'a' or 'z' (just to show cell edit validation at work).", "ObjectListViewDemo",
+                        MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+                }
+            }
+
+            // Disallow birthdays from being on the 29th -- just to be arbitrary
+            if (e.Column.Text == "Birthday") {
+                DateTime newValue = ((DateTimePicker)e.Control).Value;
+                if (newValue != null && newValue.Day == 29) {
+                    e.Cancel = true;
+                    MessageBox.Show(this, "Sorry. Birthdays cannot be on 29th of any month (just to show cell edit validation at work).", "ObjectListViewDemo",
+                        MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+                }
+            }
+
+        }
+
         private void listViewComplex_CellEditFinishing(object sender, ObjectListView.CellEditEventArgs e)
         {
             // We only want to mess with the Cooking Skill column
@@ -1434,16 +1457,11 @@ this.olvColumnAttributes.Renderer = attributesRenderer;
             this.olvFastList.RemoveObjects(this.olvFastList.SelectedObjects);
         }
 
-        private void command1ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void checkBox15_CheckedChanged(object sender, EventArgs e)
         {
             if (((CheckBox)sender).Checked) {
                 if (this.listViewSimple.ShowGroups)
-                    this.listViewSimple.AlwaysGroupByColumn = this.listViewSimple.lastSortColumn;
+                    this.listViewSimple.AlwaysGroupByColumn = this.listViewSimple.LastSortColumn;
             } else {
                 this.listViewSimple.AlwaysGroupByColumn = null;
             }
@@ -1453,6 +1471,7 @@ this.olvColumnAttributes.Renderer = attributesRenderer;
         {
             this.olvFastList.CopyObjectsToClipboard(this.olvFastList.CheckedObjects);
         }
+
     }
 
 	class Person
