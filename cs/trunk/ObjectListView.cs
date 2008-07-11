@@ -5,6 +5,10 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2008-07-10  JPP  - Enable validation on cell editors through a CellEditValidating event.
+ *                    (thanks to Artiom Chilaru for the initial suggestion and implementation). 
+ * 2008-07-09  JPP  - Added HeaderControl.Handle to allow OLV to be used within UserControls.
+ *                    (thanks to Michael Coffey for tracking this down).
  * 2008-06-23  JPP  - Broke the more generally useful CopyObjectsToClipboard() method 
  *                    out of CopySelectionToClipboard()
  * 2008-06-22  JPP  - Added AlwaysGroupByColumn and AlwaysGroupBySortOrder, which
@@ -1835,6 +1839,9 @@ namespace BrightIdeasSoftware
         /// </summary>
         virtual protected void HandleColumnClick(object sender, ColumnClickEventArgs e)
         {
+            if (!this.PossibleFinishCellEditing())
+                return;
+
             // Toggle the sorting direction on successive clicks on the same column
             if (this.lastSortColumn != null && e.Column == this.lastSortColumn.Index)
                 this.lastSortOrder = (this.lastSortOrder == SortOrder.Descending ? SortOrder.Ascending : SortOrder.Descending);
@@ -1875,13 +1882,13 @@ namespace BrightIdeasSoftware
                     if (!this.HandleNotify(ref m))
                         base.WndProc(ref m);
                     break;
-                case 0x05:  // WM_SIZE
                 case 0x114: // WM_HSCROLL:
                 case 0x115: // WM_VSCROLL:
+                case 0x201: // WM_LBUTTONDOWN:
                 case 0x20A: // WM_MOUSEWHEEL:
                 case 0x20E: // WM_MOUSEHWHEEL:
-                    this.PossibleFinishCellEditing();
-                    base.WndProc(ref m);
+                    if (this.PossibleFinishCellEditing())
+                        base.WndProc(ref m);
                     break;
                 case 0x7B: // WM_CONTEXTMENU
                     if (!this.HandleContextMenu(ref m))
@@ -1969,9 +1976,24 @@ namespace BrightIdeasSoftware
 
             public HeaderControl(ObjectListView olv)
             {
-                parentListView = olv;
+                this.parentListView = olv;
                 this.AssignHandle(NativeMethods.GetHeaderControl(olv));
             }
+
+            /// <summary>
+            /// Return the Windows handle behind this control
+            /// </summary>
+            /// <remarks>
+            /// When an ObjectListView is initialized as part of a UserControl, the 
+            /// GetHeaderControl() method returns 0 until the UserControl is 
+            /// completely initialized. So the AssignHandle() call in the constructor
+            /// doesn't work. So we override the Handle property so value is always
+            /// current.
+            /// </remarks>
+            public new IntPtr Handle
+            {
+                get { return NativeMethods.GetHeaderControl(this.parentListView); }
+            } 
 
             protected override void WndProc(ref Message message)
             {
@@ -2039,7 +2061,9 @@ namespace BrightIdeasSoftware
                 return false;
 
             // OK. Looks like a right click in the header
-            this.PossibleFinishCellEditing();
+            if (!this.PossibleFinishCellEditing())
+                return true;
+
             int columnIndex = this.hdrCtrl.GetColumnIndexUnderCursor();
             return this.HandleHeaderRightClick(columnIndex);
         }
@@ -2054,6 +2078,10 @@ namespace BrightIdeasSoftware
             bool isMsgHandled = false;
 
             const int HDN_FIRST = (0 - 300);
+            const int HDN_ITEMCHANGINGA = (HDN_FIRST - 0);
+            const int HDN_ITEMCHANGINGW = (HDN_FIRST - 20);
+            const int HDN_ITEMCLICKA = (HDN_FIRST - 2);
+            const int HDN_ITEMCLICKW = (HDN_FIRST - 22); 
             const int HDN_DIVIDERDBLCLICKA = (HDN_FIRST - 5);
             const int HDN_DIVIDERDBLCLICKW = (HDN_FIRST - 25);
             const int HDN_BEGINTRACKA = (HDN_FIRST - 6);
@@ -2062,13 +2090,11 @@ namespace BrightIdeasSoftware
             //const int HDN_ENDTRACKW = (HDN_FIRST - 27);
             const int HDN_TRACKA = (HDN_FIRST - 8);
             const int HDN_TRACKW = (HDN_FIRST - 28);
-            const int HDN_ITEMCHANGINGA = (HDN_FIRST - 0);
-            const int HDN_ITEMCHANGINGW = (HDN_FIRST - 20);
 
             // Handle the notification, remembering to handle both ANSI and Unicode versions
             NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
             //if (nmhdr.code < HDN_FIRST)
-                //System.Diagnostics.Debug.WriteLine(nmhdr.code);
+            //    System.Diagnostics.Debug.WriteLine(nmhdr.code);
 
             // In KB Article #183258, MS states that when a header control has the HDS_FULLDRAG style, it will receive
             // ITEMCHANGING events rather than TRACK events. Under XP SP2 (at least) this is not always true, which may be
@@ -2086,11 +2112,23 @@ namespace BrightIdeasSoftware
             NativeMethods.NMHEADER nmheader;
             switch (nmhdr.code) {
 
+                case HDN_ITEMCLICKA:
+                case HDN_ITEMCLICKW:
+                    if (!this.PossibleFinishCellEditing()) {
+                        m.Result = (IntPtr)1; // prevent the change from happening
+                        isMsgHandled = true;
+                    }
+                    break;
+
                 case HDN_DIVIDERDBLCLICKA:
                 case HDN_DIVIDERDBLCLICKW:
                 case HDN_BEGINTRACKA:
                 case HDN_BEGINTRACKW:
-                    this.PossibleFinishCellEditing();
+                    if (!this.PossibleFinishCellEditing()) {
+                        m.Result = (IntPtr)1; // prevent the change from happening
+                        isMsgHandled = true;
+                        break;
+                    }
                     nmheader = (NativeMethods.NMHEADER)m.GetLParam(typeof(NativeMethods.NMHEADER));
                     if (nmheader.iItem >= 0 && nmheader.iItem < this.Columns.Count) {
                         OLVColumn column = this.GetColumn(nmheader.iItem);
@@ -2885,8 +2923,17 @@ namespace BrightIdeasSoftware
             }
         }
 
-        private const string SORT_INDICATOR_UP_KEY = "sort-indicator-up";
-        private const string SORT_INDICATOR_DOWN_KEY = "sort-indicator-down";
+        /// <summary>
+        /// The name of the image used when a column is sorted ascending
+        /// </summary>
+        /// <remarks>This image is only used on pre-XP systems. System images are used for XP and later</remarks>
+        public const string SORT_INDICATOR_UP_KEY = "sort-indicator-up";
+
+        /// <summary>
+        /// The name of the image used when a column is sorted descending
+        /// </summary>
+        /// <remarks>This image is only used on pre-XP systems. System images are used for XP and later</remarks>
+        public const string SORT_INDICATOR_DOWN_KEY = "sort-indicator-down";
 
         /// <summary>
         /// If the sort indicator images don't already exist, this method will make and install them
@@ -3416,7 +3463,9 @@ namespace BrightIdeasSoftware
             bool isSimpleTabKey = ((keyData & Keys.KeyCode) == Keys.Tab) && ((keyData & (Keys.Alt | Keys.Control)) == Keys.None);
 
             if (isSimpleTabKey && this.IsCellEditing) { // Tab key while editing
-                this.FinishCellEdit();
+                // If the cell editing was cancelled, don't handle the tab
+                if (!this.PossibleFinishCellEditing())
+                    return true;
 
                 // We can only Tab between columns when we are in Details view
                 if (this.View != View.Details)
@@ -3453,7 +3502,7 @@ namespace BrightIdeasSoftware
             // (e.g. ComboBox, UserControl) don't trigger key events that we can listen for.
             // Treat Return or Enter as committing the current edit operation
             if ((keyData == Keys.Return || keyData == Keys.Enter) && this.IsCellEditing) {
-                this.FinishCellEdit();
+                this.PossibleFinishCellEditing();
                 return true;
             }
 
@@ -3577,7 +3626,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected void ConfigureControl()
         {
-            this.cellEditor.Leave += new EventHandler(CellEditor_Leave);
+            this.cellEditor.Validating += new CancelEventHandler(CellEditor_Validating);
             this.cellEditor.Select();
         }
 
@@ -3598,13 +3647,20 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Called when the cell editor loses focus. Time to commit the change
+        /// Called when the cell editor could be about to lose focus. Time to commit the change
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CellEditor_Leave(object sender, EventArgs e)
+        private void CellEditor_Validating(object sender, CancelEventArgs e)
         {
-            FinishCellEdit();
+            this.cellEditEventArgs.Cancel = false;
+            this.OnCellEditorValidating(this.cellEditEventArgs);
+
+            if (this.cellEditEventArgs.Cancel) {
+                this.cellEditEventArgs.Control.Select();
+                e.Cancel = true;
+            } else
+                FinishCellEdit();
         }
 
         /// <summary>
@@ -3701,10 +3757,21 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// If a cell edit is in progress, finish the edit
         /// </summary>
-        protected void PossibleFinishCellEditing()
+        /// <returns>Returns false if the finishing process was cancelled
+        /// (i.e. the cell editor is still on screen)</returns>
+        protected bool PossibleFinishCellEditing()
         {
-            if (this.IsCellEditing)
+            if (this.IsCellEditing) {
+                this.cellEditEventArgs.Cancel = false;
+                this.OnCellEditorValidating(this.cellEditEventArgs);
+
+                if (this.cellEditEventArgs.Cancel) 
+                    return false;
+
                 FinishCellEdit();
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -3712,6 +3779,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected void FinishCellEdit()
         {
+            this.cellEditEventArgs.Cancel = false;
             this.OnCellEditFinishing(this.cellEditEventArgs);
 
             // If someone doesn't cancel the editing process, write the value back into the model
@@ -3732,7 +3800,7 @@ namespace BrightIdeasSoftware
             if (this.cellEditor == null)
                 return;
 
-            this.cellEditor.Leave -= new EventHandler(CellEditor_Leave);
+            this.cellEditor.Validating -= new CancelEventHandler(CellEditor_Validating);
             this.Controls.Remove(this.cellEditor);
             this.cellEditor.Dispose(); //THINK: do we need to call this?
             this.cellEditor = null;
@@ -3754,6 +3822,15 @@ namespace BrightIdeasSoftware
         public event CellEditEventHandler CellEditStarting;
 
         /// <summary>
+        /// Triggered when a cell editor needs to be validated
+        /// </summary>
+        /// <remarks>
+        /// If this event is cancelled, focus will remain on the cell editor.
+        /// </remarks>
+        [Category("Behavior")]
+        public event CellEditEventHandler CellEditValidating;
+
+        /// <summary>
         /// Triggered when a cell is about to finish being edited.
         /// </summary>
         /// <remarks>If Cancel is already true, the user is cancelling the edit operation.
@@ -3770,6 +3847,41 @@ namespace BrightIdeasSoftware
             if (this.CellEditStarting != null)
                 this.CellEditStarting(this, e);
         }
+
+        /// <summary>
+        /// Tell the world when a cell is about to finish being edited.
+        /// </summary>
+        protected virtual void OnCellEditorValidating(CellEditEventArgs e)
+        {
+            // Hack. ListView is an imperfect control container. It does not manage validation 
+            // perfectly. If the ListView is part of a TabControl, and the cell editor loses 
+            // focus by the user clicking on another tab, the TabControl processes the click 
+            // and switches tabs, even if this Validating event cancels. This results in the 
+            // strange situation where the cell editor is active, but isn't visible. When the 
+            // user switches back to the tab with the ListView, composite controls like spin 
+            // controls, DateTimePicker and ComboBoxes do not work properly. Specifically, 
+            // keyboard input still works fine, but the controls do not respond to mouse 
+            // input. SO, if the validation fails, we have to specifically give focus back to 
+            // the cell editor. (this is the Select() call in the code below). But (there is 
+            // always a 'but'), doing that changes the focus so the cell editor 
+            // triggers another Validating event -- which fails again. From the user's point 
+            // of view, they click away from the cell editor, and the validating code 
+            // complains twice. So we only trigger a Validating event if more than 0.1 seconds 
+            // has elapsed since the last validate event.
+            // I know it's a hack. I'm very open to hear a neater solution.
+
+            // Also, this timed response stops us from sending a series of validation events
+            // if the user clicks and holds on the OLV scroll bar.
+            if ((Environment.TickCount - lastValidatingEvent) < 500) {
+                e.Cancel = true;
+            } else {
+                lastValidatingEvent = Environment.TickCount;
+                if (this.CellEditValidating != null)
+                    this.CellEditValidating(this, e);
+            }
+            lastValidatingEvent = Environment.TickCount;
+        }
+        private int lastValidatingEvent = 0;
 
         /// <summary>
         /// Tell the world when a cell is about to finish being edited.
@@ -4086,14 +4198,23 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Which column did we last sort by
         /// </summary>
-        public OLVColumn lastSortColumn;
-
+        public OLVColumn LastSortColumn
+        {
+            get { return lastSortColumn; }
+            set { lastSortColumn = value; }
+        }
+        private OLVColumn lastSortColumn;
+	
         /// <summary>
         /// Which direction did we last sort
         /// </summary>
-        public SortOrder lastSortOrder;
-
-
+        public SortOrder LastSortOrder
+        {
+            get { return lastSortOrder; }
+            set { lastSortOrder = value; }
+        }
+        private SortOrder lastSortOrder;
+	
         private Rectangle lastUpdateRectangle; // remember the update rect from the last WM_PAINT msg
     }
 
@@ -4974,11 +5095,14 @@ namespace BrightIdeasSoftware
         /// </remarks>
         override protected void HandleColumnClick(object sender, ColumnClickEventArgs e)
         {
+            if (!this.PossibleFinishCellEditing())
+                return;
+
             // Toggle the sorting direction on successive clicks on the same column
-            if (this.lastSortColumn != null && e.Column == this.lastSortColumn.Index)
-                this.lastSortOrder = (this.lastSortOrder == SortOrder.Descending ? SortOrder.Ascending : SortOrder.Descending);
+            if (this.LastSortColumn != null && e.Column == this.LastSortColumn.Index)
+                this.LastSortOrder = (this.LastSortOrder == SortOrder.Descending ? SortOrder.Ascending : SortOrder.Descending);
             else
-                this.lastSortOrder = SortOrder.Ascending;
+                this.LastSortOrder = SortOrder.Ascending;
 
             this.BeginUpdate();
             ArrayList previousSelection = this.SelectedObjects;
@@ -4994,8 +5118,8 @@ namespace BrightIdeasSoftware
 
             int increment = (e.Direction == SearchDirectionHint.Up ? -1 : 1);
             OLVColumn column = this.GetColumn(0);
-            if (this.IsSearchOnSortColumn && this.View == View.Details && this.lastSortColumn != null)
-                column = this.lastSortColumn;
+            if (this.IsSearchOnSortColumn && this.View == View.Details && this.LastSortColumn != null)
+                column = this.LastSortColumn;
 
             int i;
             for (i = e.StartIndex; i >= 0 && i < this.objectList.Count; i += increment) {
