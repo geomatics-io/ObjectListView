@@ -5,11 +5,12 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2008-07-23  JPP  - Consistently use copy-on-write semantics with Add/RemoveObject methods
  * 2008-07-10  JPP  - Enable validation on cell editors through a CellEditValidating event.
- *                    (thanks to Artiom Chilaru for the initial suggestion and implementation). 
+ *                    (thanks to Artiom Chilaru for the initial suggestion and implementation).
  * 2008-07-09  JPP  - Added HeaderControl.Handle to allow OLV to be used within UserControls.
  *                    (thanks to Michael Coffey for tracking this down).
- * 2008-06-23  JPP  - Broke the more generally useful CopyObjectsToClipboard() method 
+ * 2008-06-23  JPP  - Split the more generally useful CopyObjectsToClipboard() method
  *                    out of CopySelectionToClipboard()
  * 2008-06-22  JPP  - Added AlwaysGroupByColumn and AlwaysGroupBySortOrder, which
  *                    force the list view to always be grouped by a particular column.
@@ -270,6 +271,7 @@ namespace BrightIdeasSoftware
             this.DoubleBuffered = true; // kill nasty flickers. hiss... me hates 'em
             this.AlternateRowBackColor = Color.Empty;
             this.ShowSortIndicators = true;
+            this.isOwnerOfObjects = false;
         }
 
         #region Public properties
@@ -756,34 +758,34 @@ namespace BrightIdeasSoftware
         private IEnumerable objects;
 
         /// <summary>
-        /// Get our collection of model objects as an ArrayList.
+        /// Take ownership of the 'objects' collection. This separats our collection from the source.
         /// </summary>
         /// <remarks>
-        /// <para></para>If an ArrayList was passed to SetObjects(), this property will simply return that ArrayList.
-        /// Otherwise, it will convert any existing collection into a new ArrayList. This effectively
-        /// separates the 'objects' instance variable from its source.
+        /// <para>
+        /// This method
+        /// separates the 'objects' instance variable from its source, so that any AddObject/RemoveObject
+        /// calls will modify our collection and not the original colleciton.
+        /// </para>
+        /// <para>
+        /// This method has the intentional side-effect of converting our list of objects to an ArrayList.
+        /// </para>
         /// </remarks>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        protected ArrayList ObjectsAsList
+        virtual protected void TakeOwnershipOfObjects()
         {
-            get
-            {
-                if (this.objects is ArrayList)
-                    return (ArrayList)this.objects;
+            if (this.isOwnerOfObjects)
+                return;
 
-                if (this.objects == null)
-                    this.objects = new ArrayList();
-                else if (this.objects is ICollection)
-                    this.objects = new ArrayList((ICollection)this.objects);
-                else {
-                    ArrayList newObjects = new ArrayList();
-                    foreach (object x in this.objects)
-                        newObjects.Add(x);
-                    this.objects = newObjects;
-                }
+            this.isOwnerOfObjects = true;
 
-                return (ArrayList)this.objects;
+            if (this.objects == null)
+                this.objects = new ArrayList();
+            else if (this.objects is ICollection)
+                this.objects = new ArrayList((ICollection)this.objects);
+            else {
+                ArrayList newObjects = new ArrayList();
+                foreach (object x in this.objects)
+                    newObjects.Add(x);
+                this.objects = newObjects;
             }
         }
 
@@ -1206,6 +1208,9 @@ namespace BrightIdeasSoftware
                 this.Invoke((MethodInvoker)delegate { this.SetObjects(collection); });
                 return;
             }
+            // If we own the current list and they change to another list, we don't own it anymore
+            if (this.isOwnerOfObjects && this.objects != collection)
+                this.isOwnerOfObjects = false;
             this.objects = collection;
             this.BuildList(false);
         }
@@ -1239,10 +1244,12 @@ namespace BrightIdeasSoftware
 
             this.BeginUpdate();
 
+            this.TakeOwnershipOfObjects();
+            ArrayList ourObjects = (ArrayList)this.Objects;
             List<OLVListItem> itemList = new List<OLVListItem>();
             foreach (object modelObject in modelObjects) {
                 if (modelObject != null) {
-                    this.ObjectsAsList.Add(modelObject);
+                    ourObjects.Add(modelObject);
                     OLVListItem lvi = new OLVListItem(modelObject);
                     this.FillInValues(lvi, modelObject);
                     itemList.Add(lvi);
@@ -1282,9 +1289,11 @@ namespace BrightIdeasSoftware
 
             this.BeginUpdate();
 
+            this.TakeOwnershipOfObjects();
+            ArrayList ourObjects = (ArrayList)this.Objects;
             foreach (object modelObject in modelObjects) {
                 if (modelObject != null) {
-                    this.ObjectsAsList.Remove(modelObject);
+                    ourObjects.Remove(modelObject);
                     int i = this.IndexOf(modelObject);
                     if (i >= 0)
                         this.Items.RemoveAt(i);
@@ -1485,7 +1494,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Organise the view items into groups, based on the given column
         /// </summary>
-        /// <remarks>If the AlwaysGroupByColumn property is not null, 
+        /// <remarks>If the AlwaysGroupByColumn property is not null,
         /// the list view items will be organisd by that column,
         /// and the 'column' parameter will be ignored.</remarks>
         /// <param name="column">The column whose values should be used for sorting.</param>
@@ -1984,8 +1993,8 @@ namespace BrightIdeasSoftware
             /// Return the Windows handle behind this control
             /// </summary>
             /// <remarks>
-            /// When an ObjectListView is initialized as part of a UserControl, the 
-            /// GetHeaderControl() method returns 0 until the UserControl is 
+            /// When an ObjectListView is initialized as part of a UserControl, the
+            /// GetHeaderControl() method returns 0 until the UserControl is
             /// completely initialized. So the AssignHandle() call in the constructor
             /// doesn't work. So we override the Handle property so value is always
             /// current.
@@ -1993,7 +2002,7 @@ namespace BrightIdeasSoftware
             public new IntPtr Handle
             {
                 get { return NativeMethods.GetHeaderControl(this.parentListView); }
-            } 
+            }
 
             protected override void WndProc(ref Message message)
             {
@@ -2051,7 +2060,7 @@ namespace BrightIdeasSoftware
                 return false;
 
             // If the context menu command was generated by the keyboard, LParam will be -1.
-            // We don't want to process these. 
+            // We don't want to process these.
             if (((int)m.LParam) == -1)
                 return false;
 
@@ -2081,7 +2090,7 @@ namespace BrightIdeasSoftware
             const int HDN_ITEMCHANGINGA = (HDN_FIRST - 0);
             const int HDN_ITEMCHANGINGW = (HDN_FIRST - 20);
             const int HDN_ITEMCLICKA = (HDN_FIRST - 2);
-            const int HDN_ITEMCLICKW = (HDN_FIRST - 22); 
+            const int HDN_ITEMCLICKW = (HDN_FIRST - 22);
             const int HDN_DIVIDERDBLCLICKA = (HDN_FIRST - 5);
             const int HDN_DIVIDERDBLCLICKW = (HDN_FIRST - 25);
             const int HDN_BEGINTRACKA = (HDN_FIRST - 6);
@@ -3615,10 +3624,14 @@ namespace BrightIdeasSoftware
             }
 
             // There wasn't a Value property, or we couldn't set it, so set the text instead
-            if (value is String)
-                c.Text = (String)value;
-            else
-                c.Text = stringValue;
+            try {
+                if (value is String)
+                    c.Text = (String)value;
+                else
+                    c.Text = stringValue;
+            } catch (ArgumentOutOfRangeException) {
+                // The value couldn't be set via the Text property.
+            }
         }
 
         /// <summary>
@@ -3765,7 +3778,7 @@ namespace BrightIdeasSoftware
                 this.cellEditEventArgs.Cancel = false;
                 this.OnCellEditorValidating(this.cellEditEventArgs);
 
-                if (this.cellEditEventArgs.Cancel) 
+                if (this.cellEditEventArgs.Cancel)
                     return false;
 
                 FinishCellEdit();
@@ -3853,20 +3866,20 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected virtual void OnCellEditorValidating(CellEditEventArgs e)
         {
-            // Hack. ListView is an imperfect control container. It does not manage validation 
-            // perfectly. If the ListView is part of a TabControl, and the cell editor loses 
-            // focus by the user clicking on another tab, the TabControl processes the click 
-            // and switches tabs, even if this Validating event cancels. This results in the 
-            // strange situation where the cell editor is active, but isn't visible. When the 
-            // user switches back to the tab with the ListView, composite controls like spin 
-            // controls, DateTimePicker and ComboBoxes do not work properly. Specifically, 
-            // keyboard input still works fine, but the controls do not respond to mouse 
-            // input. SO, if the validation fails, we have to specifically give focus back to 
-            // the cell editor. (this is the Select() call in the code below). But (there is 
-            // always a 'but'), doing that changes the focus so the cell editor 
-            // triggers another Validating event -- which fails again. From the user's point 
-            // of view, they click away from the cell editor, and the validating code 
-            // complains twice. So we only trigger a Validating event if more than 0.1 seconds 
+            // Hack. ListView is an imperfect control container. It does not manage validation
+            // perfectly. If the ListView is part of a TabControl, and the cell editor loses
+            // focus by the user clicking on another tab, the TabControl processes the click
+            // and switches tabs, even if this Validating event cancels. This results in the
+            // strange situation where the cell editor is active, but isn't visible. When the
+            // user switches back to the tab with the ListView, composite controls like spin
+            // controls, DateTimePicker and ComboBoxes do not work properly. Specifically,
+            // keyboard input still works fine, but the controls do not respond to mouse
+            // input. SO, if the validation fails, we have to specifically give focus back to
+            // the cell editor. (this is the Select() call in the code below). But (there is
+            // always a 'but'), doing that changes the focus so the cell editor
+            // triggers another Validating event -- which fails again. From the user's point
+            // of view, they click away from the cell editor, and the validating code
+            // complains twice. So we only trigger a Validating event if more than 0.1 seconds
             // has elapsed since the last validate event.
             // I know it's a hack. I'm very open to hear a neater solution.
 
@@ -4204,7 +4217,7 @@ namespace BrightIdeasSoftware
             set { lastSortColumn = value; }
         }
         private OLVColumn lastSortColumn;
-	
+
         /// <summary>
         /// Which direction did we last sort
         /// </summary>
@@ -4214,8 +4227,9 @@ namespace BrightIdeasSoftware
             set { lastSortOrder = value; }
         }
         private SortOrder lastSortOrder;
-	
+
         private Rectangle lastUpdateRectangle; // remember the update rect from the last WM_PAINT msg
+        private bool isOwnerOfObjects; // does this ObjectListView own the Objects collection?
     }
 
     /// <summary>
@@ -4672,7 +4686,7 @@ namespace BrightIdeasSoftware
         /// <returns>An OLVListItem</returns>
         override public OLVListItem GetItem(int index)
         {
-            return this.MakeListViewItem(index);
+            return (OLVListItem)this.Items[index];
         }
 
         /// <summary>
@@ -5054,7 +5068,8 @@ namespace BrightIdeasSoftware
         /// </remarks>
         override public void AddObjects(ICollection modelObjects)
         {
-        	foreach (object modelObject in modelObjects) {
+            this.TakeOwnershipOfObjects();
+            foreach (object modelObject in modelObjects) {
         		if (modelObject != null)
         			this.objectList.Add(modelObject);
         	}
@@ -5070,6 +5085,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         override public void RemoveObjects(ICollection modelObjects)
         {
+            this.TakeOwnershipOfObjects();
             ArrayList selectedObjects = this.SelectedObjects;
          	foreach (object modelObject in modelObjects) {
         		if (modelObject != null) {
@@ -5081,6 +5097,23 @@ namespace BrightIdeasSoftware
             this.SelectedObjects = selectedObjects;
         }
 
+        /// <summary>
+        /// Take ownership of the 'objects' collection. This separats our collection from the source.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This method
+        /// separates the 'objects' instance variable from its source, so that any AddObject/RemoveObject
+        /// calls will modify our collection and not the original colleciton.
+        /// </para>
+        /// <para>
+        /// FastObjectListViews always own their collections, so this is a no-op.
+        /// </para>
+        /// </remarks>
+        override protected void TakeOwnershipOfObjects()
+        {
+            // FastObjectListViews always own their collections, so we don't need to do anything.
+        }
         #endregion
 
         #region Event Handlers
@@ -5510,12 +5543,12 @@ namespace BrightIdeasSoftware
                 }
                 if (column.IsEditable && column.AspectPutter == null && !String.IsNullOrEmpty(column.AspectName)) {
                     column.AspectPutter = delegate(object row, object newValue) {
-                        try {
-                            // In most cases, rows will be DataRowView objects
-                            ((DataRowView)row)[column.AspectName] = newValue;
-                        } catch {
+                        // In most cases, rows will be DataRowView objects
+                        DataRowView drv = row as DataRowView;
+                        if (drv != null)                        
+                            drv[column.AspectName] = newValue;
+                        else
                             column.PutAspectByName(row, newValue);
-                        }
                     };
                 }
             }
