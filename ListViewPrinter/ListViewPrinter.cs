@@ -5,6 +5,8 @@
  * Date: 2007-11-01 11:15 AM
  *
  * Change log:
+ * 2008-11-15  JPP  - Use BrushData and PenData objects to ease IDE interactions.
+ *                  - [BREAK] Removed obsolete methods.
  * 2008-04-13  JPP  - Made the instance variables 'groupHeaderFormat' and 'listHeaderFormat'
  *                    private, like they always should have been. Use their corresponding
  *                    properties instead.
@@ -26,20 +28,31 @@
  * 
  * To Do:
  * 
- * CONDITIONS OF USE
- * This code may be freely used for any purpose, providate that this code is kept intact, 
- * complete with this header and conditions of use.
- * 
- * Copyright (C) 2007 Phillip Piper
+ * Copyright (C) 2006-2008 Phillip Piper
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
  */
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.Windows.Forms;
-using System.Drawing.Printing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Printing;
+using System.Windows.Forms;
 
 namespace BrightIdeasSoftware
 {
@@ -61,8 +74,6 @@ namespace BrightIdeasSoftware
         /// </summary>
         public ListViewPrinterBase()
         {
-            this.ListView = null;
-
             // Give the report a reasonable set of default values
             this.HeaderFormat = BlockFormat.Header();
             this.ListHeaderFormat = BlockFormat.ListHeader();
@@ -178,7 +189,7 @@ namespace BrightIdeasSoftware
         private bool isListHeaderOnEachPage = true;
 
         /// <summary>
-        /// Return the first page of the report that should be printed
+        /// Return the index of the first page of the report that should be printed
         /// </summary>
         [Category("Behaviour"),
         Description("Return the first page of the report that should be printed"),
@@ -191,7 +202,7 @@ namespace BrightIdeasSoftware
         private int firstPage = 0;
 
         /// <summary>
-        /// Return the last page of the report that should be printed
+        /// Return the index of the last page of the report that should be printed
         /// </summary>
         [Category("Behaviour"),
         Description("Return the last page of the report that should be printed"),
@@ -209,8 +220,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public int PageNumber
         {
-            get
-            {
+            get {
                 return this.pageNumber;
             }
         }
@@ -222,8 +232,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public bool IsShowingGroups
         {
-            get
-            {
+            get {
                 return (this.ListView != null && this.ListView.ShowGroups && !this.IsPrintSelectionOnly && this.ListView.Groups.Count > 0);
             }
         }
@@ -266,8 +275,7 @@ namespace BrightIdeasSoftware
         DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         public BlockFormat GroupHeaderFormat
         {
-            get
-            {
+            get {
                 // The group header format cannot be null
                 if (groupHeaderFormat == null)
                     groupHeaderFormat = BlockFormat.GroupHeader();
@@ -286,16 +294,14 @@ namespace BrightIdeasSoftware
         DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         public BlockFormat CellFormat
         {
-            get
-            {
+            get {
                 // The cell format cannot be null
                 if (cellFormat == null)
                     cellFormat = BlockFormat.DefaultCell();
 
                 return cellFormat;
             }
-            set
-            {
+            set {
                 cellFormat = value;
             }
         }
@@ -337,27 +343,6 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// What color will all the borders be drawn in? 
-        /// </summary>
-        /// <remarks>This is just a conviencence wrapper around CellFormat.SetBorder</remarks>
-        [Browsable(false)]
-        public Color ListGridColor
-        {
-            get
-            {
-                Pen p = this.ListGridPen;
-                if (p == null)
-                    return Color.Empty;
-                else
-                    return p.Color;
-            }
-            set
-            {
-                this.ListGridPen = new Pen(new SolidBrush(value), 0.5f);
-            }
-        }
-
-        /// <summary>
         /// What string will be written at the top of each page of the report?
         /// </summary>
         /// <remarks><para>The header can be divided into three parts: left aligned, 
@@ -377,8 +362,7 @@ namespace BrightIdeasSoftware
         public String Header
         {
             get { return header; }
-            set
-            {
+            set {
                 header = value;
                 if (!String.IsNullOrEmpty(header))
                     header = header.Replace("\\t", "\t");
@@ -397,8 +381,7 @@ namespace BrightIdeasSoftware
         public String Footer
         {
             get { return footer; }
-            set
-            {
+            set {
                 footer = value;
                 if (!String.IsNullOrEmpty(footer))
                     footer = footer.Replace("\\t", "\t");
@@ -441,8 +424,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public Font WatermarkFontOrDefault
         {
-            get
-            {
+            get {
                 if (this.WatermarkFont == null)
                     return new Font("Tahoma", 72);
                 else
@@ -454,7 +436,7 @@ namespace BrightIdeasSoftware
         /// What color should be used for the watermark?
         /// </summary>
         [Category("Appearance - Watermark"),
-        Description("What color should be used for the watermark?"),
+        Description("What foregroundColor should be used for the watermark?"),
         DefaultValue(typeof(Color), "Empty")]
         public Color WatermarkColor
         {
@@ -469,8 +451,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public Color WatermarkColorOrDefault
         {
-            get
-            {
+            get {
                 if (this.WatermarkColor == Color.Empty)
                     return Color.Gray;
                 else
@@ -1180,9 +1161,9 @@ namespace BrightIdeasSoftware
                 return false;
 
             if (lvi.UseItemStyleForSubItems)
-                fmt.BackgroundColor = lvi.BackColor;
+                fmt.BackgroundBrush = new SolidBrush(lvi.BackColor);
             else
-                fmt.BackgroundColor = lvsi.BackColor;
+                fmt.BackgroundBrush = new SolidBrush(lvsi.BackColor);
 
             return true;
         }
@@ -1305,8 +1286,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public Font FontOrDefault
         {
-            get
-            {
+            get {
                 if (this.Font == null)
                     return new Font("Ms Sans Serif", 12);
                 else
@@ -1323,8 +1303,26 @@ namespace BrightIdeasSoftware
         /// This is useful when you have setup specific colors on a RowFormatter delegate, for example.
         /// </para>
         /// </remarks>
-        [Browsable(false)]
-        public Brush TextBrush = null;
+        public Brush TextBrush;
+        
+        /// <summary>
+        /// This object is used by the IDE to set the text brush.
+        /// </summary>
+        [Category("Appearance"), 
+        DisplayName("TextBrush"),
+        DefaultValue(null)]
+        public IBrushData TextBrushData
+        {
+            get {
+                return textBrushData;
+            }
+            set {
+                textBrushData = value;
+                if (value != null)
+                    this.TextBrush = value.GetBrush();
+            }
+        }
+        private IBrushData textBrushData;	
 
         /// <summary>
         /// Return the brush that will be used to draw the text or a reasonable default
@@ -1332,8 +1330,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public Brush TextBrushOrDefault
         {
-            get
-            {
+            get {
                 if (this.TextBrush == null)
                     return Brushes.Black;
                 else
@@ -1342,57 +1339,29 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// What color will be used to draw the text?
-        /// This is a convience method used by the IDE. Programmers should call TextBrush directly.
-        /// </summary>
-        [Category("Appearance"),
-        Description("What color should text in this block be drawn in?"),
-        DefaultValue(typeof(Color), "Empty")]
-        public Color TextColor
-        {
-            get
-            {
-                if (this.TextBrush == null || !(this.TextBrush is SolidBrush))
-                    return Color.Empty;
-                else
-                    return ((SolidBrush)this.TextBrush).Color;
-            }
-            set
-            {
-                if (value.IsEmpty)
-                    this.TextBrush = null;
-                else
-                    this.TextBrush = new SolidBrush(value);
-            }
-        }
-
-        /// <summary>
         /// What brush will be used to paint the background?
         /// </summary>
         [Browsable(false)]
-        public Brush BackgroundBrush = null;
+        public Brush BackgroundBrush;
 
         /// <summary>
-        /// What color will be used to draw the background?
-        /// This is a convience method used by the IDE.
+        /// This object is used by the IDE to set the background brush.
         /// </summary>
-        [Category("Appearance"),
-        Description("What color should be used to paint the background of this block?"),
-        DefaultValue(typeof(Color), "Empty")]
-        public Color BackgroundColor
+        [Category("Appearance"), 
+        DisplayName("BackgroundBrush"),
+        DefaultValue(null)]
+        public IBrushData BackgroundBrushData
         {
-            get
-            {
-                if (this.BackgroundBrush == null || !(this.BackgroundBrush is SolidBrush))
-                    return Color.Empty;
-                else
-                    return ((SolidBrush)this.BackgroundBrush).Color;
+            get {
+                return backgroundBrushData;
             }
-            set
-            {
-                this.BackgroundBrush = new SolidBrush(value);
+            set {
+                backgroundBrushData = value;
+                if (value != null)
+                    this.BackgroundBrush = value.GetBrush();
             }
         }
+        private IBrushData backgroundBrushData;	
 
         /// <summary>
         /// When laying out our header can the text be wrapped?
@@ -1425,85 +1394,95 @@ namespace BrightIdeasSoftware
         // rather than these methods.
 
         /// <summary>
-        /// Set the TopBorderWidth
+        /// Set the TopBorder
         /// </summary>
-        [Category("Appearance"), Description("Width of the top border"), DefaultValue(0.0f)]
-        public float TopBorderWidth
+        [Category("Appearance"),
+        DisplayName("Border - Top"),
+        DefaultValue(null)]
+        public PenData TopBorderPenData
         {
-            get { return this.GetBorderWidth(Sides.Top); }
-            set { this.SetBorder(Sides.Top, value, this.GetBorderBrush(Sides.Top)); }
+            get { return topBorderPenData; }
+            set {
+                topBorderPenData = value;
+                if (value != null)
+                    this.SetBorderPen(Sides.Top, value.GetPen());
+            }
         }
-        /// <summary>
-        /// Set the TopBorderWidth
-        /// </summary>
-        [Category("Appearance"), Description("Width of the Left border"), DefaultValue(0.0f)]
-        public float LeftBorderWidth
-        {
-            get { return this.GetBorderWidth(Sides.Left); }
-            set { this.SetBorder(Sides.Left, value, this.GetBorderBrush(Sides.Left)); }
-        }
-        /// <summary>
-        /// Set the TopBorderWidth
-        /// </summary>
-        [Category("Appearance"), Description("Width of the Bottom border"), DefaultValue(0.0f)]
-        public float BottomBorderWidth
-        {
-            get { return this.GetBorderWidth(Sides.Bottom); }
-            set { this.SetBorder(Sides.Bottom, value, this.GetBorderBrush(Sides.Bottom)); }
-        }
-        /// <summary>
-        /// Set the TopBorderWidth
-        /// </summary>
-        [Category("Appearance"), Description("Width of the Right border"), DefaultValue(0.0f)]
-        public float RightBorderWidth
-        {
-            get { return this.GetBorderWidth(Sides.Right); }
-            set { this.SetBorder(Sides.Right, value, this.GetBorderBrush(Sides.Right)); }
-        }
-        /// <summary>
-        /// Set the TopBorderWidth
-        /// </summary>
-        [Category("Appearance"), Description("Color of the top border"), DefaultValue(typeof(Color), "Empty")]
-        public Color TopBorderColor
-        {
-            get { return this.GetSolidBorderColor(Sides.Top); }
-            set { this.SetBorder(Sides.Top, this.GetBorderWidth(Sides.Top), new SolidBrush(value)); }
-        }
-        /// <summary>
-        /// Set the TopBorderWidth
-        /// </summary>
-        [Category("Appearance"), Description("Color of the Left border"), DefaultValue(typeof(Color), "Empty")]
-        public Color LeftBorderColor
-        {
-            get { return this.GetSolidBorderColor(Sides.Left); }
-            set { this.SetBorder(Sides.Left, this.GetBorderWidth(Sides.Left), new SolidBrush(value)); }
-        }
-        /// <summary>
-        /// Set the TopBorderWidth
-        /// </summary>
-        [Category("Appearance"), Description("Color of the Bottom border"), DefaultValue(typeof(Color), "Empty")]
-        public Color BottomBorderColor
-        {
-            get { return this.GetSolidBorderColor(Sides.Bottom); }
-            set { this.SetBorder(Sides.Bottom, this.GetBorderWidth(Sides.Bottom), new SolidBrush(value)); }
-        }
-        /// <summary>
-        /// Set the TopBorderWidth
-        /// </summary>
-        [Category("Appearance"), Description("Color of the Right border"), DefaultValue(typeof(Color), "Empty")]
-        public Color RightBorderColor
-        {
-            get { return this.GetSolidBorderColor(Sides.Right); }
-            set { this.SetBorder(Sides.Right, this.GetBorderWidth(Sides.Right), new SolidBrush(value)); }
-        }
+        private PenData topBorderPenData;
 
-        private Color GetSolidBorderColor(Sides side)
+        /// <summary>
+        /// Set the LeftBorder
+        /// </summary>
+        [Category("Appearance"),
+        DisplayName("Border - Left"),
+        DefaultValue(null)]
+        public PenData LeftBorderPenData
         {
-            Brush b = this.GetBorderBrush(side);
-            if (b != null && b is SolidBrush)
-                return ((SolidBrush)b).Color;
-            else
-                return Color.Empty;
+            get { return leftBorderPenData; }
+            set {
+                leftBorderPenData = value;
+                if (value != null)
+                    this.SetBorderPen(Sides.Left, value.GetPen());
+            }
+        }
+        private PenData leftBorderPenData;
+
+        /// <summary>
+        /// Set the BottomBorder
+        /// </summary>
+        [Category("Appearance"),
+        DisplayName("Border - Bottom"),
+        DefaultValue(null)]
+        public PenData BottomBorderPenData
+        {
+            get { return bottomBorderPenData; }
+            set {
+                bottomBorderPenData = value;
+                if (value != null)
+                    this.SetBorderPen(Sides.Bottom, value.GetPen());
+            }
+        }
+        private PenData bottomBorderPenData;
+
+        /// <summary>
+        /// Set the RightBorder
+        /// </summary>
+        [Category("Appearance"),
+        DisplayName("Border - Right"),
+        DefaultValue(null)]
+        public PenData RightBorderPenData
+        {
+            get { return rightBorderPenData; }
+            set {
+                rightBorderPenData = value;
+                if (value != null)
+                    this.SetBorderPen(Sides.Right, value.GetPen());
+            }
+        }
+        private PenData rightBorderPenData;
+
+        /// <summary>
+        /// Set the RightBorder
+        /// </summary>
+        [Category("Appearance"),
+        DisplayName("Border - All"),
+        DefaultValue(null)]
+        public PenData AllBorderPenData
+        {
+            get {
+                if (leftBorderPenData == topBorderPenData &&
+                    leftBorderPenData == rightBorderPenData &&
+                    leftBorderPenData == bottomBorderPenData)
+                    return leftBorderPenData;
+                else
+                    return null;
+            }
+            set {
+                this.LeftBorderPenData = value;
+                this.TopBorderPenData = value;
+                this.RightBorderPenData = value;
+                this.BottomBorderPenData = value;
+            }
         }
 
         #endregion
@@ -1547,8 +1526,8 @@ namespace BrightIdeasSoftware
         /// <returns>The pen of the border</returns>
         public Pen GetBorderPen(Sides side)
         {
-            if (this.BorderPens.ContainsKey(side))
-                return this.BorderPens[side];
+            if (this.BorderPen.ContainsKey(side))
+                return this.BorderPen[side];
             else
                 return null;
         }
@@ -1565,20 +1544,6 @@ namespace BrightIdeasSoftware
                 return 0;
             else
                 return p.Width;
-        }
-
-        /// <summary>
-        /// Get the width of the border on a particular side. 0 means no border on that side.
-        /// </summary>
-        /// <param name="side">Which side</param>
-        /// <returns>The width of the border</returns>
-        public Brush GetBorderBrush(Sides side)
-        {
-            Pen p = this.GetBorderPen(side);
-            if (p == null)
-                return null;
-            else
-                return p.Brush;
         }
 
         /// <summary>
@@ -1601,13 +1566,13 @@ namespace BrightIdeasSoftware
         {
             if (side == Sides.All) {
                 this.areSideBorderEqual = true;
-                this.BorderPens[Sides.Left] = p;
-                this.BorderPens[Sides.Top] = p;
-                this.BorderPens[Sides.Right] = p;
-                this.BorderPens[Sides.Bottom] = p;
+                this.BorderPen[Sides.Left] = p;
+                this.BorderPen[Sides.Top] = p;
+                this.BorderPen[Sides.Right] = p;
+                this.BorderPen[Sides.Bottom] = p;
             } else {
                 this.areSideBorderEqual = false;
-                this.BorderPens[side] = p;
+                this.BorderPen[side] = p;
             }
         }
         private bool areSideBorderEqual = false;
@@ -1619,7 +1584,7 @@ namespace BrightIdeasSoftware
         /// <returns>Distance of text inset</returns>
         public float GetTextInset(Sides side)
         {
-            return GetKeyOrDefault(this.TextInsets, side, 0f);
+            return GetKeyOrDefault(this.TextInset, side, 0f);
         }
 
         /// <summary>
@@ -1630,12 +1595,12 @@ namespace BrightIdeasSoftware
         public void SetTextInset(Sides side, float value)
         {
             if (side == Sides.All) {
-                this.TextInsets[Sides.Left] = value;
-                this.TextInsets[Sides.Top] = value;
-                this.TextInsets[Sides.Right] = value;
-                this.TextInsets[Sides.Bottom] = value;
+                this.TextInset[Sides.Left] = value;
+                this.TextInset[Sides.Top] = value;
+                this.TextInset[Sides.Right] = value;
+                this.TextInset[Sides.Bottom] = value;
             } else
-                this.TextInsets[side] = value;
+                this.TextInset[side] = value;
         }
 
         // I hate the fact that Dictionary doesn't have a method like this!
@@ -1647,8 +1612,9 @@ namespace BrightIdeasSoftware
                 return defaultValue;
         }
 
-        private Dictionary<Sides, Pen> BorderPens = new Dictionary<Sides, Pen>();
-        private Dictionary<Sides, float> TextInsets = new Dictionary<Sides, float>();
+        private Dictionary<Sides, Pen> BorderPen = new Dictionary<Sides, Pen>();
+        private Dictionary<Sides, PenData> BorderPenData = new Dictionary<Sides, PenData>();
+        private Dictionary<Sides, float> TextInset = new Dictionary<Sides, float>();
         private Dictionary<Sides, float> Padding = new Dictionary<Sides, float>();
 
         #endregion
@@ -1842,6 +1808,28 @@ namespace BrightIdeasSoftware
                 this.DrawOneBorder(g, Sides.Left, r.X, r.Y, r.X, r.Bottom, false);
                 this.DrawOneBorder(g, Sides.Right, r.Right, r.Y, r.Right, r.Bottom, false);
             }
+        }
+
+        static public Brush PrepareBrushForDrawing(Brush value, Rectangle r)
+        {
+            LinearGradientBrush lgb = value as LinearGradientBrush;
+            if (lgb == null)
+                return value;
+
+            LinearGradientBrush lgb2 = new LinearGradientBrush(r, lgb.LinearColors[0], lgb.LinearColors[1], 0.0);
+#if !MONO
+            lgb2.Blend = lgb.Blend;
+            //lgb2.InterpolationColors = lgb.InterpolationColors;
+#endif
+            lgb2.WrapMode = lgb.WrapMode;
+            lgb2.Transform = lgb.Transform;
+            return lgb2;
+        }
+
+        static public Pen PreparePenForDrawing(Pen value, Rectangle r)
+        {
+            value.Brush = BlockFormat.PrepareBrushForDrawing(value.Brush, r);
+            return value;
         }
 
         private void DrawOneBorder(Graphics g, Sides side, float x1, float y1, float x2, float y2, bool isRectangle)
