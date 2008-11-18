@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ObjectListViewDemo {
+namespace ListViewPrinterDemo.Properties {
     using System;
     
     
@@ -22,14 +22,14 @@ namespace ObjectListViewDemo {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "2.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resource1 {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Resource1() {
+        internal Resources() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace ObjectListViewDemo {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ObjectListViewDemo.Resource1", typeof(Resource1).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ListViewPrinterDemo.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -60,44 +60,9 @@ namespace ObjectListViewDemo {
             }
         }
         
-        internal static System.Drawing.Bitmap down16 {
+        internal static System.Drawing.Bitmap compass16 {
             get {
-                object obj = ResourceManager.GetObject("down16", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        internal static System.Drawing.Bitmap folder16 {
-            get {
-                object obj = ResourceManager.GetObject("folder16", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        internal static System.Drawing.Bitmap movie16 {
-            get {
-                object obj = ResourceManager.GetObject("movie16", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        internal static System.Drawing.Bitmap music16 {
-            get {
-                object obj = ResourceManager.GetObject("music16", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        internal static System.Drawing.Bitmap star16 {
-            get {
-                object obj = ResourceManager.GetObject("star16", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        internal static System.Drawing.Bitmap tick16 {
-            get {
-                object obj = ResourceManager.GetObject("tick16", resourceCulture);
+                object obj = ResourceManager.GetObject("compass16", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
