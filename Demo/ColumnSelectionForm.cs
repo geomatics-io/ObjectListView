@@ -74,16 +74,16 @@ namespace ObjectListViewDemo
             }
             this.RearrangableColumns.Sort(new SortByDisplayOrder(this));
 
-            this.objectListView1.CheckStateGetter = delegate(Object rowObject) {
+            this.objectListView1.BooleanCheckStateGetter = delegate(Object rowObject) {
                 return this.MapColumnToVisible[(OLVColumn)rowObject];
             };
 
-            this.objectListView1.CheckStatePutter = delegate(Object rowObject, CheckState newValue) {
-                if (this.IsPrimaryColumn((OLVColumn)rowObject))
-                    return CheckState.Checked; // primary column should always be checked
-                
-                this.MapColumnToVisible[(OLVColumn)rowObject] = (newValue == CheckState.Checked);
-                EnableControls();
+            this.objectListView1.BooleanCheckStatePutter = delegate(Object rowObject, bool newValue) {
+                // primary column should always be checked so ignore attempts to change it
+                if (!this.IsPrimaryColumn((OLVColumn)rowObject)) {
+                    this.MapColumnToVisible[(OLVColumn)rowObject] = newValue;
+                    EnableControls();
+                }
                 return newValue;
             };
 
