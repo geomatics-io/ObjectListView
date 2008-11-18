@@ -445,7 +445,7 @@
     <value>This list view shows the behaviour of the control when only IDE configuration has been done. In this case, each column has been told which aspect to display, and the birthday and hourly rate column have been given format strings. The Person and Occupation columns have minimum and maximum widths, Year of birth column is fixed width and Comments is free space filler. All of this configuration can be done within the IDE.</value>
   </data>
   <metadata name="contextMenuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>702, 17</value>
+    <value>676, 17</value>
   </metadata>
   <data name="label2.Text" xml:space="preserve">
     <value>This list view has more customization, showing what is possible with a few callbacks. It shows: owner drawn rendering (check out owner drawing in Tile view!); alternate line colouring; specialised group item counts (the 'Cooking Skill' and 'Birthday' columns); adding extra information to the 'Tile' view.</value>
@@ -1597,13 +1597,22 @@
     <value>The ListViewPrinter class makes printing a ListView ridiciously easy. The format of the report can be easily customised: the styles Minimal, Modern and Too Much! are just some examples. N.B The preview below is not a full print previewer -- it only shows the first two pages of the report.</value>
   </data>
   <metadata name="listViewPrinter1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>574, 17</value>
+    <value>548, 17</value>
   </metadata>
   <data name="label26.Text" xml:space="preserve">
     <value>This is a FastObjectListView, named because it trades functionality for speed. It does not support grouping; it cannot be put into Tile view, but otherwise it acts just like a normal ObjectListView -- only much faster!</value>
   </data>
+  <data name="label32.Text" xml:space="preserve">
+    <value>This is a simple file system explorer. It is *not* a namespace explorer -- it only handles files and directories. One interesting bit is accessing the Shell icon and type descriptions for files. If you choose an empty folder, you will see an example of an empty list message. Right clicking on the header will let you choose which columns are visible. The 'Attributes' column is an example of a FlagRenderer. You can save the current state of the view and restore it latter. </value>
+  </data>
   <metadata name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>214, 17</value>
+  </metadata>
+  <data name="label29.Text" xml:space="preserve">
+    <value>This is a simple file system explorer. It is *not* a namespace explorer -- it only handles files and directories. One interesting bit is accessing the Shell icon and type descriptions for files. If you choose an empty folder, you will see an example of an empty list message. Right clicking on the header will let you choose which columns are visible. The 'Attributes' column is an example of a FlagRenderer. You can save the current state of the view and restore it latter. </value>
+  </data>
+  <metadata name="blockFormat1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>429, 17</value>
   </metadata>
   <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>43</value>

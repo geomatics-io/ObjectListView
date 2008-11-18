@@ -84,7 +84,8 @@ namespace ObjectListViewDemo
 			InitializeComplexExample(list);
 			InitializeDataSetExample();
 			InitializeVirtualListExample();
-			InitializeExplorerExample();
+            InitializeExplorerExample();
+            InitializeTreeListExample();
             InitializeListPrinting();
             InitializeFastListExample(list);
 #if MONO
@@ -116,24 +117,31 @@ namespace ObjectListViewDemo
 
 		void InitializeSimpleExample(List<Person> list)
 		{
+
+            TypedObjectListView<Person> tlist = new TypedObjectListView<Person>(this.listViewSimple);
+            //TypedColumn<Person> tcol = new TypedColumn<Person>(this.columnHeader11);
+            tlist.GetColumn(0).AspectGetter = delegate(Person x) { return x.Name; };
+
 			// Uncomment these to see the speed difference between reflection and delegates
 			// On my machine, delegates are between 5-10x faster.
-            this.columnHeader11.AspectGetter = delegate(object x) { return ((Person)x).Name; };
-            this.columnHeader12.AspectGetter = delegate(object x) { return ((Person)x).Occupation; };
-            this.columnHeader13.AspectGetter = delegate(object x) { return ((Person)x).CulinaryRating; };
-            this.columnHeader14.AspectGetter = delegate(object x) { return ((Person)x).YearOfBirth; };
-            this.columnHeader15.AspectGetter = delegate(object x) { return ((Person)x).BirthDate; };
-            this.columnHeader16.AspectGetter = delegate(object x) { return ((Person)x).GetRate(); };
+            tlist.GetColumn(1).AspectGetter = delegate(Person x) { return x.Name; };
+            tlist.GetColumn(2).AspectGetter = delegate(Person x) { return x.Occupation; };
+            tlist.GetColumn(3).AspectGetter = delegate(Person x) { return x.CulinaryRating; };
+            tlist.GetColumn(4).AspectGetter = delegate(Person x) { return x.YearOfBirth; };
+            tlist.GetColumn(5).AspectGetter = delegate(Person x) { return x.BirthDate; };
+
             // Give this column an aspect putter, since it fetches its value using a method rather than a property
-            this.columnHeader16.AspectPutter = delegate(object x, object newValue) { ((Person)x).SetRate((double)newValue); };
+            TypedColumn<Person> tcol = new TypedColumn<Person>(this.columnHeader16);
+            tcol.AspectGetter = delegate(Person x) { return x.GetRate(); };
+            tcol.AspectPutter = delegate(Person x, object newValue) { x.SetRate((double)newValue); };
 
             this.comboBox6.SelectedIndex = 0;
 
-            this.listViewSimple.CheckStateGetter = delegate(object x) {
-                return ((Person)x).IsActive;
+            tlist.BooleanCheckStateGetter = delegate(Person x) {
+                return x.IsActive;
             };
-            this.listViewSimple.CheckStatePutter = delegate(object x, CheckState newValue) {
-                ((Person)x).IsActive = (newValue == CheckState.Checked);
+            tlist.BooleanCheckStatePutter = delegate(Person x, bool newValue) {
+                x.IsActive = newValue;
                 return newValue;
             };
 			// Just one line of code make everything happen.
@@ -153,12 +161,12 @@ namespace ObjectListViewDemo
 				// otherwise the first half of the alphabet gets hearts
 				// and the second half gets music
                 string name = ((Person)row).Name;
-				if (name.Length > 0 && "AEIOU".Contains(name.Substring(0, 1)))
-					return 0; // star
-				else if (name.CompareTo("N") < 0)
-					return 1; // heart
-				else
-					return 2; // music
+                if (name.Length > 0 && "AEIOU".Contains(name.Substring(0, 1)))
+                    return 0; // star
+                else if (name.CompareTo("N") < 0)
+                    return 1; // heart
+                else
+                    return 2; // music
 			};
 
             // Cooking skill columns
@@ -240,7 +248,7 @@ namespace ObjectListViewDemo
             {
                 // If we're in any other view than Tile, just let the default process do it's stuff
                 if (this.ListView.View != View.Tile)
-                    return false;
+                    return base.OptionalRender(g, r);
 
                 const int spacing = 8;
 
@@ -372,7 +380,6 @@ namespace ObjectListViewDemo
 
             this.listViewDataSet.RowFormatter = delegate(OLVListItem olvi) {
                 string[] colorNames = new string[] { "red", "green", "blue", "yellow" };
-
                 // For some reason, changes to the background of column 0 don't take place
                 // immediately. The list has to be rebuild before the background color changes.
                 foreach (ListViewItem.ListViewSubItem subItem in olvi.SubItems) {
@@ -445,11 +452,11 @@ namespace ObjectListViewDemo
 
 		void InitializeVirtualListExample ()
 		{
-            this.listViewVirtual.CheckStateGetter = delegate(object x) {
+            this.listViewVirtual.BooleanCheckStateGetter = delegate(object x) {
                 return ((Person)x).IsActive;
             };
-            this.listViewVirtual.CheckStatePutter = delegate(object x, CheckState newValue) {
-                ((Person)x).IsActive = (newValue == CheckState.Checked);
+            this.listViewVirtual.BooleanCheckStatePutter = delegate(object x, bool newValue) {
+                ((Person)x).IsActive = newValue;
                 return newValue;
             };
             this.listViewVirtual.VirtualListSize = 10000000;
@@ -502,14 +509,14 @@ namespace ObjectListViewDemo
             this.comboBox8.SelectedIndex = 0;
 		}
 
-		void InitializeExplorerExample()
-		{
+        void InitializeExplorerExample()
+        {
             // Draw the system icon next to the name
 #if !MONO
             SysImageListHelper helper = new SysImageListHelper(this.listViewFiles);
-			this.olvColumnFileName.ImageGetter = delegate(object x) {
+            this.olvColumnFileName.ImageGetter = delegate(object x) {
                 return helper.GetImageIndex(((FileSystemInfo)x).FullName);
-			};
+            };
 #endif
             // Show the size of files as GB, MB and KBs. Also, group them by
             // some meaningless divisions
@@ -519,7 +526,8 @@ namespace ObjectListViewDemo
 
                 try {
                     return ((FileInfo)x).Length;
-                } catch (System.IO.FileNotFoundException) {
+                }
+                catch (System.IO.FileNotFoundException) {
                     // Mono 1.2.6 throws this for hidden files
                     return (long)-2;
                 }
@@ -562,18 +570,111 @@ namespace ObjectListViewDemo
             this.olvColumnAttributes.AspectGetter = delegate(object x) {
                 return ((FileSystemInfo)x).Attributes;
             };
-FlagRenderer<FileAttributes> attributesRenderer = new FlagRenderer<FileAttributes>();
-attributesRenderer.Add(FileAttributes.Archive, "archive");
-attributesRenderer.Add(FileAttributes.ReadOnly, "readonly");
-attributesRenderer.Add(FileAttributes.System, "system");
-attributesRenderer.Add(FileAttributes.Hidden, "hidden");
-attributesRenderer.Add(FileAttributes.Temporary, "temporary");
-this.olvColumnAttributes.Renderer = attributesRenderer;
+            FlagRenderer<FileAttributes> attributesRenderer = new FlagRenderer<FileAttributes>();
+            attributesRenderer.Add(FileAttributes.Archive, "archive");
+            attributesRenderer.Add(FileAttributes.ReadOnly, "readonly");
+            attributesRenderer.Add(FileAttributes.System, "system");
+            attributesRenderer.Add(FileAttributes.Hidden, "hidden");
+            attributesRenderer.Add(FileAttributes.Temporary, "temporary");
+            this.olvColumnAttributes.Renderer = attributesRenderer;
 
             this.comboBox4.SelectedIndex = 4;
             this.textBoxFolderPath.Text = @"c:\";
             this.PopulateListFromPath(this.textBoxFolderPath.Text);
-		}
+        }
+
+
+        void InitializeTreeListExample()
+        {
+            this.treeListView.CanExpandGetter = delegate(object x) {
+                return (x is DirectoryInfo);
+            };
+            this.treeListView.ChildrenGetter = delegate(object x) {
+                DirectoryInfo dir = (DirectoryInfo)x;
+                return new ArrayList(dir.GetFileSystemInfos());
+            };
+            this.treeListView.CheckBoxes = true;
+
+            //-------------------------------------------------------------------
+            // Eveything after this is the same as the Explorer example tab --
+            // nothing specific to the TreeListView
+
+            // Draw the system icon next to the name
+#if !MONO
+            SysImageListHelper helper = new SysImageListHelper(this.treeListView);
+            this.treeColumnName.ImageGetter = delegate(object x) {
+                return helper.GetImageIndex(((FileSystemInfo)x).FullName);
+            };
+#endif
+            // Show the size of files as GB, MB and KBs. Also, group them by
+            // some meaningless divisions
+            this.treeColumnSize.AspectGetter = delegate(object x) {
+                if (x is DirectoryInfo)
+                    return (long)-1;
+
+                try {
+                    return ((FileInfo)x).Length;
+                }
+                catch (System.IO.FileNotFoundException) {
+                    // Mono 1.2.6 throws this for hidden files
+                    return (long)-2;
+                }
+            };
+            this.treeColumnSize.AspectToStringConverter = delegate(object x) {
+                if ((long)x == -1) // folder
+                    return "";
+                else
+                    return this.FormatFileSize((long)x);
+            };
+            this.treeColumnSize.MakeGroupies(new long[] { 0, 1024 * 1024, 512 * 1024 * 1024 },
+                new string[] { "Folders", "Small", "Big", "Disk space chewer" });
+
+            // Group by month-year, rather than date
+            // This code is duplicated for FileCreated and FileModified, so we really should
+            // create named methods rather than using anonymous delegates.
+            this.treeColumnCreated.GroupKeyGetter = delegate(object x) {
+                DateTime dt = ((FileSystemInfo)x).CreationTime;
+                return new DateTime(dt.Year, dt.Month, 1);
+            };
+            this.treeColumnCreated.GroupKeyToTitleConverter = delegate(object x) {
+                return ((DateTime)x).ToString("MMMM yyyy");
+            };
+
+            // Group by month-year, rather than date
+            this.treeColumnModified.GroupKeyGetter = delegate(object x) {
+                DateTime dt = ((FileSystemInfo)x).LastWriteTime;
+                return new DateTime(dt.Year, dt.Month, 1);
+            };
+            this.treeColumnModified.GroupKeyToTitleConverter = delegate(object x) {
+                return ((DateTime)x).ToString("MMMM yyyy");
+            };
+
+            // Show the system description for this object
+            this.treeColumnFileType.AspectGetter = delegate(object x) {
+                return ShellUtilities.GetFileType(((FileSystemInfo)x).FullName);
+            };
+
+            // Show the file attributes for this object
+            this.treeColumnAttributes.AspectGetter = delegate(object x) {
+                return ((FileSystemInfo)x).Attributes;
+            };
+            FlagRenderer<FileAttributes> attributesRenderer = new FlagRenderer<FileAttributes>();
+            attributesRenderer.Add(FileAttributes.Archive, "archive");
+            attributesRenderer.Add(FileAttributes.ReadOnly, "readonly");
+            attributesRenderer.Add(FileAttributes.System, "system");
+            attributesRenderer.Add(FileAttributes.Hidden, "hidden");
+            attributesRenderer.Add(FileAttributes.Temporary, "temporary");
+            this.olvColumnAttributes.Renderer = attributesRenderer;
+
+            // List all drives as the roots of the tree
+            ArrayList roots = new ArrayList();
+            foreach (DriveInfo di in DriveInfo.GetDrives()) {
+                if (di.IsReady)
+                    roots.Add(new DirectoryInfo(di.Name));
+            }
+            this.treeListView.Roots = roots;
+            this.treeListView.CellEditActivation = ObjectListView.CellEditActivateMode.F2Only;
+        }
 
         void InitializeListPrinting()
         {
@@ -768,6 +869,7 @@ this.olvColumnAttributes.Renderer = attributesRenderer;
             //this.listViewSimple.SelectedItem = this.listViewSimple.GetNextItem(this.listViewSimple.SelectedItem);
             Person person = new Person("Some One Else " + System.Environment.TickCount);
             this.listViewSimple.AddObject(person);
+            this.listViewSimple.EnsureModelVisible(person);
         }
 
         private void button6_Click(object sender, EventArgs e)
@@ -1205,7 +1307,7 @@ this.olvColumnAttributes.Renderer = attributesRenderer;
 
         #region Cell editing example
 
-        private void listViewComplex_CellEditStarting(object sender, ObjectListView.CellEditEventArgs e)
+        private void listViewComplex_CellEditStarting(object sender, CellEditEventArgs e)
         {
             // We only want to mess with the Cooking Skill column
             if (e.Column.Text != "Cooking skill")
@@ -1228,7 +1330,7 @@ this.olvColumnAttributes.Renderer = attributesRenderer;
             ((Person)cb.Tag).CulinaryRating = cb.SelectedIndex * 10;
         }
 
-        private void listViewComplex_CellEditValidating(object sender, ObjectListView.CellEditEventArgs e)
+        private void listViewComplex_CellEditValidating(object sender, CellEditEventArgs e)
         {
             // Disallow professions from starting with "a" or "z" -- just to be arbitrary
             if (e.Column.Text == "Occupation") {
@@ -1252,7 +1354,7 @@ this.olvColumnAttributes.Renderer = attributesRenderer;
 
         }
 
-        private void listViewComplex_CellEditFinishing(object sender, ObjectListView.CellEditEventArgs e)
+        private void listViewComplex_CellEditFinishing(object sender, CellEditEventArgs e)
         {
             // We only want to mess with the Cooking Skill column
             if (e.Column.Text != "Cooking skill")
@@ -1305,11 +1407,11 @@ this.olvColumnAttributes.Renderer = attributesRenderer;
 
         private void InitializeFastListExample(List<Person> list)
         {
-            this.olvFastList.CheckStateGetter = delegate(object x) {
+            this.olvFastList.BooleanCheckStateGetter = delegate(object x) {
                 return ((Person)x).IsActive;
             };
-            this.olvFastList.CheckStatePutter = delegate(object x, CheckState newValue) {
-                ((Person)x).IsActive = (newValue == CheckState.Checked);
+            this.olvFastList.BooleanCheckStatePutter = delegate(object x, bool newValue) {
+                ((Person)x).IsActive = newValue;
                 return newValue;
             };
             this.olvColumn18.AspectGetter = delegate(object x) { return ((Person)x).Name; };
@@ -1472,11 +1574,23 @@ this.olvColumnAttributes.Renderer = attributesRenderer;
             this.olvFastList.CopyObjectsToClipboard(this.olvFastList.CheckedObjects);
         }
 
+        private void button20_Click(object sender, EventArgs e)
+        {
+            this.olvFastList.EditSubItem(this.olvFastList.GetItem(5), 1);
+        }
+
+        private void treeListView_ItemActivate(object sender, EventArgs e)
+        {
+            Object model = this.treeListView.SelectedObject;
+            if (model != null)
+                this.treeListView.ToggleExpansion(model);
+        }
+
     }
 
 	class Person
 	{
-        public bool IsActive = false;
+        public bool IsActive = true;
 
 		public Person(string name)
 		{
