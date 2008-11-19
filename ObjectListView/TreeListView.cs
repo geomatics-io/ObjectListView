@@ -5,6 +5,8 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2008-11-19  JPP  - Expand/collapse now preserve the selection -- more or less :)
+ *                  - Overrode RefreshObjects() to rebuild the given objects and their children
  * 2008-11-05  JPP  - Added ExpandAll() and CollapseAll() commands
  *                  - CanExpand is no longer cached
  *                  - Renamed InitialBranches to RootModels since it deals with model objects
@@ -59,10 +61,12 @@ namespace BrightIdeasSoftware
     /// for a model object if the CanExpandGetter has already returned true for that model.</item>
     /// </list>
     /// <para>
-    /// The top level branches of the tree are set via the Roots property. 
+    /// The top level branches of the tree are set via the Roots property. SetObjects(), AddObjects() 
+    /// and RemoveObjects() are interpreted as operations on this collection of roots.
     /// </para>
     /// <para>
-    /// Do not use SetObjects() method on a TreeListView.
+    /// To add new children to an existing branch, make changes to your model objects and then
+    /// call RefreshObject() on the parent.
     /// </para>
     /// <para>The tree must be a directed acyclic graph -- no cycles are allowed.</para>
     /// <para>More generally, each model object must appear only once in the tree. The same model object that appears in two
@@ -176,9 +180,11 @@ namespace BrightIdeasSoftware
         /// <param name="model"></param>
         public void Collapse(Object model)
         {
+            IList selection = this.SelectedObjects;
             int idx = this.TreeModel.Collapse(model);
             if (idx >= 0) {
                 this.UpdateVirtualListSize();
+                this.SelectedObjects = selection;
                 this.RedrawItems(idx, this.GetItemCount() - 1, false);
             }
         }
@@ -188,9 +194,11 @@ namespace BrightIdeasSoftware
         /// </summary>
         public void CollapseAll()
         {
+            IList selection = this.SelectedObjects;
             int idx = this.TreeModel.CollapseAll();
             if (idx >= 0) {
                 this.UpdateVirtualListSize();
+                this.SelectedObjects = selection;
                 this.RedrawItems(idx, this.GetItemCount() - 1, false);
             }
         }
@@ -201,9 +209,11 @@ namespace BrightIdeasSoftware
         /// <param name="model"></param>
         public void Expand(Object model)
         {
+            IList selection = this.SelectedObjects;
             int idx = this.TreeModel.Expand(model);
             if (idx >= 0) {
                 this.UpdateVirtualListSize();
+                this.SelectedObjects = selection;
                 this.RedrawItems(idx, this.GetItemCount() - 1, false);
             }
         }
@@ -214,11 +224,37 @@ namespace BrightIdeasSoftware
         /// <remarks>Be careful: this method could take a long time for large trees.</remarks>
         public void ExpandAll()
         {
+            IList selection = this.SelectedObjects;
             int idx = this.TreeModel.ExpandAll();
             if (idx >= 0) {
                 this.UpdateVirtualListSize();
+                this.SelectedObjects = selection;
                 this.RedrawItems(idx, this.GetItemCount() - 1, false);
             }
+        }
+
+        /// <summary>
+        /// Update the rows that are showing the given objects
+        /// </summary>
+        override public void RefreshObjects(IList modelObjects)
+        {
+            if (this.InvokeRequired) {
+                this.Invoke((MethodInvoker)delegate { this.RefreshObjects(modelObjects); });
+                return;
+            }
+
+            if (modelObjects.Count == 0)
+                return;
+            IList selection = this.SelectedObjects;
+
+            // Refresh each object, remembering where the first update occured
+            int firstChange = Int32.MaxValue;
+            foreach (Object x in modelObjects)
+                firstChange = Math.Min(firstChange, this.TreeModel.RebuildChildren(x));
+            this.SelectedObjects = selection;
+
+            // Redraw everything from the first update to the end of the list
+            this.RedrawItems(firstChange, this.GetItemCount() - 1, false);
         }
 
         /// <summary>
@@ -254,15 +290,21 @@ namespace BrightIdeasSoftware
         // Implementation
 
         /// <summary>
-        /// Intercept the basic message pump to customise the hit testing.
+        /// Intercept the basic message pump to customise the mouse down and hit testing.
         /// </summary>
         /// <param name="m"></param>
         protected override void WndProc(ref Message m)
         {
             switch (m.Msg) {
+                case 0x0201: // WM_LBUTTONDOWN
+                    if (!this.HandleLButtonDown(ref m))
+                        base.WndProc(ref m);
+                    break;
+
                 case 0x1012: // LVM_HITTEST = (LVM_FIRST + 18)
                     this.HandleHitTest(ref m);
                     break;
+
                 default:
                     base.WndProc(ref m);
                     break;
@@ -271,6 +313,9 @@ namespace BrightIdeasSoftware
 
         unsafe private void HandleHitTest(ref Message m)
         {
+            //THINK: Do we need to do this, since we are using the build-in Level ability of
+            // of ListCtrl, which should take the indent into account
+
             // We want to change our base behavior by taking the indentation of tree into account
             // when performing a hit test. So we figure out which row is at the test point,
             // then calculate the indentation for that row, and modify the hit test *inplace*
@@ -299,6 +344,67 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Catch the Left Button down event.
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
+        private bool HandleLButtonDown(ref Message m)
+        {
+            /// We have to intercept this low level message rather than the more natural
+            /// overridding of OnMouseDown, since ListCtrl's internal mouse down behavior
+            /// is to select (or deselect) rows when the mouse is released. We don't
+            /// want the selection to change when the user expand/collapse rows, so if the
+            /// mouse down event was to expand/collapse, we have to hide this mouse
+            /// down event from the control. 
+
+            int x = m.LParam.ToInt32() & 0xFFFF;
+            int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
+
+            // This horrible sequence finds what item is under the mouse position.
+            // We want to find the item under the mouse, even if the mouse is not
+            // actually over the icon or label. GetItemAt() will only do that
+            // when FullRowSelect is true. 
+            ListViewItem lvi = null;
+            if (this.FullRowSelect)
+                lvi = this.GetItemAt(x, y);
+            else {
+                this.FullRowSelect = true;
+                lvi = this.GetItemAt(x, y);
+                this.FullRowSelect = false;
+            }
+
+            // Are they trying to expand/collapse a row?
+            return (lvi != null && this.HandlePossibleExpandClick((OLVListItem)lvi, x, y));
+        }
+
+        /// <summary>
+        /// Handle the given mouse down event as a possible attempt to expand/collapse
+        /// a row. Return true if the event was handled.
+        /// </summary>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        protected virtual bool HandlePossibleExpandClick(OLVListItem olvItem, int x, int y)
+        {
+            Branch br = this.TreeModel.GetBranch(olvItem.RowObject);
+            if (br == null || !br.CanExpand)
+                return false;
+
+            // Calculate if they clicked on the expand/collapse icon
+            Rectangle r = this.GetItemRect(olvItem.Index, ItemBoundsPortion.Icon);
+            r.X = this.CalculateExpanderIndentation(br);
+            if (!r.Contains(x, y))
+                return false;
+
+            this.ToggleExpansion(olvItem.RowObject);
+            return true;
+        }
+
+        private int CalculateExpanderIndentation(Branch br)
+        {
+            return ((br.Level - 1) * TreeRenderer.PIXELS_PER_LEVEL) - 2;
+        }
+
+        /// <summary>
         /// Create a OLVListItem for given row index
         /// </summary>
         /// <param name="itemIndex">The index of the row that is needed</param>
@@ -314,55 +420,6 @@ namespace BrightIdeasSoftware
         }
 
         #region Event handlers
-
-        protected override void OnMouseDown(MouseEventArgs e)
-        {
-            // This horrible sequence finds what item is under the mouse position.
-            // We want to find the item under the mouse, even if the mouse is not
-            // actually over the icon or label. GetItemAt() will only do that
-            // when FullRowSelect is true. 
-            ListViewItem lvi = null;
-            if (this.FullRowSelect)
-                lvi = this.GetItemAt(e.X, e.Y);
-            else {
-                this.FullRowSelect = true;
-                lvi = this.GetItemAt(e.X, e.Y);
-                this.FullRowSelect = false;
-            }
-
-            // Are they trying to expand/collapse a row?
-            if (lvi != null && this.HandlePossibleExpandClick((OLVListItem)lvi, e))
-                return;
-
-            base.OnMouseDown(e);
-        }
-
-        /// <summary>
-        /// Handle the given mouse down event as a possible attempt to expand/collapse
-        /// a row. Return true if the event was handled.
-        /// </summary>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        protected virtual bool HandlePossibleExpandClick(OLVListItem olvItem, MouseEventArgs e)
-        {
-            Branch br = this.TreeModel.GetBranch(olvItem.RowObject);
-            if (br == null || !br.CanExpand)
-                return false;
-
-            // Calculate if they clicked on the expand/collapse icon
-            Rectangle r = this.GetItemRect(olvItem.Index, ItemBoundsPortion.Icon);
-            r.X = this.CalculateExpanderIndentation(br);
-            if (!r.Contains(e.Location))
-                return false;
-
-            this.ToggleExpansion(olvItem.RowObject);
-            return true;
-        }
-
-        private int CalculateExpanderIndentation(Branch br)
-        {
-            return ((br.Level - 1) * TreeRenderer.PIXELS_PER_LEVEL) - 2;
-        }
 
         /// <summary>
         /// Decide if the given key event should be handled as a normal key input to the control?
@@ -510,7 +567,6 @@ namespace BrightIdeasSoftware
             /// <returns>Return the index of the first root that was not collapsed</returns>
             public int CollapseAll()
             {
-                int idx = 0;
                 foreach (Branch br in this.trunk.ChildBranches) {
                     if (br.IsExpanded)
                         br.Collapse();
@@ -531,14 +587,8 @@ namespace BrightIdeasSoftware
                 if (br == null || !br.CanExpand)
                     return -1;
 
-                // Expand the branch
-                br.Expand();
-                br.Sort(this.GetBranchComparer());
-
-                // Insert the branch's visible descendents after the branch itself
                 int idx = this.GetObjectIndex(model);
-                this.objectList.InsertRange(idx + 1, br.Flatten());
-                this.RebuildObjectMap(idx + 1);
+                this.InsertChildren(br, idx+1);
                 return idx;
             }
 
@@ -569,16 +619,45 @@ namespace BrightIdeasSoftware
                     return null;
             }
 
+            /// <summary>
+            /// Rebuild the children of the given model, refreshing any cached information held about the given object
+            /// </summary>
+            /// <param name="model"></param>
+            /// <returns>The index of the model in flat list version of the tree</returns>
+            public int RebuildChildren(Object model)
+            {
+                Branch br = this.GetBranch(model);
+                if (br == null)
+                    return -1;
+
+                int count = br.NumberVisibleDescendents;
+                br.ClearCachedInfo();
+
+                // Remove the visible descendents from after the branch itself
+                int idx = this.GetObjectIndex(model);
+                this.objectList.RemoveRange(idx + 1, count);
+
+                this.InsertChildren(br, idx+1);
+                return idx;
+            }
+
             //------------------------------------------------------------------------------------------
             // Implementation
 
             /// <summary>
-            /// Remember that the given branch is part of this tree.
+            /// Insert the children of the given branch into the given position
             /// </summary>
-            /// <param name="br"></param>
-            internal void RegisterBranch(Branch br)
+            /// <param name="br">The branch whose children should be inserted</param>
+            /// <param name="idx">The index where the children should be inserted</param>
+            internal void InsertChildren(Branch br, int idx)
             {
-                this.mapObjectToBranch[br.Model] = br;
+                // Expand the branch
+                br.Expand();
+                br.Sort(this.GetBranchComparer());
+
+                // Insert the branch's visible descendents after the branch itself
+                this.objectList.InsertRange(idx, br.Flatten());
+                this.RebuildObjectMap(idx);
             }
 
             /// <summary>
@@ -601,6 +680,15 @@ namespace BrightIdeasSoftware
             {
                 for (int i = startIndex; i < this.objectList.Count; i++)
                     this.mapObjectToIndex[this.objectList[i]] = i;
+            }
+
+            /// <summary>
+            /// Remember that the given branch is part of this tree.
+            /// </summary>
+            /// <param name="br"></param>
+            internal void RegisterBranch(Branch br)
+            {
+                this.mapObjectToBranch[br.Model] = br;
             }
 
             //------------------------------------------------------------------------------------------
@@ -661,12 +749,22 @@ namespace BrightIdeasSoftware
 
             public void AddObjects(ICollection modelObjects)
             {
-                throw new InvalidOperationException("Objects cannot be added to a Tree via this method.");
+                ArrayList newRoots = new ArrayList();
+                foreach (Object x in this.treeView.Roots)
+                    newRoots.Add(x);
+                foreach (Object x in modelObjects)
+                    newRoots.Add(x);
+                this.SetObjects(newRoots);
             }
 
             public void RemoveObjects(ICollection modelObjects)
             {
-                throw new InvalidOperationException("Objects cannot be removed to a Tree via this method.");
+                ArrayList newRoots = new ArrayList();
+                foreach (Object x in this.treeView.Roots)
+                    newRoots.Add(x);
+                foreach (Object x in modelObjects)
+                    newRoots.Remove(x);
+                this.SetObjects(newRoots);
             }
 
             public void SetObjects(IEnumerable collection)
@@ -834,6 +932,15 @@ namespace BrightIdeasSoftware
 	
             //------------------------------------------------------------------------------------------
             // Commands
+
+            /// <summary>
+            /// Clear any cached information that this branch is holding
+            /// </summary>
+            public void ClearCachedInfo()
+            {
+                this.Children = new ArrayList();
+                this.alreadyHasChildren = false;
+            }
 
             /// <summary>
             /// Collapse this branch
