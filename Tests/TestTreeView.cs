@@ -84,6 +84,16 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual(originalCount, this.olv.GetItemCount());
         }
 
+        [Test]
+        public void TestPreserveSelection()
+        {
+            this.olv.SelectedObject = PersonDb.All[1];
+            this.olv.Expand(PersonDb.All[0]);
+            Assert.AreEqual(PersonDb.All[1], this.olv.SelectedObject);
+            this.olv.Collapse(PersonDb.All[0]);
+            Assert.AreEqual(PersonDb.All[1], this.olv.SelectedObject);
+        }
+
         [TestFixtureSetUp]
         public void Init()
         {
