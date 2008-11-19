@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2008-11-15   JPP  - Fixed some caching issues
  * 2008-11-05   JPP  - Rewrote handling of check boxes
  * 2008-10-28   JPP  - Handle SetSelectedObjects(null)
  * 2008-10-02   JPP  - MAJOR CHANGE: Use IVirtualListDataSource
@@ -265,6 +266,7 @@ namespace BrightIdeasSoftware
             if (args.Canceled)
                 return;
 
+            this.ClearCachedInfo();
             this.DataSource.AddObjects(args.ObjectsToAdd);
             this.UpdateVirtualListSize();
         }
@@ -290,10 +292,16 @@ namespace BrightIdeasSoftware
         /// </summary>
         override public void RefreshObjects(IList modelObjects)
         {
+            if (this.InvokeRequired) {
+                this.Invoke((MethodInvoker)delegate { this.RefreshObjects(modelObjects); });
+                return;
+            }
+
             // Without a data source, we can't do this.
             if (this.DataSource == null)
                 return;
 
+            this.ClearCachedInfo();
             foreach (object modelObject in modelObjects) {
                 int index = this.DataSource.GetObjectIndex(modelObject);
                 if (index >= 0)
@@ -325,6 +333,7 @@ namespace BrightIdeasSoftware
             if (args.Canceled)
                 return;
 
+            this.ClearCachedInfo();
             this.DataSource.RemoveObjects(args.ObjectsToRemove);
             this.UpdateVirtualListSize();
         }
@@ -342,7 +351,7 @@ namespace BrightIdeasSoftware
 
             // Check that the object is in the list (plus not all data sources can locate objects)
             int index = this.DataSource.GetObjectIndex(modelObject);
-            if (index == -1)
+            if (index == -1 || index >= this.VirtualListSize)
                 return;
 
             // If the given model is already selected, don't do anything else (prevents an flicker)
@@ -376,7 +385,7 @@ namespace BrightIdeasSoftware
 
             foreach (object modelObject in modelObjects) {
                 int index = this.DataSource.GetObjectIndex(modelObject);
-                if (index >= 0)
+                if (index >= 0 && index < this.VirtualListSize)
                     this.SelectedIndices.Add(index);
             }
         }
@@ -731,6 +740,8 @@ namespace BrightIdeasSoftware
     /// An object that implements this interface provides a VirtualObjectListView with all the
     /// information it needs to be fully functional.
     /// </summary>
+    /// <remarks>Implementors must provide functioning implementations of GetObjectCount()
+    /// and GetNthObject(), otherwise nothing will appear in the list.</remarks>
     public interface IVirtualListDataSource
     {
         /// <summary>
