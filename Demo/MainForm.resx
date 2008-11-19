@@ -1602,9 +1602,6 @@
   <data name="label26.Text" xml:space="preserve">
     <value>This is a FastObjectListView, named because it trades functionality for speed. It does not support grouping; it cannot be put into Tile view, but otherwise it acts just like a normal ObjectListView -- only much faster!</value>
   </data>
-  <data name="label32.Text" xml:space="preserve">
-    <value>This is a simple file system explorer. It is *not* a namespace explorer -- it only handles files and directories. One interesting bit is accessing the Shell icon and type descriptions for files. If you choose an empty folder, you will see an example of an empty list message. Right clicking on the header will let you choose which columns are visible. The 'Attributes' column is an example of a FlagRenderer. You can save the current state of the view and restore it latter. </value>
-  </data>
   <metadata name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>214, 17</value>
   </metadata>
