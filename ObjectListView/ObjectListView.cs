@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2008-11-19  JPP  - Fixed bug in ChangeToFilteredColumns() where DisplayOrder was not always restored correctly.
  * 2008-10-29  JPP  - Event argument blocks moved to directly within the namespace, rather than being 
  *                    nested inside ObjectListView class.
  *                  - Removed OLVColumn.CellEditor since it was never used. 
@@ -1233,7 +1234,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>
         /// <para>.NET has no support for indeterminate values, but as of v2.0, this class allows
-        /// indeterminate values. Returning null indicates the indeterminate value.</para>
+        /// indeterminate values.</para>
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -1567,7 +1568,6 @@ namespace BrightIdeasSoftware
             this.Freeze();
             this.Clear();
             List<OLVColumn> cols = this.GetFilteredColumns(view);
-            this.Columns.AddRange(cols.ToArray());
             if (view == View.Details) {
                 foreach (OLVColumn x in cols) {
                     if (x.LastDisplayIndex == -1 || x.LastDisplayIndex > cols.Count - 1)
@@ -1575,8 +1575,10 @@ namespace BrightIdeasSoftware
                     else
                         x.DisplayIndex = x.LastDisplayIndex;
                 }
-                this.ShowSortIndicator();
             }
+            this.Columns.AddRange(cols.ToArray());
+            if (view == View.Details)
+                this.ShowSortIndicator();
             this.BuildList();
             this.Unfreeze();
 
@@ -4351,7 +4353,7 @@ namespace BrightIdeasSoftware
     /// we receive update events, we have to use a tristate CheckState. So we can
     /// be told about an indeterminate state, but we can't set it ourselves.
     /// </para>
-    /// <para>As of version 2.0, returning null is understood as indeterminate.</para>
+    /// <para>As of version 2.0, we can now return indeterminate state.</para>
     /// </remarks>
     public delegate CheckState CheckStateGetterDelegate(Object rowObject);
     public delegate bool BooleanCheckStateGetterDelegate(Object rowObject);
@@ -4482,7 +4484,7 @@ namespace BrightIdeasSoftware
         /// The name of the property or method that should be called to get the value to display in this column.
         /// This is only used if a ValueGetterDelegate has not been given.
         /// </summary>
-        /// <remarks>This name can be dotted to chain references to properties or methods.</remarks>
+        /// <remarks>This name can be dotted to chain references to properties or parameter-less methods.</remarks>
         /// <example>"DateOfBirth"</example>
         /// <example>"Owner.HomeAddress.Postcode"</example>
         [Category("Behavior"),
@@ -4512,7 +4514,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// The delegate that will be used to translate the aspect to display in this column into a string.
         /// </summary>
-        /// <remarks>If this value is set, ValueToStringFormat will be ignored.</remarks>
+        /// <remarks>If this value is set, AspectToStringFormat will be ignored.</remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public AspectToStringConverterDelegate AspectToStringConverter
@@ -4527,7 +4529,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>
         /// This string is passed as the first parameter to the String.Format() method.
-        /// This is only used if ToStringDelegate has not been set.</remarks>
+        /// This is only used if AspectToStringConverter has not been set.</remarks>
         /// <example>"{0:C}" to convert a number to currency</example>
         [Category("Behavior"),
          Description("The format string that will be used to convert an aspect to its string representation"),
