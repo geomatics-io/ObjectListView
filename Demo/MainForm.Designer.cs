@@ -217,10 +217,6 @@ namespace ObjectListViewDemo
             this.button25 = new System.Windows.Forms.Button();
             this.button26 = new System.Windows.Forms.Button();
             this.button27 = new System.Windows.Forms.Button();
-            this.button28 = new System.Windows.Forms.Button();
-            this.button29 = new System.Windows.Forms.Button();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.label30 = new System.Windows.Forms.Label();
             this.label32 = new System.Windows.Forms.Label();
             this.treeListView = new BrightIdeasSoftware.TreeListView();
             this.treeColumnName = new BrightIdeasSoftware.OLVColumn();
@@ -267,6 +263,7 @@ namespace ObjectListViewDemo
             this.olvColumn39 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn40 = new BrightIdeasSoftware.OLVColumn();
             this.blockFormat1 = new BrightIdeasSoftware.BlockFormat();
+            this.button28 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.listViewSimple)).BeginInit();
@@ -2124,22 +2121,34 @@ namespace ObjectListViewDemo
             // 
             // 
             // 
+            this.listViewPrinter1.CellFormat.CanWrap = true;
+            this.listViewPrinter1.CellFormat.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.listViewPrinter1.CellFormat.MinimumTextHeight = 0F;
             this.listViewPrinter1.Footer = "This is the footers";
             // 
             // 
             // 
+            this.listViewPrinter1.FooterFormat.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Italic);
+            this.listViewPrinter1.FooterFormat.MinimumTextHeight = 0F;
             // 
             // 
             // 
+            this.listViewPrinter1.GroupHeaderFormat.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Bold);
+            this.listViewPrinter1.GroupHeaderFormat.MinimumTextHeight = 0F;
             this.listViewPrinter1.Header = "This is the header\t\tRight";
             // 
             // 
             // 
+            this.listViewPrinter1.HeaderFormat.Font = new System.Drawing.Font("Verdana", 24F);
+            this.listViewPrinter1.HeaderFormat.MinimumTextHeight = 0F;
             this.listViewPrinter1.IsListHeaderOnEachPage = false;
             this.listViewPrinter1.ListFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             // 
             // 
             // 
+            this.listViewPrinter1.ListHeaderFormat.CanWrap = true;
+            this.listViewPrinter1.ListHeaderFormat.Font = new System.Drawing.Font("Verdana", 12F);
+            this.listViewPrinter1.ListHeaderFormat.MinimumTextHeight = 0F;
             this.listViewPrinter1.ListView = this.listViewComplex;
             this.listViewPrinter1.Watermark = "TOP SECRET!";
             this.listViewPrinter1.WatermarkColor = System.Drawing.Color.Empty;
@@ -2419,13 +2428,10 @@ namespace ObjectListViewDemo
             // 
             // tabPage9
             // 
+            this.tabPage9.Controls.Add(this.button28);
             this.tabPage9.Controls.Add(this.button25);
             this.tabPage9.Controls.Add(this.button26);
             this.tabPage9.Controls.Add(this.button27);
-            this.tabPage9.Controls.Add(this.button28);
-            this.tabPage9.Controls.Add(this.button29);
-            this.tabPage9.Controls.Add(this.textBox2);
-            this.tabPage9.Controls.Add(this.label30);
             this.tabPage9.Controls.Add(this.label32);
             this.tabPage9.Controls.Add(this.treeListView);
             this.tabPage9.Location = new System.Drawing.Point(4, 22);
@@ -2446,6 +2452,7 @@ namespace ObjectListViewDemo
             this.button25.Text = "Save State";
             this.toolTip1.SetToolTip(this.button25, "Save the current state of the list");
             this.button25.UseVisualStyleBackColor = true;
+            this.button25.Click += new System.EventHandler(this.button25_Click);
             // 
             // button26
             // 
@@ -2458,6 +2465,7 @@ namespace ObjectListViewDemo
             this.button26.Text = "Restore State";
             this.toolTip1.SetToolTip(this.button26, "Restore the state of the list to be as it was when \"Save State\" was clicked");
             this.button26.UseVisualStyleBackColor = true;
+            this.button26.Click += new System.EventHandler(this.button26_Click);
             // 
             // button27
             // 
@@ -2469,44 +2477,7 @@ namespace ObjectListViewDemo
             this.button27.Text = "&Choose Columns...";
             this.toolTip1.SetToolTip(this.button27, "Shows a dialog that allows the user to choose and reorder columns");
             this.button27.UseVisualStyleBackColor = true;
-            // 
-            // button28
-            // 
-            this.button28.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button28.Location = new System.Drawing.Point(705, 55);
-            this.button28.Name = "button28";
-            this.button28.Size = new System.Drawing.Size(75, 23);
-            this.button28.TabIndex = 3;
-            this.button28.Text = "&Up";
-            this.button28.UseVisualStyleBackColor = true;
-            // 
-            // button29
-            // 
-            this.button29.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button29.Location = new System.Drawing.Point(624, 55);
-            this.button29.Name = "button29";
-            this.button29.Size = new System.Drawing.Size(75, 23);
-            this.button29.TabIndex = 2;
-            this.button29.Text = "&Go";
-            this.button29.UseVisualStyleBackColor = true;
-            // 
-            // textBox2
-            // 
-            this.textBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox2.Location = new System.Drawing.Point(56, 57);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(562, 20);
-            this.textBox2.TabIndex = 1;
-            // 
-            // label30
-            // 
-            this.label30.AutoSize = true;
-            this.label30.Location = new System.Drawing.Point(6, 60);
-            this.label30.Name = "label30";
-            this.label30.Size = new System.Drawing.Size(39, 13);
-            this.label30.TabIndex = 0;
-            this.label30.Text = "&Folder:";
+            this.button27.Click += new System.EventHandler(this.button27_Click);
             // 
             // label32
             // 
@@ -2518,7 +2489,8 @@ namespace ObjectListViewDemo
             this.label32.Name = "label32";
             this.label32.Size = new System.Drawing.Size(774, 46);
             this.label32.TabIndex = 6;
-            this.label32.Text = resources.GetString("label32.Text");
+            this.label32.Text = "This is like the File Explorer tab, except that it shows the directory structure," +
+                " rooted on the available disks.";
             // 
             // treeListView
             // 
@@ -2547,11 +2519,11 @@ namespace ObjectListViewDemo
             this.treeListView.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.treeListView.HighlightForegroundColor = System.Drawing.Color.Empty;
             this.treeListView.LargeImageList = this.imageList2;
-            this.treeListView.Location = new System.Drawing.Point(6, 83);
+            this.treeListView.Location = new System.Drawing.Point(6, 55);
             this.treeListView.Name = "treeListView";
             this.treeListView.OwnerDraw = true;
             this.treeListView.ShowGroups = false;
-            this.treeListView.Size = new System.Drawing.Size(774, 367);
+            this.treeListView.Size = new System.Drawing.Size(774, 395);
             this.treeListView.SmallImageList = this.imageList1;
             this.treeListView.TabIndex = 13;
             this.treeListView.UseCompatibleStateImageBehavior = false;
@@ -2935,6 +2907,19 @@ namespace ObjectListViewDemo
             // 
             // blockFormat1
             // 
+            this.blockFormat1.MinimumTextHeight = 0F;
+            // 
+            // button28
+            // 
+            this.button28.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.button28.Location = new System.Drawing.Point(374, 456);
+            this.button28.Name = "button28";
+            this.button28.Size = new System.Drawing.Size(103, 23);
+            this.button28.TabIndex = 14;
+            this.button28.Text = "Refresh Selected";
+            this.toolTip1.SetToolTip(this.button28, "Save the current state of the list");
+            this.button28.UseVisualStyleBackColor = true;
+            this.button28.Click += new System.EventHandler(this.button28_Click);
             // 
             // MainForm
             // 
@@ -2979,7 +2964,6 @@ namespace ObjectListViewDemo
             this.tabPage7.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.olvFastList)).EndInit();
             this.tabPage9.ResumeLayout(false);
-            this.tabPage9.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.treeListView)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
@@ -3177,10 +3161,6 @@ namespace ObjectListViewDemo
         private Button button25;
         private Button button26;
         private Button button27;
-        private Button button28;
-        private Button button29;
-        private TextBox textBox2;
-        private Label label30;
         private Label label32;
         private TreeListView treeListView;
         private OLVColumn treeColumnName;
@@ -3210,6 +3190,7 @@ namespace ObjectListViewDemo
         private OLVColumn olvColumn39;
         private OLVColumn olvColumn40;
         private BlockFormat blockFormat1;
+        private Button button28;
 
 	}
 }

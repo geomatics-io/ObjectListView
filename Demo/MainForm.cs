@@ -119,21 +119,16 @@ namespace ObjectListViewDemo
 		{
 
             TypedObjectListView<Person> tlist = new TypedObjectListView<Person>(this.listViewSimple);
-            //TypedColumn<Person> tcol = new TypedColumn<Person>(this.columnHeader11);
             tlist.GetColumn(0).AspectGetter = delegate(Person x) { return x.Name; };
-
-			// Uncomment these to see the speed difference between reflection and delegates
-			// On my machine, delegates are between 5-10x faster.
-            tlist.GetColumn(1).AspectGetter = delegate(Person x) { return x.Name; };
-            tlist.GetColumn(2).AspectGetter = delegate(Person x) { return x.Occupation; };
-            tlist.GetColumn(3).AspectGetter = delegate(Person x) { return x.CulinaryRating; };
-            tlist.GetColumn(4).AspectGetter = delegate(Person x) { return x.YearOfBirth; };
-            tlist.GetColumn(5).AspectGetter = delegate(Person x) { return x.BirthDate; };
+            tlist.GetColumn(1).AspectGetter = delegate(Person x) { return x.Occupation; };
+            tlist.GetColumn(2).AspectGetter = delegate(Person x) { return x.CulinaryRating; };
+            tlist.GetColumn(3).AspectGetter = delegate(Person x) { return x.YearOfBirth; };
+            tlist.GetColumn(4).AspectGetter = delegate(Person x) { return x.BirthDate; };
 
             // Give this column an aspect putter, since it fetches its value using a method rather than a property
-            TypedColumn<Person> tcol = new TypedColumn<Person>(this.columnHeader16);
-            tcol.AspectGetter = delegate(Person x) { return x.GetRate(); };
-            tcol.AspectPutter = delegate(Person x, object newValue) { x.SetRate((double)newValue); };
+TypedColumn<Person> tcol = new TypedColumn<Person>(this.columnHeader16);
+tcol.AspectGetter = delegate(Person x) { return x.GetRate(); };
+tcol.AspectPutter = delegate(Person x, object newValue) { x.SetRate((double)newValue); };
 
             this.comboBox6.SelectedIndex = 0;
 
@@ -1584,6 +1579,30 @@ namespace ObjectListViewDemo
             Object model = this.treeListView.SelectedObject;
             if (model != null)
                 this.treeListView.ToggleExpansion(model);
+        }
+
+        byte[] treeListViewState;
+
+        private void button25_Click(object sender, EventArgs e)
+        {
+            this.treeListViewState = this.treeListView.SaveState();
+            this.button26.Enabled = true;
+        }
+
+        private void button26_Click(object sender, EventArgs e)
+        {
+            this.treeListView.RestoreState(this.treeListViewState);
+        }
+
+        private void button27_Click(object sender, EventArgs e)
+        {
+            ColumnSelectionForm form = new ColumnSelectionForm();
+            form.OpenOn(this.treeListView);
+        }
+
+        private void button28_Click(object sender, EventArgs e)
+        {
+            this.treeListView.RefreshObjects(this.treeListView.SelectedObjects);
         }
 
     }
