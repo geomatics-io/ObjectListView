@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ListViewPrinter", "ListView
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ListViewPrinterDemo", "ListViewPrinterDemo\ListViewPrinterDemo.csproj", "{40719365-FC03-46B8-8B6E-5FD1454712B6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{8BB7445D-3428-40CC-AE38-14F6BC6C1BF9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,10 @@ Global
 		{40719365-FC03-46B8-8B6E-5FD1454712B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40719365-FC03-46B8-8B6E-5FD1454712B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40719365-FC03-46B8-8B6E-5FD1454712B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BB7445D-3428-40CC-AE38-14F6BC6C1BF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BB7445D-3428-40CC-AE38-14F6BC6C1BF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BB7445D-3428-40CC-AE38-14F6BC6C1BF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BB7445D-3428-40CC-AE38-14F6BC6C1BF9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
