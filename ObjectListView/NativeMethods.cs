@@ -105,7 +105,7 @@ namespace BrightIdeasSoftware
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        private struct LVCOLUMN
+        public struct LVCOLUMN
         {
             public int mask;
             public int fmt;
@@ -120,6 +120,17 @@ namespace BrightIdeasSoftware
         };
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        public struct LVFINDINFO
+        {
+            public int flags;
+            public string psz;
+            public IntPtr lParam;
+            public int ptX;
+            public int ptY;
+            public int vkDirection;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public struct LVHITTESTINFO
         {
             public int pt_x;
@@ -130,7 +141,7 @@ namespace BrightIdeasSoftware
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        private struct LVITEM
+        public struct LVITEM
         {
             public int mask;
             public int iItem;
@@ -180,6 +191,14 @@ namespace BrightIdeasSoftware
             public int uOldState;
             public int uChanged;
             public IntPtr lParam;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct NMLVFINDITEM
+        {
+            public NativeMethods.NMHDR hdr;
+            public int iStart;
+            public NativeMethods.LVFINDINFO lvfi;
         }
 
         [StructLayout(LayoutKind.Sequential)]
