@@ -171,21 +171,6 @@ namespace BrightIdeasSoftware
         private IVirtualListDataSource dataSource;
 
         /// <summary>
-        /// When the user types into a list, should the values in the current sort column be searched to find a match?
-        /// If this is false, the primary column will always be used regardless of the sort column.
-        /// </summary>
-        /// <remarks>When this is true, the behavior is like that of ITunes.</remarks>
-        [Category("Behavior"),
-        Description("When the user types into a list, should the values in the current sort column be searched to find a match?"),
-        DefaultValue(false)]
-        public bool IsSearchOnSortColumn
-        {
-            get { return isSearchOnSortColumn; }
-            set { isSearchOnSortColumn = value; }
-        }
-        private bool isSearchOnSortColumn = false;
-
-        /// <summary>
         /// This delegate is used to fetch a rowObject, given it's index within the list
         /// </summary>
         /// <remarks>Only use this property if you are not using a DataSource.</remarks>
@@ -668,35 +653,33 @@ namespace BrightIdeasSoftware
             if (this.DataSource == null)
                 return;
 
-            // We also can't do anything if we don't have data
-            if (this.DataSource.GetObjectCount() == 0)
-                return;
-
-            // The event has e.IsPrefixSearch, but as far as I can tell, this is always false (maybe that's different under Vista)
-            // So we ignore IsPrefixSearch and IsTextSearch and always to a case insensitve prefix match
-            OLVColumn column = this.GetColumn(0);
-            if (this.IsSearchOnSortColumn && this.View == View.Details && this.LastSortColumn != null)
-                column = this.LastSortColumn;
-
             // Where should we start searching? If the last row is focused, the SearchForVirtualItemEvent starts searching
             // from the next row, which is actually an invalidate index -- in that case, we rewind one row to the last row.
             int start = e.StartIndex;
             if (e.StartIndex == this.DataSource.GetObjectCount())
                 start--;
 
-            // Do two searches if necessary to find a match. The second search is the wrap-around part of searching
-            int i;
-            if (e.Direction == SearchDirectionHint.Down) {
-                i = this.DataSource.SearchText(e.Text, start, this.DataSource.GetObjectCount() - 1, column);
-                if (i == -1 && e.StartIndex > 0)
-                    i = this.DataSource.SearchText(e.Text, 0, start-1, column);
-            } else {
-                i = this.DataSource.SearchText(e.Text, start, 0, column);
-                if (i == -1 && e.StartIndex != this.DataSource.GetObjectCount())
-                    i = this.DataSource.SearchText(e.Text, this.DataSource.GetObjectCount() - 1, start + 1, column);
-            }
+            // The event has e.IsPrefixSearch, but as far as I can tell, this is always false (maybe that's different under Vista)
+            // So we ignore IsPrefixSearch and IsTextSearch and always to a case insensitve prefix match
+
+            int i = this.FindMatchingRow(e.Text, start, e.Direction);
+
+            // If we found a match, tell the event
             if (i != -1)
                 e.Index = i;
+        }
+
+        /// <summary>
+        /// Find the first row in the given range of rows that prefix matches the string value of the given column.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="first"></param>
+        /// <param name="last"></param>
+        /// <param name="column"></param>
+        /// <returns>The index of the matched row, or -1</returns>
+        override protected int FindMatchInRange(string text, int first, int last, OLVColumn column)
+        {
+            return this.DataSource.SearchText(text, first, last, column);
         }
 
         /// <summary>
