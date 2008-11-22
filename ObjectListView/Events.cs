@@ -90,6 +90,12 @@ namespace BrightIdeasSoftware
         public event CellEditEventHandler CellEditValidating;
 
         /// <summary>
+        /// Triggered when a column header is right clicked.
+        /// </summary>
+        [Category("Behavior")]
+        public event ColumnRightClickEventHandler ColumnRightClick;
+
+        /// <summary>
         /// Some new objects are about to be added to an ObjectListView.
         /// </summary>
         [Category("Behavior")]
@@ -131,6 +137,12 @@ namespace BrightIdeasSoftware
         {
             if (this.BeforeSorting != null)
                 this.BeforeSorting(this, e);
+        }
+
+        protected virtual void OnColumnRightClick(ColumnClickEventArgs e)
+        {
+            if (this.ColumnRightClick != null)
+                this.ColumnRightClick(this, e);
         }
 
         protected virtual void OnItemsAdding(ItemsAddingEventArgs e)
