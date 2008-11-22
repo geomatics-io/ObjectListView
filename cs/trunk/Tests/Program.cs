@@ -30,14 +30,10 @@ namespace BrightIdeasSoftware.Tests
             MyGlobals g = new MyGlobals();
             g.RunBeforeAnyTests();
 
-            TestTreeListViewSelection t2 = new TestTreeListViewSelection();
-            t2.Init();
-            t2.InitEachTest();
-
-            TestTreeView t = new TestTreeView();
+            TestSorting t = new TestSorting();
             t.Init();
             t.InitEachTest();
-            t.TestExpandAll();
+            t.TestCustomSorting();
 
             g.RunAfterAnyTests();
 		}
