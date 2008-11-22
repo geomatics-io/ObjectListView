@@ -142,12 +142,12 @@ namespace BrightIdeasSoftware.Tests
         static PersonDb()
         {
             allPersons = new List<Person>(new Person[] {             
-                new Person("name", "occupation", 100, DateTime.Now, 1.0, true, "  photo  ", "comments"),
+                new Person("name", "occupation", 200, DateTime.Now.AddYears(1), 1.0, true, "  photo  ", "comments"),
                 new Person2("name", "occupation", 100, DateTime.Now, 1.0, true, "  photo  ", "comments"),
-                new Person("name3", "occupation3", 300, DateTime.Now, 3.0, true, "  photo3  ", "comments3"),
-                new Person("name4", "occupation4", 400, DateTime.Now, 4.0, true, "  photo4  ", "comments4"),
-                new Person2("name5", "occupation5", 500, DateTime.Now, 5.0, true, "  photo5  ", "comments5"),
-                new Person("name6", "occupation6", 600, DateTime.Now, 6.0, true, "  photo6  ", "comments6"),
+                new Person(PersonDb.FirstAlphabeticalName, "occupation3", 90, DateTime.Now, 3.0, true, "  photo3  ", "comments3"),
+                new Person("name4", "occupation4", 80, DateTime.Now, 4.0, true, "  photo4  ", "comments4"),
+                new Person2("name5", "occupation5", 70, DateTime.Now, 5.0, true, "  photo5  ", "comments5"),
+                new Person(PersonDb.LastAlphabeticalName, "occupation6", 60, DateTime.Now.AddYears(-1), 6.0, true, "  photo6  ", "comments6"),
             });
             allPersons[0].Children.Add(allPersons[2]);
             allPersons[0].Children.Add(allPersons[3]);
@@ -159,6 +159,16 @@ namespace BrightIdeasSoftware.Tests
         static public List<Person> All
         {
             get { return allPersons; }
+        }
+
+        static public string FirstAlphabeticalName
+        {
+            get { return "aaa First Alphabetical Name"; }
+        }
+
+        static public string LastAlphabeticalName
+        {
+            get { return "zzz Last Alphabetical Name"; }
         }
     }
 }

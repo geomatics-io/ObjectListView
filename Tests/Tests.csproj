@@ -47,6 +47,7 @@
     <Compile Include="TestCheckBoxes.cs" />
     <Compile Include="TestColumn.cs" />
     <Compile Include="TestSelection.cs" />
+    <Compile Include="TestSorting.cs" />
     <Compile Include="TestTreeView.cs" />
   </ItemGroup>
   <ItemGroup>
