@@ -5,6 +5,10 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2008-11-21  JPP  - Fixed bug where enabling grouping when there was not a sort column would not
+ *                    produce a grouped list. Grouping column now defaults to column 0.
+ * 2008-11-20  JPP  - Added ability to search by sort column to ObjectListView. Unified this with
+ *                    ability that was already in VirtualObjectListView
  * 2008-11-19  JPP  - Fixed bug in ChangeToFilteredColumns() where DisplayOrder was not always restored correctly.
  * 2008-10-29  JPP  - Event argument blocks moved to directly within the namespace, rather than being 
  *                    nested inside ObjectListView class.
@@ -768,6 +772,21 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// When the user types into a list, should the values in the current sort column be searched to find a match?
+        /// If this is false, the primary column will always be used regardless of the sort column.
+        /// </summary>
+        /// <remarks>When this is true, the behavior is like that of ITunes.</remarks>
+        [Category("Behavior"),
+        Description("When the user types into a list, should the values in the current sort column be searched to find a match?"),
+        DefaultValue(true)]
+        public bool IsSearchOnSortColumn
+        {
+            get { return isSearchOnSortColumn; }
+            set { isSearchOnSortColumn = value; }
+        }
+        private bool isSearchOnSortColumn = true;
+
+        /// <summary>
         /// Which column did we last sort by
         /// </summary>
         [Browsable(false),
@@ -796,18 +815,29 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>
         /// <para>
-        /// The contents of the control will be updated immediately after setting this property</remarks>
+        /// The contents of the control will be updated immediately after setting this property.
         /// </para>
         /// <para>This method preserves selection, if possible. Use SetObjects() if
         /// you do not want to preserve the selection. Preserving selection is the slowest part of this
         /// code and performance is O(n) where n is the number of selected rows.</para>
         /// <para>This method is not thread safe.</para>
+        /// <para>This method DOES work on virtual lists, but if the list has 10 million objects, it may
+        /// take some time to return.</para>
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public IEnumerable Objects
         {
-            get { return this.objects; }
+            get {
+                if (this.VirtualMode) {
+                    ArrayList contents = new ArrayList(this.GetItemCount());
+                    for (int i=0; i<this.GetItemCount(); i++)
+                        contents.Add(this.GetModelObject(i));
+                    return contents;
+                }
+                else
+                    return this.objects; 
+            }
             set {
                 this.BeginUpdate();
                 try {
@@ -1498,8 +1528,8 @@ namespace BrightIdeasSoftware
             if (this.Frozen)
                 return;
 
-            IList previousSelection = new ArrayList();
             int previousTopIndex = this.TopItemIndex;
+            IList previousSelection = new ArrayList();
             if (shouldPreserveState && this.objects != null)
                 previousSelection = this.SelectedObjects;
 
@@ -1688,6 +1718,14 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Deselect all rows in the listview
+        /// </summary>
+        public void DeselectAll()
+        {
+            NativeMethods.DeselectAllItems(this);
+        }
+
+        /// <summary>
         /// Setup the list so it will draw selected rows using custom colours.
         /// </summary>
         /// <remarks>
@@ -1705,14 +1743,89 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Ensure that the given model object is visible
+        /// Return the ListViewItem that appears immediately after the given item.
+        /// If the given item is null, the first item in the list will be returned.
+        /// Return null if the given item is the last item.
         /// </summary>
-        /// <param name="modelObject">The model object to be revealed</param>
-        public void EnsureModelVisible(Object modelObject)
+        /// <param name="itemToFind">The item that is before the item that is returned, or null</param>
+        /// <returns>A ListViewItem</returns>
+        public ListViewItem GetNextItem(ListViewItem itemToFind)
         {
-            int idx = this.IndexOf(modelObject);
-            if (idx >= 0)
-                this.EnsureVisible(idx);
+            if (this.ShowGroups) {
+                bool isFound = (itemToFind == null);
+                foreach (ListViewGroup group in this.Groups) {
+                    foreach (ListViewItem lvi in group.Items) {
+                        if (isFound)
+                            return lvi;
+                        isFound = (lvi == itemToFind);
+                    }
+                }
+                return null;
+            } else {
+                if (this.GetItemCount() == 0)
+                    return null;
+                if (itemToFind == null)
+                    return this.GetItem(0);
+                if (itemToFind.Index == this.GetItemCount() - 1)
+                    return null;
+                return this.GetItem(itemToFind.Index + 1);
+            }
+        }
+
+        /// <summary>
+        /// Return the n'th item (0-based) in the order they are shown to the user. 
+        /// If the control is not grouped, the display order is the same as the
+        /// sorted list order. But if the list is grouped, the display order is different.
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public OLVListItem GetNthItemInDisplayOrder(int n)
+        {
+            if (!this.ShowGroups)
+                return this.GetItem(n);
+
+            foreach (ListViewGroup lgv in this.Groups) {
+                if (n < lgv.Items.Count)
+                    return (OLVListItem)lgv.Items[n];
+
+                n -= lgv.Items.Count;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Return the ListViewItem that appears immediately before the given item.
+        /// If the given item is null, the last item in the list will be returned.
+        /// Return null if the given item is the first item.
+        /// </summary>
+        /// <param name="itemToFind">The item that is before the item that is returned</param>
+        /// <returns>A ListViewItem</returns>
+        public ListViewItem GetPreviousItem(ListViewItem itemToFind)
+        {
+            if (this.ShowGroups) {
+                ListViewItem previousItem = null;
+                foreach (ListViewGroup group in this.Groups) {
+                    foreach (ListViewItem lvi in group.Items) {
+                        if (lvi == itemToFind)
+                            return previousItem;
+                        else
+                            previousItem = lvi;
+                    }
+                }
+                if (itemToFind == null)
+                    return previousItem;
+                else
+                    return null;
+            } else {
+                if (this.GetItemCount() == 0)
+                    return null;
+                if (itemToFind == null)
+                    return this.GetItem(this.GetItemCount() - 1);
+                if (itemToFind.Index == 0)
+                    return null;
+                return this.GetItem(itemToFind.Index - 1);
+            }
         }
 
         /// <summary>
@@ -1842,6 +1955,14 @@ namespace BrightIdeasSoftware
             finally {
                 this.EndUpdate();
             }
+        }
+
+        /// <summary>
+        /// Select all rows in the listview
+        /// </summary>
+        public void SelectAll()
+        {
+            NativeMethods.SelectAllItems(this);
         }
 
         /// <summary>
@@ -2064,6 +2185,16 @@ namespace BrightIdeasSoftware
                     if (!this.HandleNotify(ref m))
                         base.WndProc(ref m);
                     break;
+                //case 0x100:
+                //case 0x101:
+                //case 0x102:
+                //case 260:
+                //case 0x105:
+
+                case 0x0102: // WM_CHAR
+                    if (!this.HandleChar(ref m))
+                        base.WndProc(ref m);
+                    break;
                 case 0x204E: // WM_REFLECT_NOTIFY
                     if (!this.HandleReflectNotify(ref m))
                         base.WndProc(ref m);
@@ -2080,10 +2211,375 @@ namespace BrightIdeasSoftware
                     if (!this.HandleContextMenu(ref m))
                         base.WndProc(ref m);
                     break;
+                case 0x1053: // LVM_FINDITEM = (LVM_FIRST + 83)
+                    if (!this.HandleFindItem(ref m))
+                        base.WndProc(ref m);
+                    break;
                 default:
                     base.WndProc(ref m);
                     break;
             }
+        }
+
+        /// <summary>
+        /// The user wants to see the context menu.
+        /// </summary>
+        /// <param name="m">The windows message</param>
+        /// <returns>A bool indicating if this message has been handled</returns>
+        /// <remarks>
+        /// We want to ignore context menu requests that are triggered by right clicks on the header
+        /// </remarks>
+        protected bool HandleContextMenu(ref Message m)
+        {
+            // Don't try to handle context menu commands at design time.
+            if (this.DesignMode)
+                return false;
+
+            // If the context menu command was generated by the keyboard, LParam will be -1.
+            // We don't want to process these.
+            if (((int)m.LParam) == -1)
+                return false;
+
+            // If the context menu came from somewhere other than the header control,
+            // we also don't want to ignore it
+            if (m.WParam != this.hdrCtrl.Handle)
+                return false;
+
+            // OK. Looks like a right click in the header
+            if (!this.PossibleFinishCellEditing())
+                return true;
+
+            int columnIndex = this.hdrCtrl.GetColumnIndexUnderCursor();
+            return this.HandleHeaderRightClick(columnIndex);
+        }
+
+        /// <summary>
+        /// Handle the search for item message if possible.
+        /// </summary>
+        /// <param name="m">The msg to be processed</param>
+        /// <returns>bool to indicate if the msg has been handled</returns>
+        protected bool HandleChar(ref Message m)
+        {
+            const int MILLISECONDS_BETWEEN_KEYPRESSES = 1000;
+
+            // What character did the user type and was it part of a longer string?
+            char character = (char)m.WParam; //TODO: Will this work on 64 bit or MBCS?
+            if (System.Environment.TickCount < (this.timeLastCharEvent + MILLISECONDS_BETWEEN_KEYPRESSES))
+                this.lastSearchString += character;
+            else
+                this.lastSearchString = character.ToString();
+
+            // Where should the search start?
+            int start = 0;
+            ListViewItem focused = this.FocusedItem;
+            if (focused != null) {
+                start = focused.Index;
+
+                // If the user presses a single key, we search from after the focused item,
+                // being careful not to march past the end of the list
+                if (this.lastSearchString.Length == 1) {
+                    start += 1;
+                    if (start == this.GetItemCount())
+                        start = 0;
+                }
+            }
+
+            // Do the actual search
+            int found = this.FindMatchingRow(this.lastSearchString, start, SearchDirectionHint.Down);
+            if (found < 0)
+                System.Media.SystemSounds.Beep.Play();
+            else {
+                // Select and focus on the found item
+                this.SelectedIndices.Clear();
+                ListViewItem lvi = this.Items[found];
+                lvi.Selected = true;
+                lvi.Focused = true;
+            }
+
+            // When did this event occur?
+            this.timeLastCharEvent = System.Environment.TickCount;
+            return true;
+        }
+        internal int timeLastCharEvent;
+        internal string lastSearchString;
+
+        /// <summary>
+        /// Handle the search for item message if possible.
+        /// </summary>
+        /// <param name="m">The msg to be processed</param>
+        /// <returns>bool to indicate if the msg has been handled</returns>
+        protected bool HandleFindItem(ref Message m)
+        {
+            // NOTE: As far as I can see, this message is never actually sent to the control, making this 
+            // method redundant!
+
+            const int LVFI_STRING = 0x0002;
+
+            NativeMethods.LVFINDINFO findInfo = (NativeMethods.LVFINDINFO)m.GetLParam(typeof(NativeMethods.LVFINDINFO));
+
+            // We can only handle string searches
+            if ((findInfo.flags & LVFI_STRING) != LVFI_STRING)
+                return false;
+
+            int start = m.WParam.ToInt32();
+            m.Result = (IntPtr)this.FindMatchingRow(findInfo.psz, start, SearchDirectionHint.Down);
+            return true;
+        }
+
+        /// <summary>
+        /// Find the first row after the given start in which the text value in the 
+        /// comparison column begins with the given text. The comparison column is column 0,
+        /// unless IsSearchOnSortColumn is true, in which case the current sort column is used.
+        /// </summary>
+        /// <param name="text">The text to be prefix matched</param>
+        /// <param name="start">The index of the first row to consider</param>
+        /// <param name="direction">Which direction should be searched?</param>
+        /// <returns>The index of the first row that matched, or -1</returns>
+        /// <remarks>The text comparison is a case-insensitive, prefix match. The search will
+        /// search the every row until a match is found, wrapping at the end if needed.</remarks>
+        public int FindMatchingRow(string text, int start, SearchDirectionHint direction)
+        {
+            // We also can't do anything if we don't have data
+            int rowCount = this.GetItemCount();
+            if (rowCount == 0)
+                return -1;
+
+            // Which column are we going to use for our comparing?
+            OLVColumn column = this.GetColumn(0);
+            if (this.IsSearchOnSortColumn && this.View == View.Details && this.LastSortColumn != null)
+                column = this.LastSortColumn;
+
+            // Do two searches if necessary to find a match. The second search is the wrap-around part of searching
+            int i;
+            if (direction == SearchDirectionHint.Down) {
+                i = this.FindMatchInRange(text, start, rowCount - 1, column);
+                if (i == -1 && start > 0)
+                    i = this.FindMatchInRange(text, 0, start - 1, column);
+            } else {
+                i = this.FindMatchInRange(text, start, 0, column);
+                if (i == -1 && start != rowCount)
+                    i = this.FindMatchInRange(text, rowCount - 1, start + 1, column);
+            }
+
+            return i;
+        }
+
+        /// <summary>
+        /// Find the first row in the given range of rows that prefix matches the string value of the given column.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="first"></param>
+        /// <param name="last"></param>
+        /// <param name="column"></param>
+        /// <returns>The index of the matched row, or -1</returns>
+        virtual protected int FindMatchInRange(string text, int first, int last, OLVColumn column)
+        {
+            if (first <= last) {
+                for (int i = first; i <= last; i++) {
+                    string data = column.GetStringValue(this.GetNthItemInDisplayOrder(i).RowObject);
+                    if (data.StartsWith(text, StringComparison.CurrentCultureIgnoreCase))
+                        return i;
+                }
+            } else {
+                for (int i = first; i >= last; i--) {
+                    string data = column.GetStringValue(this.GetNthItemInDisplayOrder(i).RowObject);
+                    if (data.StartsWith(text, StringComparison.CurrentCultureIgnoreCase))
+                        return i;
+                }
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// In the notification messages, we handle attempts to change the width of our columns
+        /// </summary>
+        /// <param name="m">The msg to be processed</param>
+        /// <returns>bool to indicate if the msg has been handled</returns>
+        unsafe protected bool HandleReflectNotify(ref Message m)
+        {
+            const int LVN_ITEMCHANGED = -101;
+            const int LVN_ITEMCHANGING = -100;
+            const int LVIF_STATE = 8;
+
+            bool isMsgHandled = false;
+            NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
+
+            switch (nmhdr.code) {
+                case LVN_ITEMCHANGED:
+                    NativeMethods.NMLISTVIEW* nmlistviewPtr2 = (NativeMethods.NMLISTVIEW*)m.LParam;
+                    if ((nmlistviewPtr2->uChanged & LVIF_STATE) != 0) {
+                        CheckState currentValue = this.CalculateState(nmlistviewPtr2->uOldState);
+                        CheckState newCheckValue = this.CalculateState(nmlistviewPtr2->uNewState);
+                        if (currentValue != newCheckValue) {
+                            ItemCheckedEventArgs args4 = new ItemCheckedEventArgs(this.Items[nmlistviewPtr2->iItem]);
+                            this.OnItemChecked(args4);
+                            // Remove the state indicies so that we don't trigger the OnItemChecked method 
+                            // when we call our base method after exiting this method
+                            nmlistviewPtr2->uOldState = (nmlistviewPtr2->uOldState & 0x0FFF);
+                            nmlistviewPtr2->uNewState = (nmlistviewPtr2->uNewState & 0x0FFF);
+                        }
+                    }
+                    break;
+
+                case LVN_ITEMCHANGING:
+                    // Change the CheckBox handling to cope with indeterminate state
+                    NativeMethods.NMLISTVIEW* nmlistviewPtr = (NativeMethods.NMLISTVIEW*)m.LParam;
+                    if ((nmlistviewPtr->uChanged & LVIF_STATE) != 0) {
+                        CheckState currentValue = this.CalculateState(nmlistviewPtr->uOldState);
+                        CheckState newCheckValue = this.CalculateState(nmlistviewPtr->uNewState);
+                        if (currentValue != newCheckValue) {
+                            ItemCheckEventArgs ice = new ItemCheckEventArgs(nmlistviewPtr->iItem, newCheckValue, currentValue);
+                            this.OnItemCheck(ice);
+                            if (ice.NewValue == currentValue)
+                                m.Result = (IntPtr)1;
+                            else {
+                                m.Result = IntPtr.Zero;
+                                // Within this message, we cannot change to any other value but the expected one
+                                // So if we need to switch to another value, we use BeginInvole to change to the value
+                                // we want just after this message completes.
+                                if (ice.NewValue != newCheckValue) {
+                                    OLVListItem olvItem = this.GetItem(nmlistviewPtr->iItem);
+                                    this.BeginInvoke((MethodInvoker)delegate {
+                                        olvItem.CheckState = ice.NewValue;
+                                    });
+                                }
+                            }
+                            //isMsgHandled = true;
+                        }
+                        // Prevent the base method from seeing the state change, since we've already handled it
+                        nmlistviewPtr->uChanged &= ~LVIF_STATE;
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+
+            return isMsgHandled;
+        }
+
+        private CheckState CalculateState(int state)
+        {
+            switch ((state & 0xf000) >> 12) {
+                case 1:
+                    return CheckState.Unchecked;
+                case 2:
+                    return CheckState.Checked;
+                case 3:
+                    return CheckState.Indeterminate;
+                default:
+                    return CheckState.Checked;
+            }
+        }
+
+        /// <summary>
+        /// In the notification messages, we handle attempts to change the width of our columns
+        /// </summary>
+        /// <param name="m">The msg to be processed</param>
+        /// <returns>bool to indicate if the msg has been handled</returns>
+        unsafe protected bool HandleNotify(ref Message m)
+        {
+            bool isMsgHandled = false;
+
+            const int HDN_FIRST = (0 - 300);
+            const int HDN_ITEMCHANGINGA = (HDN_FIRST - 0);
+            const int HDN_ITEMCHANGINGW = (HDN_FIRST - 20);
+            const int HDN_ITEMCLICKA = (HDN_FIRST - 2);
+            const int HDN_ITEMCLICKW = (HDN_FIRST - 22);
+            const int HDN_DIVIDERDBLCLICKA = (HDN_FIRST - 5);
+            const int HDN_DIVIDERDBLCLICKW = (HDN_FIRST - 25);
+            const int HDN_BEGINTRACKA = (HDN_FIRST - 6);
+            const int HDN_BEGINTRACKW = (HDN_FIRST - 26);
+            //const int HDN_ENDTRACKA = (HDN_FIRST - 7);
+            //const int HDN_ENDTRACKW = (HDN_FIRST - 27);
+            const int HDN_TRACKA = (HDN_FIRST - 8);
+            const int HDN_TRACKW = (HDN_FIRST - 28);
+
+            // Handle the notification, remembering to handle both ANSI and Unicode versions
+            NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
+            //if (nmhdr.code < HDN_FIRST)
+            //    System.Diagnostics.Debug.WriteLine(nmhdr.code);
+
+            // In KB Article #183258, MS states that when a header control has the HDS_FULLDRAG style, it will receive
+            // ITEMCHANGING events rather than TRACK events. Under XP SP2 (at least) this is not always true, which may be
+            // why MS has withdrawn that particular KB article. It is true that the header is always given the HDS_FULLDRAG
+            // style. But even while window style set, the control doesn't always received ITEMCHANGING events.
+            // The controlling setting seems to be the Explorer option "Show Window Contents While Dragging"!
+            // In the category of "truly bizarre side effects", if the this option is turned on, we will receive
+            // ITEMCHANGING events instead of TRACK events. But if it is turned off, we receive lots of TRACK events and
+            // only one ITEMCHANGING event at the very end of the process.
+            // If we receive HDN_TRACK messages, it's harder to control the resizing process. If we return a result of 1, we
+            // cancel the whole drag operation, not just that particular track event, which is clearly not what we want.
+            // If we are willing to compile with unsafe code enabled, we can modify the size of the column in place, using the
+            // commented out code below. But without unsafe code, the best we can do is allow the user to drag the column to
+            // any width, and then spring it back to within bounds once they release the mouse button. UI-wise it's very ugly.
+            NativeMethods.NMHEADER nmheader;
+            switch (nmhdr.code) {
+
+                case HDN_ITEMCLICKA:
+                case HDN_ITEMCLICKW:
+                    if (!this.PossibleFinishCellEditing()) {
+                        m.Result = (IntPtr)1; // prevent the change from happening
+                        isMsgHandled = true;
+                    }
+                    break;
+
+                case HDN_DIVIDERDBLCLICKA:
+                case HDN_DIVIDERDBLCLICKW:
+                case HDN_BEGINTRACKA:
+                case HDN_BEGINTRACKW:
+                    if (!this.PossibleFinishCellEditing()) {
+                        m.Result = (IntPtr)1; // prevent the change from happening
+                        isMsgHandled = true;
+                        break;
+                    }
+                    nmheader = (NativeMethods.NMHEADER)m.GetLParam(typeof(NativeMethods.NMHEADER));
+                    if (nmheader.iItem >= 0 && nmheader.iItem < this.Columns.Count) {
+                        OLVColumn column = this.GetColumn(nmheader.iItem);
+                        // Space filling columns can't be dragged or double-click resized
+                        if (column.FillsFreeSpace) {
+                            m.Result = (IntPtr)1; // prevent the change from happening
+                            isMsgHandled = true;
+                        }
+                    }
+                    break;
+
+                case HDN_TRACKA:
+                case HDN_TRACKW:
+                    nmheader = (NativeMethods.NMHEADER)m.GetLParam(typeof(NativeMethods.NMHEADER));
+                    if (nmheader.iItem >= 0 && nmheader.iItem < this.Columns.Count) {
+                        NativeMethods.HDITEM* hditem = (NativeMethods.HDITEM*)nmheader.pHDITEM;
+                        OLVColumn column = this.GetColumn(nmheader.iItem);
+                        if (hditem->cxy < column.MinimumWidth)
+                            hditem->cxy = column.MinimumWidth;
+                        else if (column.MaximumWidth != -1 && hditem->cxy > column.MaximumWidth)
+                            hditem->cxy = column.MaximumWidth;
+                    }
+                    break;
+
+                case HDN_ITEMCHANGINGA:
+                case HDN_ITEMCHANGINGW:
+                    nmheader = (NativeMethods.NMHEADER)m.GetLParam(typeof(NativeMethods.NMHEADER));
+                    if (nmheader.iItem >= 0 && nmheader.iItem < this.Columns.Count) {
+                        NativeMethods.HDITEM hditem = (NativeMethods.HDITEM)Marshal.PtrToStructure(nmheader.pHDITEM, typeof(NativeMethods.HDITEM));
+                        OLVColumn column = this.GetColumn(nmheader.iItem);
+                        // Check the mask to see if the width field is valid, and if it is, make sure it's within range
+                        if ((hditem.mask & 1) == 1) {
+                            if (hditem.cxy < column.MinimumWidth ||
+                                (column.MaximumWidth != -1 && hditem.cxy > column.MaximumWidth)) {
+                                m.Result = (IntPtr)1; // prevent the change from happening
+                                isMsgHandled = true;
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+
+            return isMsgHandled;
         }
 
         #endregion
@@ -2222,229 +2718,6 @@ namespace BrightIdeasSoftware
             }
         }
 #endif
-        /// <summary>
-        /// The user wants to see the context menu.
-        /// </summary>
-        /// <param name="m">The windows message</param>
-        /// <returns>A bool indicating if this message has been handled</returns>
-        /// <remarks>
-        /// We want to ignore context menu requests that are triggered by right clicks on the header
-        /// </remarks>
-        protected bool HandleContextMenu(ref Message m)
-        {
-            // Don't try to handle context menu commands at design time.
-            if (this.DesignMode)
-                return false;
-
-            // If the context menu command was generated by the keyboard, LParam will be -1.
-            // We don't want to process these.
-            if (((int)m.LParam) == -1)
-                return false;
-
-            // If the context menu came from somewhere other than the header control,
-            // we also don't want to ignore it
-            if (m.WParam != this.hdrCtrl.Handle)
-                return false;
-
-            // OK. Looks like a right click in the header
-            if (!this.PossibleFinishCellEditing())
-                return true;
-
-            int columnIndex = this.hdrCtrl.GetColumnIndexUnderCursor();
-            return this.HandleHeaderRightClick(columnIndex);
-        }
-
-        /// <summary>
-        /// In the notification messages, we handle attempts to change the width of our columns
-        /// </summary>
-        /// <param name="m">The msg to be processed</param>
-        /// <returns>bool to indicate if the msg has been handled</returns>
-        unsafe protected bool HandleReflectNotify(ref Message m)
-        {
-            const int LVN_ITEMCHANGED = -101;
-            const int LVN_ITEMCHANGING = -100;
-            const int LVIF_STATE = 8;
-
-            bool isMsgHandled = false;
-            NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
-
-            switch (nmhdr.code) {
-                case LVN_ITEMCHANGED:
-                    NativeMethods.NMLISTVIEW* nmlistviewPtr2 = (NativeMethods.NMLISTVIEW*)m.LParam;
-                    if ((nmlistviewPtr2->uChanged & LVIF_STATE) != 0) {
-                        CheckState currentValue = this.CalculateState(nmlistviewPtr2->uOldState);
-                        CheckState newCheckValue = this.CalculateState(nmlistviewPtr2->uNewState);
-                        if (currentValue != newCheckValue) {
-                            ItemCheckedEventArgs args4 = new ItemCheckedEventArgs(this.Items[nmlistviewPtr2->iItem]);
-                            this.OnItemChecked(args4);
-                            // Remove the state indicies so that we don't trigger the OnItemChecked method 
-                            // when we call our base method after exiting this method
-                            nmlistviewPtr2->uOldState = (nmlistviewPtr2->uOldState & 0x0FFF);
-                            nmlistviewPtr2->uNewState = (nmlistviewPtr2->uNewState & 0x0FFF);
-                        }
-                    }
-                    break;
-
-                case LVN_ITEMCHANGING:
-                    // Change the CheckBox handling to cope with indeterminate state
-                    NativeMethods.NMLISTVIEW* nmlistviewPtr = (NativeMethods.NMLISTVIEW*)m.LParam;
-                    if ((nmlistviewPtr->uChanged & LVIF_STATE) != 0) {
-                        CheckState currentValue = this.CalculateState(nmlistviewPtr->uOldState);
-                        CheckState newCheckValue = this.CalculateState(nmlistviewPtr->uNewState);
-                        if (currentValue != newCheckValue) {
-                            ItemCheckEventArgs ice = new ItemCheckEventArgs(nmlistviewPtr->iItem, newCheckValue, currentValue);
-                            this.OnItemCheck(ice);
-                            if (ice.NewValue == currentValue)
-                                m.Result = (IntPtr)1;
-                            else {
-                                m.Result = IntPtr.Zero;
-                                // Within this message, we cannot change to any other value but the expected one
-                                // So if we need to switch to another value, we use BeginInvole to change to the value
-                                // we want just after this message completes.
-                                if (ice.NewValue != newCheckValue) {
-                                    OLVListItem olvItem = this.GetItem(nmlistviewPtr->iItem);
-                                    this.BeginInvoke((MethodInvoker)delegate {
-                                        olvItem.CheckState = ice.NewValue;
-                                    });
-                                }
-                            }
-                            //isMsgHandled = true;
-                        }
-                        // Prevent the base method from seeing the state change, since we've already handled it
-                        nmlistviewPtr->uChanged &= ~LVIF_STATE;
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-
-            return isMsgHandled;        
-        }
-
-        private CheckState CalculateState(int state)
-        {
-            switch ((state & 0xf000) >> 12) {
-                case 1:
-                    return CheckState.Unchecked;
-                case 2:
-                    return CheckState.Checked;
-                case 3:
-                    return CheckState.Indeterminate;
-                default:
-                    return CheckState.Checked;
-            }
-        }
-
-        /// <summary>
-        /// In the notification messages, we handle attempts to change the width of our columns
-        /// </summary>
-        /// <param name="m">The msg to be processed</param>
-        /// <returns>bool to indicate if the msg has been handled</returns>
-        unsafe protected bool HandleNotify(ref Message m)
-        {
-            bool isMsgHandled = false;
-
-            const int HDN_FIRST = (0 - 300);
-            const int HDN_ITEMCHANGINGA = (HDN_FIRST - 0);
-            const int HDN_ITEMCHANGINGW = (HDN_FIRST - 20);
-            const int HDN_ITEMCLICKA = (HDN_FIRST - 2);
-            const int HDN_ITEMCLICKW = (HDN_FIRST - 22);
-            const int HDN_DIVIDERDBLCLICKA = (HDN_FIRST - 5);
-            const int HDN_DIVIDERDBLCLICKW = (HDN_FIRST - 25);
-            const int HDN_BEGINTRACKA = (HDN_FIRST - 6);
-            const int HDN_BEGINTRACKW = (HDN_FIRST - 26);
-            //const int HDN_ENDTRACKA = (HDN_FIRST - 7);
-            //const int HDN_ENDTRACKW = (HDN_FIRST - 27);
-            const int HDN_TRACKA = (HDN_FIRST - 8);
-            const int HDN_TRACKW = (HDN_FIRST - 28);
-
-            // Handle the notification, remembering to handle both ANSI and Unicode versions
-            NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
-            //if (nmhdr.code < HDN_FIRST)
-            //    System.Diagnostics.Debug.WriteLine(nmhdr.code);
-
-            // In KB Article #183258, MS states that when a header control has the HDS_FULLDRAG style, it will receive
-            // ITEMCHANGING events rather than TRACK events. Under XP SP2 (at least) this is not always true, which may be
-            // why MS has withdrawn that particular KB article. It is true that the header is always given the HDS_FULLDRAG
-            // style. But even while window style set, the control doesn't always received ITEMCHANGING events.
-            // The controlling setting seems to be the Explorer option "Show Window Contents While Dragging"!
-            // In the category of "truly bizarre side effects", if the this option is turned on, we will receive
-            // ITEMCHANGING events instead of TRACK events. But if it is turned off, we receive lots of TRACK events and
-            // only one ITEMCHANGING event at the very end of the process.
-            // If we receive HDN_TRACK messages, it's harder to control the resizing process. If we return a result of 1, we
-            // cancel the whole drag operation, not just that particular track event, which is clearly not what we want.
-            // If we are willing to compile with unsafe code enabled, we can modify the size of the column in place, using the
-            // commented out code below. But without unsafe code, the best we can do is allow the user to drag the column to
-            // any width, and then spring it back to within bounds once they release the mouse button. UI-wise it's very ugly.
-            NativeMethods.NMHEADER nmheader;
-            switch (nmhdr.code) {
-
-                case HDN_ITEMCLICKA:
-                case HDN_ITEMCLICKW:
-                    if (!this.PossibleFinishCellEditing()) {
-                        m.Result = (IntPtr)1; // prevent the change from happening
-                        isMsgHandled = true;
-                    }
-                    break;
-
-                case HDN_DIVIDERDBLCLICKA:
-                case HDN_DIVIDERDBLCLICKW:
-                case HDN_BEGINTRACKA:
-                case HDN_BEGINTRACKW:
-                    if (!this.PossibleFinishCellEditing()) {
-                        m.Result = (IntPtr)1; // prevent the change from happening
-                        isMsgHandled = true;
-                        break;
-                    }
-                    nmheader = (NativeMethods.NMHEADER)m.GetLParam(typeof(NativeMethods.NMHEADER));
-                    if (nmheader.iItem >= 0 && nmheader.iItem < this.Columns.Count) {
-                        OLVColumn column = this.GetColumn(nmheader.iItem);
-                        // Space filling columns can't be dragged or double-click resized
-                        if (column.FillsFreeSpace) {
-                            m.Result = (IntPtr)1; // prevent the change from happening
-                            isMsgHandled = true;
-                        }
-                    }
-                    break;
-
-                case HDN_TRACKA:
-                case HDN_TRACKW:
-                    nmheader = (NativeMethods.NMHEADER)m.GetLParam(typeof(NativeMethods.NMHEADER));
-                    if (nmheader.iItem >= 0 && nmheader.iItem < this.Columns.Count) {
-                        NativeMethods.HDITEM* hditem = (NativeMethods.HDITEM*)nmheader.pHDITEM;
-                        OLVColumn column = this.GetColumn(nmheader.iItem);
-                        if (hditem->cxy < column.MinimumWidth)
-                            hditem->cxy = column.MinimumWidth;
-                        else if (column.MaximumWidth != -1 && hditem->cxy > column.MaximumWidth)
-                            hditem->cxy = column.MaximumWidth;
-                    }
-                    break;
-
-                case HDN_ITEMCHANGINGA:
-                case HDN_ITEMCHANGINGW:
-                    nmheader = (NativeMethods.NMHEADER)m.GetLParam(typeof(NativeMethods.NMHEADER));
-                    if (nmheader.iItem >= 0 && nmheader.iItem < this.Columns.Count) {
-                        NativeMethods.HDITEM hditem = (NativeMethods.HDITEM)Marshal.PtrToStructure(nmheader.pHDITEM, typeof(NativeMethods.HDITEM));
-                        OLVColumn column = this.GetColumn(nmheader.iItem);
-                        // Check the mask to see if the width field is valid, and if it is, make sure it's within range
-                        if ((hditem.mask & 1) == 1) {
-                            if (hditem.cxy < column.MinimumWidth ||
-                                (column.MaximumWidth != -1 && hditem.cxy > column.MaximumWidth)) {
-                                m.Result = (IntPtr)1; // prevent the change from happening
-                                isMsgHandled = true;
-                            }
-                        }
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-
-            return isMsgHandled;
-        }
-
 
         /// <summary>
         /// The user has right clicked on the column headers. Do whatever is required
@@ -2470,20 +2743,6 @@ namespace BrightIdeasSoftware
         {
             return false;
         }
-
-        /// <summary>
-        /// Tell the world when a cell is about to finish being edited.
-        /// </summary>
-        protected virtual void OnColumnRightClick(ColumnClickEventArgs e)
-        {
-            if (this.ColumnRightClick != null)
-                this.ColumnRightClick(this, e);
-        }
-
-        /// Triggered when a column header is right clicked.
-        /// </summary>
-        [Category("Behavior")]
-        public event ColumnRightClickEventHandler ColumnRightClick;
 
         /// <summary>
         /// Show a popup menu at the given point which will allow the user to choose which columns
@@ -2841,19 +3100,14 @@ namespace BrightIdeasSoftware
         #region Object manipulation
 
         /// <summary>
-        /// Select all rows in the listview
+        /// Ensure that the given model object is visible
         /// </summary>
-        public void SelectAll()
+        /// <param name="modelObject">The model object to be revealed</param>
+        public void EnsureModelVisible(Object modelObject)
         {
-            NativeMethods.SelectAllItems(this);
-        }
-
-        /// <summary>
-        /// Deselect all rows in the listview
-        /// </summary>
-        public void DeselectAll()
-        {
-            NativeMethods.DeselectAllItems(this);
+            int idx = this.IndexOf(modelObject);
+            if (idx >= 0)
+                this.EnsureVisible(idx);
         }
 
         /// <summary>
@@ -2904,51 +3158,19 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Select the row that is displaying the given model object. All other rows are deselected.
+        /// Find the given model object within the listview and return its index
         /// </summary>
-        /// <param name="modelObject">The object to be selected or null to deselect all</param>
-        virtual public void SelectObject(object modelObject)
+        /// <remarks>Technically, this method will work with virtual lists, but it will
+        /// probably be very slow.</remarks>
+        /// <param name="modelObject">The model object to be found</param>
+        /// <returns>The index of the object. -1 means the object was not present</returns>
+        public int IndexOf(Object modelObject)
         {
-            this.SelectObject(modelObject, false);
-        }
-
-        /// <summary>
-        /// Select the row that is displaying the given model object. All other rows are deselected.
-        /// </summary>
-        /// <param name="modelObject">The object to be selected or null to deselect all</param>
-        /// <param name="setFocus">Should the object be focused as well?</param>
-        virtual public void SelectObject(object modelObject, bool setFocus)
-        {
-            // If the given model is already selected, don't do anything else (prevents an flicker)
-            if (this.SelectedItems.Count == 1 && ((OLVListItem)this.SelectedItems[0]).RowObject == modelObject)
-                return;
-
-            this.SelectedItems.Clear();
-
-            OLVListItem olvi = this.ModelToItem(modelObject);
-            if (olvi != null) {
-                olvi.Selected = true;
-                if (setFocus)
-                    olvi.Focused = true;
+            for (int i = 0; i < this.GetItemCount(); i++) {
+                if (this.GetModelObject(i) == modelObject)
+                    return i;
             }
-        }
-
-        /// <summary>
-        /// Select the rows that is displaying any of the given model object. All other rows are deselected.
-        /// </summary>
-        /// <param name="modelObjects">A collection of model objects</param>
-        virtual public void SelectObjects(IList modelObjects)
-        {
-            this.SelectedItems.Clear();
-
-            if (modelObjects == null)
-            	return;
-            
-            foreach (object modelObject in modelObjects) {
-                OLVListItem olvi = this.ModelToItem(modelObject);
-                if (olvi != null)
-                    olvi.Selected = true;
-            }
+            return -1;
         }
 
         /// <summary>
@@ -3007,82 +3229,50 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Find the given model object within the listview and return its index
+        /// Select the row that is displaying the given model object. All other rows are deselected.
         /// </summary>
-        /// <remarks>Technically, this method will work with virtual lists, but it will
-        /// probably be very slow.</remarks>
-        /// <param name="modelObject">The model object to be found</param>
-        /// <returns>The index of the object. -1 means the object was not present</returns>
-        public int IndexOf(Object modelObject)
+        /// <param name="modelObject">The object to be selected or null to deselect all</param>
+        virtual public void SelectObject(object modelObject)
         {
-            for (int i = 0; i < this.GetItemCount(); i++) {
-                if (this.GetModelObject(i) == modelObject)
-                    return i;
-            }
-            return -1;
+            this.SelectObject(modelObject, false);
         }
 
         /// <summary>
-        /// Return the ListViewItem that appears immediately after the given item.
-        /// If the given item is null, the first item in the list will be returned.
-        /// Return null if the given item is the last item.
+        /// Select the row that is displaying the given model object. All other rows are deselected.
         /// </summary>
-        /// <param name="itemToFind">The item that is before the item that is returned, or null</param>
-        /// <returns>A ListViewItem</returns>
-        public ListViewItem GetNextItem(ListViewItem itemToFind)
+        /// <param name="modelObject">The object to be selected or null to deselect all</param>
+        /// <param name="setFocus">Should the object be focused as well?</param>
+        virtual public void SelectObject(object modelObject, bool setFocus)
         {
-            if (this.ShowGroups) {
-                bool isFound = (itemToFind == null);
-                foreach (ListViewGroup group in this.Groups) {
-                    foreach (ListViewItem lvi in group.Items) {
-                        if (isFound)
-                            return lvi;
-                        isFound = (lvi == itemToFind);
-                    }
-                }
-                return null;
-            } else {
-                if (this.GetItemCount() == 0)
-                    return null;
-                if (itemToFind == null)
-                    return this.GetItem(0);
-                if (itemToFind.Index == this.GetItemCount() - 1)
-                    return null;
-                return this.GetItem(itemToFind.Index + 1);
+            // If the given model is already selected, don't do anything else (prevents an flicker)
+            if (this.SelectedItems.Count == 1 && ((OLVListItem)this.SelectedItems[0]).RowObject == modelObject)
+                return;
+
+            this.SelectedItems.Clear();
+
+            OLVListItem olvi = this.ModelToItem(modelObject);
+            if (olvi != null) {
+                olvi.Selected = true;
+                if (setFocus)
+                    olvi.Focused = true;
             }
         }
 
         /// <summary>
-        /// Return the ListViewItem that appears immediately before the given item.
-        /// If the given item is null, the last item in the list will be returned.
-        /// Return null if the given item is the first item.
+        /// Select the rows that is displaying any of the given model object. All other rows are deselected.
         /// </summary>
-        /// <param name="itemToFind">The item that is before the item that is returned</param>
-        /// <returns>A ListViewItem</returns>
-        public ListViewItem GetPreviousItem(ListViewItem itemToFind)
+        /// <param name="modelObjects">A collection of model objects</param>
+        virtual public void SelectObjects(IList modelObjects)
         {
-            if (this.ShowGroups) {
-                ListViewItem previousItem = null;
-                foreach (ListViewGroup group in this.Groups) {
-                    foreach (ListViewItem lvi in group.Items) {
-                        if (lvi == itemToFind)
-                            return previousItem;
-                        else
-                            previousItem = lvi;
-                    }
-                }
-                if (itemToFind == null)
-                    return previousItem;
-                else
-                    return null;
-            } else {
-                if (this.GetItemCount() == 0)
-                    return null;
-                if (itemToFind == null)
-                    return this.GetItem(this.GetItemCount() - 1);
-                if (itemToFind.Index == 0)
-                    return null;
-                return this.GetItem(itemToFind.Index - 1);
+            this.SelectedItems.Clear();
+
+            if (modelObjects == null)
+            	return;
+            
+            foreach (object modelObject in modelObjects) {
+                OLVListItem olvi = this.ModelToItem(modelObject);
+                if (olvi != null)
+                    olvi.Selected = true;
             }
         }
 
@@ -3169,6 +3359,7 @@ namespace BrightIdeasSoftware
 
             this.Sort(columnToSort, order);
         }
+
         /// <summary>
         /// Sort the items in the list view by the values in the given column.
         /// If ShowGroups is true, the rows will be grouped by the given column,
@@ -3182,9 +3373,19 @@ namespace BrightIdeasSoftware
                 return;
             }
 
-            // Sanity checks
-            if (columnToSort == null || order == SortOrder.None || this.Columns.Count < 1)
-                return;
+            // If we are showing groups, there are some options that can override these settings
+            if (this.ShowGroups) {
+                if (this.AlwaysGroupByColumn != null)
+                    columnToSort = this.AlwaysGroupByColumn;
+                if (this.AlwaysGroupBySortOrder != SortOrder.None)
+                    order = this.AlwaysGroupBySortOrder;
+
+                // Groups have to have a sorting column
+                if (columnToSort == null)
+                    columnToSort = this.GetColumn(0);
+                if (order == SortOrder.None)
+                    order = SortOrder.Ascending;
+            }
 
             BeforeSortingEventArgs args = new BeforeSortingEventArgs(columnToSort, order);
             this.OnBeforeSorting(args);
@@ -3194,6 +3395,10 @@ namespace BrightIdeasSoftware
             // The event handler may have changed the sorting pattern
             columnToSort = args.ColumnToSort;
             order = args.SortOrder;
+
+            // Sanity checks
+            if (columnToSort == null || order == SortOrder.None || this.Columns.Count < 1)
+                return;
 
             if (this.ShowGroups)
                 this.BuildGroups(columnToSort, order);
@@ -5324,7 +5529,7 @@ namespace BrightIdeasSoftware
     /// </summary>
     /// <remarks><para>This class inherits from both IComparer and its generic counterpart
     /// so that it can be used on untyped and typed collections.</para></remarks>
-    internal class ColumnComparer : IComparer, IComparer<OLVListItem>
+    public class ColumnComparer : IComparer, IComparer<OLVListItem>
     {
         public ColumnComparer(OLVColumn col, SortOrder order)
         {
