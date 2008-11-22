@@ -214,6 +214,7 @@ namespace ObjectListViewDemo
             this.olvColumn32 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn33 = new BrightIdeasSoftware.OLVColumn();
             this.tabPage9 = new System.Windows.Forms.TabPage();
+            this.button28 = new System.Windows.Forms.Button();
             this.button25 = new System.Windows.Forms.Button();
             this.button26 = new System.Windows.Forms.Button();
             this.button27 = new System.Windows.Forms.Button();
@@ -263,7 +264,6 @@ namespace ObjectListViewDemo
             this.olvColumn39 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn40 = new BrightIdeasSoftware.OLVColumn();
             this.blockFormat1 = new BrightIdeasSoftware.BlockFormat();
-            this.button28 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.listViewSimple)).BeginInit();
@@ -512,6 +512,7 @@ namespace ObjectListViewDemo
             this.listViewSimple.HideSelection = false;
             this.listViewSimple.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.listViewSimple.HighlightForegroundColor = System.Drawing.Color.Empty;
+            this.listViewSimple.IsSearchOnSortColumn = true;
             this.listViewSimple.Location = new System.Drawing.Point(6, 55);
             this.listViewSimple.Name = "listViewSimple";
             this.listViewSimple.ShowGroups = false;
@@ -814,6 +815,7 @@ namespace ObjectListViewDemo
             this.listViewComplex.HideSelection = false;
             this.listViewComplex.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.listViewComplex.HighlightForegroundColor = System.Drawing.Color.Empty;
+            this.listViewComplex.IsSearchOnSortColumn = true;
             this.listViewComplex.LargeImageList = this.imageList2;
             this.listViewComplex.Location = new System.Drawing.Point(6, 48);
             this.listViewComplex.Name = "listViewComplex";
@@ -1064,6 +1066,8 @@ namespace ObjectListViewDemo
             // checkBox5
             // 
             this.checkBox5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkBox5.Checked = true;
+            this.checkBox5.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBox5.Location = new System.Drawing.Point(664, 55);
             this.checkBox5.Name = "checkBox5";
             this.checkBox5.Size = new System.Drawing.Size(113, 19);
@@ -1102,6 +1106,7 @@ namespace ObjectListViewDemo
             this.listViewDataSet.HideSelection = false;
             this.listViewDataSet.HighlightBackgroundColor = System.Drawing.Color.Crimson;
             this.listViewDataSet.HighlightForegroundColor = System.Drawing.Color.DarkGreen;
+            this.listViewDataSet.IsSearchOnSortColumn = true;
             this.listViewDataSet.LargeImageList = this.imageList2;
             this.listViewDataSet.Location = new System.Drawing.Point(6, 19);
             this.listViewDataSet.Name = "listViewDataSet";
@@ -1375,6 +1380,7 @@ namespace ObjectListViewDemo
             this.listViewVirtual.HideSelection = false;
             this.listViewVirtual.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.listViewVirtual.HighlightForegroundColor = System.Drawing.Color.Empty;
+            this.listViewVirtual.IsSearchOnSortColumn = true;
             this.listViewVirtual.LargeImageList = this.imageList2;
             this.listViewVirtual.Location = new System.Drawing.Point(6, 48);
             this.listViewVirtual.Name = "listViewVirtual";
@@ -1640,6 +1646,7 @@ namespace ObjectListViewDemo
             this.listViewFiles.HideSelection = false;
             this.listViewFiles.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.listViewFiles.HighlightForegroundColor = System.Drawing.Color.Empty;
+            this.listViewFiles.IsSearchOnSortColumn = true;
             this.listViewFiles.LargeImageList = this.imageList2;
             this.listViewFiles.Location = new System.Drawing.Point(6, 83);
             this.listViewFiles.Name = "listViewFiles";
@@ -2335,6 +2342,7 @@ namespace ObjectListViewDemo
             this.olvFastList.HideSelection = false;
             this.olvFastList.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.olvFastList.HighlightForegroundColor = System.Drawing.Color.Empty;
+            this.olvFastList.IsSearchOnSortColumn = true;
             this.olvFastList.LargeImageList = this.imageList2;
             this.olvFastList.Location = new System.Drawing.Point(6, 47);
             this.olvFastList.Name = "olvFastList";
@@ -2442,6 +2450,18 @@ namespace ObjectListViewDemo
             this.tabPage9.Text = "TreeListView";
             this.tabPage9.UseVisualStyleBackColor = true;
             // 
+            // button28
+            // 
+            this.button28.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.button28.Location = new System.Drawing.Point(374, 456);
+            this.button28.Name = "button28";
+            this.button28.Size = new System.Drawing.Size(103, 23);
+            this.button28.TabIndex = 14;
+            this.button28.Text = "Refresh Selected";
+            this.toolTip1.SetToolTip(this.button28, "Save the current state of the list");
+            this.button28.UseVisualStyleBackColor = true;
+            this.button28.Click += new System.EventHandler(this.button28_Click);
+            // 
             // button25
             // 
             this.button25.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -2518,6 +2538,7 @@ namespace ObjectListViewDemo
             this.treeListView.HideSelection = false;
             this.treeListView.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.treeListView.HighlightForegroundColor = System.Drawing.Color.Empty;
+            this.treeListView.IsSearchOnSortColumn = true;
             this.treeListView.LargeImageList = this.imageList2;
             this.treeListView.Location = new System.Drawing.Point(6, 55);
             this.treeListView.Name = "treeListView";
@@ -2848,6 +2869,7 @@ namespace ObjectListViewDemo
             this.objectListView1.HideSelection = false;
             this.objectListView1.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.objectListView1.HighlightForegroundColor = System.Drawing.Color.Empty;
+            this.objectListView1.IsSearchOnSortColumn = true;
             this.objectListView1.LargeImageList = this.imageList2;
             this.objectListView1.Location = new System.Drawing.Point(6, 83);
             this.objectListView1.Name = "objectListView1";
@@ -2908,18 +2930,6 @@ namespace ObjectListViewDemo
             // blockFormat1
             // 
             this.blockFormat1.MinimumTextHeight = 0F;
-            // 
-            // button28
-            // 
-            this.button28.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button28.Location = new System.Drawing.Point(374, 456);
-            this.button28.Name = "button28";
-            this.button28.Size = new System.Drawing.Size(103, 23);
-            this.button28.TabIndex = 14;
-            this.button28.Text = "Refresh Selected";
-            this.toolTip1.SetToolTip(this.button28, "Save the current state of the list");
-            this.button28.UseVisualStyleBackColor = true;
-            this.button28.Click += new System.EventHandler(this.button28_Click);
             // 
             // MainForm
             // 
