@@ -7,7 +7,7 @@
     <ProjectGuid>{E73A10BD-2B5A-4BAC-897F-3A58CFC07631}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ListViewPrinter</RootNamespace>
+    <RootNamespace>BrightIdeasSoftware</RootNamespace>
     <AssemblyName>ListViewPrinter</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
