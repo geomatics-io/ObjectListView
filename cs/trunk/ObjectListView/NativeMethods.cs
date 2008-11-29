@@ -162,7 +162,7 @@ namespace BrightIdeasSoftware
         };
 
         /// <summary>
-        /// Notify message header structure.
+        /// Notify m header structure.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct NMHDR
@@ -202,19 +202,60 @@ namespace BrightIdeasSoftware
         }
 
         [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int left;
+            public int top;
+            public int right;
+            public int bottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
         public class SCROLLINFO
         {
-            public int cbSize;
+            public int cbSize = Marshal.SizeOf(typeof(NativeMethods.SCROLLINFO));
             public int fMask;
             public int nMin;
             public int nMax;
             public int nPage;
             public int nPos;
             public int nTrackPos;
-            public SCROLLINFO()
-            {
-                this.cbSize = Marshal.SizeOf(typeof(NativeMethods.SCROLLINFO));
-            }
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        public class TOOLINFO
+        {
+            public int cbSize = Marshal.SizeOf(typeof(NativeMethods.TOOLINFO));
+            public int uFlags;
+            public IntPtr hwnd;
+            public IntPtr uId;
+            public NativeMethods.RECT rect;
+            public IntPtr hinst = IntPtr.Zero;
+            public IntPtr lpszText;
+            public IntPtr lParam = IntPtr.Zero;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        public struct TOOLTIPTEXT
+        {
+            public NativeMethods.NMHDR hdr;
+            public string lpszText;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
+            public string szText;
+            public IntPtr hinst;
+            public int uFlags;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct WINDOWPOS
+        {
+            public IntPtr hwnd;
+            public IntPtr hwndInsertAfter;
+            public int x;
+            public int y;
+            public int cx;
+            public int cy;
+            public int flags;
         }
 
         // Various flavours of SendMessage: plain vanilla, and passing references to various structures
@@ -223,18 +264,20 @@ namespace BrightIdeasSoftware
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
         private static extern IntPtr SendMessageLVItem(IntPtr hWnd, int msg, int wParam, ref LVITEM lvi);
         //[DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
-        //private static extern IntPtr SendMessageLVColumn(IntPtr hWnd, int msg, int wParam, ref LVCOLUMN lvc);
+        //private static extern IntPtr SendMessageLVColumn(IntPtr hWnd, int m, int wParam, ref LVCOLUMN lvc);
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
         private static extern IntPtr SendMessageHDItem(IntPtr hWnd, int msg, int wParam, ref HDITEM hdi);
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessageHDHITTESTINFO(IntPtr hWnd, int Msg, IntPtr wParam, [In, Out] HDHITTESTINFO lParam);
+        [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessageTOOLINFO(IntPtr hWnd, int Msg, int wParam, NativeMethods.TOOLINFO lParam);
 
         // Entry points used by this code
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         public static extern bool GetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO si);
 
         [DllImport("user32.dll", EntryPoint = "GetUpdateRect", CharSet = CharSet.Auto)]
-        private static extern IntPtr GetUpdateRectInternal(IntPtr hWnd, ref Rectangle r, bool eraseBackground);
+        private static extern int GetUpdateRectInternal(IntPtr hWnd, ref Rectangle r, bool eraseBackground);
 
         //[DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         //public static extern bool SetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO si, bool fRedraw);
@@ -247,7 +290,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>This method must be called after any .NET call that update the extended styles
         /// since they seem to erase this setting.</remarks>
-        /// <param name="list">The listview to send a message to</param>
+        /// <param name="list">The listview to send a m to</param>
         public static void ForceSubItemImagesExStyle(ListView list)
         {
             SendMessage(list.Handle, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_SUBITEMIMAGES, LVS_EX_SUBITEMIMAGES);
@@ -256,7 +299,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// For the given item and subitem, make it display the given image
         /// </summary>
-        /// <param name="list">The listview to send a message to</param>
+        /// <param name="list">The listview to send a m to</param>
         /// <param name="itemIndex">row number (0 based)</param>
         /// <param name="subItemIndex">subitem (0 is the item itself)</param>
         /// <param name="imageIndex">index into the image list</param>
@@ -274,7 +317,7 @@ namespace BrightIdeasSoftware
         /// Setup the given column of the listview to show the given image to the right of the text.
         /// If the image index is -1, any previous image is cleared
         /// </summary>
-        /// <param name="list">The listview to send a message to</param>
+        /// <param name="list">The listview to send a m to</param>
         /// <param name="columnIndex">Index of the column to modifiy</param>
         /// <param name="order"></param>
         /// <param name="imageIndex">Index into the small image list</param>
