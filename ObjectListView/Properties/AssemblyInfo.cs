@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("ObjectListView")]
 [assembly: AssemblyDescription("A much easier to use ListView and friends")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("BrightIdeasSoftware")]
+[assembly: AssemblyCompany("Bright Ideas Software")]
 [assembly: AssemblyProduct("ObjectListView")]
 [assembly: AssemblyCopyright("Copyright ©  2006-2008")]
 [assembly: AssemblyTrademark("")]
