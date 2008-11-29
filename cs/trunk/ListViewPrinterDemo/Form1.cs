@@ -163,7 +163,7 @@ namespace ListViewPrinterDemo
 
             this.listViewPrinter1.FooterFormat = BlockFormat.Footer();
             this.listViewPrinter1.GroupHeaderFormat = BlockFormat.GroupHeader();
-            //this.listViewPrinter1.GroupHeaderFormat.SetBorder(Sides.Bottom, 2, GradientBrushFactory.Create(Color.Gray, Color.White));
+            this.listViewPrinter1.GroupHeaderFormat.SetBorder(Sides.Bottom, 2, new LinearGradientBrush(new Rectangle(0,0,1,1), Color.Gray, Color.White, LinearGradientMode.Horizontal));
 
             this.listViewPrinter1.ListHeaderFormat = BlockFormat.ListHeader();
             this.listViewPrinter1.ListHeaderFormat.BackgroundBrush = null;
@@ -182,10 +182,10 @@ namespace ListViewPrinterDemo
             this.listViewPrinter1.ListGridPen = new Pen(Color.DarkGray, 0.5f);
 
             this.listViewPrinter1.HeaderFormat = BlockFormat.Header(new Font("Verdana", 24, FontStyle.Bold));
-            //this.listViewPrinter1.HeaderFormat.BackgroundBrushFactory = GradientBrushFactory.Create(Color.DarkBlue, Color.White);
+            this.listViewPrinter1.HeaderFormat.BackgroundBrush = new LinearGradientBrush(new Rectangle(0,0,1,1), Color.DarkBlue, Color.White, LinearGradientMode.Horizontal);
 
             this.listViewPrinter1.FooterFormat = BlockFormat.Footer();
-            //this.listViewPrinter1.FooterFormat.BackgroundBrushFactory = GradientBrushFactory.Create(Color.White, Color.Blue);
+            this.listViewPrinter1.FooterFormat.BackgroundBrush = new LinearGradientBrush(new Rectangle(0, 0, 1, 1), Color.White, Color.DarkBlue, LinearGradientMode.Horizontal);
 
             this.listViewPrinter1.GroupHeaderFormat = BlockFormat.GroupHeader();
             this.listViewPrinter1.ListHeaderFormat = BlockFormat.ListHeader(new Font("Verdana", 12));
@@ -204,17 +204,18 @@ namespace ListViewPrinterDemo
             this.listViewPrinter1.ListGridPen = new Pen(Color.Blue, 0.5f);
 
             this.listViewPrinter1.HeaderFormat = BlockFormat.Header(new Font("Comic Sans MS", 36));
-            //this.listViewPrinter1.HeaderFormat.TextBrushFactory = GradientBrushFactory.Create(Color.Black, Color.Blue);
-            //this.listViewPrinter1.HeaderFormat.BackgroundBrushFactory = TextureBrushFactory.Create(this.listView1.SmallImageList.Images["music"], WrapMode.Tile);
-            //this.listViewPrinter1.HeaderFormat.SetBorder(Sides.All, 10, GradientBrushFactory.Create(Color.Purple, Color.Pink));
+            this.listViewPrinter1.HeaderFormat.TextBrush = new LinearGradientBrush(new Rectangle(0, 0, 1, 1), Color.Black, Color.Blue, LinearGradientMode.Horizontal);
+
+            this.listViewPrinter1.HeaderFormat.BackgroundBrush = new TextureBrush(this.listView1.SmallImageList.Images["music"], WrapMode.Tile);
+            this.listViewPrinter1.HeaderFormat.SetBorder(Sides.All, 10, new LinearGradientBrush(new Rectangle(0, 0, 1, 1), Color.Purple, Color.Pink, LinearGradientMode.Horizontal));
 
             this.listViewPrinter1.FooterFormat = BlockFormat.Footer(new Font("Comic Sans MS", 12));
             this.listViewPrinter1.FooterFormat.TextBrush = Brushes.Blue;
-            //this.listViewPrinter1.FooterFormat.BackgroundBrushFactory = GradientBrushFactory.Create(Color.Gold, Color.Green);
-            //this.listViewPrinter1.FooterFormat.SetBorder(Sides.All, 5, SolidBrushFactory.Create(Color.Green, 128));
+            this.listViewPrinter1.FooterFormat.BackgroundBrush = new LinearGradientBrush(new Rectangle(0, 0, 1, 1), Color.Gold, Color.Green, LinearGradientMode.Horizontal);
+            this.listViewPrinter1.FooterFormat.SetBorder(Sides.All, 5, new SolidBrush(Color.FromArgb(128, Color.Green)));
 
             this.listViewPrinter1.GroupHeaderFormat = BlockFormat.GroupHeader();
-            //this.listViewPrinter1.GroupHeaderFormat.SetBorder(Sides.Bottom, 5, HatchBrushFactory.Create(Color.Blue, Color.Empty, HatchStyle.LargeConfetti, 255));
+            this.listViewPrinter1.GroupHeaderFormat.SetBorder(Sides.Bottom, 5, new HatchBrush(HatchStyle.LargeConfetti, Color.Blue, Color.Empty));
 
             this.listViewPrinter1.ListHeaderFormat = BlockFormat.ListHeader(new Font("Comic Sans MS", 12));
             this.listViewPrinter1.ListHeaderFormat.BackgroundBrush = Brushes.PowderBlue;
@@ -236,9 +237,26 @@ namespace ListViewPrinterDemo
         	this.listViewPrinter1.FooterFormat = this.listViewPrinter2.FooterFormat;
         	this.listViewPrinter1.GroupHeaderFormat = this.listViewPrinter2.GroupHeaderFormat;
         	this.listViewPrinter1.ListHeaderFormat = this.listViewPrinter2.ListHeaderFormat;
+
+            this.ApplyPenData(this.listViewPrinter1.CellFormat);
+            this.ApplyPenData(this.listViewPrinter1.HeaderFormat);
+            this.ApplyPenData(this.listViewPrinter1.FooterFormat);
+            this.ApplyPenData(this.listViewPrinter1.GroupHeaderFormat);
+            this.ApplyPenData(this.listViewPrinter1.ListHeaderFormat);
+
         	this.listViewPrinter1.WatermarkFont = this.listViewPrinter2.WatermarkFont;
         	this.listViewPrinter1.WatermarkTransparency = this.listViewPrinter2.WatermarkTransparency;
         	this.listViewPrinter1.WatermarkColor = this.listViewPrinter2.WatermarkColor;
+        }
+
+        private void ApplyPenData(BlockFormat blockFormat)
+        {
+            blockFormat.BackgroundBrushData = blockFormat.BackgroundBrushData;
+            blockFormat.BottomBorderPenData = blockFormat.BottomBorderPenData;
+            blockFormat.LeftBorderPenData = blockFormat.LeftBorderPenData;
+            blockFormat.RightBorderPenData = blockFormat.RightBorderPenData;
+            blockFormat.TextBrushData = blockFormat.TextBrushData;
+            blockFormat.TopBorderPenData = blockFormat.TopBorderPenData;
         }
         
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
