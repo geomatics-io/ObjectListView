@@ -50,7 +50,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Triggered after a ObjectListView has been sorted
         /// </summary>
-        [Category("Behavior")]
+        [Category("Behavior - ObjectListView")]
         public event EventHandler<AfterSortingEventArgs> AfterSorting;
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace BrightIdeasSoftware
         /// Set Cancelled to true to prevent the sort from taking place.
         /// Changing ColumnToSort or SortOrder will change the subsequent sort.
         /// </remarks>
-        [Category("Behavior")]
+        [Category("Behavior - ObjectListView")]
         public event EventHandler<BeforeSortingEventArgs> BeforeSorting;
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace BrightIdeasSoftware
         /// <remarks>If Cancel is already true, the user is cancelling the edit operation.
         /// Set Cancel to true to prevent the value from the cell being written into the model.
         /// You cannot prevent the editing from finishing.</remarks>
-        [Category("Behavior")]
+        [Category("Behavior - ObjectListView")]
         public event CellEditEventHandler CellEditFinishing;
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>Set Cancel to true to prevent the cell being edited.
         /// You can change the the Control to be something completely different.</remarks>
-        [Category("Behavior")]
+        [Category("Behavior - ObjectListView")]
         public event CellEditEventHandler CellEditStarting;
 
         /// <summary>
@@ -86,25 +86,25 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// If this event is cancelled, focus will remain on the cell editor.
         /// </remarks>
-        [Category("Behavior")]
+        [Category("Behavior - ObjectListView")]
         public event CellEditEventHandler CellEditValidating;
 
         /// <summary>
         /// Triggered when a column header is right clicked.
         /// </summary>
-        [Category("Behavior")]
+        [Category("Behavior - ObjectListView")]
         public event ColumnRightClickEventHandler ColumnRightClick;
 
         /// <summary>
         /// Some new objects are about to be added to an ObjectListView.
         /// </summary>
-        [Category("Behavior")]
+        [Category("Behavior - ObjectListView")]
         public event EventHandler<ItemsAddingEventArgs> ItemsAdding;
 
         /// <summary>
         /// The contents of the ObjectListView has changed.
         /// </summary>
-        [Category("Behavior")]
+        [Category("Behavior - ObjectListView")]
         public event EventHandler<ItemsChangedEventArgs> ItemsChanged;
 
         /// <summary>
@@ -113,13 +113,13 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// <para>Set Cancelled to true to prevent the contents of the list changing. This does not work with virtual lists.</para>
         /// </remarks>
-        [Category("Behavior")]
+        [Category("Behavior - ObjectListView")]
         public event EventHandler<ItemsChangingEventArgs> ItemsChanging;
 
         /// <summary>
         /// Some objects are about to be removed from an ObjectListView.
         /// </summary>
-        [Category("Behavior")]
+        [Category("Behavior - ObjectListView")]
         public event EventHandler<ItemsRemovingEventArgs> ItemsRemoving;
 
         #endregion
