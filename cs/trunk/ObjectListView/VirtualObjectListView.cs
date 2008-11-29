@@ -253,6 +253,7 @@ namespace BrightIdeasSoftware
 
             this.ClearCachedInfo();
             this.DataSource.AddObjects(args.ObjectsToAdd);
+            this.Sort();
             this.UpdateVirtualListSize();
         }
 
@@ -275,6 +276,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Update the rows that are showing the given objects
         /// </summary>
+        /// <remarks>This method does not resort the items.</remarks>
         override public void RefreshObjects(IList modelObjects)
         {
             if (this.InvokeRequired) {
@@ -336,7 +338,7 @@ namespace BrightIdeasSoftware
 
             // Check that the object is in the list (plus not all data sources can locate objects)
             int index = this.DataSource.GetObjectIndex(modelObject);
-            if (index == -1 || index >= this.VirtualListSize)
+            if (index < 0 || index >= this.VirtualListSize)
                 return;
 
             // If the given model is already selected, don't do anything else (prevents an flicker)
@@ -609,16 +611,13 @@ namespace BrightIdeasSoftware
                 return;
 
             // Toggle the sorting direction on successive clicks on the same column
+            SortOrder order = SortOrder.Ascending;
             if (this.LastSortColumn != null && e.Column == this.LastSortColumn.Index)
-                this.LastSortOrder = (this.LastSortOrder == SortOrder.Descending ? SortOrder.Ascending : SortOrder.Descending);
-            else
-                this.LastSortOrder = SortOrder.Ascending;
+                order = (this.LastSortOrder == SortOrder.Descending ? SortOrder.Ascending : SortOrder.Descending);
 
             this.BeginUpdate();
             try {
-                IList previousSelection = this.SelectedObjects;
-                this.Sort(e.Column);
-                this.SelectedObjects = previousSelection;
+                this.Sort(this.GetColumn(e.Column), order);
             }
             finally {
                 this.EndUpdate();
