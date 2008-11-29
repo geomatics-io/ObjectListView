@@ -5,6 +5,9 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2008-11-26  JPP  - Corrected calculation of expand/collapse icon (SF#2338819)
+ *                  - Fixed ugliness with dotted lines in renderer (SF#2332889)
+ *                  - Fixed problem with custom selection colors (SF#2338805)
  * 2008-11-19  JPP  - Expand/collapse now preserve the selection -- more or less :)
  *                  - Overrode RefreshObjects() to rebuild the given objects and their children
  * 2008-11-05  JPP  - Added ExpandAll() and CollapseAll() commands
@@ -204,6 +207,23 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Setup the list so it will draw selected rows using custom colours.
+        /// </summary>
+        /// <remarks>
+        /// This method makes the list owner drawn, and ensures that all columns have at
+        /// least a BaseRender installed.
+        /// </remarks>
+        override public void EnableCustomSelectionColors()
+        {
+            this.OwnerDraw = true;
+
+            foreach (OLVColumn column in this.AllColumns) {
+                if (column.Index > 0 && column.RendererDelegate == null)
+                    column.Renderer = new BaseRenderer();
+            }
+        }
+
+        /// <summary>
         /// Expand the subtree underneath the given model object
         /// </summary>
         /// <param name="model"></param>
@@ -249,8 +269,12 @@ namespace BrightIdeasSoftware
 
             // Refresh each object, remembering where the first update occured
             int firstChange = Int32.MaxValue;
-            foreach (Object x in modelObjects)
-                firstChange = Math.Min(firstChange, this.TreeModel.RebuildChildren(x));
+            foreach (Object x in modelObjects) {
+                int idx =  this.TreeModel.RebuildChildren(x);
+                if (idx >= 0)
+                    firstChange = Math.Min(firstChange, idx);
+            }
+            this.UpdateVirtualListSize();
             this.SelectedObjects = selection;
 
             // Redraw everything from the first update to the end of the list
@@ -389,19 +413,18 @@ namespace BrightIdeasSoftware
             if (br == null || !br.CanExpand)
                 return false;
 
-            // Calculate if they clicked on the expand/collapse icon
+            // Calculate if they clicked on the expand/collapse icon. This icon
+            // appears before the icon of the item.
             Rectangle r = this.GetItemRect(olvItem.Index, ItemBoundsPortion.Icon);
-            r.X = this.CalculateExpanderIndentation(br);
+            if (this.CheckBoxes)
+                r.X -= (this.SmallImageList.ImageSize.Width + 2) * 2;
+            else
+                r.X -= (this.SmallImageList.ImageSize.Width + 2);
             if (!r.Contains(x, y))
                 return false;
 
             this.ToggleExpansion(olvItem.RowObject);
             return true;
-        }
-
-        private int CalculateExpanderIndentation(Branch br)
-        {
-            return ((br.Level - 1) * TreeRenderer.PIXELS_PER_LEVEL) - 2;
         }
 
         /// <summary>
@@ -635,9 +658,10 @@ namespace BrightIdeasSoftware
 
                 // Remove the visible descendents from after the branch itself
                 int idx = this.GetObjectIndex(model);
-                this.objectList.RemoveRange(idx + 1, count);
-
-                this.InsertChildren(br, idx+1);
+                if (count > 0)
+                    this.objectList.RemoveRange(idx + 1, count);
+                if (br.IsExpanded)
+                    this.InsertChildren(br, idx+1);
                 return idx;
             }
 
@@ -1114,7 +1138,7 @@ namespace BrightIdeasSoftware
 
                 if (br.CanExpand) {
                     Rectangle r2 = r;
-                    r2.Offset((br.Level - 1) * PIXELS_PER_LEVEL, 0);
+                    r2.Offset(1 + (br.Level - 1) * PIXELS_PER_LEVEL, 0);
                     r2.Width = PIXELS_PER_LEVEL;
 
                     VisualStyleElement element = VisualStyleElement.TreeView.Glyph.Closed;
@@ -1143,13 +1167,19 @@ namespace BrightIdeasSoftware
                 Rectangle r2 = r;
                 r2.Width = PIXELS_PER_LEVEL;
                 
+                // Vertical lines have to start on even points, otherwise the dotted line looks wrong.
+                // This isn't need if pen isn't dotted.
+                int top = r2.Top;
+                if ((top & 1) == 1)
+                    top += 1;
+
                 // Draw lines for ancestors
                 int midX;
                 IList<Branch> ancestors = br.Ancestors;
                 foreach (Branch ancestor in ancestors) {
                     if (!ancestor.IsLastChild) {
                         midX = r2.Left + r2.Width / 2;
-                        g.DrawLine(p, midX, r2.Top, midX, r2.Bottom);
+                        g.DrawLine(p, midX, top, midX, r2.Bottom);
                     }
                     r2.Offset(PIXELS_PER_LEVEL, 0);
                 }
@@ -1157,15 +1187,17 @@ namespace BrightIdeasSoftware
                 // Draw lines for this branch
                 midX = r2.Left + r2.Width / 2;
                 int midY = r2.Top + r2.Height / 2;
+                // Horizontal line first
+                g.DrawLine(p, midX, midY, r2.Right, midY);
+                // Vertical line second
                 if (br.IsFirstBranch) 
                     g.DrawLine(p, midX, midY, midX, r2.Bottom);
                 else {
                     if (br.IsLastChild) 
-                        g.DrawLine(p, midX, r2.Top, midX, midY);
+                        g.DrawLine(p, midX, top, midX, midY);
                     else
-                        g.DrawLine(p, midX, r2.Top, midX, r2.Bottom);
+                        g.DrawLine(p, midX, top, midX, r2.Bottom);
                 }
-                g.DrawLine(p, midX, midY, r2.Right, midY);
             }
         }
     }
