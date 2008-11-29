@@ -119,26 +119,31 @@ namespace ObjectListViewDemo
 		{
 
             TypedObjectListView<Person> tlist = new TypedObjectListView<Person>(this.listViewSimple);
+            tlist.GenerateAspectGetters();
+            /* The line above the equivilent to typing the following:
             tlist.GetColumn(0).AspectGetter = delegate(Person x) { return x.Name; };
             tlist.GetColumn(1).AspectGetter = delegate(Person x) { return x.Occupation; };
             tlist.GetColumn(2).AspectGetter = delegate(Person x) { return x.CulinaryRating; };
             tlist.GetColumn(3).AspectGetter = delegate(Person x) { return x.YearOfBirth; };
             tlist.GetColumn(4).AspectGetter = delegate(Person x) { return x.BirthDate; };
+            tlist.GetColumn(5).AspectGetter = delegate(Person x) { return x.GetRate(); };
+            tlist.GetColumn(6).AspectGetter = delegate(Person x) { return x.Comments; };
+            */
 
             // Give this column an aspect putter, since it fetches its value using a method rather than a property
-TypedColumn<Person> tcol = new TypedColumn<Person>(this.columnHeader16);
-tcol.AspectGetter = delegate(Person x) { return x.GetRate(); };
-tcol.AspectPutter = delegate(Person x, object newValue) { x.SetRate((double)newValue); };
+            TypedColumn<Person> tcol = new TypedColumn<Person>(this.columnHeader16);
+            tcol.AspectGetter = delegate(Person x) { return x.GetRate(); };
+            tcol.AspectPutter = delegate(Person x, object newValue) { x.SetRate((double)newValue); };
 
             this.comboBox6.SelectedIndex = 0;
 
-            tlist.BooleanCheckStateGetter = delegate(Person x) {
-                return x.IsActive;
-            };
-            tlist.BooleanCheckStatePutter = delegate(Person x, bool newValue) {
-                x.IsActive = newValue;
-                return newValue;
-            };
+            //tlist.BooleanCheckStateGetter = delegate(Person x) {
+            //    return x.IsActive;
+            //};
+            //tlist.BooleanCheckStatePutter = delegate(Person x, bool newValue) {
+            //    x.IsActive = newValue;
+            //    return newValue;
+            //};
 			// Just one line of code make everything happen.
 			this.listViewSimple.SetObjects(list);
 		}
@@ -209,6 +214,15 @@ tcol.AspectPutter = delegate(Person x, object newValue) { x.SetRate((double)newV
 			this.daysSinceBirthColumn.AspectToStringConverter = delegate (object aspect) {
 				return ((TimeSpan)aspect).Days.ToString();
 			};
+
+            // Show a long tooltip over cells when the control key is down
+            this.listViewComplex.CellToolTipGetter = delegate(OLVColumn col, Object x) {
+                if (Control.ModifierKeys == Keys.Control) {
+                    return String.Format("Tool tip for '{0}', column '{1}'\r\nValue shown: '{2}'", 
+                        ((Person)x).Name, col.Text, col.GetStringValue(x));
+                } else
+                    return null;
+            };
 
             // Uncomment these to get maximum speed
             this.occupationColumn.AspectGetter = delegate(object row) {
@@ -588,7 +602,11 @@ tcol.AspectPutter = delegate(Person x, object newValue) { x.SetRate((double)newV
                 DirectoryInfo dir = (DirectoryInfo)x;
                 return new ArrayList(dir.GetFileSystemInfos());
             };
-            this.treeListView.CheckBoxes = true;
+            this.treeListView.FullRowSelect = true;
+
+            this.treeListView.EnableCustomSelectionColors();
+            this.treeListView.HighlightBackgroundColor = Color.Yellow;
+            this.treeListView.HighlightForegroundColor = Color.Green;
 
             //-------------------------------------------------------------------
             // Eveything after this is the same as the Explorer example tab --

@@ -228,7 +228,6 @@ namespace ObjectListViewDemo
             this.treeColumnAttributes = new BrightIdeasSoftware.OLVColumn();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.button20 = new System.Windows.Forms.Button();
             this.button21 = new System.Windows.Forms.Button();
             this.button22 = new System.Windows.Forms.Button();
@@ -368,9 +367,6 @@ namespace ObjectListViewDemo
             this.checkBox15.Size = new System.Drawing.Size(95, 24);
             this.checkBox15.TabIndex = 9;
             this.checkBox15.Text = "Lock &Group";
-            this.toolTip1.SetToolTip(this.checkBox15, "If the list is grouped when this is clicked, the current grouping will be locked." +
-                    " When the user clicks on a different column header, the rows will be resorted, b" +
-                    "ut the grouping will not change.");
             this.checkBox15.UseVisualStyleBackColor = true;
             this.checkBox15.CheckedChanged += new System.EventHandler(this.checkBox15_CheckedChanged);
             // 
@@ -388,8 +384,6 @@ namespace ObjectListViewDemo
             this.comboBox6.Name = "comboBox6";
             this.comboBox6.Size = new System.Drawing.Size(83, 21);
             this.comboBox6.TabIndex = 4;
-            this.toolTip1.SetToolTip(this.comboBox6, "Can the cells of this list be edited? Single Click mode only applies to subitem. " +
-                    "In single click mode, cell 0 can only be edited with F2.\r\n");
             this.comboBox6.SelectedIndexChanged += new System.EventHandler(this.comboBox6_SelectedIndexChanged);
             // 
             // label21
@@ -410,7 +404,6 @@ namespace ObjectListViewDemo
             this.button7.Size = new System.Drawing.Size(46, 23);
             this.button7.TabIndex = 5;
             this.button7.Text = "Add";
-            this.toolTip1.SetToolTip(this.button7, "Add one new person to the listview");
             this.button7.UseVisualStyleBackColor = true;
             this.button7.Click += new System.EventHandler(this.button7_Click);
             // 
@@ -422,7 +415,6 @@ namespace ObjectListViewDemo
             this.button6.Size = new System.Drawing.Size(57, 23);
             this.button6.TabIndex = 6;
             this.button6.Text = "Remove";
-            this.toolTip1.SetToolTip(this.button6, "Remove the selected row from the list (only works for single selection)");
             this.button6.UseVisualStyleBackColor = true;
             this.button6.Click += new System.EventHandler(this.button6_Click);
             // 
@@ -434,7 +426,6 @@ namespace ObjectListViewDemo
             this.button4.Size = new System.Drawing.Size(86, 23);
             this.button4.TabIndex = 7;
             this.button4.Text = "Copy &Selection";
-            this.toolTip1.SetToolTip(this.button4, "Select the same items that are selected on the Complex Tab ");
             this.button4.UseVisualStyleBackColor = true;
             this.button4.Click += new System.EventHandler(this.Button4Click);
             // 
@@ -446,7 +437,6 @@ namespace ObjectListViewDemo
             this.button1.Size = new System.Drawing.Size(77, 23);
             this.button1.TabIndex = 8;
             this.button1.Text = "&Rebuild List";
-            this.toolTip1.SetToolTip(this.button1, "Time how long it takes to rebuild the list");
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.Button1Click);
             // 
@@ -493,12 +483,13 @@ namespace ObjectListViewDemo
             this.listViewSimple.AllColumns.Add(this.columnHeader15);
             this.listViewSimple.AllColumns.Add(this.columnHeader16);
             this.listViewSimple.AllColumns.Add(this.olvColumn34);
-            this.listViewSimple.AlternateRowBackColor = System.Drawing.Color.Pink;
+            this.listViewSimple.AlternateRowBackColor = System.Drawing.Color.Empty;
             this.listViewSimple.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.listViewSimple.CellEditActivation = BrightIdeasSoftware.ObjectListView.CellEditActivateMode.SingleClick;
             this.listViewSimple.CheckBoxes = true;
+            this.listViewSimple.CheckedAspectName = "IsActive";
             this.listViewSimple.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader11,
             this.columnHeader12,
@@ -512,7 +503,6 @@ namespace ObjectListViewDemo
             this.listViewSimple.HideSelection = false;
             this.listViewSimple.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.listViewSimple.HighlightForegroundColor = System.Drawing.Color.Empty;
-            this.listViewSimple.IsSearchOnSortColumn = true;
             this.listViewSimple.Location = new System.Drawing.Point(6, 55);
             this.listViewSimple.Name = "listViewSimple";
             this.listViewSimple.ShowGroups = false;
@@ -529,6 +519,8 @@ namespace ObjectListViewDemo
             this.columnHeader11.MaximumWidth = 200;
             this.columnHeader11.MinimumWidth = 100;
             this.columnHeader11.Text = "Person";
+            this.columnHeader11.ToolTipText = "This is a long tooltip text that should appear when the mouse is over this column" +
+                " header but contains absolutely no useful information :)";
             this.columnHeader11.UseInitialLetterForGroup = true;
             this.columnHeader11.Width = 140;
             // 
@@ -575,6 +567,8 @@ namespace ObjectListViewDemo
             this.olvColumn34.IsTileViewColumn = true;
             this.olvColumn34.MinimumWidth = 30;
             this.olvColumn34.Text = "Comments";
+            this.olvColumn34.ToolTipText = "This is the tool tip for the Comments column. This is configured through the Tool" +
+                "TipText property.";
             this.olvColumn34.UseInitialLetterForGroup = true;
             // 
             // contextMenuStrip1
@@ -642,7 +636,6 @@ namespace ObjectListViewDemo
             this.button16.Size = new System.Drawing.Size(46, 23);
             this.button16.TabIndex = 8;
             this.button16.Text = "Add";
-            this.toolTip1.SetToolTip(this.button16, "Add 5 new people into the listview");
             this.button16.UseVisualStyleBackColor = true;
             this.button16.Click += new System.EventHandler(this.button16_Click);
             // 
@@ -654,7 +647,6 @@ namespace ObjectListViewDemo
             this.button17.Size = new System.Drawing.Size(57, 23);
             this.button17.TabIndex = 9;
             this.button17.Text = "Remove";
-            this.toolTip1.SetToolTip(this.button17, "Remove the selected rows from the listview");
             this.button17.UseVisualStyleBackColor = true;
             this.button17.Click += new System.EventHandler(this.button17_Click);
             // 
@@ -730,7 +722,6 @@ namespace ObjectListViewDemo
             this.button5.Size = new System.Drawing.Size(88, 23);
             this.button5.TabIndex = 10;
             this.button5.Text = "Copy &Selection";
-            this.toolTip1.SetToolTip(this.button5, "Select whatever is selected on the Simple tab");
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Click += new System.EventHandler(this.Button5Click);
             // 
@@ -742,7 +733,6 @@ namespace ObjectListViewDemo
             this.button2.Size = new System.Drawing.Size(56, 23);
             this.button2.TabIndex = 11;
             this.button2.Text = "&Rebuild";
-            this.toolTip1.SetToolTip(this.button2, "Time how long it takes to rebuild the list");
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.Button2Click);
             // 
@@ -754,7 +744,7 @@ namespace ObjectListViewDemo
             this.label2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label2.Location = new System.Drawing.Point(6, 6);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(774, 38);
+            this.label2.Size = new System.Drawing.Size(774, 48);
             this.label2.TabIndex = 3;
             this.label2.Text = resources.GetString("label2.Text");
             // 
@@ -815,14 +805,13 @@ namespace ObjectListViewDemo
             this.listViewComplex.HideSelection = false;
             this.listViewComplex.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.listViewComplex.HighlightForegroundColor = System.Drawing.Color.Empty;
-            this.listViewComplex.IsSearchOnSortColumn = true;
             this.listViewComplex.LargeImageList = this.imageList2;
-            this.listViewComplex.Location = new System.Drawing.Point(6, 48);
+            this.listViewComplex.Location = new System.Drawing.Point(6, 57);
             this.listViewComplex.Name = "listViewComplex";
             this.listViewComplex.ShowGroups = false;
             this.listViewComplex.ShowImagesOnSubItems = true;
             this.listViewComplex.ShowItemToolTips = true;
-            this.listViewComplex.Size = new System.Drawing.Size(774, 400);
+            this.listViewComplex.Size = new System.Drawing.Size(774, 391);
             this.listViewComplex.SmallImageList = this.imageList1;
             this.listViewComplex.TabIndex = 0;
             this.listViewComplex.UseAlternatingBackColors = true;
@@ -1106,7 +1095,6 @@ namespace ObjectListViewDemo
             this.listViewDataSet.HideSelection = false;
             this.listViewDataSet.HighlightBackgroundColor = System.Drawing.Color.Crimson;
             this.listViewDataSet.HighlightForegroundColor = System.Drawing.Color.DarkGreen;
-            this.listViewDataSet.IsSearchOnSortColumn = true;
             this.listViewDataSet.LargeImageList = this.imageList2;
             this.listViewDataSet.Location = new System.Drawing.Point(6, 19);
             this.listViewDataSet.Name = "listViewDataSet";
@@ -1380,7 +1368,6 @@ namespace ObjectListViewDemo
             this.listViewVirtual.HideSelection = false;
             this.listViewVirtual.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.listViewVirtual.HighlightForegroundColor = System.Drawing.Color.Empty;
-            this.listViewVirtual.IsSearchOnSortColumn = true;
             this.listViewVirtual.LargeImageList = this.imageList2;
             this.listViewVirtual.Location = new System.Drawing.Point(6, 48);
             this.listViewVirtual.Name = "listViewVirtual";
@@ -1477,7 +1464,6 @@ namespace ObjectListViewDemo
             this.buttonSaveState.Size = new System.Drawing.Size(87, 23);
             this.buttonSaveState.TabIndex = 10;
             this.buttonSaveState.Text = "Save State";
-            this.toolTip1.SetToolTip(this.buttonSaveState, "Save the current state of the list");
             this.buttonSaveState.UseVisualStyleBackColor = true;
             this.buttonSaveState.Click += new System.EventHandler(this.buttonSaveState_Click);
             // 
@@ -1490,7 +1476,6 @@ namespace ObjectListViewDemo
             this.buttonRestoreState.Size = new System.Drawing.Size(83, 23);
             this.buttonRestoreState.TabIndex = 11;
             this.buttonRestoreState.Text = "Restore State";
-            this.toolTip1.SetToolTip(this.buttonRestoreState, "Restore the state of the list to be as it was when \"Save State\" was clicked");
             this.buttonRestoreState.UseVisualStyleBackColor = true;
             this.buttonRestoreState.Click += new System.EventHandler(this.buttonRestoreState_Click);
             // 
@@ -1502,7 +1487,6 @@ namespace ObjectListViewDemo
             this.button13.Size = new System.Drawing.Size(115, 23);
             this.button13.TabIndex = 12;
             this.button13.Text = "&Choose Columns...";
-            this.toolTip1.SetToolTip(this.button13, "Shows a dialog that allows the user to choose and reorder columns");
             this.button13.UseVisualStyleBackColor = true;
             this.button13.Click += new System.EventHandler(this.button13_Click);
             // 
@@ -1646,7 +1630,6 @@ namespace ObjectListViewDemo
             this.listViewFiles.HideSelection = false;
             this.listViewFiles.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.listViewFiles.HighlightForegroundColor = System.Drawing.Color.Empty;
-            this.listViewFiles.IsSearchOnSortColumn = true;
             this.listViewFiles.LargeImageList = this.imageList2;
             this.listViewFiles.Location = new System.Drawing.Point(6, 83);
             this.listViewFiles.Name = "listViewFiles";
@@ -1810,8 +1793,6 @@ namespace ObjectListViewDemo
             this.cbCellGridLines.Size = new System.Drawing.Size(87, 17);
             this.cbCellGridLines.TabIndex = 7;
             this.cbCellGridLines.Text = "Cell grid lines";
-            this.toolTip1.SetToolTip(this.cbCellGridLines, "When this is checked, reports that are too width to fit within the width of one p" +
-                    "age will be shrunk. Too narrow reports will not be affected.");
             this.cbCellGridLines.UseVisualStyleBackColor = true;
             this.cbCellGridLines.CheckedChanged += new System.EventHandler(this.UpdatePreview);
             // 
@@ -1844,8 +1825,6 @@ namespace ObjectListViewDemo
             this.cbPrintOnlySelection.Size = new System.Drawing.Size(146, 17);
             this.cbPrintOnlySelection.TabIndex = 6;
             this.cbPrintOnlySelection.Text = "Print Only Selected Rows";
-            this.toolTip1.SetToolTip(this.cbPrintOnlySelection, "When this is checked, only rows that are selected will be printed in the report. " +
-                    "When this is on, groups will not be printed.");
             this.cbPrintOnlySelection.UseVisualStyleBackColor = true;
             this.cbPrintOnlySelection.CheckedChanged += new System.EventHandler(this.UpdatePreview);
             // 
@@ -1871,8 +1850,6 @@ namespace ObjectListViewDemo
             this.cbShrinkToFit.Size = new System.Drawing.Size(86, 17);
             this.cbShrinkToFit.TabIndex = 5;
             this.cbShrinkToFit.Text = "Shrink To Fit";
-            this.toolTip1.SetToolTip(this.cbShrinkToFit, "When this is checked, reports that are too width to fit within the width of one p" +
-                    "age will be shrunk. Too narrow reports will not be affected.");
             this.cbShrinkToFit.UseVisualStyleBackColor = true;
             this.cbShrinkToFit.CheckedChanged += new System.EventHandler(this.UpdatePreview);
             // 
@@ -1898,8 +1875,6 @@ namespace ObjectListViewDemo
             this.cbIncludeImages.Size = new System.Drawing.Size(145, 17);
             this.cbIncludeImages.TabIndex = 4;
             this.cbIncludeImages.Text = "Include Images In Report";
-            this.toolTip1.SetToolTip(this.cbIncludeImages, "When this is checked, reports will be drawn with all possible images. When it is " +
-                    "unchecked, the report will be text only.");
             this.cbIncludeImages.UseVisualStyleBackColor = true;
             this.cbIncludeImages.CheckedChanged += new System.EventHandler(this.UpdatePreview);
             // 
@@ -1931,8 +1906,6 @@ namespace ObjectListViewDemo
             this.tbFooter.Size = new System.Drawing.Size(250, 20);
             this.tbFooter.TabIndex = 5;
             this.tbFooter.Text = "{1:F}\\t\\tPage: {0}";
-            this.toolTip1.SetToolTip(this.tbFooter, "Use \'\\t\' to seperate the left, center and right parts. Use placeholders {0} and {" +
-                    "1} to put the page number and current date/time respectively into the header");
             // 
             // label15
             // 
@@ -1951,8 +1924,6 @@ namespace ObjectListViewDemo
             this.tbHeader.Size = new System.Drawing.Size(250, 20);
             this.tbHeader.TabIndex = 3;
             this.tbHeader.Text = "Easy Printing ListView";
-            this.toolTip1.SetToolTip(this.tbHeader, "Use \'\\t\' to seperate the left, center and right parts. Use placeholders {0} and {" +
-                    "1} to put the page number and current date/time respectively into the header");
             // 
             // label16
             // 
@@ -2128,34 +2099,85 @@ namespace ObjectListViewDemo
             // 
             // 
             // 
+            this.listViewPrinter1.CellFormat.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.CellFormat.BottomBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
+            this.listViewPrinter1.CellFormat.BottomBorderWidth = 0.5F;
             this.listViewPrinter1.CellFormat.CanWrap = true;
             this.listViewPrinter1.CellFormat.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.listViewPrinter1.CellFormat.LeftBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
+            this.listViewPrinter1.CellFormat.LeftBorderWidth = 0.5F;
             this.listViewPrinter1.CellFormat.MinimumTextHeight = 0F;
+            this.listViewPrinter1.CellFormat.RightBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
+            this.listViewPrinter1.CellFormat.RightBorderWidth = 0.5F;
+            this.listViewPrinter1.CellFormat.TextColor = System.Drawing.Color.Empty;
+            this.listViewPrinter1.CellFormat.TopBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
+            this.listViewPrinter1.CellFormat.TopBorderWidth = 0.5F;
             this.listViewPrinter1.Footer = "This is the footers";
             // 
             // 
             // 
+            this.listViewPrinter1.FooterFormat.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.FooterFormat.BottomBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.FooterFormat.BottomBorderWidth = 0F;
             this.listViewPrinter1.FooterFormat.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Italic);
+            this.listViewPrinter1.FooterFormat.LeftBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.FooterFormat.LeftBorderWidth = 0F;
             this.listViewPrinter1.FooterFormat.MinimumTextHeight = 0F;
+            this.listViewPrinter1.FooterFormat.RightBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.FooterFormat.RightBorderWidth = 0F;
+            this.listViewPrinter1.FooterFormat.TextColor = System.Drawing.Color.Black;
+            this.listViewPrinter1.FooterFormat.TopBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
+            this.listViewPrinter1.FooterFormat.TopBorderWidth = 0.5F;
             // 
             // 
             // 
+            this.listViewPrinter1.GroupHeaderFormat.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.GroupHeaderFormat.BottomBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.GroupHeaderFormat.BottomBorderWidth = 3F;
             this.listViewPrinter1.GroupHeaderFormat.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Bold);
+            this.listViewPrinter1.GroupHeaderFormat.LeftBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.GroupHeaderFormat.LeftBorderWidth = 0F;
             this.listViewPrinter1.GroupHeaderFormat.MinimumTextHeight = 0F;
+            this.listViewPrinter1.GroupHeaderFormat.RightBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.GroupHeaderFormat.RightBorderWidth = 0F;
+            this.listViewPrinter1.GroupHeaderFormat.TextColor = System.Drawing.Color.Black;
+            this.listViewPrinter1.GroupHeaderFormat.TopBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.GroupHeaderFormat.TopBorderWidth = 0F;
             this.listViewPrinter1.Header = "This is the header\t\tRight";
             // 
             // 
             // 
+            this.listViewPrinter1.HeaderFormat.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.HeaderFormat.BottomBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.HeaderFormat.BottomBorderWidth = 0F;
             this.listViewPrinter1.HeaderFormat.Font = new System.Drawing.Font("Verdana", 24F);
+            this.listViewPrinter1.HeaderFormat.LeftBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.HeaderFormat.LeftBorderWidth = 0F;
             this.listViewPrinter1.HeaderFormat.MinimumTextHeight = 0F;
+            this.listViewPrinter1.HeaderFormat.RightBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.HeaderFormat.RightBorderWidth = 0F;
+            this.listViewPrinter1.HeaderFormat.TextColor = System.Drawing.Color.WhiteSmoke;
+            this.listViewPrinter1.HeaderFormat.TopBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.listViewPrinter1.HeaderFormat.TopBorderWidth = 0F;
             this.listViewPrinter1.IsListHeaderOnEachPage = false;
             this.listViewPrinter1.ListFont = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.listViewPrinter1.ListGridColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
             // 
             // 
             // 
+            this.listViewPrinter1.ListHeaderFormat.BackgroundColor = System.Drawing.Color.LightGray;
+            this.listViewPrinter1.ListHeaderFormat.BottomBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.listViewPrinter1.ListHeaderFormat.BottomBorderWidth = 1.5F;
             this.listViewPrinter1.ListHeaderFormat.CanWrap = true;
             this.listViewPrinter1.ListHeaderFormat.Font = new System.Drawing.Font("Verdana", 12F);
+            this.listViewPrinter1.ListHeaderFormat.LeftBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.listViewPrinter1.ListHeaderFormat.LeftBorderWidth = 1.5F;
             this.listViewPrinter1.ListHeaderFormat.MinimumTextHeight = 0F;
+            this.listViewPrinter1.ListHeaderFormat.RightBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.listViewPrinter1.ListHeaderFormat.RightBorderWidth = 1.5F;
+            this.listViewPrinter1.ListHeaderFormat.TextColor = System.Drawing.Color.Black;
+            this.listViewPrinter1.ListHeaderFormat.TopBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.listViewPrinter1.ListHeaderFormat.TopBorderWidth = 1.5F;
             this.listViewPrinter1.ListView = this.listViewComplex;
             this.listViewPrinter1.Watermark = "TOP SECRET!";
             this.listViewPrinter1.WatermarkColor = System.Drawing.Color.Empty;
@@ -2192,7 +2214,6 @@ namespace ObjectListViewDemo
             this.button19.Size = new System.Drawing.Size(90, 23);
             this.button19.TabIndex = 17;
             this.button19.Text = "&Copy Checked";
-            this.toolTip1.SetToolTip(this.button19, "Copy the checked rows to the clipboard");
             this.button19.UseVisualStyleBackColor = true;
             this.button19.Click += new System.EventHandler(this.button19_Click);
             // 
@@ -2204,7 +2225,6 @@ namespace ObjectListViewDemo
             this.button18.Size = new System.Drawing.Size(101, 23);
             this.button18.TabIndex = 7;
             this.button18.Text = "Remove Selected";
-            this.toolTip1.SetToolTip(this.button18, "Remove the selected rows from the list");
             this.button18.UseVisualStyleBackColor = true;
             this.button18.Click += new System.EventHandler(this.Button18Click);
             // 
@@ -2292,7 +2312,6 @@ namespace ObjectListViewDemo
             this.button15.Size = new System.Drawing.Size(69, 23);
             this.button15.TabIndex = 6;
             this.button15.Text = "&Clear List";
-            this.toolTip1.SetToolTip(this.button15, "Remove all rows from this list");
             this.button15.UseVisualStyleBackColor = true;
             this.button15.Click += new System.EventHandler(this.button15_Click);
             // 
@@ -2304,7 +2323,6 @@ namespace ObjectListViewDemo
             this.button14.Size = new System.Drawing.Size(77, 23);
             this.button14.TabIndex = 8;
             this.button14.Text = "&Add 1000";
-            this.toolTip1.SetToolTip(this.button14, "Add 1000 more rows to the list");
             this.button14.UseVisualStyleBackColor = true;
             this.button14.Click += new System.EventHandler(this.button14_Click);
             // 
@@ -2342,7 +2360,6 @@ namespace ObjectListViewDemo
             this.olvFastList.HideSelection = false;
             this.olvFastList.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.olvFastList.HighlightForegroundColor = System.Drawing.Color.Empty;
-            this.olvFastList.IsSearchOnSortColumn = true;
             this.olvFastList.LargeImageList = this.imageList2;
             this.olvFastList.Location = new System.Drawing.Point(6, 47);
             this.olvFastList.Name = "olvFastList";
@@ -2458,7 +2475,6 @@ namespace ObjectListViewDemo
             this.button28.Size = new System.Drawing.Size(103, 23);
             this.button28.TabIndex = 14;
             this.button28.Text = "Refresh Selected";
-            this.toolTip1.SetToolTip(this.button28, "Save the current state of the list");
             this.button28.UseVisualStyleBackColor = true;
             this.button28.Click += new System.EventHandler(this.button28_Click);
             // 
@@ -2470,7 +2486,6 @@ namespace ObjectListViewDemo
             this.button25.Size = new System.Drawing.Size(87, 23);
             this.button25.TabIndex = 10;
             this.button25.Text = "Save State";
-            this.toolTip1.SetToolTip(this.button25, "Save the current state of the list");
             this.button25.UseVisualStyleBackColor = true;
             this.button25.Click += new System.EventHandler(this.button25_Click);
             // 
@@ -2483,7 +2498,6 @@ namespace ObjectListViewDemo
             this.button26.Size = new System.Drawing.Size(83, 23);
             this.button26.TabIndex = 11;
             this.button26.Text = "Restore State";
-            this.toolTip1.SetToolTip(this.button26, "Restore the state of the list to be as it was when \"Save State\" was clicked");
             this.button26.UseVisualStyleBackColor = true;
             this.button26.Click += new System.EventHandler(this.button26_Click);
             // 
@@ -2495,7 +2509,6 @@ namespace ObjectListViewDemo
             this.button27.Size = new System.Drawing.Size(115, 23);
             this.button27.TabIndex = 12;
             this.button27.Text = "&Choose Columns...";
-            this.toolTip1.SetToolTip(this.button27, "Shows a dialog that allows the user to choose and reorder columns");
             this.button27.UseVisualStyleBackColor = true;
             this.button27.Click += new System.EventHandler(this.button27_Click);
             // 
@@ -2538,7 +2551,6 @@ namespace ObjectListViewDemo
             this.treeListView.HideSelection = false;
             this.treeListView.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.treeListView.HighlightForegroundColor = System.Drawing.Color.Empty;
-            this.treeListView.IsSearchOnSortColumn = true;
             this.treeListView.LargeImageList = this.imageList2;
             this.treeListView.Location = new System.Drawing.Point(6, 55);
             this.treeListView.Name = "treeListView";
@@ -2622,7 +2634,6 @@ namespace ObjectListViewDemo
             this.button20.Size = new System.Drawing.Size(87, 23);
             this.button20.TabIndex = 10;
             this.button20.Text = "Save State";
-            this.toolTip1.SetToolTip(this.button20, "Save the current state of the list");
             this.button20.UseVisualStyleBackColor = true;
             // 
             // button21
@@ -2634,7 +2645,6 @@ namespace ObjectListViewDemo
             this.button21.Size = new System.Drawing.Size(83, 23);
             this.button21.TabIndex = 11;
             this.button21.Text = "Restore State";
-            this.toolTip1.SetToolTip(this.button21, "Restore the state of the list to be as it was when \"Save State\" was clicked");
             this.button21.UseVisualStyleBackColor = true;
             // 
             // button22
@@ -2645,7 +2655,6 @@ namespace ObjectListViewDemo
             this.button22.Size = new System.Drawing.Size(115, 23);
             this.button22.TabIndex = 12;
             this.button22.Text = "&Choose Columns...";
-            this.toolTip1.SetToolTip(this.button22, "Shows a dialog that allows the user to choose and reorder columns");
             this.button22.UseVisualStyleBackColor = true;
             // 
             // button23
@@ -2869,7 +2878,6 @@ namespace ObjectListViewDemo
             this.objectListView1.HideSelection = false;
             this.objectListView1.HighlightBackgroundColor = System.Drawing.Color.Empty;
             this.objectListView1.HighlightForegroundColor = System.Drawing.Color.Empty;
-            this.objectListView1.IsSearchOnSortColumn = true;
             this.objectListView1.LargeImageList = this.imageList2;
             this.objectListView1.Location = new System.Drawing.Point(6, 83);
             this.objectListView1.Name = "objectListView1";
@@ -2929,7 +2937,17 @@ namespace ObjectListViewDemo
             // 
             // blockFormat1
             // 
+            this.blockFormat1.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.blockFormat1.BottomBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.blockFormat1.BottomBorderWidth = 0F;
+            this.blockFormat1.LeftBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.blockFormat1.LeftBorderWidth = 0F;
             this.blockFormat1.MinimumTextHeight = 0F;
+            this.blockFormat1.RightBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.blockFormat1.RightBorderWidth = 0F;
+            this.blockFormat1.TextColor = System.Drawing.Color.Empty;
+            this.blockFormat1.TopBorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.blockFormat1.TopBorderWidth = 0F;
             // 
             // MainForm
             // 
@@ -3006,8 +3024,7 @@ namespace ObjectListViewDemo
 		private System.Windows.Forms.Label label15;
 		private System.Windows.Forms.GroupBox groupBox4;
 		private System.Windows.Forms.PrintPreviewControl printPreviewControl1;
-		private BrightIdeasSoftware.ListViewPrinter listViewPrinter1;
-		private System.Windows.Forms.ToolTip toolTip1;
+        private BrightIdeasSoftware.ListViewPrinter listViewPrinter1;
 		private BrightIdeasSoftware.OLVColumn olvColumnFileName;
 		private BrightIdeasSoftware.OLVColumn olvColumnFileModified;
 		private BrightIdeasSoftware.OLVColumn olvColumnFileCreated;
