@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2008-11-26   JPP  - Added tool tip getting methods
  * 2008-11-05   JPP  - Added CheckState handling methods
  * 2008-10-24   JPP  - Generate dynamic methods MkII. This one handles value types
  * 2008-10-21   JPP  - Generate dynamic methods
@@ -237,6 +238,25 @@ namespace BrightIdeasSoftware
                         return value((T)x, newValue);
                     };
             }
+        }
+
+        public delegate String TypedCellToolTipGetterDelegate(OLVColumn column, T modelObject);
+
+        public TypedCellToolTipGetterDelegate CellToolTipGetter
+        {
+            set {
+                if (value == null)
+                    this.olv.CellToolTipGetter = null;
+                else
+                    this.olv.CellToolTipGetter = delegate(OLVColumn col, Object x) {
+                        return value(col, (T)x);
+                    };
+            }
+        }
+
+        public HeaderToolTipGetterDelegate HeaderToolTipGetter
+        {
+            set { this.olv.HeaderToolTipGetter = value; }
         }
 
         //--------------------------------------------------------------------------------------
