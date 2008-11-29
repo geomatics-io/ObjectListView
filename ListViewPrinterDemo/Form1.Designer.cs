@@ -39,8 +39,12 @@
             BrightIdeasSoftware.LinearGradientBrushData linearGradientBrushData1 = new BrightIdeasSoftware.LinearGradientBrushData();
             BrightIdeasSoftware.PenData penData4 = new BrightIdeasSoftware.PenData();
             BrightIdeasSoftware.SolidBrushData solidBrushData5 = new BrightIdeasSoftware.SolidBrushData();
+            BrightIdeasSoftware.SolidBrushData solidBrushData6 = new BrightIdeasSoftware.SolidBrushData();
             BrightIdeasSoftware.PenData penData5 = new BrightIdeasSoftware.PenData();
             BrightIdeasSoftware.LinearGradientBrushData linearGradientBrushData2 = new BrightIdeasSoftware.LinearGradientBrushData();
+            BrightIdeasSoftware.PenData penData6 = new BrightIdeasSoftware.PenData();
+            BrightIdeasSoftware.SolidBrushData solidBrushData7 = new BrightIdeasSoftware.SolidBrushData();
+            BrightIdeasSoftware.SolidBrushData solidBrushData8 = new BrightIdeasSoftware.SolidBrushData();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
@@ -672,23 +676,28 @@
             // 
             solidBrushData5.Color = System.Drawing.Color.Gray;
             penData4.Brush = solidBrushData5;
+            this.listViewPrinter2.CellFormat.AllBorderPenData = penData4;
+            solidBrushData6.Color = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            this.listViewPrinter2.CellFormat.BackgroundBrushData = solidBrushData6;
             this.listViewPrinter2.CellFormat.BottomBorderPenData = penData4;
             this.listViewPrinter2.CellFormat.CanWrap = true;
             this.listViewPrinter2.CellFormat.Font = new System.Drawing.Font("Tahoma", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.listViewPrinter2.CellFormat.LeftBorderPenData = penData4;
             this.listViewPrinter2.CellFormat.MinimumTextHeight = 0F;
             this.listViewPrinter2.CellFormat.RightBorderPenData = penData4;
-            linearGradientBrushData2.FromColor = System.Drawing.Color.Aqua;
-            linearGradientBrushData2.GradientMode = System.Drawing.Drawing2D.LinearGradientMode.Horizontal;
-            linearGradientBrushData2.ToColor = System.Drawing.Color.Pink;
-            penData5.Brush = linearGradientBrushData2;
-            penData5.Width = 10F;
-            this.listViewPrinter2.CellFormat.TopBorderPenData = penData5;
+            this.listViewPrinter2.CellFormat.TopBorderPenData = penData4;
             // 
             // 
             // 
             this.listViewPrinter2.FooterFormat.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Italic);
             this.listViewPrinter2.FooterFormat.MinimumTextHeight = 0F;
+            linearGradientBrushData2.FromColor = System.Drawing.Color.Cornsilk;
+            linearGradientBrushData2.GradientMode = System.Drawing.Drawing2D.LinearGradientMode.Horizontal;
+            linearGradientBrushData2.ToColor = System.Drawing.Color.Gold;
+            penData5.Brush = linearGradientBrushData2;
+            penData5.DashStyle = System.Drawing.Drawing2D.DashStyle.DashDotDot;
+            penData5.Width = 4F;
+            this.listViewPrinter2.FooterFormat.TopBorderPenData = penData5;
             // 
             // 
             // 
@@ -697,8 +706,18 @@
             // 
             // 
             // 
+            solidBrushData7.Color = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
+            penData6.Brush = solidBrushData7;
+            penData6.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
+            this.listViewPrinter2.HeaderFormat.AllBorderPenData = penData6;
+            solidBrushData8.Color = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(255)))));
+            this.listViewPrinter2.HeaderFormat.BackgroundBrushData = solidBrushData8;
+            this.listViewPrinter2.HeaderFormat.BottomBorderPenData = penData6;
             this.listViewPrinter2.HeaderFormat.Font = new System.Drawing.Font("Verdana", 24F);
+            this.listViewPrinter2.HeaderFormat.LeftBorderPenData = penData6;
             this.listViewPrinter2.HeaderFormat.MinimumTextHeight = 0F;
+            this.listViewPrinter2.HeaderFormat.RightBorderPenData = penData6;
+            this.listViewPrinter2.HeaderFormat.TopBorderPenData = penData6;
             this.listViewPrinter2.IsListHeaderOnEachPage = false;
             this.listViewPrinter2.ListFont = new System.Drawing.Font("Tahoma", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             // 
