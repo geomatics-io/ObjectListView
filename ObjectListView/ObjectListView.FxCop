@@ -13,7 +13,7 @@
   <SourceLookup>True</SourceLookup>
   <AnalysisExceptionsThreshold>10</AnalysisExceptionsThreshold>
   <RuleExceptionsThreshold>1</RuleExceptionsThreshold>
-  <Spelling Locale="en-AU" />
+  <Spelling Locale="en-US" />
   <OverrideRuleVisibilities>False</OverrideRuleVisibilities>
   <CustomDictionaries SearchFxCopDir="True" SearchUserProfile="True" SearchProjectDir="True" />
   <SearchGlobalAssemblyCache>False</SearchGlobalAssemblyCache>
@@ -69,7 +69,6 @@
     <Rule Name="MarkEnumsWithFlags" Enabled="True" />
     <Rule Name="MembersShouldNotExposeCertainConcreteTypes" Enabled="True" />
     <Rule Name="MovePInvokesToNativeMethodsClass" Enabled="True" />
-    <Rule Name="NestedTypesShouldNotBeVisible" Enabled="True" />
     <Rule Name="OverloadOperatorEqualsOnOverloadingAddAndSubtract" Enabled="True" />
     <Rule Name="OverrideMethodsOnComparableTypes" Enabled="True" />
     <Rule Name="PropertiesShouldNotBeWriteOnly" Enabled="True" />
@@ -96,7 +95,6 @@
    <RuleFile Name="$(FxCopDir)\Rules\NamingRules.dll" Enabled="True" AllRulesEnabled="False">
     <Rule Name="DoNotNameEnumValuesReserved" Enabled="True" />
     <Rule Name="DoNotPrefixEnumValuesWithTypeName" Enabled="True" />
-    <Rule Name="EventsShouldNotHaveBeforeOrAfterPrefix" Enabled="True" />
     <Rule Name="FlagsEnumsShouldHavePluralNames" Enabled="True" />
     <Rule Name="IdentifiersShouldBeSpelledCorrectly" Enabled="True" />
     <Rule Name="IdentifiersShouldDifferByMoreThanCase" Enabled="True" />
@@ -114,7 +112,24 @@
     <Rule Name="TypeNamesShouldNotMatchNamespaces" Enabled="True" />
     <Rule Name="UsePreferredTerms" Enabled="True" />
    </RuleFile>
-   <RuleFile Name="$(FxCopDir)\Rules\PerformanceRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\PerformanceRules.dll" Enabled="True" AllRulesEnabled="False">
+    <Rule Name="AvoidExcessiveLocals" Enabled="True" />
+    <Rule Name="AvoidUncalledPrivateCode" Enabled="True" />
+    <Rule Name="AvoidUninstantiatedInternalClasses" Enabled="True" />
+    <Rule Name="AvoidUnsealedAttributes" Enabled="True" />
+    <Rule Name="AvoidUnusedPrivateFields" Enabled="True" />
+    <Rule Name="DoNotCastUnnecessarily" Enabled="True" />
+    <Rule Name="DoNotInitializeUnnecessarily" Enabled="True" />
+    <Rule Name="InitializeReferenceTypeStaticFieldsInline" Enabled="True" />
+    <Rule Name="MarkAssembliesWithNeutralResourcesLanguage" Enabled="True" />
+    <Rule Name="OverrideEqualsAndOperatorEqualsOnValueTypes" Enabled="True" />
+    <Rule Name="PreferJaggedArraysOverMultidimensional" Enabled="True" />
+    <Rule Name="PropertiesShouldNotReturnArrays" Enabled="True" />
+    <Rule Name="RemoveEmptyFinalizers" Enabled="True" />
+    <Rule Name="RemoveUnusedLocals" Enabled="True" />
+    <Rule Name="TestForEmptyStringsUsingStringLength" Enabled="True" />
+    <Rule Name="UseLiteralsWhereAppropriate" Enabled="True" />
+   </RuleFile>
    <RuleFile Name="$(FxCopDir)\Rules\PortabilityRules.dll" Enabled="True" AllRulesEnabled="True" />
    <RuleFile Name="$(FxCopDir)\Rules\SecurityRules.dll" Enabled="True" AllRulesEnabled="True" />
    <RuleFile Name="$(FxCopDir)\Rules\UsageRules.dll" Enabled="True" AllRulesEnabled="False">
@@ -176,6 +191,30 @@
       <Namespaces>
        <Namespace Name="BrightIdeasSoftware">
         <Types>
+         <Type Name="AbstractVirtualListDataSource">
+          <Members>
+           <Member Name="#PrepareCache(System.Int32,System.Int32)">
+            <Messages>
+             <Message Id="0#" TypeName="ParameterNamesShouldMatchBaseDeclaration" Category="Microsoft.Naming" CheckId="CA1725" Created="2008-11-27 14:00:44Z">
+              <Issue>
+               <Item>'AbstractVirtualListDataSource.PrepareCache(int, int)'</Item>
+               <Item>'from'</Item>
+               <Item>'first'</Item>
+               <Item>'IVirtualListDataSource.PrepareCache(int, int)'</Item>
+              </Issue>
+             </Message>
+             <Message Id="1#" TypeName="ParameterNamesShouldMatchBaseDeclaration" Category="Microsoft.Naming" CheckId="CA1725" Created="2008-11-27 14:00:44Z">
+              <Issue>
+               <Item>'AbstractVirtualListDataSource.PrepareCache(int, int)'</Item>
+               <Item>'to'</Item>
+               <Item>'last'</Item>
+               <Item>'IVirtualListDataSource.PrepareCache(int, int)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
          <Type Name="BarRenderer">
           <Messages>
            <Message TypeName="TypesThatOwnDisposableFieldsShouldBeDisposable" Category="Microsoft.Design" CheckId="CA1001" Status="Excluded" Created="2008-10-30 20:23:07Z" FixCategory="DependsOnFix">
@@ -304,57 +343,6 @@
            </Member>
           </Members>
          </Type>
-         <Type Name="BlockFormat">
-          <Members>
-           <Member Name="#ApplyInsets(System.Drawing.RectangleF,System.Single,System.Single,System.Single,System.Single)">
-            <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
-              <Issue>
-               <Item>'BlockFormat.ApplyInsets(RectangleF, float, float, float, float)'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="#DrawFilledRectangle(System.Drawing.Graphics,System.Drawing.Brush,System.Drawing.RectangleF)">
-            <Messages>
-             <Message TypeName="DoNotCastUnnecessarily" Category="Microsoft.Performance" CheckId="CA1800" Created="2008-10-30 20:23:07Z">
-              <Issue Name="Parameter">
-               <Item>'brush'</Item>
-               <Item>'LinearGradientBrush'</Item>
-               <Item>'BlockFormat.DrawFilledRectangle(Graphics, Brush, RectangleF)'</Item>
-               <Item>castclass</Item>
-              </Issue>
-             </Message>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
-              <Issue>
-               <Item>'BlockFormat.DrawFilledRectangle(Graphics, Brush, RectangleF)'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="#GetKeyOrDefault`2(System.Collections.Generic.Dictionary`2&lt;!!0,!!1&gt;,!!0,!!1)">
-            <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
-              <Issue>
-               <Item>'BlockFormat.GetKeyOrDefault&lt;KeyT, ValueT&gt;(Dictionary&lt;KeyT, ValueT&gt;, KeyT, ValueT)'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="#GetSolidBorderColor(BrightIdeasSoftware.Sides)">
-            <Messages>
-             <Message TypeName="DoNotCastUnnecessarily" Category="Microsoft.Performance" CheckId="CA1800" Created="2008-10-30 20:23:07Z">
-              <Issue Name="Local">
-               <Item>'b'</Item>
-               <Item>'SolidBrush'</Item>
-               <Item>'BlockFormat.GetSolidBorderColor(Sides)'</Item>
-               <Item>castclass</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-          </Members>
-         </Type>
          <Type Name="BooleanCellEditor">
           <Members>
            <Member Name="#Value">
@@ -405,41 +393,6 @@
            </Message>
           </Messages>
          </Type>
-         <Type Name="ColumnComparer">
-          <Members>
-           <Member Name="#CompareValues(System.Object,System.Object)">
-            <Messages>
-             <Message TypeName="DoNotCastUnnecessarily" Category="Microsoft.Performance" CheckId="CA1800" Created="2008-10-30 20:23:07Z">
-              <Issue Name="Parameter">
-               <Item>'x'</Item>
-               <Item>'string'</Item>
-               <Item>'ColumnComparer.CompareValues(object, object)'</Item>
-               <Item>castclass</Item>
-              </Issue>
-             </Message>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
-              <Issue>
-               <Item>'ColumnComparer.CompareValues(object, object)'</Item>
-              </Issue>
-             </Message>
-             <Message Id="System.String.Compare(System.String,System.String,System.Boolean)" TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304" Created="2008-10-30 20:23:07Z">
-              <Issue>
-               <Item>'string.Compare(string, string, bool)'</Item>
-               <Item>'ColumnComparer.CompareValues(object, object)'</Item>
-               <Item>'string.Compare(string, string, bool, CultureInfo)'</Item>
-              </Issue>
-             </Message>
-             <Message Id="System.String.Compare(System.String,System.String,System.Boolean)" TypeName="SpecifyStringComparison" Category="Microsoft.Globalization" CheckId="CA1307" Created="2008-10-30 20:23:07Z">
-              <Issue>
-               <Item>'ColumnComparer.CompareValues(object, object)'</Item>
-               <Item>'string.Compare(string, string, bool)'</Item>
-               <Item>'string.Compare(string, string, StringComparison)'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-          </Members>
-         </Type>
          <Type Name="ColumnRightClickEventHandler">
           <Messages>
            <Message TypeName="UseGenericEventHandlerInstances" Category="Microsoft.Design" CheckId="CA1003" Status="Excluded" Created="2008-10-30 21:00:06Z">
@@ -456,26 +409,6 @@
          </Type>
          <Type Name="FastObjectListDataSource">
           <Members>
-           <Member Name="#SearchText(System.String,System.Int32,System.Int32,BrightIdeasSoftware.OLVColumn)">
-            <Messages>
-             <Message Id="1#" TypeName="ParameterNamesShouldMatchBaseDeclaration" Category="Microsoft.Naming" CheckId="CA1725" Created="2008-10-31 22:24:48Z">
-              <Issue>
-               <Item>'FastObjectListDataSource.SearchText(string, int, int, OLVColumn)'</Item>
-               <Item>'from'</Item>
-               <Item>'start'</Item>
-               <Item>'AbstractVirtualListDataSource.SearchText(string, int, int, OLVColumn)'</Item>
-              </Issue>
-             </Message>
-             <Message Id="2#" TypeName="ParameterNamesShouldMatchBaseDeclaration" Category="Microsoft.Naming" CheckId="CA1725" Created="2008-10-31 22:24:48Z">
-              <Issue>
-               <Item>'FastObjectListDataSource.SearchText(string, int, int, OLVColumn)'</Item>
-               <Item>'to'</Item>
-               <Item>'stop'</Item>
-               <Item>'AbstractVirtualListDataSource.SearchText(string, int, int, OLVColumn)'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
            <Member Name="#SetObjects(System.Collections.IEnumerable)">
             <Messages>
              <Message TypeName="DoNotCastUnnecessarily" Category="Microsoft.Performance" CheckId="CA1800" Created="2008-10-30 20:23:07Z">
@@ -553,6 +486,179 @@
            </Member>
           </Members>
          </Type>
+         <Type Name="HeaderControl">
+          <Messages>
+           <Message TypeName="ImplementIDisposableCorrectly" Category="Microsoft.Design" CheckId="CA1063" Created="2008-11-27 14:31:53Z">
+            <Issue Name="ProvideDisposeBool">
+             <Item>'HeaderControl'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#.ctor(BrightIdeasSoftware.ObjectListView)">
+            <Messages>
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue>
+               <Item>'HeaderControl.HeaderControl(ObjectListView)'</Item>
+               <Item>'NativeWindow.AssignHandle(IntPtr)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'HeaderControl.HeaderControl(ObjectListView)'&#xD;&#xA;   -&gt;'HeaderControl.HeaderControl(ObjectListView)'</Item>
+              </Issue>
+              <Issue>
+               <Item>'HeaderControl.HeaderControl(ObjectListView)'</Item>
+               <Item>'NativeWindow.NativeWindow()'</Item>
+               <Item>&#xD;&#xA;   -&gt;'HeaderControl.HeaderControl(ObjectListView)'&#xD;&#xA;   -&gt;'HeaderControl.HeaderControl(ObjectListView)'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="18" />
+               </User>
+              </Notes>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Dispose()">
+            <Messages>
+             <Message TypeName="CallGCSuppressFinalizeCorrectly" Category="Microsoft.Usage" CheckId="CA1816" Created="2008-11-27 14:31:53Z">
+              <Issue Name="NotPassedThis">
+               <Item>'HeaderControl.Dispose()'</Item>
+               <Item>'GC.SuppressFinalize(object)'</Item>
+              </Issue>
+             </Message>
+             <Message TypeName="ImplementIDisposableCorrectly" Category="Microsoft.Design" CheckId="CA1063" Created="2008-11-27 14:31:53Z">
+              <Issue Name="DisposeImplementation">
+               <Item>'HeaderControl.Dispose()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#HandleGetDispInfo(System.Windows.Forms.Message&amp;)">
+            <Messages>
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue>
+               <Item>'HeaderControl.HandleGetDispInfo(ref Message)'</Item>
+               <Item>'Marshal.StructureToPtr(object, IntPtr, bool)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'HeaderControl.HandleGetDispInfo(ref Message)'&#xD;&#xA;   -&gt;'HeaderControl.HandleGetDispInfo(ref Message)'</Item>
+              </Issue>
+              <Issue>
+               <Item>'HeaderControl.HandleGetDispInfo(ref Message)'</Item>
+               <Item>'Message.GetLParam(Type)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'HeaderControl.HandleGetDispInfo(ref Message)'&#xD;&#xA;   -&gt;'HeaderControl.HandleGetDispInfo(ref Message)'</Item>
+              </Issue>
+              <Issue>
+               <Item>'HeaderControl.HandleGetDispInfo(ref Message)'</Item>
+               <Item>'Message.LParam.get()'</Item>
+               <Item>&#xD;&#xA;   -&gt;'HeaderControl.HandleGetDispInfo(ref Message)'&#xD;&#xA;   -&gt;'HeaderControl.HandleGetDispInfo(ref Message)'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="9" />
+               </User>
+              </Notes>
+             </Message>
+             <Message Id="0#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue Certainty="50">
+               <Item>'m'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="17" />
+               </User>
+              </Notes>
+             </Message>
+             <Message Id="Disp" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue Name="Member">
+               <Item>Disp</Item>
+               <Item>'HeaderControl.HandleGetDispInfo(ref Message)'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="20" />
+               </User>
+              </Notes>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#HandleMouseMove(System.Windows.Forms.Message&amp;)">
+            <Messages>
+             <Message Id="m" TypeName="ReviewUnusedParameters" Category="Microsoft.Usage" CheckId="CA1801" Created="2008-11-27 14:00:44Z" FixCategory="DependsOnFix">
+              <Issue>
+               <Item>'m'</Item>
+               <Item>'HeaderControl.HandleMouseMove(ref Message)'</Item>
+              </Issue>
+             </Message>
+             <Message Id="0#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue Certainty="50">
+               <Item>'m'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="17" />
+               </User>
+              </Notes>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#HandleNotify(System.Windows.Forms.Message&amp;)">
+            <Messages>
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue>
+               <Item>'HeaderControl.HandleNotify(ref Message)'</Item>
+               <Item>'Message.LParam.get()'</Item>
+               <Item>&#xD;&#xA;   -&gt;'HeaderControl.HandleNotify(ref Message)'&#xD;&#xA;   -&gt;'HeaderControl.HandleNotify(ref Message)'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="18" />
+               </User>
+              </Notes>
+             </Message>
+             <Message Id="0#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue Certainty="50">
+               <Item>'m'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="17" />
+               </User>
+              </Notes>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#WndProc(System.Windows.Forms.Message&amp;)">
+            <Messages>
+             <Message TypeName="OverrideLinkDemandsShouldBeIdenticalToBase" Category="Microsoft.Security" CheckId="CA2123" Created="2008-11-27 14:00:44Z">
+              <Issue Name="BaseOnly">
+               <Item>'HeaderControl.WndProc(ref Message)'</Item>
+               <Item>'NativeWindow.WndProc(ref Message)'</Item>
+               <Item>[SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]</Item>
+              </Issue>
+             </Message>
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue>
+               <Item>'HeaderControl.WndProc(ref Message)'</Item>
+               <Item>'Message.Msg.get()'</Item>
+               <Item>&#xD;&#xA;   -&gt;'HeaderControl.WndProc(ref Message)'&#xD;&#xA;   -&gt;'HeaderControl.WndProc(ref Message)'</Item>
+              </Issue>
+              <Issue>
+               <Item>'HeaderControl.WndProc(ref Message)'</Item>
+               <Item>'Message.Result.set(IntPtr)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'HeaderControl.WndProc(ref Message)'&#xD;&#xA;   -&gt;'HeaderControl.WndProc(ref Message)'</Item>
+              </Issue>
+              <Issue>
+               <Item>'HeaderControl.WndProc(ref Message)'</Item>
+               <Item>'NativeWindow.WndProc(ref Message)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'HeaderControl.WndProc(ref Message)'&#xD;&#xA;   -&gt;'HeaderControl.WndProc(ref Message)'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="18" />
+               </User>
+              </Notes>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
          <Type Name="ImageRenderer">
           <Messages>
            <Message TypeName="TypesThatOwnDisposableFieldsShouldBeDisposable" Category="Microsoft.Design" CheckId="CA1001" Created="2008-10-30 20:23:07Z" FixCategory="DependsOnFix">
@@ -565,12 +671,6 @@
           <Members>
            <Member Name="#GetImageFromAspect()">
             <Messages>
-             <Message TypeName="TestForEmptyStringsUsingStringLength" Category="Microsoft.Performance" CheckId="CA1820" Created="2008-10-30 20:23:07Z">
-              <Issue Name="IsNullOrEmpty">
-               <Item>'string.operator !=(string, string)'</Item>
-               <Item>'ImageRenderer.GetImageFromAspect()'</Item>
-              </Issue>
-             </Message>
              <Message TypeName="UsePropertiesWhereAppropriate" Category="Microsoft.Design" CheckId="CA1024" Status="Excluded" Created="2008-10-30 20:23:07Z">
               <Issue Certainty="50">
                <Item>'ImageRenderer.GetImageFromAspect()'</Item>
@@ -637,206 +737,144 @@
              </Message>
             </Messages>
            </Member>
-           <Member Name="#PrepareCache(System.Int32,System.Int32)">
-            <Messages>
-             <Message Id="To" TypeName="IdentifiersShouldNotMatchKeywords" Category="Microsoft.Naming" CheckId="CA1716" Created="2008-10-30 20:23:07Z">
-              <Issue Name="MemberParameter">
-               <Item>'IVirtualListDataSource.PrepareCache(int, int)'</Item>
-               <Item>'to'</Item>
-               <Item>To</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="#SearchText(System.String,System.Int32,System.Int32,BrightIdeasSoftware.OLVColumn)">
-            <Messages>
-             <Message Id="Stop" TypeName="IdentifiersShouldNotMatchKeywords" Category="Microsoft.Naming" CheckId="CA1716" Created="2008-10-30 21:54:30Z">
-              <Issue Name="MemberParameter">
-               <Item>'IVirtualListDataSource.SearchText(string, int, int, OLVColumn)'</Item>
-               <Item>'stop'</Item>
-               <Item>Stop</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
           </Members>
          </Type>
-         <Type Name="ListViewGroupComparer">
-          <Members>
-           <Member Name="#Compare(System.Windows.Forms.ListViewGroup,System.Windows.Forms.ListViewGroup)">
-            <Messages>
-             <Message Id="System.String.Compare(System.String,System.String,System.Boolean)" TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304" Created="2008-10-30 20:23:07Z">
-              <Issue>
-               <Item>'string.Compare(string, string, bool)'</Item>
-               <Item>'ListViewGroupComparer.Compare(ListViewGroup, ListViewGroup)'</Item>
-               <Item>'string.Compare(string, string, bool, CultureInfo)'</Item>
-              </Issue>
-             </Message>
-             <Message Id="System.String.Compare(System.String,System.String,System.Boolean)" TypeName="SpecifyStringComparison" Category="Microsoft.Globalization" CheckId="CA1307" Created="2008-10-30 20:23:07Z">
-              <Issue>
-               <Item>'ListViewGroupComparer.Compare(ListViewGroup, ListViewGroup)'</Item>
-               <Item>'string.Compare(string, string, bool)'</Item>
-               <Item>'string.Compare(string, string, StringComparison)'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-          </Members>
+         <Type Name="MultiImageRenderer">
+          <Messages>
+           <Message Id="Multi" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Status="Excluded" Created="2008-10-30 20:23:07Z">
+            <Issue Name="Type">
+             <Item>Multi</Item>
+             <Item>'MultiImageRenderer'</Item>
+            </Issue>
+            <Notes>
+             <User Name="Admin_2">
+              <Note Id="20" />
+             </User>
+            </Notes>
+           </Message>
+          </Messages>
          </Type>
-         <Type Name="ListViewPrinter">
+         <Type Name="MyToolTip">
           <Members>
-           <Member Name="#ApplyCellSpecificBackground(BrightIdeasSoftware.BlockFormat,System.Windows.Forms.ListViewItem,System.Windows.Forms.ListViewItem+ListViewSubItem)">
+           <Member Name="#CreateHandle()">
             <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="DependsOnFix">
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Status="Excluded" Created="2008-11-27 14:00:44Z">
               <Issue>
-               <Item>'ListViewPrinter.ApplyCellSpecificBackground(BlockFormat, ListViewItem, ListViewItem.ListViewSubItem)'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="#CalculateRowHeight(System.Drawing.Graphics,System.Windows.Forms.ListView,System.Int32)">
-            <Messages>
-             <Message TypeName="DoNotCastUnnecessarily" Category="Microsoft.Performance" CheckId="CA1800" Created="2008-10-30 20:23:07Z">
-              <Issue Name="Parameter">
-               <Item>'lv'</Item>
-               <Item>'ObjectListView'</Item>
-               <Item>'ListViewPrinter.CalculateRowHeight(Graphics, ListView, int)'</Item>
-               <Item>castclass</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="#PrintCell(System.Drawing.Graphics,System.Windows.Forms.ListView,System.Windows.Forms.ListViewItem,System.Int32,System.Int32,System.Drawing.RectangleF)">
-            <Messages>
-             <Message TypeName="DoNotCastUnnecessarily" Category="Microsoft.Performance" CheckId="CA1800" Created="2008-10-30 20:23:07Z">
-              <Issue Name="Local">
-               <Item>'renderer'</Item>
-               <Item>'BarRenderer'</Item>
-               <Item>'ListViewPrinter.PrintCell(Graphics, ListView, ListViewItem, int, int, RectangleF)'</Item>
-               <Item>castclass</Item>
-              </Issue>
-              <Issue Name="Local">
-               <Item>'renderer'</Item>
-               <Item>'BarRenderer'</Item>
-               <Item>'ListViewPrinter.PrintCell(Graphics, ListView, ListViewItem, int, int, RectangleF)'</Item>
-               <Item>castclass</Item>
-              </Issue>
-              <Issue Name="Local">
-               <Item>'renderer'</Item>
-               <Item>'BarRenderer'</Item>
-               <Item>'ListViewPrinter.PrintCell(Graphics, ListView, ListViewItem, int, int, RectangleF)'</Item>
-               <Item>isint</Item>
-              </Issue>
-              <Issue Name="Parameter">
-               <Item>'lv'</Item>
-               <Item>'ObjectListView'</Item>
-               <Item>'ListViewPrinter.PrintCell(Graphics, ListView, ListViewItem, int, int, RectangleF)'</Item>
-               <Item>castclass</Item>
-              </Issue>
-              <Issue Name="Parameter">
-               <Item>'lvi'</Item>
-               <Item>'OLVListItem'</Item>
-               <Item>'ListViewPrinter.PrintCell(Graphics, ListView, ListViewItem, int, int, RectangleF)'</Item>
-               <Item>castclass</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-          </Members>
-         </Type>
-         <Type Name="ListViewPrinterBase">
-          <Members>
-           <Member Name="#GetColumnCount()">
-            <Messages>
-             <Message TypeName="UsePropertiesWhereAppropriate" Category="Microsoft.Design" CheckId="CA1024" Status="Excluded" Created="2008-10-30 20:23:07Z">
-              <Issue Certainty="50">
-               <Item>'ListViewPrinterBase.GetColumnCount()'</Item>
+               <Item>'MyToolTip.CreateHandle()'</Item>
+               <Item>'NativeWindow.CreateHandle(CreateParams)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'MyToolTip.CreateHandle()'&#xD;&#xA;   -&gt;'MyToolTip.CreateHandle()'</Item>
               </Issue>
               <Notes>
                <User Name="Admin_2">
-                <Note Id="16" />
+                <Note Id="18" />
                </User>
               </Notes>
              </Message>
             </Messages>
            </Member>
-           <Member Name="#GetVirtualItem(System.Windows.Forms.ListView,System.Int32)">
+           <Member Name="#Handle">
+            <Accessors>
+             <Accessor Name="#get_Handle()">
+              <Messages>
+               <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Status="Excluded" Created="2008-11-27 14:00:44Z">
+                <Issue>
+                 <Item>'MyToolTip.Handle.get()'</Item>
+                 <Item>'NativeWindow.Handle.get()'</Item>
+                 <Item>&#xD;&#xA;   -&gt;'MyToolTip.Handle.get()'&#xD;&#xA;   -&gt;'MyToolTip.Handle.get()'</Item>
+                </Issue>
+                <Notes>
+                 <User Name="Admin_2">
+                  <Note Id="18" />
+                 </User>
+                </Notes>
+               </Message>
+              </Messages>
+             </Accessor>
+            </Accessors>
+           </Member>
+           <Member Name="#IsHandleCreated">
+            <Accessors>
+             <Accessor Name="#get_IsHandleCreated()">
+              <Messages>
+               <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Created="2008-11-27 14:31:53Z">
+                <Issue>
+                 <Item>'MyToolTip.IsHandleCreated.get()'</Item>
+                 <Item>'NativeWindow.Handle.get()'</Item>
+                 <Item>&#xD;&#xA;   -&gt;'MyToolTip.IsHandleCreated.get()'&#xD;&#xA;   -&gt;'MyToolTip.IsHandleCreated.get()'</Item>
+                </Issue>
+               </Message>
+              </Messages>
+             </Accessor>
+            </Accessors>
+           </Member>
+           <Member Name="#PopToolTip(System.Windows.Forms.IWin32Window)">
             <Messages>
-             <Message TypeName="DoNotRaiseReservedExceptionTypes" Category="Microsoft.Usage" CheckId="CA2201" Created="2008-10-30 20:23:07Z">
-              <Issue Name="TooGeneric">
-               <Item>'ListViewPrinterBase.GetVirtualItem(ListView, int)'</Item>
-               <Item>'ApplicationException'</Item>
+             <Message Id="window" TypeName="ReviewUnusedParameters" Category="Microsoft.Usage" CheckId="CA1801" Created="2008-11-27 14:00:44Z" FixCategory="DependsOnFix">
+              <Issue>
+               <Item>'window'</Item>
+               <Item>'MyToolTip.PopToolTip(IWin32Window)'</Item>
               </Issue>
              </Message>
             </Messages>
            </Member>
-           <Member Name="#PrintListHeader(System.Drawing.Graphics,System.Windows.Forms.ListView)">
+           <Member Name="#WndProc(System.Windows.Forms.Message&amp;)">
             <Messages>
-             <Message Id="lv" TypeName="ReviewUnusedParameters" Category="Microsoft.Usage" CheckId="CA1801" Created="2008-10-30 20:23:07Z" FixCategory="DependsOnFix">
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Status="Excluded" Created="2008-11-27 14:00:44Z">
               <Issue>
-               <Item>'lv'</Item>
-               <Item>'ListViewPrinterBase.PrintListHeader(Graphics, ListView)'</Item>
+               <Item>'MyToolTip.WndProc(ref Message)'</Item>
+               <Item>'NativeWindow.DefWndProc(ref Message)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'MyToolTip.WndProc(ref Message)'&#xD;&#xA;   -&gt;'MyToolTip.WndProc(ref Message)'</Item>
               </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="18" />
+               </User>
+              </Notes>
              </Message>
-            </Messages>
-           </Member>
-           <Member Name="#SplitAndFormat(System.String)">
-            <Messages>
-             <Message Id="System.String.Format(System.String,System.Object,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2008-10-30 20:23:07Z">
-              <Issue>
-               <Item>'string.Format(string, object, object)'</Item>
-               <Item>'ListViewPrinterBase.SplitAndFormat(string)'</Item>
-               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+             <Message Id="0#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue Certainty="50">
+               <Item>'msg'</Item>
               </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="17" />
+               </User>
+              </Notes>
+             </Message>
+             <Message Id="Wnd" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue Name="Member">
+               <Item>Wnd</Item>
+               <Item>'MyToolTip.WndProc(ref Message)'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="20" />
+               </User>
+              </Notes>
              </Message>
             </Messages>
            </Member>
           </Members>
          </Type>
-         <Type Name="ModelObjectComparer">
+         <Type Name="MyToolTip+MyToolTipNativeWindow">
           <Members>
-           <Member Name="#CompareValues(System.Object,System.Object)">
+           <Member Name="#.ctor(BrightIdeasSoftware.MyToolTip)">
             <Messages>
-             <Message TypeName="DoNotCastUnnecessarily" Category="Microsoft.Performance" CheckId="CA1800" Created="2008-10-30 20:23:07Z">
-              <Issue Name="Parameter">
-               <Item>'x'</Item>
-               <Item>'string'</Item>
-               <Item>'ModelObjectComparer.CompareValues(object, object)'</Item>
-               <Item>castclass</Item>
-              </Issue>
-             </Message>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Status="Excluded" Created="2008-11-27 14:00:44Z">
               <Issue>
-               <Item>'ModelObjectComparer.CompareValues(object, object)'</Item>
+               <Item>'MyToolTip.MyToolTipNativeWindow.MyToolTipNativeWindow(MyToolTip)'</Item>
+               <Item>'NativeWindow.NativeWindow()'</Item>
+               <Item>&#xD;&#xA;   -&gt;'MyToolTip.MyToolTipNativeWindow.MyToolTipNativeWindow(MyToolTip)'&#xD;&#xA;   -&gt;'MyToolTip.MyToolTipNativeWindow.MyToolTipNativeWindow(MyToolTip)'&#xD;&#xA;   -&gt;'MyToolTip.MyToolTip()'</Item>
               </Issue>
-             </Message>
-             <Message Id="System.String.Compare(System.String,System.String,System.Boolean)" TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304" Created="2008-10-30 20:23:07Z">
-              <Issue>
-               <Item>'string.Compare(string, string, bool)'</Item>
-               <Item>'ModelObjectComparer.CompareValues(object, object)'</Item>
-               <Item>'string.Compare(string, string, bool, CultureInfo)'</Item>
-              </Issue>
-             </Message>
-             <Message Id="System.String.Compare(System.String,System.String,System.Boolean)" TypeName="SpecifyStringComparison" Category="Microsoft.Globalization" CheckId="CA1307" Created="2008-10-30 20:23:07Z">
-              <Issue>
-               <Item>'ModelObjectComparer.CompareValues(object, object)'</Item>
-               <Item>'string.Compare(string, string, bool)'</Item>
-               <Item>'string.Compare(string, string, StringComparison)'</Item>
-              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="18" />
+               </User>
+              </Notes>
              </Message>
             </Messages>
            </Member>
           </Members>
-         </Type>
-         <Type Name="MultiImageRenderer">
-          <Messages>
-           <Message Id="Multi" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2008-10-30 20:23:07Z">
-            <Issue Name="Type">
-             <Item>Multi</Item>
-             <Item>'MultiImageRenderer'</Item>
-            </Issue>
-           </Message>
-          </Messages>
          </Type>
          <Type Name="NativeMethods">
           <Members>
@@ -849,21 +887,22 @@
              </Message>
             </Messages>
            </Member>
+           <Member Name="#GetUpdateRect(System.Windows.Forms.Control)">
+            <Messages>
+             <Message Id="BrightIdeasSoftware.NativeMethods.GetUpdateRectInternal(System.IntPtr,System.Drawing.Rectangle@,System.Boolean)" TypeName="DoNotIgnoreMethodResults" Category="Microsoft.Usage" CheckId="CA1806" Created="2008-11-27 14:46:44Z">
+              <Issue Name="HResultOrErrorCode">
+               <Item>'NativeMethods.GetUpdateRect(Control)'</Item>
+               <Item>'NativeMethods.GetUpdateRectInternal(IntPtr, ref Rectangle, bool)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
            <Member Name="#GetUpdateRectInternal(System.IntPtr,System.Drawing.Rectangle&amp;,System.Boolean)">
             <Messages>
              <Message TypeName="MarkBooleanPInvokeArgumentsWithMarshalAs" Category="Microsoft.Interoperability" CheckId="CA1414" Created="2008-10-30 20:23:07Z">
               <Issue>
                <Item>'eraseBackground'</Item>
                <Item>'NativeMethods.GetUpdateRectInternal(IntPtr, ref Rectangle, bool)'</Item>
-              </Issue>
-             </Message>
-             <Message Id="return" TypeName="PInvokeDeclarationsShouldBePortable" Category="Microsoft.Portability" CheckId="CA1901" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
-              <Issue Name="Return">
-               <Item>'NativeMethods.GetUpdateRectInternal(IntPtr, ref Rectangle, bool)'</Item>
-               <Item>8</Item>
-               <Item>64-bit</Item>
-               <Item>4</Item>
-               <Item>'IntPtr'</Item>
               </Issue>
              </Message>
             </Messages>
@@ -920,6 +959,20 @@
              </Message>
             </Messages>
            </Member>
+           <Member Name="#SendMessageTOOLINFO(System.IntPtr,System.Int32,System.Int32,BrightIdeasSoftware.NativeMethods+TOOLINFO)">
+            <Messages>
+             <Message Id="2" TypeName="PInvokeDeclarationsShouldBePortable" Category="Microsoft.Portability" CheckId="CA1901" Created="2008-11-27 14:00:44Z" FixCategory="NonBreaking">
+              <Issue Name="Parameter">
+               <Item>'wParam'</Item>
+               <Item>'NativeMethods.SendMessageTOOLINFO(IntPtr, int, int, NativeMethods.TOOLINFO)'</Item>
+               <Item>4</Item>
+               <Item>64-bit</Item>
+               <Item>8</Item>
+               <Item>'int'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
           </Members>
          </Type>
          <Type Name="NativeMethods+SCROLLINFO">
@@ -930,7 +983,12 @@
               <Issue>
                <Item>'NativeMethods.SCROLLINFO.SCROLLINFO()'</Item>
                <Item>'Marshal.SizeOf(Type)'</Item>
-               <Item>&#xD;&#xA;   -&gt;'NativeMethods.SCROLLINFO.SCROLLINFO()'&#xD;&#xA;   -&gt;'NativeMethods.SCROLLINFO.SCROLLINFO()'&#xD;&#xA;   -&gt;'NativeMethods.GetScrollPosition(IntPtr, bool)'&#xD;&#xA;   -&gt;'ObjectListView.HeaderControl.GetColumnIndexUnderCursor()'&#xD;&#xA;   -&gt;'ObjectListView.HandleContextMenu(ref Message)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'NativeMethods.SCROLLINFO.SCROLLINFO()'&#xD;&#xA;   -&gt;'NativeMethods.SCROLLINFO.SCROLLINFO()'&#xD;&#xA;   -&gt;'NativeMethods.GetScrollPosition(IntPtr, bool)'&#xD;&#xA;   -&gt;'HeaderControl.ColumnIndexUnderCursor.get()'</Item>
+              </Issue>
+              <Issue>
+               <Item>'NativeMethods.SCROLLINFO.SCROLLINFO()'</Item>
+               <Item>'Marshal.SizeOf(Type)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'NativeMethods.SCROLLINFO.SCROLLINFO()'&#xD;&#xA;   -&gt;'NativeMethods.SCROLLINFO.SCROLLINFO()'&#xD;&#xA;   -&gt;'NativeMethods.GetScrollPosition(IntPtr, bool)'&#xD;&#xA;   -&gt;'HeaderControl.IsCursorOverLockedDivider.get()'</Item>
               </Issue>
               <Notes>
                <User Name="Admin_2">
@@ -942,29 +1000,33 @@
            </Member>
           </Members>
          </Type>
-         <Type Name="ObjectListView">
+         <Type Name="NativeMethods+TOOLINFO">
           <Members>
            <Member Name="#.ctor()">
             <Messages>
-             <Message TypeName="DoNotInitializeUnnecessarily" Category="Microsoft.Performance" CheckId="CA1805" Created="2008-10-30 20:23:07Z">
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Status="Excluded" Created="2008-11-27 14:00:44Z">
               <Issue>
-               <Item>'ObjectListView.ObjectListView()'</Item>
-               <Item>'ObjectListView.isOwnerOfObjects'</Item>
-               <Item>'bool'</Item>
-               <Item>false</Item>
+               <Item>'NativeMethods.TOOLINFO.TOOLINFO()'</Item>
+               <Item>'Marshal.SizeOf(Type)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'NativeMethods.TOOLINFO.TOOLINFO()'&#xD;&#xA;   -&gt;'NativeMethods.TOOLINFO.TOOLINFO()'&#xD;&#xA;   -&gt;'MyToolTip.GetTOOLINFO(IWin32Window)'&#xD;&#xA;   -&gt;'MyToolTip.AddTool(IWin32Window)'</Item>
               </Issue>
+              <Issue>
+               <Item>'NativeMethods.TOOLINFO.TOOLINFO()'</Item>
+               <Item>'Marshal.SizeOf(Type)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'NativeMethods.TOOLINFO.TOOLINFO()'&#xD;&#xA;   -&gt;'NativeMethods.TOOLINFO.TOOLINFO()'&#xD;&#xA;   -&gt;'MyToolTip.GetTOOLINFO(IWin32Window)'&#xD;&#xA;   -&gt;'MyToolTip.RemoveToolTip(IWin32Window)'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="18" />
+               </User>
+              </Notes>
              </Message>
             </Messages>
            </Member>
-           <Member Name="#AddCheckedImage(System.Windows.Forms.ImageList,System.Windows.Forms.VisualStyles.CheckBoxState)">
-            <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
-              <Issue>
-               <Item>'ObjectListView.AddCheckedImage(ImageList, CheckBoxState)'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
+          </Members>
+         </Type>
+         <Type Name="ObjectListView">
+          <Members>
            <Member Name="#AllColumns">
             <Messages>
              <Message TypeName="CollectionPropertiesShouldBeReadOnly" Category="Microsoft.Usage" CheckId="CA2227" Status="Excluded" Created="2008-10-30 20:23:07Z">
@@ -1009,6 +1071,24 @@
              </Message>
             </Messages>
            </Member>
+           <Member Name="#BooleanCheckStateGetter">
+            <Messages>
+             <Message TypeName="PropertiesShouldNotBeWriteOnly" Category="Microsoft.Design" CheckId="CA1044" Created="2008-11-27 14:00:44Z">
+              <Issue Name="AddGetter">
+               <Item>'ObjectListView.BooleanCheckStateGetter'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#BooleanCheckStatePutter">
+            <Messages>
+             <Message TypeName="PropertiesShouldNotBeWriteOnly" Category="Microsoft.Design" CheckId="CA1044" Created="2008-11-27 14:00:44Z">
+              <Issue Name="AddGetter">
+               <Item>'ObjectListView.BooleanCheckStatePutter'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
            <Member Name="#BuildGroups(BrightIdeasSoftware.OLVColumn,System.Windows.Forms.SortOrder)">
             <Messages>
              <Message Id="System.String.Format(System.String,System.Object,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2008-10-30 20:23:07Z">
@@ -1022,22 +1102,18 @@
            </Member>
            <Member Name="#CalculateCellBounds(BrightIdeasSoftware.OLVListItem,System.Int32)">
             <Messages>
-             <Message TypeName="ConsiderPassingBaseTypesAsParameters" Category="Microsoft.Design" CheckId="CA1011" Created="2008-10-30 20:23:07Z">
+             <Message TypeName="ConsiderPassingBaseTypesAsParameters" Category="Microsoft.Design" CheckId="CA1011" Status="Excluded" Created="2008-10-30 20:23:07Z">
               <Issue>
                <Item>'item'</Item>
                <Item>'ObjectListView.CalculateCellBounds(OLVListItem, int)'</Item>
                <Item>'OLVListItem'</Item>
                <Item>'ListViewItem'</Item>
               </Issue>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="#CalculateState(System.Int32)">
-            <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
-              <Issue>
-               <Item>'ObjectListView.CalculateState(int)'</Item>
-              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="21" />
+               </User>
+              </Notes>
              </Message>
             </Messages>
            </Member>
@@ -1088,11 +1164,6 @@
            </Member>
            <Member Name="#ConvertToHtmlFragment(System.String)">
             <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
-              <Issue>
-               <Item>'ObjectListView.ConvertToHtmlFragment(string)'</Item>
-              </Issue>
-             </Message>
              <Message Id="System.String.Format(System.String,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2008-10-30 20:23:07Z">
               <Issue>
                <Item>'string.Format(string, object)'</Item>
@@ -1121,25 +1192,8 @@
              </Message>
             </Messages>
            </Member>
-           <Member Name="#GetActualImageIndex(System.Object)">
-            <Messages>
-             <Message TypeName="DoNotCastUnnecessarily" Category="Microsoft.Performance" CheckId="CA1800" Created="2008-10-30 20:23:07Z">
-              <Issue Name="Parameter">
-               <Item>'imageSelector'</Item>
-               <Item>'string'</Item>
-               <Item>'ObjectListView.GetActualImageIndex(object)'</Item>
-               <Item>castclass</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
            <Member Name="#GetControlValue(System.Windows.Forms.Control)">
             <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="DependsOnFix">
-              <Issue>
-               <Item>'ObjectListView.GetControlValue(Control)'</Item>
-              </Issue>
-             </Message>
              <Message Id="System.Type.InvokeMember(System.String,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object,System.Object[])" TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304" Created="2008-10-30 20:23:07Z">
               <Issue>
                <Item>'Type.InvokeMember(string, BindingFlags, Binder, object, object[])'</Item>
@@ -1220,6 +1274,32 @@
              </Message>
             </Messages>
            </Member>
+           <Member Name="#HandleChar(System.Windows.Forms.Message&amp;)">
+            <Messages>
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue>
+               <Item>'ObjectListView.HandleChar(ref Message)'</Item>
+               <Item>'Message.WParam.get()'</Item>
+               <Item>&#xD;&#xA;   -&gt;'ObjectListView.HandleChar(ref Message)'&#xD;&#xA;   -&gt;'ObjectListView.HandleChar(ref Message)'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="18" />
+               </User>
+              </Notes>
+             </Message>
+             <Message Id="0#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue Certainty="50">
+               <Item>'m'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="17" />
+               </User>
+              </Notes>
+             </Message>
+            </Messages>
+           </Member>
            <Member Name="#HandleColumnClick(System.Object,System.Windows.Forms.ColumnClickEventArgs)">
             <Messages>
              <Message TypeName="ReviewVisibleEventHandlers" Category="Microsoft.Security" CheckId="CA2109" Created="2008-10-30 20:23:07Z">
@@ -1260,6 +1340,42 @@
              </Message>
             </Messages>
            </Member>
+           <Member Name="#HandleFindItem(System.Windows.Forms.Message&amp;)">
+            <Messages>
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue>
+               <Item>'ObjectListView.HandleFindItem(ref Message)'</Item>
+               <Item>'Message.GetLParam(Type)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'ObjectListView.HandleFindItem(ref Message)'&#xD;&#xA;   -&gt;'ObjectListView.HandleFindItem(ref Message)'</Item>
+              </Issue>
+              <Issue>
+               <Item>'ObjectListView.HandleFindItem(ref Message)'</Item>
+               <Item>'Message.Result.set(IntPtr)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'ObjectListView.HandleFindItem(ref Message)'&#xD;&#xA;   -&gt;'ObjectListView.HandleFindItem(ref Message)'</Item>
+              </Issue>
+              <Issue>
+               <Item>'ObjectListView.HandleFindItem(ref Message)'</Item>
+               <Item>'Message.WParam.get()'</Item>
+               <Item>&#xD;&#xA;   -&gt;'ObjectListView.HandleFindItem(ref Message)'&#xD;&#xA;   -&gt;'ObjectListView.HandleFindItem(ref Message)'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="18" />
+               </User>
+              </Notes>
+             </Message>
+             <Message Id="0#" TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue Certainty="50">
+               <Item>'m'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="17" />
+               </User>
+              </Notes>
+             </Message>
+            </Messages>
+           </Member>
            <Member Name="#HandleItemCheck(System.Object,System.Windows.Forms.ItemCheckEventArgs)">
             <Messages>
              <Message TypeName="ReviewVisibleEventHandlers" Category="Microsoft.Security" CheckId="CA2109" Created="2008-10-30 20:23:07Z">
@@ -1279,7 +1395,17 @@
               </Issue>
               <Issue>
                <Item>'ObjectListView.HandleNotify(ref Message)'</Item>
+               <Item>'Marshal.StructureToPtr(object, IntPtr, bool)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'ObjectListView.HandleNotify(ref Message)'&#xD;&#xA;   -&gt;'ObjectListView.HandleNotify(ref Message)'</Item>
+              </Issue>
+              <Issue>
+               <Item>'ObjectListView.HandleNotify(ref Message)'</Item>
                <Item>'Message.GetLParam(Type)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'ObjectListView.HandleNotify(ref Message)'&#xD;&#xA;   -&gt;'ObjectListView.HandleNotify(ref Message)'</Item>
+              </Issue>
+              <Issue>
+               <Item>'ObjectListView.HandleNotify(ref Message)'</Item>
+               <Item>'Message.LParam.get()'</Item>
                <Item>&#xD;&#xA;   -&gt;'ObjectListView.HandleNotify(ref Message)'&#xD;&#xA;   -&gt;'ObjectListView.HandleNotify(ref Message)'</Item>
               </Issue>
               <Issue>
@@ -1341,48 +1467,6 @@
              </Message>
             </Messages>
            </Member>
-           <Member Name="#MakeColumnSelectMenu(System.Windows.Forms.ContextMenuStrip)">
-            <Messages>
-             <Message TypeName="ConsiderPassingBaseTypesAsParameters" Category="Microsoft.Design" CheckId="CA1011" Created="2008-10-30 20:53:22Z">
-              <Issue>
-               <Item>'strip'</Item>
-               <Item>'ObjectListView.MakeColumnSelectMenu(ContextMenuStrip)'</Item>
-               <Item>'ContextMenuStrip'</Item>
-               <Item>'ToolStripDropDown'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="#MakeDefaultCellEditor(BrightIdeasSoftware.OLVColumn)">
-            <Messages>
-             <Message TypeName="DoNotCastUnnecessarily" Category="Microsoft.Performance" CheckId="CA1800" Created="2008-10-30 20:23:07Z">
-              <Issue Name="Local">
-               <Item>'value'</Item>
-               <Item>'string'</Item>
-               <Item>'ObjectListView.MakeDefaultCellEditor(OLVColumn)'</Item>
-               <Item>castclass</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="#MakeResizedImage(System.Int32,System.Drawing.Image,System.Drawing.Color)">
-            <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
-              <Issue>
-               <Item>'ObjectListView.MakeResizedImage(int, Image, Color)'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="#MakeTriangleBitmap(System.Drawing.Size,System.Drawing.Point[])">
-            <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
-              <Issue>
-               <Item>'ObjectListView.MakeTriangleBitmap(Size, Point[])'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
            <Member Name="#ProcessDialogKey(System.Windows.Forms.Keys)">
             <Messages>
              <Message TypeName="OverrideLinkDemandsShouldBeIdenticalToBase" Category="Microsoft.Security" CheckId="CA2123" Created="2008-10-30 20:23:07Z">
@@ -1436,44 +1520,52 @@
              </Message>
             </Messages>
            </Member>
-           <Member Name="#SetControlValue(System.Windows.Forms.Control,System.Object,System.String)">
+           <Member Name="#SetObjectCheckedness(System.Object,System.Windows.Forms.CheckState)">
             <Messages>
-             <Message TypeName="DoNotCastUnnecessarily" Category="Microsoft.Performance" CheckId="CA1800" Created="2008-10-30 20:23:07Z">
-              <Issue Name="Parameter">
-               <Item>'value'</Item>
-               <Item>'string'</Item>
-               <Item>'ObjectListView.SetControlValue(Control, object, string)'</Item>
-               <Item>castclass</Item>
+             <Message Id="Checkedness" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue Name="Member">
+               <Item>Checkedness</Item>
+               <Item>'ObjectListView.SetObjectCheckedness(object, CheckState)'</Item>
               </Issue>
-             </Message>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="DependsOnFix">
-              <Issue>
-               <Item>'ObjectListView.SetControlValue(Control, object, string)'</Item>
-              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="20" />
+               </User>
+              </Notes>
              </Message>
             </Messages>
            </Member>
            <Member Name="#SetSubItemImages(System.Int32,BrightIdeasSoftware.OLVListItem,System.Boolean)">
             <Messages>
-             <Message TypeName="ConsiderPassingBaseTypesAsParameters" Category="Microsoft.Design" CheckId="CA1011" Created="2008-10-30 20:23:07Z">
+             <Message TypeName="ConsiderPassingBaseTypesAsParameters" Category="Microsoft.Design" CheckId="CA1011" Status="Excluded" Created="2008-10-30 20:23:07Z">
               <Issue>
                <Item>'item'</Item>
                <Item>'ObjectListView.SetSubItemImages(int, OLVListItem, bool)'</Item>
                <Item>'OLVListItem'</Item>
                <Item>'ListViewItem'</Item>
               </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="21" />
+               </User>
+              </Notes>
              </Message>
             </Messages>
            </Member>
            <Member Name="#ShowSortIndicator(BrightIdeasSoftware.OLVColumn,System.Windows.Forms.SortOrder)">
             <Messages>
-             <Message TypeName="ConsiderPassingBaseTypesAsParameters" Category="Microsoft.Design" CheckId="CA1011" Created="2008-10-30 20:23:07Z">
+             <Message TypeName="ConsiderPassingBaseTypesAsParameters" Category="Microsoft.Design" CheckId="CA1011" Status="Excluded" Created="2008-10-30 20:23:07Z">
               <Issue>
                <Item>'columnToSort'</Item>
                <Item>'ObjectListView.ShowSortIndicator(OLVColumn, SortOrder)'</Item>
                <Item>'OLVColumn'</Item>
                <Item>'ColumnHeader'</Item>
               </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="21" />
+               </User>
+              </Notes>
              </Message>
             </Messages>
            </Member>
@@ -1553,58 +1645,6 @@
              </Message>
             </Messages>
            </Member>
-           <Member Name="#AfterSorting" Kind="Event">
-            <Messages>
-             <Message TypeName="EventsShouldNotHaveBeforeOrAfterPrefix" Category="Microsoft.Naming" CheckId="CA1713" Created="2008-10-30 20:23:07Z">
-              <Issue Name="After">
-               <Item>'ObjectListView.AfterSorting'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="#BeforeSorting" Kind="Event">
-            <Messages>
-             <Message TypeName="EventsShouldNotHaveBeforeOrAfterPrefix" Category="Microsoft.Naming" CheckId="CA1713" Created="2008-10-30 20:23:07Z">
-              <Issue Name="Before">
-               <Item>'ObjectListView.BeforeSorting'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-          </Members>
-         </Type>
-         <Type Name="ObjectListView+CellEditActivateMode">
-          <Messages>
-           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2008-10-30 20:23:07Z">
-            <Issue>
-             <Item>'ObjectListView.CellEditActivateMode'</Item>
-            </Issue>
-           </Message>
-          </Messages>
-         </Type>
-         <Type Name="ObjectListView+HeaderControl">
-          <Members>
-           <Member Name="#.ctor(BrightIdeasSoftware.ObjectListView)">
-            <Messages>
-             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Status="Excluded" Created="2008-10-30 20:23:07Z">
-              <Issue>
-               <Item>'ObjectListView.HeaderControl.HeaderControl(ObjectListView)'</Item>
-               <Item>'NativeWindow.AssignHandle(IntPtr)'</Item>
-               <Item>&#xD;&#xA;   -&gt;'ObjectListView.HeaderControl.HeaderControl(ObjectListView)'&#xD;&#xA;   -&gt;'ObjectListView.HeaderControl.HeaderControl(ObjectListView)'&#xD;&#xA;   -&gt;'ObjectListView.OnCreateControl()'</Item>
-              </Issue>
-              <Issue>
-               <Item>'ObjectListView.HeaderControl.HeaderControl(ObjectListView)'</Item>
-               <Item>'NativeWindow.NativeWindow()'</Item>
-               <Item>&#xD;&#xA;   -&gt;'ObjectListView.HeaderControl.HeaderControl(ObjectListView)'&#xD;&#xA;   -&gt;'ObjectListView.HeaderControl.HeaderControl(ObjectListView)'&#xD;&#xA;   -&gt;'ObjectListView.OnCreateControl()'</Item>
-              </Issue>
-              <Notes>
-               <User Name="Admin_2">
-                <Note Id="6" />
-               </User>
-              </Notes>
-             </Message>
-            </Messages>
-           </Member>
           </Members>
          </Type>
          <Type Name="ObjectListView+ObjectListViewState">
@@ -1647,14 +1687,6 @@
            </Member>
            <Member Name="#GetGroupKey(System.Object)">
             <Messages>
-             <Message TypeName="DoNotCastUnnecessarily" Category="Microsoft.Performance" CheckId="CA1800" Created="2008-10-30 20:23:07Z">
-              <Issue Name="Local">
-               <Item>'key'</Item>
-               <Item>'string'</Item>
-               <Item>'OLVColumn.GetGroupKey(object)'</Item>
-               <Item>castclass</Item>
-              </Issue>
-             </Message>
              <Message Id="System.String.ToUpper" TypeName="SpecifyCultureInfo" Category="Microsoft.Globalization" CheckId="CA1304" Created="2008-10-30 20:23:07Z">
               <Issue>
                <Item>'string.ToUpper()'</Item>
@@ -1676,6 +1708,13 @@
                <Item>'Type.InvokeMember(string, BindingFlags, Binder, object, object[])'</Item>
                <Item>'OLVColumn.PutAspectByName(object, object)'</Item>
                <Item>'Type.InvokeMember(string, BindingFlags, Binder, object, object[], CultureInfo)'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2008-11-27 14:00:44Z">
+              <Issue>
+               <Item>'string.Format(string, object, object)'</Item>
+               <Item>'OLVColumn.PutAspectByName(object, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
               </Issue>
              </Message>
             </Messages>
@@ -1703,13 +1742,6 @@
           </Messages>
           <Members>
            <Member Name="#DisplayIndex">
-            <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="DependsOnFix">
-              <Issue>
-               <Item>'OLVListItem.DisplayIndex'</Item>
-              </Issue>
-             </Message>
-            </Messages>
             <Accessors>
              <Accessor Name="#set_DisplayIndex(System.Int32)">
               <Messages>
@@ -1741,26 +1773,8 @@
            </Member>
           </Members>
          </Type>
-         <Type Name="Sides">
-          <Messages>
-           <Message TypeName="OnlyFlagsEnumsShouldHavePluralNames" Category="Microsoft.Naming" CheckId="CA1717" Created="2008-10-30 20:23:07Z">
-            <Issue>
-             <Item>'Sides'</Item>
-            </Issue>
-           </Message>
-          </Messages>
-         </Type>
          <Type Name="TreeListView">
           <Members>
-           <Member Name="#CalculateExpanderIndentation(BrightIdeasSoftware.TreeListView+Branch)">
-            <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
-              <Issue>
-               <Item>'TreeListView.CalculateExpanderIndentation(TreeListView.Branch)'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
            <Member Name="#HandleHitTest(System.Windows.Forms.Message&amp;)">
             <Messages>
              <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Status="Excluded" Created="2008-10-30 20:23:07Z">
@@ -1777,6 +1791,22 @@
               <Notes>
                <User Name="Admin_2">
                 <Note Id="6" />
+               </User>
+              </Notes>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#HandleLButtonDown(System.Windows.Forms.Message&amp;)">
+            <Messages>
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Status="Excluded" Created="2008-11-27 14:00:44Z">
+              <Issue>
+               <Item>'TreeListView.HandleLButtonDown(ref Message)'</Item>
+               <Item>'Message.LParam.get()'</Item>
+               <Item>&#xD;&#xA;   -&gt;'TreeListView.HandleLButtonDown(ref Message)'&#xD;&#xA;   -&gt;'TreeListView.HandleLButtonDown(ref Message)'&#xD;&#xA;   -&gt;'TreeListView.WndProc(ref Message)'</Item>
+              </Issue>
+              <Notes>
+               <User Name="Admin_2">
+                <Note Id="18" />
                </User>
               </Notes>
              </Message>
@@ -1800,55 +1830,10 @@
            </Member>
           </Members>
          </Type>
-         <Type Name="TreeListView+CanExpandGetterDelegate">
-          <Messages>
-           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2008-10-30 20:23:07Z">
-            <Issue>
-             <Item>'TreeListView.CanExpandGetterDelegate'</Item>
-            </Issue>
-           </Message>
-          </Messages>
-         </Type>
-         <Type Name="TreeListView+ChildrenGetterDelegate">
-          <Messages>
-           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2008-10-30 20:23:07Z">
-            <Issue>
-             <Item>'TreeListView.ChildrenGetterDelegate'</Item>
-            </Issue>
-           </Message>
-          </Messages>
-         </Type>
-         <Type Name="TreeListView+TreeRenderer">
-          <Members>
-           <Member Name="#DrawLines(System.Drawing.Graphics,System.Drawing.Rectangle,System.Drawing.Pen,BrightIdeasSoftware.TreeListView+Branch)">
-            <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
-              <Issue>
-               <Item>'TreeListView.TreeRenderer.DrawLines(Graphics, Rectangle, Pen, TreeListView.Branch)'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="#GetLinePen()">
-            <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
-              <Issue>
-               <Item>'TreeListView.TreeRenderer.GetLinePen()'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-          </Members>
-         </Type>
          <Type Name="TypedColumn`1">
           <Members>
            <Member Name="#GeneratePart(System.Reflection.Emit.ILGenerator,System.Type,System.String,System.Boolean)">
             <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="NonBreaking">
-              <Issue>
-               <Item>'TypedColumn&lt;T&gt;.GeneratePart(ILGenerator, Type, string, bool)'</Item>
-              </Issue>
-             </Message>
              <Message Id="System.String.Format(System.String,System.Object,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2008-10-30 20:23:07Z">
               <Issue>
                <Item>'string.Format(string, object, object)'</Item>
@@ -1860,44 +1845,35 @@
            </Member>
           </Members>
          </Type>
-         <Type Name="TypedColumn`1+TypedAspectGetterDelegate">
-          <Messages>
-           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2008-10-30 20:23:07Z">
-            <Issue>
-             <Item>'TypedColumn&lt;T&gt;.TypedAspectGetterDelegate'</Item>
-            </Issue>
-           </Message>
-          </Messages>
-         </Type>
-         <Type Name="TypedColumn`1+TypedAspectPutterDelegate">
-          <Messages>
-           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2008-10-30 20:23:07Z">
-            <Issue>
-             <Item>'TypedColumn&lt;T&gt;.TypedAspectPutterDelegate'</Item>
-            </Issue>
-           </Message>
-          </Messages>
-         </Type>
-         <Type Name="TypedColumn`1+TypedGroupKeyGetterDelegate">
-          <Messages>
-           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2008-10-30 20:23:07Z">
-            <Issue>
-             <Item>'TypedColumn&lt;T&gt;.TypedGroupKeyGetterDelegate'</Item>
-            </Issue>
-           </Message>
-          </Messages>
-         </Type>
-         <Type Name="TypedColumn`1+TypedImageGetterDelegate">
-          <Messages>
-           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2008-10-30 20:23:07Z">
-            <Issue>
-             <Item>'TypedColumn&lt;T&gt;.TypedImageGetterDelegate'</Item>
-            </Issue>
-           </Message>
-          </Messages>
-         </Type>
          <Type Name="TypedObjectListView`1">
           <Members>
+           <Member Name="#BooleanCheckStateGetter">
+            <Messages>
+             <Message TypeName="PropertiesShouldNotBeWriteOnly" Category="Microsoft.Design" CheckId="CA1044" Created="2008-11-27 14:00:44Z">
+              <Issue Name="AddGetter">
+               <Item>'TypedObjectListView&lt;T&gt;.BooleanCheckStateGetter'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#BooleanCheckStatePutter">
+            <Messages>
+             <Message TypeName="PropertiesShouldNotBeWriteOnly" Category="Microsoft.Design" CheckId="CA1044" Created="2008-11-27 14:00:44Z">
+              <Issue Name="AddGetter">
+               <Item>'TypedObjectListView&lt;T&gt;.BooleanCheckStatePutter'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#CellToolTipGetter">
+            <Messages>
+             <Message TypeName="PropertiesShouldNotBeWriteOnly" Category="Microsoft.Design" CheckId="CA1044" Created="2008-11-27 14:00:44Z">
+              <Issue Name="AddGetter">
+               <Item>'TypedObjectListView&lt;T&gt;.CellToolTipGetter'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
            <Member Name="#CheckedObjects">
             <Messages>
              <Message TypeName="CollectionPropertiesShouldBeReadOnly" Category="Microsoft.Usage" CheckId="CA2227" Status="Excluded" Created="2008-10-30 20:23:07Z">
@@ -1909,6 +1885,15 @@
                 <Note Id="5" />
                </User>
               </Notes>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#HeaderToolTipGetter">
+            <Messages>
+             <Message TypeName="PropertiesShouldNotBeWriteOnly" Category="Microsoft.Design" CheckId="CA1044" Created="2008-11-27 14:00:44Z">
+              <Issue Name="AddGetter">
+               <Item>'TypedObjectListView&lt;T&gt;.HeaderToolTipGetter'</Item>
+              </Issue>
              </Message>
             </Messages>
            </Member>
@@ -1927,24 +1912,6 @@
             </Messages>
            </Member>
           </Members>
-         </Type>
-         <Type Name="TypedObjectListView`1+TypedCheckStateGetterDelegate">
-          <Messages>
-           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2008-10-30 20:23:07Z">
-            <Issue>
-             <Item>'TypedObjectListView&lt;T&gt;.TypedCheckStateGetterDelegate'</Item>
-            </Issue>
-           </Message>
-          </Messages>
-         </Type>
-         <Type Name="TypedObjectListView`1+TypedCheckStatePutterDelegate">
-          <Messages>
-           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2008-10-30 20:23:07Z">
-            <Issue>
-             <Item>'TypedObjectListView&lt;T&gt;.TypedCheckStatePutterDelegate'</Item>
-            </Issue>
-           </Message>
-          </Messages>
          </Type>
          <Type Name="UintUpDown">
           <Members>
@@ -2010,15 +1977,6 @@
              </Message>
             </Messages>
            </Member>
-           <Member Name="#DefaultSearchText(System.String,System.Int32,System.Int32,BrightIdeasSoftware.OLVColumn,BrightIdeasSoftware.IVirtualListDataSource)">
-            <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2008-10-30 20:23:07Z" FixCategory="DependsOnFix">
-              <Issue>
-               <Item>'VirtualObjectListView.DefaultSearchText(string, int, int, OLVColumn, IVirtualListDataSource)'</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
            <Member Name="#HandleCacheVirtualItems(System.Object,System.Windows.Forms.CacheVirtualItemsEventArgs)">
             <Messages>
              <Message TypeName="ReviewVisibleEventHandlers" Category="Microsoft.Security" CheckId="CA2109" Created="2008-10-30 20:23:07Z">
@@ -2048,37 +2006,14 @@
            </Member>
            <Member Name="#SetVirtualListSize(System.Int32)">
             <Messages>
-             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2008-10-30 20:23:07Z">
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Status="Excluded" Created="2008-10-30 20:23:07Z">
               <Issue>
                <Item>'VirtualObjectListView.SetVirtualListSize(int)'</Item>
                <Item>'Exception'</Item>
               </Issue>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="#VirtualList_DefaultCheckStateGetter(System.Object)">
-            <Messages>
-             <Message TypeName="IdentifiersShouldNotContainUnderscores" Category="Microsoft.Naming" CheckId="CA1707" Status="Excluded" Created="2008-10-30 20:23:07Z">
-              <Issue Name="Member">
-               <Item>'VirtualObjectListView.VirtualList_DefaultCheckStateGetter(object)'</Item>
-              </Issue>
               <Notes>
                <User Name="Admin_2">
-                <Note Id="12" />
-               </User>
-              </Notes>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="#VirtualList_DefaultCheckStatePutter(System.Object,System.Windows.Forms.CheckState)">
-            <Messages>
-             <Message TypeName="IdentifiersShouldNotContainUnderscores" Category="Microsoft.Naming" CheckId="CA1707" Status="Excluded" Created="2008-10-30 20:23:07Z">
-              <Issue Name="Member">
-               <Item>'VirtualObjectListView.VirtualList_DefaultCheckStatePutter(object, CheckState)'</Item>
-              </Issue>
-              <Notes>
-               <User Name="Admin_2">
-                <Note Id="12" />
+                <Note Id="19" />
                </User>
               </Notes>
              </Message>
@@ -2104,6 +2039,7 @@
     <Note Id="6" Modified="2008-10-30 21:45:51Z">Our project is build with unsafe code enabled, so it automatically has the SecurityProperty set</Note>
     <Note Id="7" Modified="2008-10-30 21:48:30Z">These initializations are not unnecessary</Note>
     <Note Id="8" Modified="2008-10-30 21:52:05Z">We have to pass the windows message by reference</Note>
+    <Note Id="9" Modified="2008-11-27 14:05:13Z">This is not a security risk</Note>
     <Note Id="10" Modified="2008-10-31 22:28:48Z">Instances of this class do not need to be disposable</Note>
     <Note Id="11" Modified="2008-10-31 22:30:37Z">These are utility methods that could well be used at runtime</Note>
     <Note Id="12" Modified="2008-10-31 22:37:15Z">These are VS generated</Note>
@@ -2111,6 +2047,11 @@
     <Note Id="14" Modified="2008-10-31 22:43:37Z">These are OK like this. We need List&lt;&gt;, not IList&lt;&gt; since only List has a ToArray() method</Note>
     <Note Id="15" Modified="2008-10-31 22:47:43Z">Legacy cases that have to be kept like this</Note>
     <Note Id="16" Modified="2008-10-31 22:48:22Z">These are acceptable as methods rather than properties</Note>
+    <Note Id="17" Modified="2008-11-27 14:05:46Z">windows messages should be passed by reference</Note>
+    <Note Id="18" Modified="2008-11-27 14:07:51Z">This is not a security risk</Note>
+    <Note Id="19" Modified="2008-11-27 14:26:34Z">There are several problems that can occur here and we want to ignore them all</Note>
+    <Note Id="20" Modified="2008-11-27 14:27:19Z">These spellings are acceptable</Note>
+    <Note Id="21" Modified="2008-11-27 14:31:23Z">These will only be used by OL types</Note>
    </User>
   </Notes>
   <Rules>
@@ -2126,6 +2067,9 @@
    <Rule TypeName="AvoidUnusedPrivateFields" Category="Microsoft.Performance" CheckId="CA1823">
     <Resolution Name="Default">It appears that field {0} is never used or is only ever assigned to. Use this field or remove it.</Resolution>
    </Rule>
+   <Rule TypeName="CallGCSuppressFinalizeCorrectly" Category="Microsoft.Usage" CheckId="CA1816">
+    <Resolution Name="NotPassedThis">{0} calls {1} on something other than itself. Change the call site to pass 'this' ('Me' in Visual Basic) instead.</Resolution>
+   </Rule>
    <Rule TypeName="CollectionPropertiesShouldBeReadOnly" Category="Microsoft.Usage" CheckId="CA2227">
     <Resolution Name="Default">Change {0} to be read-only by removing the property setter.</Resolution>
    </Rule>
@@ -2133,7 +2077,6 @@
     <Resolution Name="Default">Consider changing the type of parameter {0} in {1} from {2} to its base type {3}. This method appears to only require base class members in its implementation. Suppress this violation if there is a compelling reason to require the more derived type in the method signature.</Resolution>
    </Rule>
    <Rule TypeName="DoNotCastUnnecessarily" Category="Microsoft.Performance" CheckId="CA1800">
-    <Resolution Name="Local">{0}, a variable, is cast to type {1} multiple times in method {2}. Cache the result of the 'as' operator or direct cast in order to eliminate the redundant {3} instruction.</Resolution>
     <Resolution Name="Parameter">{0}, a parameter, is cast to type {1} multiple times in method {2}. Cache the result of the 'as' operator or direct cast in order to eliminate the redundant {3} instruction.</Resolution>
    </Rule>
    <Rule TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031">
@@ -2141,6 +2084,9 @@
    </Rule>
    <Rule TypeName="DoNotExposeGenericLists" Category="Microsoft.Design" CheckId="CA1002">
     <Resolution Name="Default">Change {0} in {1} to use Collection&lt;T&gt;, ReadOnlyCollection&lt;T&gt; or KeyedCollection&lt;K,V&gt;</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotIgnoreMethodResults" Category="Microsoft.Usage" CheckId="CA1806">
+    <Resolution Name="HResultOrErrorCode">{0} calls {1} but does not use the HRESULT or error code that the method returns. This could lead to unexpected behavior in error conditions or low-resource situations. Use the result in a conditional statement, assign the result to a variable, or pass it as an argument to another method.</Resolution>
    </Rule>
    <Rule TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122">
     <Resolution Name="Default">{0} calls into {1} which has a LinkDemand. By making this call, {1} is indirectly exposed to user code. Review the following call stack that might expose a way to circumvent security protection: {2}</Resolution>
@@ -2151,21 +2097,16 @@
    <Rule TypeName="DoNotPassTypesByReference" Category="Microsoft.Design" CheckId="CA1045">
     <Resolution Name="Default">Consider a design that does not require that {0} be a reference parameter.</Resolution>
    </Rule>
-   <Rule TypeName="DoNotRaiseReservedExceptionTypes" Category="Microsoft.Usage" CheckId="CA2201">
-    <Resolution Name="TooGeneric">{0} creates an exception of type {1}, an exception type that is not sufficiently specific and should never be raised by user code. If this exception instance might be thrown, use a different exception type.</Resolution>
-   </Rule>
-   <Rule TypeName="EventsShouldNotHaveBeforeOrAfterPrefix" Category="Microsoft.Naming" CheckId="CA1713">
-    <Resolution Name="After">Replace {0} with a past tense version of the event name.</Resolution>
-    <Resolution Name="Before">Replace {0} with a present tense version of the event name.</Resolution>
-   </Rule>
    <Rule TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704">
+    <Resolution Name="Member">Correct the spelling of '{0}' in member name {1} or remove it entirely if it represents any sort of Hungarian notation.</Resolution>
     <Resolution Name="Type">Correct the spelling of '{0}' in type name {1}.</Resolution>
    </Rule>
    <Rule TypeName="IdentifiersShouldNotContainUnderscores" Category="Microsoft.Naming" CheckId="CA1707">
     <Resolution Name="Member">Remove the underscores from member name {0}.</Resolution>
    </Rule>
-   <Rule TypeName="IdentifiersShouldNotMatchKeywords" Category="Microsoft.Naming" CheckId="CA1716">
-    <Resolution Name="MemberParameter">In virtual/interface member {0}, rename parameter {1} so that it no longer conflicts with the reserved language keyword '{2}'. Using a reserved keyword as the name of a parameter on a virtual/interface member makes it harder for consumers in other languages to override/implement the member.</Resolution>
+   <Rule TypeName="ImplementIDisposableCorrectly" Category="Microsoft.Design" CheckId="CA1063">
+    <Resolution Name="DisposeImplementation">Modify {0} so that it calls Dispose(true), then calls GC.SuppressFinalize on the current object instance ('this' or 'Me' in Visual Basic), and then returns.</Resolution>
+    <Resolution Name="ProvideDisposeBool">Provide an overridable implementation of Dispose(bool) on {0} or mark the type as sealed. A call to Dispose(false) should only clean up native resources. A call to Dispose(true) should clean up both managed and native resources.</Resolution>
    </Rule>
    <Rule TypeName="InterfaceMethodsShouldBeCallableByChildTypes" Category="Microsoft.Design" CheckId="CA1033">
     <Resolution Name="Default">Make {0} sealed (a breaking change if this class has previously shipped), implement the method non-explicitly, or implement a new method that exposes the functionality of {1} and is visible to derived classes.</Resolution>
@@ -2177,24 +2118,17 @@
    <Rule TypeName="MarkISerializableTypesWithSerializable" Category="Microsoft.Usage" CheckId="CA2237">
     <Resolution Name="Default">Add [Serializable] to {0} as this type implements ISerializable.</Resolution>
    </Rule>
-   <Rule TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822">
-    <Resolution Name="Default">The 'this' parameter (or 'Me' in Visual Basic) of {0} is never used. Mark the member as static (or Shared in Visual Basic) or use 'this'/'Me' in the method body or at least one property accessor, if appropriate.</Resolution>
-   </Rule>
-   <Rule TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034">
-    <Resolution Name="Default">Do not nest type {0}. Alternatively, change its accessibility so that it is not externally visible.</Resolution>
-   </Rule>
-   <Rule TypeName="OnlyFlagsEnumsShouldHavePluralNames" Category="Microsoft.Naming" CheckId="CA1717">
-    <Resolution Name="Default">If the name {0} is plural, change it to its singular form.</Resolution>
-   </Rule>
    <Rule TypeName="OverrideLinkDemandsShouldBeIdenticalToBase" Category="Microsoft.Security" CheckId="CA2123">
     <Resolution Name="BaseOnly">Add the following security attribute to {0} in order to match a LinkDemand on base method {1}:  {2}.</Resolution>
    </Rule>
    <Rule TypeName="PInvokeDeclarationsShouldBePortable" Category="Microsoft.Portability" CheckId="CA1901">
     <Resolution Name="Parameter">As it is declared in your code, parameter {0} of P/Invoke {1} will be {2} bytes wide on {3} platforms. This is not correct, as the actual native declaration of this API indicates it should be {4} bytes wide on {3} platforms. Consult the MSDN Platform SDK documentation for help determining what data type should be used instead of {5}.</Resolution>
-    <Resolution Name="Return">As it is declared in your code, the return type of P/Invoke {0} will be {1} bytes wide on {2} platforms. This is not correct, as the actual native declaration of this API indicates it should be {3} bytes wide on {2} platforms. Consult the MSDN Platform SDK documentation for help determining what data type should be used instead of {4}.</Resolution>
    </Rule>
    <Rule TypeName="ParameterNamesShouldMatchBaseDeclaration" Category="Microsoft.Naming" CheckId="CA1725">
     <Resolution Name="Default">In member {0}, change parameter name {1} to {2} in order to match the identifier as it has been declared in {3}.</Resolution>
+   </Rule>
+   <Rule TypeName="PropertiesShouldNotBeWriteOnly" Category="Microsoft.Design" CheckId="CA1044">
+    <Resolution Name="AddGetter">Because property {0} is write-only, either add a property getter with an accessibility that is greater than or equal to its setter or convert this property into a method.</Resolution>
    </Rule>
    <Rule TypeName="PropertyNamesShouldNotMatchGetMethods" Category="Microsoft.Naming" CheckId="CA1721">
     <Resolution Name="SameType">The property name {0} is confusing given the existence of method {1}. Rename or remove one of these members.</Resolution>
@@ -2213,9 +2147,6 @@
    </Rule>
    <Rule TypeName="SpecifyStringComparison" Category="Microsoft.Globalization" CheckId="CA1307">
     <Resolution Name="Default">{0} makes a call to {1} that does not explicitly provide a StringComparison. This should be replaced with a call to {2}.</Resolution>
-   </Rule>
-   <Rule TypeName="TestForEmptyStringsUsingStringLength" Category="Microsoft.Performance" CheckId="CA1820">
-    <Resolution Name="IsNullOrEmpty">Replace the call to {0} in {1} with a call to 'String.IsNullOrEmpty'.</Resolution>
    </Rule>
    <Rule TypeName="TypesThatOwnDisposableFieldsShouldBeDisposable" Category="Microsoft.Design" CheckId="CA1001">
     <Resolution Name="DependsOnFix">Implement IDisposable on {0} because it creates members of the following IDisposable types: {1}. If {0} has previously shipped, adding new members that implement IDisposable to this type is considered a breaking change to existing consumers.</Resolution>
