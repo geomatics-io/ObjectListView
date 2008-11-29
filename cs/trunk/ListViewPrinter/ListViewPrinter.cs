@@ -5,8 +5,15 @@
  * Date: 2007-11-01 11:15 AM
  *
  * Change log:
+ * v2.0
+ * The interaction with the IDE was completely rewritten in this version.
+ * Old code should still work, but the IDE will not recognise the old configurations.
+ * 
+ * 2008-11-23  JPP  - Put back some obsolete methods to make transition easier.
  * 2008-11-15  JPP  - Use BrushData and PenData objects to ease IDE interactions.
  *                  - [BREAK] Removed obsolete methods.
+ *                  - Changed license to GPL v3, to be consistent with ObjectListView.
+ * v1.2
  * 2008-04-13  JPP  - Made the instance variables 'groupHeaderFormat' and 'listHeaderFormat'
  *                    private, like they always should have been. Use their corresponding
  *                    properties instead.
@@ -1092,6 +1099,31 @@ namespace BrightIdeasSoftware
 
         #endregion
 
+        #region Compatibility
+
+        /// <summary>
+        /// What color will all the borders be drawn in? 
+        /// </summary>
+        /// <remarks>This is just a conviencence wrapper around ListGridPen</remarks>
+        [Browsable(false), Obsolete("Use ListGridPen instead")]
+        public Color ListGridColor
+        {
+            get
+            {
+                Pen p = this.ListGridPen;
+                if (p == null)
+                    return Color.Empty;
+                else
+                    return p.Color;
+            }
+            set
+            {
+                this.ListGridPen = new Pen(new SolidBrush(value), 0.5f);
+            }
+        }
+
+        #endregion
+
         #region Private variables
 
         // These are our state variables.
@@ -1487,6 +1519,115 @@ namespace BrightIdeasSoftware
 
         #endregion
 
+        #region Compatibilty
+
+        /// <summary>
+        /// What color will be used to draw the background?
+        /// This is a convience method used by the IDE.
+        /// </summary>
+        [Browsable(false), Obsolete("Use BackgroundBrush instead")]
+        public Color BackgroundColor
+        {
+            get
+            {
+                if (this.BackgroundBrush == null || !(this.BackgroundBrush is SolidBrush))
+                    return Color.Empty;
+                else
+                    return ((SolidBrush)this.BackgroundBrush).Color;
+            }
+            set
+            {
+                this.BackgroundBrush = new SolidBrush(value);
+            }
+        }
+
+        /// <summary>
+        /// What color will be used to draw the text?
+        /// This is a convience method. Programmers should call TextBrush directly.
+        /// </summary>
+        [Browsable(false)]
+        public Color TextColor
+        {
+            get
+            {
+                if (this.TextBrush == null || !(this.TextBrush is SolidBrush))
+                    return Color.Empty;
+                else
+                    return ((SolidBrush)this.TextBrush).Color;
+            }
+            set
+            {
+                if (value.IsEmpty)
+                    this.TextBrush = null;
+                else
+                    this.TextBrush = new SolidBrush(value);
+            }
+        }
+        
+        //----------------------------------------------------------------------------------
+        // All of these attributes are solely to make them appear in the IDE
+        // When programming by hand, use Get/SetBorderPen() rather than these methods.
+
+        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        public float TopBorderWidth
+        {
+            get { return this.GetBorderWidth(Sides.Top); }
+            set { this.SetBorder(Sides.Top, value, this.GetBorderBrush(Sides.Top)); }
+        }
+        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        public float LeftBorderWidth
+        {
+            get { return this.GetBorderWidth(Sides.Left); }
+            set { this.SetBorder(Sides.Left, value, this.GetBorderBrush(Sides.Left)); }
+        }
+        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        public float BottomBorderWidth
+        {
+            get { return this.GetBorderWidth(Sides.Bottom); }
+            set { this.SetBorder(Sides.Bottom, value, this.GetBorderBrush(Sides.Bottom)); }
+        }
+        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        public float RightBorderWidth
+        {
+            get { return this.GetBorderWidth(Sides.Right); }
+            set { this.SetBorder(Sides.Right, value, this.GetBorderBrush(Sides.Right)); }
+        }
+        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        public Color TopBorderColor
+        {
+            get { return this.GetSolidBorderColor(Sides.Top); }
+            set { this.SetBorder(Sides.Top, this.GetBorderWidth(Sides.Top), new SolidBrush(value)); }
+        }
+        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        public Color LeftBorderColor
+        {
+            get { return this.GetSolidBorderColor(Sides.Left); }
+            set { this.SetBorder(Sides.Left, this.GetBorderWidth(Sides.Left), new SolidBrush(value)); }
+        }
+        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        public Color BottomBorderColor
+        {
+            get { return this.GetSolidBorderColor(Sides.Bottom); }
+            set { this.SetBorder(Sides.Bottom, this.GetBorderWidth(Sides.Bottom), new SolidBrush(value)); }
+        }
+        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        public Color RightBorderColor
+        {
+            get { return this.GetSolidBorderColor(Sides.Right); }
+            set { this.SetBorder(Sides.Right, this.GetBorderWidth(Sides.Right), new SolidBrush(value)); }
+        }
+
+        private Color GetSolidBorderColor(Sides side)
+        {
+            Brush b = this.GetBorderBrush(side);
+            if (b != null && b is SolidBrush)
+                return ((SolidBrush)b).Color;
+            else
+                return Color.Empty;
+        }
+
+        #endregion
+
         #region Accessing
 
         /// <summary>
@@ -1517,6 +1658,20 @@ namespace BrightIdeasSoftware
                 this.Padding[Sides.Bottom] = value;
             } else
                 this.Padding[side] = value;
+        }
+        
+        /// <summary>
+        /// Get the width of the border on a particular side. 0 means no border on that side.
+        /// </summary>
+        /// <param name="side">Which side</param>
+        /// <returns>The width of the border</returns>
+        public Brush GetBorderBrush(Sides side)
+        {
+            Pen p = this.GetBorderPen(side);
+            if (p == null)
+                return null;
+            else
+                return p.Brush;
         }
 
         /// <summary>
@@ -1793,7 +1948,7 @@ namespace BrightIdeasSoftware
                       this.GetBorderWidth(Sides.Top) / -2,
                       this.GetBorderWidth(Sides.Right) / -2,
                       this.GetBorderWidth(Sides.Bottom) / -2);
-                this.DrawFilledRectangle(g, this.BackgroundBrush, r2);
+                g.FillRectangle(PrepareBrushForDrawing(this.BackgroundBrush, r2), r2);
             }
         }
 
@@ -1810,11 +1965,53 @@ namespace BrightIdeasSoftware
             }
         }
 
+        static public Brush PrepareBrushForDrawing(Brush value, RectangleF r)
+        {
+            LinearGradientBrush lgb = value as LinearGradientBrush;
+            if (lgb == null)
+                return value;
+
+            // We really just want to change the bounds of the gradient, but there is no way to do that
+            // so we have to make a new brush and copy across the information we can
+
+            //lgb.Rectangle.X = r.X;
+            //lgb.Rectangle.Y = r.Y;
+            //lgb.Rectangle.Width = r.Width;
+            //lgb.Rectangle.Height = r.Height;
+
+            LinearGradientBrush lgb2 = new LinearGradientBrush(r, lgb.LinearColors[0], lgb.LinearColors[1], 0.0);
+#if !MONO
+            lgb2.Blend = lgb.Blend;
+            //lgb2.InterpolationColors = lgb.InterpolationColors;
+#endif
+            lgb2.WrapMode = lgb.WrapMode;
+            lgb2.Transform = lgb.Transform;
+            return lgb2;
+        }
+
+        static public Pen PreparePenForDrawing(Pen value, RectangleF r)
+        {
+            if (r.Height == 0)
+                r.Height = value.Width;
+            if (r.Width == 0)
+                r.Width = value.Width;
+            value.Brush = BlockFormat.PrepareBrushForDrawing(value.Brush, r);
+            return value;
+        }
+
         static public Brush PrepareBrushForDrawing(Brush value, Rectangle r)
         {
             LinearGradientBrush lgb = value as LinearGradientBrush;
             if (lgb == null)
                 return value;
+
+            // We really just want to change the bounds of the gradient, but there is no way to do that
+            // so we have to make a new brush and copy across the information we can
+
+            //lgb.Rectangle.X = r.X;
+            //lgb.Rectangle.Y = r.Y;
+            //lgb.Rectangle.Width = r.Width;
+            //lgb.Rectangle.Height = r.Height;
 
             LinearGradientBrush lgb2 = new LinearGradientBrush(r, lgb.LinearColors[0], lgb.LinearColors[1], 0.0);
 #if !MONO
@@ -1839,34 +2036,12 @@ namespace BrightIdeasSoftware
             if (p == null)
                 return;
 
-            if (p.Brush is LinearGradientBrush) {
-                LinearGradientBrush lgr = (LinearGradientBrush)p.Brush;
-                LinearGradientBrush lgr2 = new LinearGradientBrush(new PointF(x1, y1), new PointF(x2, y2), lgr.LinearColors[0], lgr.LinearColors[1]);
-#if !MONO
-                lgr2.Blend = lgr.Blend;
-#endif
-                lgr2.WrapMode = WrapMode.TileFlipXY;
-                p.Brush = lgr2;
-            }
+            PreparePenForDrawing(p, new RectangleF(x1, y1, x2-x1, y2-y1));
 
             if (isRectangle)
                 g.DrawRectangle(p, x1, y1, x2, y2);
             else
                 g.DrawLine(p, x1, y1, x2, y2);
-        }
-
-        private void DrawFilledRectangle(Graphics g, Brush brush, RectangleF r)
-        {
-            if (brush is LinearGradientBrush) {
-                LinearGradientBrush lgr = (LinearGradientBrush)brush;
-                LinearGradientBrush lgr2 = new LinearGradientBrush(r, lgr.LinearColors[0], lgr.LinearColors[1], 0f);
-#if !MONO
-                lgr2.Blend = lgr.Blend;
-#endif
-                lgr2.WrapMode = WrapMode.TileFlipXY;
-                g.FillRectangle(lgr2, r);
-            } else
-                g.FillRectangle(brush, r);
         }
 
         private void DrawText(Graphics g, RectangleF r, string left, string centre, string right)
