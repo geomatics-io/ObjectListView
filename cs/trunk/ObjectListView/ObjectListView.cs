@@ -5,8 +5,13 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2008-11-28  JPP  - Fixed long standing bug with horizontal scrollbar when shrinking the window.
+ *                    (thanks to Bartosz Borowik)
+ * 2008-11-25  JPP  - Added support for dynamic tooltips
+ *                  - Split out comparers and header controls stuff into their own files
  * 2008-11-21  JPP  - Fixed bug where enabling grouping when there was not a sort column would not
  *                    produce a grouped list. Grouping column now defaults to column 0.
+ *                  - Preserve selection on virtual lists when sorting
  * 2008-11-20  JPP  - Added ability to search by sort column to ObjectListView. Unified this with
  *                    ability that was already in VirtualObjectListView
  * 2008-11-19  JPP  - Fixed bug in ChangeToFilteredColumns() where DisplayOrder was not always restored correctly.
@@ -112,7 +117,7 @@
  * 2008-01-16  JPP  - Right clicking on column header will allow the user to choose which columns are visible.
  *                    Set SelectColumnsOnRightClick to false to prevent this behaviour.
  *                  - Added ImagesRenderer to draw more than one images in a column
- *                  - Changed the positioning of the empty list msg to use all the client area. Thanks to Matze.
+ *                  - Changed the positioning of the empty list m to use all the client area. Thanks to Matze.
  * 2007-12-13  JPP  - Added CopySelectionToClipboard(). Ctrl-C invokes this method. Supports text
  *                    and HTML formats.
  * 2007-12-12  JPP  - Added support for checkboxes via CheckStateGetter and CheckStatePutter properties.
@@ -159,7 +164,7 @@
  * 2007-09-07  JPP  - Corrected image scaling bug in DrawAlignedImage() (thanks to krita970)
  * 2007-08-29  JPP  - Allow item count labels on groups to be set per column (thanks to cmarlow for idea)
  * 2007-08-14  JPP  - Major rework of DataListView based on Ian Griffiths's great work
- * 2007-08-11  JPP  - When empty, the control can now draw a "List Empty" message
+ * 2007-08-11  JPP  - When empty, the control can now draw a "List Empty" m
  *                  - Added GetColumn() and GetItem() methods
  * v1.5
  * 2007-08-03  JPP  - Support animated GIFs in ImageRenderer
@@ -295,7 +300,6 @@ namespace BrightIdeasSoftware
             this.DoubleBuffered = true; // kill nasty flickers. hiss... me hates 'em
             this.AlternateRowBackColor = Color.Empty;
             this.ShowSortIndicators = true;
-            this.isOwnerOfObjects = false;
         }
 
         #region Public properties
@@ -425,7 +429,7 @@ namespace BrightIdeasSoftware
         /// None means that the listview cannot be edited.
         /// </summary>
         /// <remarks>Columns can also be marked as editable.</remarks>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
         Description("How does the user indicate that they want to edit a cell?"),
         DefaultValue(CellEditActivateMode.None)]
         public CellEditActivateMode CellEditActivation
@@ -554,10 +558,10 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// If there are no items in this list view, what message should be drawn onto the control?
+        /// If there are no items in this list view, what m should be drawn onto the control?
         /// </summary>
         [Category("Appearance"),
-         Description("When the list has no items, show this message in the control"),
+         Description("When the list has no items, show this m in the control"),
          DefaultValue("")]
         public String EmptyListMsg
         {
@@ -572,10 +576,10 @@ namespace BrightIdeasSoftware
         private String emptyListMsg = "";
 
         /// <summary>
-        /// What font should the 'list empty' message be drawn in?
+        /// What font should the 'list empty' m be drawn in?
         /// </summary>
         [Category("Appearance"),
-        Description("What font should the 'list empty' message be drawn in?"),
+        Description("What font should the 'list empty' m be drawn in?"),
         DefaultValue(null)]
         public Font EmptyListMsgFont
         {
@@ -585,7 +589,7 @@ namespace BrightIdeasSoftware
         private Font emptyListMsgFont;
 
         /// <summary>
-        /// Return the font for the 'list empty' message or a default
+        /// Return the font for the 'list empty' m or a default
         /// </summary>
         [Browsable(false)]
         public Font EmptyListMsgFontOrDefault
@@ -633,7 +637,7 @@ namespace BrightIdeasSoftware
         /// </list>
         /// </remarks>
         /// <example>"{0} [{1} items]"</example>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
          Description("The format to use when suffixing item counts to group titles"),
          DefaultValue(null)]
         public string GroupWithItemCountFormat
@@ -669,7 +673,7 @@ namespace BrightIdeasSoftware
         /// </list>
         /// </remarks>
         /// <example>"{0} [{1} item]"</example>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
          Description("The format to use when suffixing item counts to group titles"),
          DefaultValue(null)]
         public string GroupWithItemCountSingularFormat
@@ -694,7 +698,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Does this listview have a message that should be drawn when the list is empty?
+        /// Does this listview have a m that should be drawn when the list is empty?
         /// </summary>
         [Browsable(false)]
         public bool HasEmptyListMsg
@@ -707,7 +711,8 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>Windows does not give the option of changing the selection background.
         /// So this color is only used when control is owner drawn and when columns have a
-        /// renderer installed -- a basic new BaseRenderer() will suffice.</remarks>
+        /// renderer installed -- a basic new BaseRenderer() will suffice. The method
+        /// EnableCustomSelectionColors() is a convenience method that does this.</remarks>
         [Category("Appearance"),
          Description("The background foregroundColor of selected rows when the control is owner drawn"),
          DefaultValue(typeof(Color), "Empty")]
@@ -737,7 +742,8 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>Windows does not give the option of changing the selection foreground (text color).
         /// So this color is only used when control is owner drawn and when columns have a
-        /// renderer installed -- a basic new BaseRenderer() will suffice.</remarks>
+        /// renderer installed -- a basic new BaseRenderer() will suffice. The method
+        /// EnableCustomSelectionColors() is a convenience method that does this.</remarks>
         [Category("Appearance"),
          Description("The foreground foregroundColor of selected rows when the control is owner drawn"),
          DefaultValue(typeof(Color), "Empty")]
@@ -776,7 +782,7 @@ namespace BrightIdeasSoftware
         /// If this is false, the primary column will always be used regardless of the sort column.
         /// </summary>
         /// <remarks>When this is true, the behavior is like that of ITunes.</remarks>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
         Description("When the user types into a list, should the values in the current sort column be searched to find a match?"),
         DefaultValue(true)]
         public bool IsSearchOnSortColumn
@@ -821,8 +827,8 @@ namespace BrightIdeasSoftware
         /// you do not want to preserve the selection. Preserving selection is the slowest part of this
         /// code and performance is O(n) where n is the number of selected rows.</para>
         /// <para>This method is not thread safe.</para>
-        /// <para>This method DOES work on virtual lists, but if the list has 10 million objects, it may
-        /// take some time to return.</para>
+        /// <para>The property DOES work on virtual lists: setting is problem-free, but if you try to get it
+        /// and the list has 10 million objects, it may take some time to return.</para>
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -831,7 +837,7 @@ namespace BrightIdeasSoftware
             get {
                 if (this.VirtualMode) {
                     ArrayList contents = new ArrayList(this.GetItemCount());
-                    for (int i=0; i<this.GetItemCount(); i++)
+                    for (int i = 0; i < this.GetItemCount(); i++)
                         contents.Add(this.GetModelObject(i));
                     return contents;
                 }
@@ -917,7 +923,7 @@ namespace BrightIdeasSoftware
         /// When the user right clicks on the column headers, should a menu be presented which will allow
         /// them to choose which columns will be shown in the view?
         /// </summary>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
         Description("When the user right clicks on the column headers, should a menu be presented which will allow them to choose which columns will be shown in the view?"),
         DefaultValue(true)]
         public bool SelectColumnsOnRightClick
@@ -931,7 +937,7 @@ namespace BrightIdeasSoftware
         /// When the column select menu is open, should it stay open after an item is selected?
         /// Staying open allows the user to turn more than one column on or off at a time.
         /// </summary>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
         Description("When the column select menu is open, should it stay open after an item is selected?"),
         DefaultValue(true)]
         public bool SelectColumnsMenuStaysOpen
@@ -1015,7 +1021,7 @@ namespace BrightIdeasSoftware
         /// as soon as you give a ListView a SmallImageList, the text of column 0 is bumped 16
         /// pixels to the right, even if you never used an image.
         /// </remarks>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
          Description("Should the list view show sort indicators in the column headers?"),
          DefaultValue(true)]
         public bool ShowSortIndicators
@@ -1031,7 +1037,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// <para>Under Windows, this works by sending messages to the underlying
         /// Windows control. To make this work under Mono, we would have to owner drawing the items :-(</para></remarks>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
          Description("Should the list view show images on subitems?"),
          DefaultValue(false)]
         public bool ShowImagesOnSubItems
@@ -1053,7 +1059,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// The format of the suffix is controlled by GroupWithItemCountFormat/GroupWithItemCountSingularFormat properties
         /// </remarks>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
          Description("Will group titles be suffixed with a count of the items in the group?"),
          DefaultValue(false)]
         public bool ShowItemCountOnGroups
@@ -1086,7 +1092,7 @@ namespace BrightIdeasSoftware
         /// When the listview is grouped, should the items be sorted by the primary column?
         /// If this is false, the items will be sorted by the same column as they are grouped.
         /// </summary>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
          Description("When the listview is grouped, should the items be sorted by the primary column? If this is false, the items will be sorted by the same column as they are grouped."),
          DefaultValue(true)]
         public bool SortGroupItemsByPrimaryColumn
@@ -1105,7 +1111,7 @@ namespace BrightIdeasSoftware
         /// </para>
         /// <para>
         /// The reason that it does not work when showing groups is that, when groups are enabled,
-        /// the Windows message LVM_GETTOPINDEX always returns 0, regardless of the
+        /// the Windows m LVM_GETTOPINDEX always returns 0, regardless of the
         /// scroll position.
         /// </para>
         /// </remarks>
@@ -1142,15 +1148,22 @@ namespace BrightIdeasSoftware
         /// In previous versions, setting this to true produced ugly behaviour, because every
         /// column to the right of the divider being dragged was updated twice: once when
         /// the column be resized changes size (this moves all the columns slightly to the right); 
-        /// then again when the filling columns are updated, but they will be shrunk
+        /// then again when the filling columns are updated - they are shrunk
         /// so that the combined width is not more than the control, so everything jumps slightly back to the left again.
         /// </para>
         /// <para>
         /// But, as of v2.0, the change the Windows messages in place, so there is now only one update,
-        /// and everything looks nice and smooth.
+        /// and everything looks nice and smooth. 
         /// </para>
+        /// <para>
+        /// However, it still looks odd when the space filling column
+        /// is in the left of the column that is being resized: the right edge of the column is dragged, but
+        /// its <b>left</b> edge moves, since the space filling column is shrinking.
+        /// </para>
+        /// <para>Given the above behavior is probably best to turn this property off if your space filling
+        /// columns aren't the right-most columns.</para>
         /// </remarks>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
         Description("When resizing a column by dragging its divider, should any space filling columns be resized at each mouse move?"),
         DefaultValue(true)]
         public bool UpdateSpaceFillingColumnsWhenDraggingColumnDivider
@@ -1213,20 +1226,156 @@ namespace BrightIdeasSoftware
         #region Callbacks
 
         /// <summary>
+        /// This delegate fetches the checkedness of an object as a boolean only. 
+        /// </summary>
+        /// <remarks>Use this if you never want to worry about the 
+        /// Indeterminate state (which is fairly common).
+        /// <para>
+        /// This is a convenience wrapper around the CheckStateGetter property.
+        /// </para>
+        /// </remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public BooleanCheckStateGetterDelegate BooleanCheckStateGetter
+        {
+            set
+            {
+                if (value == null)
+                    this.CheckStateGetter = null;
+                else
+                    this.CheckStateGetter = delegate(Object x) {
+                        return value(x) ? CheckState.Checked : CheckState.Unchecked;
+                    };
+            }
+        }
+
+        /// <summary>
+        /// This delegate sets the checkedness of an object as a boolean only. It must return
+        /// true or false indicating if the object was checked or not.
+        /// </summary>
+        /// <remarks>Use this if you never want to worry about the 
+        /// Indeterminate state (which is fairly common).
+        /// <para>
+        /// This is a convenience wrapper around the CheckStatePutter property.
+        /// </para>
+        /// </remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public BooleanCheckStatePutterDelegate BooleanCheckStatePutter
+        {
+            set
+            {
+                if (value == null)
+                    this.CheckStatePutter = null;
+                else
+                    this.CheckStatePutter = delegate(Object x, CheckState state) {
+                        bool isChecked = (state == CheckState.Checked);
+                        return value(x, isChecked) ? CheckState.Checked : CheckState.Unchecked;
+                    };
+            }
+        }
+
+        /// <summary>
+        /// This delegate is called when the list wants to show a tooltip for a particular cell.
+        /// The delegate should return the text to display, or null to use the default behavior
+        /// (which is to show the full text of truncated cell values).
+        /// </summary>
+        /// <remarks>
+        /// Displaying the full text of truncated cell values only work for FullRowSelect listviews.
+        /// This is MS's behavior, not mine. Don't complain to me :)
+        /// </remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public CellToolTipGetterDelegate CellToolTipGetter
+        {
+            get { return cellToolTipGetter; }
+            set { cellToolTipGetter = value; }
+        }
+        private CellToolTipGetterDelegate cellToolTipGetter;
+
+        /// <summary>
+        /// The name of the property (or field) that holds whether or not a model is checked.
+        /// </summary>
+        /// <remarks>
+        /// <para>The property must have a return type of bool and must be modifiable.</para>
+        /// <para>Setting this property replaces any CheckStateGetter or CheckStatePutter that have been installed.
+        /// Conversely, later setting the CheckStateGetter or CheckStatePutter properties will take precedence
+        /// over the behavior of this property.</para>
+        /// </remarks>
+        [Category("Behavior - ObjectListView"),
+         Description("The name of the property or field that holds the 'checkedness' of the model"),
+         DefaultValue(null)]
+        public string CheckedAspectName
+        {
+            get { return checkedAspectName; }
+            set {
+                checkedAspectName = value;
+                if (String.IsNullOrEmpty(checkedAspectName)) {
+                    this.CheckStateGetter = null;
+                    this.CheckStatePutter = null;
+                } else {
+                    this.checkedAspectMunger = new Munger(checkedAspectName);
+                    this.CheckStateGetter = delegate(Object modelObject) {
+                        bool? result = this.checkedAspectMunger.GetValue(modelObject) as bool?;
+                        if (result.HasValue && result.Value)
+                            return CheckState.Checked;
+                        else
+                            return CheckState.Unchecked;
+                    };
+                    this.CheckStatePutter = delegate(Object modelObject, CheckState newValue) {
+                        this.checkedAspectMunger.PutValue(modelObject, newValue == CheckState.Checked);
+                        return this.CheckStateGetter(modelObject);
+                    };
+                }
+            }
+        }
+        private string checkedAspectName;
+        private Munger checkedAspectMunger;
+
+        /// <summary>
+        /// This delegate will be called whenever the ObjectListView needs to know the check state
+        /// of the row associated with a given model object. 
+        /// </summary>
+        /// <remarks>
+        /// <para>.NET has no support for indeterminate values, but as of v2.0, this class allows
+        /// indeterminate values.</para>
+        /// </remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public CheckStateGetterDelegate CheckStateGetter
+        {
+            get { return checkStateGetter; }
+            set { checkStateGetter = value; }
+        }
+        private CheckStateGetterDelegate checkStateGetter;
+
+        /// <summary>
+        /// This delegate will be called whenever the user tries to change the check state of a row. 
+        /// The delegate should return the state that was actually set, which may be different
+        /// to the state given.
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public CheckStatePutterDelegate CheckStatePutter
+        {
+            get { return checkStatePutter; }
+            set { checkStatePutter = value; }
+        }
+        private CheckStatePutterDelegate checkStatePutter;
+
+        /// <summary>
         /// This delegate can be used to sort the table in a custom fasion.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// What the delegate has to do depends on the type of <code>ObjectListView</code> it is sorting:
+        /// The delegate must install a ListViewItemSorter on the ObjectListView. 
+        /// Installing the ItemSorter does the actual work of sorting the ListViewItems. 
+        /// See ColumnComparer in the code for an example of what an ItemSorter has to do.
         /// </para>
-        /// <list>
-        /// <item>
-        /// If it is sorting a normal ObjectListView, the delegate must install a ListViewItemSorter on the ObjectListView. This install ItemSorter will actually do the work of sorting the ListViewItems. See ColumnComparer in the code for an example of what an ItemSorter has to do.
-        /// </item>
-        /// <item>
-        /// If the delegate is sorting a VirtualObjectListView or a FastObjectListView, the delegate must sort the model objects that are sourcing the list (remember, in a virtual list, the application holds the model objects and the list just askes for them as it needs them).
-        /// </item>
-        /// </list>
+        /// <para>
+        /// Do not install a CustomSorter on a VirtualObjectListView. Override the SortObjects()
+        /// method of the IVirtualListDataSource instead.
+        /// </para>
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -1236,6 +1385,23 @@ namespace BrightIdeasSoftware
             set { customSorter = value; }
         }
         private SortDelegate customSorter;
+
+        /// <summary>
+        /// This delegate is called when the list wants to show a tooltip for a particular header.
+        /// The delegate should return the text to display, or null to use the default behavior
+        /// (which is to not show any tooltip).
+        /// </summary>
+        /// <remarks>
+        /// Installing a HeaderToolTipGetter takes precedence over any text in OLVColumn.ToolTipText.
+        /// </remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public HeaderToolTipGetterDelegate HeaderToolTipGetter
+        {
+            get { return headerToolTipGetter; }
+            set { headerToolTipGetter = value; }
+        }
+        private HeaderToolTipGetterDelegate headerToolTipGetter;
 
         /// <summary>
         /// This delegate can be used to format a OLVListItem before it is added to the control.
@@ -1257,85 +1423,6 @@ namespace BrightIdeasSoftware
             set { rowFormatter = value; }
         }
         private RowFormatterDelegate rowFormatter;
-
-        /// <summary>
-        /// This delegate will be called whenever the ObjectListView needs to know the check state
-        /// of the row associated with a given model object. 
-        /// </summary>
-        /// <remarks>
-        /// <para>.NET has no support for indeterminate values, but as of v2.0, this class allows
-        /// indeterminate values.</para>
-        /// </remarks>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public CheckStateGetterDelegate CheckStateGetter
-        {
-            get { return checkStateGetter; }
-            set { checkStateGetter = value; }
-        }
-        private CheckStateGetterDelegate checkStateGetter;
-
-        /// <summary>
-        /// This delegate fetches the checkedness of an object as a boolean only. 
-        /// </summary>
-        /// <remarks>Use this if you never want to worry about the 
-        /// Indeterminate state (which is fairly common).
-        /// <para>
-        /// This is a convenience wrapper around the CheckStateGetter property.
-        /// </para>
-        /// </remarks>
-        [Browsable(false),
-        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public BooleanCheckStateGetterDelegate BooleanCheckStateGetter
-        {
-            set {
-                if (value == null)
-                    this.CheckStateGetter = null;
-                else
-                    this.CheckStateGetter = delegate(Object x) {
-                        return value(x) ? CheckState.Checked : CheckState.Unchecked;
-                    };
-            }
-        }
-
-        /// <summary>
-        /// This delegate will be called whenever the user tries to change the check state of a row. 
-        /// The delegate should return the state that was actually set, which may be different
-        /// to the state given.
-        /// </summary>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public CheckStatePutterDelegate CheckStatePutter
-        {
-            get { return checkStatePutter; }
-            set { checkStatePutter = value; }
-        }
-        private CheckStatePutterDelegate checkStatePutter;
-
-        /// <summary>
-        /// This delegate sets the checkedness of an object as a boolean only. It must return
-        /// true or false indicating if the object was checked or not.
-        /// </summary>
-        /// <remarks>Use this if you never want to worry about the 
-        /// Indeterminate state (which is fairly common).
-        /// <para>
-        /// This is a convenience wrapper around the CheckStatePutter property.
-        /// </para>
-        /// </remarks>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public BooleanCheckStatePutterDelegate BooleanCheckStatePutter
-        {
-            set {
-                if (value == null)
-                    this.CheckStatePutter = null;
-                else
-                    this.CheckStatePutter = delegate(Object x, CheckState state) {
-                        bool isChecked = (state == CheckState.Checked);
-                        return value(x, isChecked) ? CheckState.Checked : CheckState.Unchecked;
-                    };
-            }
-        }
 
         #endregion
 
@@ -1732,7 +1819,7 @@ namespace BrightIdeasSoftware
         /// This method makes the list owner drawn, and ensures that all columns have at
         /// least a BaseRender installed.
         /// </remarks>
-        public void EnableCustomSelectionColors()
+        virtual public void EnableCustomSelectionColors()
         {
             this.OwnerDraw = true;
 
@@ -2167,10 +2254,10 @@ namespace BrightIdeasSoftware
 
         #endregion
 
-        #region Low level Windows message handling
+        #region Low level Windows m handling
 
         /// <summary>
-        /// Override the basic message pump for this control
+        /// Override the basic m pump for this control
         /// </summary>
         /// <param name="m"></param>
         protected override void WndProc(ref Message m)
@@ -2180,6 +2267,10 @@ namespace BrightIdeasSoftware
                     this.HandlePrePaint();
                     base.WndProc(ref m);
                     this.HandlePostPaint();
+                    break;
+                case 0x46: // WM_WINDOWPOSCHANGING
+                    if (!this.HandleWindowPosChanging(ref m))
+                        base.WndProc(ref m);
                     break;
                 case 0x4E: // WM_NOTIFY
                     if (!this.HandleNotify(ref m))
@@ -2224,8 +2315,8 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// The user wants to see the context menu.
         /// </summary>
-        /// <param name="m">The windows message</param>
-        /// <returns>A bool indicating if this message has been handled</returns>
+        /// <param name="m">The windows m</param>
+        /// <returns>A bool indicating if this m has been handled</returns>
         /// <remarks>
         /// We want to ignore context menu requests that are triggered by right clicks on the header
         /// </remarks>
@@ -2249,15 +2340,15 @@ namespace BrightIdeasSoftware
             if (!this.PossibleFinishCellEditing())
                 return true;
 
-            int columnIndex = this.hdrCtrl.GetColumnIndexUnderCursor();
+            int columnIndex = this.hdrCtrl.ColumnIndexUnderCursor;
             return this.HandleHeaderRightClick(columnIndex);
         }
 
         /// <summary>
-        /// Handle the search for item message if possible.
+        /// Handle the search for item m if possible.
         /// </summary>
-        /// <param name="m">The msg to be processed</param>
-        /// <returns>bool to indicate if the msg has been handled</returns>
+        /// <param name="m">The m to be processed</param>
+        /// <returns>bool to indicate if the m has been handled</returns>
         protected bool HandleChar(ref Message m)
         {
             const int MILLISECONDS_BETWEEN_KEYPRESSES = 1000;
@@ -2304,13 +2395,13 @@ namespace BrightIdeasSoftware
         internal string lastSearchString;
 
         /// <summary>
-        /// Handle the search for item message if possible.
+        /// Handle the search for item m if possible.
         /// </summary>
-        /// <param name="m">The msg to be processed</param>
-        /// <returns>bool to indicate if the msg has been handled</returns>
+        /// <param name="m">The m to be processed</param>
+        /// <returns>bool to indicate if the m has been handled</returns>
         protected bool HandleFindItem(ref Message m)
         {
-            // NOTE: As far as I can see, this message is never actually sent to the control, making this 
+            // NOTE: As far as I can see, this m is never actually sent to the control, making this 
             // method redundant!
 
             const int LVFI_STRING = 0x0002;
@@ -2394,8 +2485,8 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// In the notification messages, we handle attempts to change the width of our columns
         /// </summary>
-        /// <param name="m">The msg to be processed</param>
-        /// <returns>bool to indicate if the msg has been handled</returns>
+        /// <param name="m">The m to be processed</param>
+        /// <returns>bool to indicate if the m has been handled</returns>
         unsafe protected bool HandleReflectNotify(ref Message m)
         {
             const int LVN_ITEMCHANGED = -101;
@@ -2435,9 +2526,9 @@ namespace BrightIdeasSoftware
                                 m.Result = (IntPtr)1;
                             else {
                                 m.Result = IntPtr.Zero;
-                                // Within this message, we cannot change to any other value but the expected one
+                                // Within this m, we cannot change to any other value but the expected one
                                 // So if we need to switch to another value, we use BeginInvole to change to the value
-                                // we want just after this message completes.
+                                // we want just after this m completes.
                                 if (ice.NewValue != newCheckValue) {
                                     OLVListItem olvItem = this.GetItem(nmlistviewPtr->iItem);
                                     this.BeginInvoke((MethodInvoker)delegate {
@@ -2476,8 +2567,8 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// In the notification messages, we handle attempts to change the width of our columns
         /// </summary>
-        /// <param name="m">The msg to be processed</param>
-        /// <returns>bool to indicate if the msg has been handled</returns>
+        /// <param name="m">The m to be processed</param>
+        /// <returns>bool to indicate if the m has been handled</returns>
         unsafe protected bool HandleNotify(ref Message m)
         {
             bool isMsgHandled = false;
@@ -2496,10 +2587,12 @@ namespace BrightIdeasSoftware
             const int HDN_TRACKA = (HDN_FIRST - 8);
             const int HDN_TRACKW = (HDN_FIRST - 28);
 
+            const int TTN_GETDISPINFO = -530;
+
             // Handle the notification, remembering to handle both ANSI and Unicode versions
             NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
             //if (nmhdr.code < HDN_FIRST)
-            //    System.Diagnostics.Debug.WriteLine(nmhdr.code);
+            //    System.Diagnostics.Debug.WriteLine(nmhdr.code);            
 
             // In KB Article #183258, MS states that when a header control has the HDS_FULLDRAG style, it will receive
             // ITEMCHANGING events rather than TRACK events. Under XP SP2 (at least) this is not always true, which may be
@@ -2575,14 +2668,82 @@ namespace BrightIdeasSoftware
                     }
                     break;
 
+                case TTN_GETDISPINFO:
+                    ListViewHitTestInfo info = this.HitTest(this.PointToClient(Cursor.Position));
+                    if (info.Item != null && info.SubItem != null) {
+                        int columnIndex = info.Item.SubItems.IndexOf(info.SubItem);
+                        String tip = this.GetCellToolTip(columnIndex, info.Item.Index);
+                        if (!String.IsNullOrEmpty(tip)) {
+                            // HeaderControl has almost identical code. Is there some way to unify?
+                            NativeMethods.SendMessage(nmhdr.hwndFrom, 0x418, 0, SystemInformation.MaxWindowTrackSize.Width);
+                            NativeMethods.TOOLTIPTEXT ttt = (NativeMethods.TOOLTIPTEXT)m.GetLParam(typeof(NativeMethods.TOOLTIPTEXT));
+                            ttt.lpszText = tip;
+                            if (this.RightToLeft == RightToLeft.Yes)
+                                ttt.uFlags |= 4;
+                            Marshal.StructureToPtr(ttt, m.LParam, false);
+                            isMsgHandled = true;
+                        }
+                    }
+                    break;
+
                 default:
                     break;
             }
 
             return isMsgHandled;
         }
+        
+        /// <summary>
+        /// Handle the window position changing.
+        /// </summary>
+        /// <param name="m">The m to be processed</param>
+        /// <returns>bool to indicate if the m has been handled</returns>
+        protected bool HandleWindowPosChanging(ref Message m)
+        {
+            const int SWP_NOSIZE = 1;
+
+            NativeMethods.WINDOWPOS pos = (NativeMethods.WINDOWPOS)m.GetLParam(typeof(NativeMethods.WINDOWPOS));
+            if ((pos.flags & SWP_NOSIZE) == 0) {
+                if (pos.cx < this.Bounds.Width) // only when shrinking
+                    // pos.cx is the window width, not the client area width, so we have to subtract the border widths
+                    this.ResizeFreeSpaceFillingColumns(pos.cx - (this.Bounds.Width - this.ClientSize.Width));
+            }
+
+            return false;
+        }
 
         #endregion
+
+        /// <summary>
+        /// Return the tooltip that should be shown when the mouse is hovered over the given column
+        /// </summary>
+        /// <param name="columnIndex">The column index whose tool tip is to be fetched</param>
+        /// <returns>A string or null if no tool tip is to be shown</returns>
+        public String GetHeaderToolTip(int columnIndex)
+        {
+            OLVColumn column = this.GetColumn(columnIndex);
+            if (column == null)
+                return null;
+            String tooltip = column.ToolTipText;
+            if (this.HeaderToolTipGetter != null)
+                tooltip = this.HeaderToolTipGetter(column);
+            //String tooltip =  String.Format("tool tip &for '{0}' ({1}th column).", this.GetColumn(columnIndex).Text, columnIndex);
+            return tooltip;
+        }
+
+        /// <summary>
+        /// Return the tooltip that should be shown when the mouse is hovered over the given cell
+        /// </summary>
+        /// <param name="columnIndex">The column index whose tool tip is to be fetched</param>
+        /// <returns>A string or null if no tool tip is to be shown</returns>
+        public String GetCellToolTip(int columnIndex, int rowIndex)
+        {
+            if (this.CellToolTipGetter == null)
+                return null;
+            else
+                return this.CellToolTipGetter(this.GetColumn(columnIndex), this.GetModelObject(rowIndex));
+            //String tooltip = String.Format("tool tip for cell ({0}, {1})\r\n=> '{2}'.", columnIndex, rowIndex, this.GetModelObject(rowIndex));
+        }
 
         #region Empty List Msg handling
 
@@ -2591,7 +2752,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected void HandlePrePaint()
         {
-            // When we get a WM_PAINT msg, remember the rectangle that is being updated.
+            // When we get a WM_PAINT m, remember the rectangle that is being updated.
             // We can't get this information later, since the BeginPaint call wipes it out.
             this.lastUpdateRectangle = NativeMethods.GetUpdateRect(this);
 
@@ -2601,7 +2762,7 @@ namespace BrightIdeasSoftware
             // effectively tells our superclass that this area does not need to be painted.
             // Our superclass will then not paint the control, leaving us free to do so ourselves.
             // Without doing this trickery, the superclass will draw the
-            // list as empty, and then moments later, we will draw the empty msg, giving a nasty flicker
+            // list as empty, and then moments later, we will draw the empty m, giving a nasty flicker
             if (this.GetItemCount() == 0 && this.HasEmptyListMsg)
                 NativeMethods.ValidateRect(this, this.ClientRectangle);
         }
@@ -2611,11 +2772,11 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected void HandlePostPaint()
         {
-            // If the list isn't empty or there isn't an emptyList msg, do nothing
+            // If the list isn't empty or there isn't an emptyList m, do nothing
             if (this.GetItemCount() != 0 || !this.HasEmptyListMsg)
                 return;
 
-            // Draw the empty list msg centered in the client area of the control
+            // Draw the empty list m centered in the client area of the control
             using (BufferedGraphics buffered = BufferedGraphicsManager.Current.Allocate(this.CreateGraphics(), this.ClientRectangle)) {
                 Graphics g = buffered.Graphics;
                 g.Clear(this.BackColor);
@@ -2638,85 +2799,16 @@ namespace BrightIdeasSoftware
         protected override void OnCreateControl()
         {
             base.OnCreateControl();
+            this.BeginInvoke(new MethodInvoker(this.CreateHeaderControl));
+        }
+
+        protected void CreateHeaderControl() {
 #if !MONO
-            hdrCtrl = new HeaderControl(this);
+            this.hdrCtrl = new HeaderControl(this);
 #endif
         }
 #if !MONO
         private HeaderControl hdrCtrl = null;
-
-        /// <summary>
-        /// Class used to capture window messages for the header of the list view
-        /// control.
-        /// </summary>
-        /// <remarks>We only need this class in order to not change the cursor
-        /// when the cursor is over the divider of a fixed width column. It
-        /// really is a little too perfectionist even for me.</remarks>
-        private class HeaderControl : NativeWindow
-        {
-            private ObjectListView parentListView = null;
-
-            public HeaderControl(ObjectListView olv)
-            {
-                this.parentListView = olv;
-                this.AssignHandle(NativeMethods.GetHeaderControl(olv));
-            }
-
-            /// <summary>
-            /// Return the Windows handle behind this control
-            /// </summary>
-            /// <remarks>
-            /// When an ObjectListView is initialized as part of a UserControl, the
-            /// GetHeaderControl() method returns 0 until the UserControl is
-            /// completely initialized. So the AssignHandle() call in the constructor
-            /// doesn't work. So we override the Handle property so value is always
-            /// current.
-            /// </remarks>
-            public new IntPtr Handle
-            {
-                get { return NativeMethods.GetHeaderControl(this.parentListView); }
-            }
-
-            protected override void WndProc(ref Message message)
-            {
-                const int WM_SETCURSOR = 0x0020;
-
-                switch (message.Msg) {
-                    case WM_SETCURSOR:
-                        if (IsCursorOverLockedDivider()) {
-                            message.Result = (IntPtr)1;	// Don't change the cursor
-                            return;
-                        }
-                        break;
-                }
-
-                base.WndProc(ref message);
-            }
-
-            private bool IsCursorOverLockedDivider()
-            {
-                Point pt = this.parentListView.PointToClient(Cursor.Position);
-                pt.X += NativeMethods.GetScrollPosition(this.parentListView.Handle, true);
-                int dividerIndex = NativeMethods.GetDividerUnderPoint(this.Handle, pt);
-                if (dividerIndex >= 0 && dividerIndex < this.parentListView.Columns.Count) {
-                    OLVColumn column = this.parentListView.GetColumn(dividerIndex);
-                    return column.IsFixedWidth || column.FillsFreeSpace;
-                } else
-                    return false;
-            }
-
-            /// <summary>
-            /// Return the index of the column under the current cursor position,
-            /// or -1 if the cursor is not over a column
-            /// </summary>
-            /// <returns>Index of the column under the cursor, or -1</returns>
-            public int GetColumnIndexUnderCursor()
-            {
-                Point pt = this.parentListView.PointToClient(Cursor.Position);
-                pt.X += NativeMethods.GetScrollPosition(this.parentListView.Handle, true);
-                return NativeMethods.GetColumnUnderPoint(this.Handle, pt);
-            }
-        }
 #endif
 
         /// <summary>
@@ -2751,7 +2843,7 @@ namespace BrightIdeasSoftware
         /// <param name="pt">Where should the menu be placed</param>
         protected void ShowColumnSelectMenu(Point pt)
         {
-            ContextMenuStrip m = this.MakeColumnSelectMenu(new ContextMenuStrip());
+            ToolStripDropDown m = this.MakeColumnSelectMenu(new ContextMenuStrip());
             m.Show(pt);
         }
 
@@ -2760,7 +2852,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="strip">The menu to which the items will be added.</param>
         /// <returns>Return the menu to which the items were added</returns>
-        public ContextMenuStrip MakeColumnSelectMenu(ContextMenuStrip strip)
+        public ToolStripDropDown MakeColumnSelectMenu(ToolStripDropDown strip)
         {
             strip.ItemClicked += new ToolStripItemClickedEventHandler(ColumnSelectMenu_ItemClicked);
             strip.Closing += new ToolStripDropDownClosingEventHandler(ColumnSelectMenu_Closing);
@@ -2828,8 +2920,15 @@ namespace BrightIdeasSoftware
 
         void HandleColumnWidthChanging(object sender, ColumnWidthChangingEventArgs e)
         {
-            if (this.UpdateSpaceFillingColumnsWhenDraggingColumnDivider && !this.GetColumn(e.ColumnIndex).FillsFreeSpace)
-                this.ResizeFreeSpaceFillingColumns();
+            if (this.UpdateSpaceFillingColumnsWhenDraggingColumnDivider && !this.GetColumn(e.ColumnIndex).FillsFreeSpace) {
+                // If the width of a column is increasing, resize any space filling columns allowing the extra
+                // space that the new column width is going to consume
+                int oldWidth = this.GetColumn(e.ColumnIndex).Width;
+                if (e.NewWidth > oldWidth)
+                    this.ResizeFreeSpaceFillingColumns(this.ClientSize.Width - (e.NewWidth - oldWidth));
+                else
+                    this.ResizeFreeSpaceFillingColumns();
+            }
         }
 
         void HandleColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
@@ -2848,6 +2947,14 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected void ResizeFreeSpaceFillingColumns()
         {
+            this.ResizeFreeSpaceFillingColumns(this.ClientSize.Width);
+        }
+
+        /// <summary>
+        /// Resize our space filling columns so they fill any unoccupied width in the control
+        /// </summary>
+        protected void ResizeFreeSpaceFillingColumns(int freeSpace)
+        {
             // It's too confusing to dynamically resize columns at design time.
             if (this.DesignMode)
                 return;
@@ -2856,7 +2963,6 @@ namespace BrightIdeasSoftware
                 return;
 
             // Calculate the free space available
-            int freeSpace = this.ClientSize.Width - 2;
             int totalProportion = 0;
             List<OLVColumn> spaceFillingColumns = new List<OLVColumn>();
             for (int i = 0; i < this.Columns.Count; i++) {
@@ -3381,7 +3487,7 @@ namespace BrightIdeasSoftware
                     order = this.AlwaysGroupBySortOrder;
 
                 // Groups have to have a sorting column
-                if (columnToSort == null)
+                if (columnToSort == null && this.Columns.Count > 0)
                     columnToSort = this.GetColumn(0);
                 if (order == SortOrder.None)
                     order = SortOrder.Ascending;
@@ -3400,6 +3506,12 @@ namespace BrightIdeasSoftware
             if (columnToSort == null || order == SortOrder.None || this.Columns.Count < 1)
                 return;
 
+            // Virtual lists don't preserve selection, so we have to do it specifically
+            IList selection = new ArrayList();
+            if (this.VirtualMode)
+                selection = this.SelectedObjects;
+
+            // Finally, do the work of sorting
             if (this.ShowGroups)
                 this.BuildGroups(columnToSort, order);
             else if (this.CustomSorter != null)
@@ -3415,6 +3527,9 @@ namespace BrightIdeasSoftware
 
             this.lastSortColumn = columnToSort;
             this.lastSortOrder = order;
+
+            if (selection.Count > 0)
+                this.SelectedObjects = selection;
 
             this.OnAfterSorting(new AfterSortingEventArgs(columnToSort, order));
         }
@@ -3591,8 +3706,9 @@ namespace BrightIdeasSoftware
             if (imageSelector is Int32)
                 return (int)imageSelector;
 
-            if (imageSelector is String && this.SmallImageList != null)
-                return this.SmallImageList.Images.IndexOfKey((String)imageSelector);
+            String imageSelectorAsString = imageSelector as String;
+            if (imageSelectorAsString != null && this.SmallImageList != null)
+                return this.SmallImageList.Images.IndexOfKey(imageSelectorAsString);
 
             return -1;
         }
@@ -3998,7 +4114,7 @@ namespace BrightIdeasSoftware
         /// This event is triggered once per user action that changes the selection state
         /// of one or more rows.
         /// </summary>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
         Description("This event is triggered once per user action that changes the selection state of one or more rows.")]
         public event EventHandler SelectionChanged;
 
@@ -4247,10 +4363,11 @@ namespace BrightIdeasSoftware
 
             // There wasn't a Value property, or we couldn't set it, so set the text instead
             try {
-                if (value is String)
-                    control.Text = (String)value;
-                else
+                String valueAsString = value as String;
+                if (valueAsString == null)
                     control.Text = stringValue;
+                else
+                    control.Text = valueAsString;
             } catch (ArgumentOutOfRangeException) {
                 // The value couldn't be set via the Text property.
             }
@@ -4360,10 +4477,11 @@ namespace BrightIdeasSoftware
             Dictionary<String, bool> alreadySeen = new Dictionary<string, bool>();
             for (int i = 0; i < Math.Min(this.GetItemCount(), 1000); i++) {
                 Object value = column.GetValue(this.GetModelObject(i));
-                if (value is String)
-                    str = (String)value;
-                else
+                String valueAsString = value as String;
+                if (valueAsString == null)
                     str = column.ValueToString(value);
+                else
+                    str = valueAsString;
                 if (!alreadySeen.ContainsKey(str)) {
                     tb.AutoCompleteCustomSource.Add(str);
                     alreadySeen[str] = true;
@@ -4527,7 +4645,7 @@ namespace BrightIdeasSoftware
 
         #endregion
 
-        private Rectangle lastUpdateRectangle; // remember the update rect from the last WM_PAINT msg
+        private Rectangle lastUpdateRectangle; // remember the update rect from the last WM_PAINT m
         private bool isOwnerOfObjects; // does this ObjectListView own the Objects collection?
     }
 
@@ -4548,6 +4666,11 @@ namespace BrightIdeasSoftware
     /// instead of using the default ToString()
     /// </summary>
     public delegate string AspectToStringConverterDelegate(Object value);
+
+    /// <summary>
+    /// These delegates are used to get the tooltip for a cell
+    /// </summary>
+    public delegate String CellToolTipGetterDelegate(OLVColumn column, Object modelObject);
 
     /// <summary>
     /// These delegates are used to the state of the checkbox for a row object.
@@ -4584,6 +4707,11 @@ namespace BrightIdeasSoftware
     /// These delegates are used to convert a group key into a title for the group
     /// </summary>
     public delegate string GroupKeyToTitleConverterDelegate(Object groupKey);
+
+    /// <summary>
+    /// These delegates are used to get the tooltip for a column header
+    /// </summary>
+    public delegate String HeaderToolTipGetterDelegate(OLVColumn column);
 
     /// <summary>
     /// These delegates are used to fetch the image selector that should be used
@@ -4692,12 +4820,15 @@ namespace BrightIdeasSoftware
         /// <remarks>This name can be dotted to chain references to properties or parameter-less methods.</remarks>
         /// <example>"DateOfBirth"</example>
         /// <example>"Owner.HomeAddress.Postcode"</example>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
          Description("The name of the property or method that should be called to get the aspect to display in this column")]
         public string AspectName
         {
             get { return aspectName; }
-            set { aspectName = value; }
+            set { 
+                aspectName = value;
+                this.aspectMunger = null;
+            }
         }
         private string aspectName;
 
@@ -4736,7 +4867,7 @@ namespace BrightIdeasSoftware
         /// This string is passed as the first parameter to the String.Format() method.
         /// This is only used if AspectToStringConverter has not been set.</remarks>
         /// <example>"{0:C}" to convert a number to currency</example>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
          Description("The format string that will be used to convert an aspect to its string representation"),
          DefaultValue(null)]
         public string AspectToStringFormat
@@ -4851,7 +4982,7 @@ namespace BrightIdeasSoftware
         /// <para>If this value is not set, the values from the list view will be used</para>
         /// </remarks>
         /// <example>"{0} [{1} items]"</example>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
          Description("The format to use when suffixing item counts to group titles"),
          DefaultValue(null)]
         public string GroupWithItemCountFormat
@@ -4893,7 +5024,7 @@ namespace BrightIdeasSoftware
         /// <para>If this value is not set, the values from the list view will be used</para>
         /// </remarks>
         /// <example>"{0} [{1} item]"</example>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
          Description("The format to use when suffixing item counts to group titles"),
          DefaultValue(null)]
         public string GroupWithItemCountSingularFormat
@@ -4975,7 +5106,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>Column 0 is always included in tileview regardless of this setting.
         /// Tile views do not work well with many "columns" of information, 2 or 3 works best.</remarks>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
         Description("Will this column be used when the view is switched to tile view"),
          DefaultValue(false)]
         public bool IsTileViewColumn
@@ -5078,13 +5209,28 @@ namespace BrightIdeasSoftware
         private RenderDelegate rendererDelegate;
 
         /// <summary>
+        /// What string should be displayed when the mouse is hovered over the header of this column?
+        /// </summary>
+        /// <remarks>If a HeaderToolTipGetter is installed on the owning ObjectListView, this
+        /// value will be ignored.</remarks>
+        [Category("Behavior - ObjectListView"),
+         Description("The tooltip to show when the mouse is hovered over the header of this column"),
+         DefaultValue((String)null)]
+        public String ToolTipText
+        {
+            get { return toolTipText; }
+            set { toolTipText = value; }
+        }
+        private String toolTipText;
+	
+        /// <summary>
         /// Group objects by the initial letter of the aspect of the column
         /// </summary>
         /// <remarks>
         /// One common pattern is to group column by the initial letter of the value for that group.
         /// The aspect must be a string (obviously).
         /// </remarks>
-        [Category("Behavior"),
+        [Category("Behavior - ObjectListView"),
          Description("The name of the property or method that should be called to get the aspect to display in this column"),
          DefaultValue(false)]
         public bool UseInitialLetterForGroup
@@ -5118,24 +5264,12 @@ namespace BrightIdeasSoftware
         /// <returns>An object, which is the aspect named by AspectName</returns>
         public object GetAspectByName(object rowObject)
         {
-            if (rowObject == null || string.IsNullOrEmpty(this.aspectName))
-                return null;
+            if (this.aspectMunger == null)
+                this.aspectMunger = new Munger(this.AspectName);
 
-            //CONSIDER: Should we include NonPublic in this list?
-            BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
-                BindingFlags.InvokeMethod | BindingFlags.GetProperty | BindingFlags.GetField;
-            object source = rowObject;
-            foreach (string property in this.aspectName.Split('.')) {
-                try {
-                    source = source.GetType().InvokeMember(property, flags, null, source, null);
-                    if (source == null)
-                        break;
-                } catch (System.MissingMethodException) {
-                    return String.Format("'{0}' is not a parameter-less method, property or field of type '{1}'", property, source.GetType());
-                }
-            }
-            return source;
+            return this.aspectMunger.GetValue(rowObject);
         }
+        private Munger aspectMunger;
 
         /// <summary>
         /// For a given row object, return the object that is the key of the group that this row belongs to.
@@ -5146,8 +5280,8 @@ namespace BrightIdeasSoftware
         {
             if (this.groupKeyGetter == null) {
                 object key = this.GetValue(rowObject);
-                if (key is string && this.UseInitialLetterForGroup) {
-                    String keyAsString = (String)key;
+                String keyAsString = key as String;
+                if (keyAsString != null && this.UseInitialLetterForGroup) {
                     if (keyAsString.Length > 0)
                         key = keyAsString.Substring(0, 1).ToUpper();
                 }
@@ -5207,39 +5341,10 @@ namespace BrightIdeasSoftware
         /// <param name="newValue">The value to be put into the model</param>
         public void PutAspectByName(Object rowObject, Object newValue)
         {
-            if (string.IsNullOrEmpty(this.aspectName))
-                return;
+            if (this.aspectMunger == null)
+                this.aspectMunger = new Munger(this.AspectName);
 
-            // Navigated through the dotted path until we reach the target object.
-            // We then try to set the last property on the dotted path on that target.
-            // So, if rowObject is a Person, then an aspect named "HomeAddress.Postcode"
-            // will first fetch the "HomeAddress" property, and then try to set the
-            // "Postcode" property on the home address object.
-
-            //CONSIDER: Should we include NonPublic in this list?
-            BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
-                BindingFlags.InvokeMethod | BindingFlags.GetProperty | BindingFlags.GetField;
-            Object target = rowObject;
-            List<String> parentProperties = new List<string>(this.aspectName.Split('.'));
-            String lastProperty = parentProperties[parentProperties.Count - 1];
-            parentProperties.RemoveAt(parentProperties.Count - 1);
-            foreach (string property in parentProperties) {
-                try {
-                    target = target.GetType().InvokeMember(property, flags, null, target, null);
-                } catch (System.MissingMethodException) {
-                    System.Diagnostics.Debug.WriteLine(String.Format("Cannot invoke '{0}' on a {1}", property, target.GetType()));
-                    return;
-                }
-            }
-
-            // Now try to set the value
-            try {
-                BindingFlags flags2 = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty | BindingFlags.SetField;
-                target.GetType().InvokeMember(lastProperty, flags2, null, target, new Object[] { newValue });
-            } catch (System.MissingMethodException ex) {
-                System.Diagnostics.Debug.WriteLine("Invoke PutAspectByName failed:");
-                System.Diagnostics.Debug.WriteLine(ex);
-            }
+            this.aspectMunger.PutValue(rowObject, newValue);
         }
 
         /// <summary>
@@ -5485,121 +5590,4 @@ namespace BrightIdeasSoftware
     }
 
     #endregion
-
-    #region Comparers
-
-    /// <summary>
-    /// This comparer sort list view groups.
-    /// It does this on the basis of the values in the Tags, if we can figure out how to compare
-    /// objects of that type. Failing that, it uses a case insensitive compare on the group header.
-    /// </summary>
-    internal class ListViewGroupComparer : IComparer<ListViewGroup>
-    {
-        public ListViewGroupComparer(SortOrder order)
-        {
-            this.sortOrder = order;
-        }
-
-        public int Compare(ListViewGroup x, ListViewGroup y)
-        {
-            // If we know how to compare the tags, do that.
-            // Otherwise do a case insensitive compare on the group header.
-            // We have explicitly catch the "almost-null" value of DBNull.Value,
-            // since comparing to that value always produces a type exception.
-            int result;
-            IComparable comparable = x.Tag as IComparable;
-            if (comparable != null && y.Tag != System.DBNull.Value)
-                result = comparable.CompareTo(y.Tag);
-            else
-                result = String.Compare(x.Header, y.Header, true);
-
-            if (this.sortOrder == SortOrder.Descending)
-                result = 0 - result;
-
-            return result;
-        }
-
-        private SortOrder sortOrder;
-    }
-
-    /// <summary>
-    /// ColumnComparer is the workhorse for all comparison between two values of a particular column.
-    /// If the column has a specific comparer, use that to compare the values. Otherwise, do
-    /// a case insensitive string compare of the string representations of the values.
-    /// </summary>
-    /// <remarks><para>This class inherits from both IComparer and its generic counterpart
-    /// so that it can be used on untyped and typed collections.</para></remarks>
-    public class ColumnComparer : IComparer, IComparer<OLVListItem>
-    {
-        public ColumnComparer(OLVColumn col, SortOrder order)
-        {
-            this.column = col;
-            this.sortOrder = order;
-        }
-
-        public ColumnComparer(OLVColumn col, SortOrder order, OLVColumn col2, SortOrder order2)
-            : this(col, order)
-        {
-            // There is no point in secondary sorting on the same column
-            if (col != col2)
-                this.secondComparer = new ColumnComparer(col2, order2);
-        }
-
-        public int Compare(object x, object y)
-        {
-            return this.Compare((OLVListItem)x, (OLVListItem)y);
-        }
-
-        public int Compare(OLVListItem x, OLVListItem y)
-        {
-            int result = 0;
-            object x1 = this.column.GetValue(x.RowObject);
-            object y1 = this.column.GetValue(y.RowObject);
-
-            if (this.sortOrder == SortOrder.None)
-                return 0;
-
-            // Handle nulls. Null values come last
-            bool xIsNull = (x1 == null || x1 == System.DBNull.Value);
-            bool yIsNull = (y1 == null || y1 == System.DBNull.Value);
-            if (xIsNull || yIsNull) {
-                if (xIsNull && yIsNull)
-                    result = 0;
-                else
-                    result = (xIsNull ? -1 : 1);
-            } else {
-                result = this.CompareValues(x1, y1);
-            }
-
-            if (this.sortOrder == SortOrder.Descending)
-                result = 0 - result;
-
-            // If the result was equality, use the secondary comparer to resolve it
-            if (result == 0 && this.secondComparer != null)
-                result = this.secondComparer.Compare(x, y);
-
-            return result;
-        }
-
-        public int CompareValues(object x, object y)
-        {
-            // Force case insensitive compares on strings
-            if (x is String)
-                return String.Compare((String)x, (String)y, true);
-            else {
-                IComparable comparable = x as IComparable;
-                if (comparable != null)
-                    return comparable.CompareTo(y);
-                else
-                    return 0;
-            }
-        }
-
-        private OLVColumn column;
-        private SortOrder sortOrder;
-        private ColumnComparer secondComparer;
-    }
-
-    #endregion
-
 }
