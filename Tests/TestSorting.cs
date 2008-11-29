@@ -114,21 +114,91 @@ namespace BrightIdeasSoftware.Tests
         [Test]
         public void TestAfterSortingEvent()
         {
+            try {
+                this.olv.AfterSorting += new EventHandler<AfterSortingEventArgs>(olvAfterSorting1);
+                this.afterSortingCount = 0;
+                this.olv.Sort(this.olv.GetColumn(0), SortOrder.Ascending);
+                this.olv.Sort();
+                this.olv.Sort(this.olv.GetColumn(0));
+            }
+            finally {
+                this.olv.AfterSorting -= new EventHandler<AfterSortingEventArgs>(olvAfterSorting1);
+            }
+            Assert.AreEqual(3, this.afterSortingCount);
+        }
+        int afterSortingCount;
+
+        void olvAfterSorting1(object sender, AfterSortingEventArgs e)
+        {
+            this.afterSortingCount++;
         }
 
         [Test]
         public void TestBeforeSortingEvent()
         {
+            try {
+                this.olv.BeforeSorting += new EventHandler<BeforeSortingEventArgs>(olvBeforeSorting1);
+                this.olv.Sort(this.olv.GetColumn(2), SortOrder.Ascending);
+
+                // The BeforeSorting event should have changed the sort to descending by name
+                Assert.AreEqual(PersonDb.LastAlphabeticalName, ((Person)this.olv.GetModelObject(0)).Name);
+            }
+            finally {
+                this.olv.BeforeSorting -= new EventHandler<BeforeSortingEventArgs>(olvBeforeSorting1);
+            }
+        }
+
+        void olvBeforeSorting1(object sender, BeforeSortingEventArgs e)
+        {
+            Assert.AreEqual(this.olv.GetColumn(2), e.ColumnToSort);
+            Assert.AreEqual(SortOrder.Ascending, e.SortOrder);
+
+            e.ColumnToSort = this.olv.GetColumn(0);
+            e.SortOrder = SortOrder.Descending;
         }
 
         [Test]
         public void TestCancelSorting()
         {
+            this.olv.Sort(this.olv.GetColumn(0), SortOrder.Descending);
+            Assert.AreEqual(PersonDb.LastAlphabeticalName, ((Person)this.olv.GetModelObject(0)).Name);
+
+            try {
+                this.olv.BeforeSorting += new EventHandler<BeforeSortingEventArgs>(olvBeforeSorting2);
+                this.olv.Sort(this.olv.GetColumn(2), SortOrder.Ascending);
+
+                // The BeforeSorting event should have cancelled the sort so the second Sort() should not have had an effect
+                Assert.AreEqual(PersonDb.LastAlphabeticalName, ((Person)this.olv.GetModelObject(0)).Name);
+            }
+            finally {
+                this.olv.BeforeSorting -= new EventHandler<BeforeSortingEventArgs>(olvBeforeSorting2);
+            }
+        }
+
+        void olvBeforeSorting2(object sender, BeforeSortingEventArgs e)
+        {
+            Assert.AreEqual(this.olv.GetColumn(2), e.ColumnToSort);
+            Assert.AreEqual(SortOrder.Ascending, e.SortOrder);
+
+            e.Canceled = true;
         }
 
         [Test]
         public void TestPreserveSelection()
         {
+            this.olv.SelectedObject = PersonDb.All[0];
+            this.olv.Sort(this.olv.GetColumn(2), SortOrder.Ascending);
+            Assert.AreEqual(PersonDb.All[0], this.olv.SelectedObject);
+        }
+
+        [Test]
+        public void TestPreserveSelectionMultiple()
+        {
+            this.olv.SelectedObjects = PersonDb.All;
+            this.olv.Sort(this.olv.GetColumn(1), SortOrder.Ascending);
+            Assert.AreEqual(PersonDb.All.Count, this.olv.SelectedObjects.Count);
+            foreach (Object x in this.olv.SelectedObjects)
+                Assert.Contains(x, PersonDb.All);
         }
 
         [TestFixtureSetUp]
@@ -142,6 +212,11 @@ namespace BrightIdeasSoftware.Tests
     [TestFixture]
     public class TestFastOlvSorting : TestSorting
     {
+        [Test]
+        override public void TestCustomSorting()
+        {
+        }
+
         [TestFixtureSetUp]
         new public void Init()
         {

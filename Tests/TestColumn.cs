@@ -190,4 +190,78 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual(200, column.GetValue(this.person2));
         }
     }
+
+    [TestFixture]
+    public class TestAspectSetting
+    {
+        public void ExecuteAspect(string aspectName, object newValue, Person person)
+        {
+            OLVColumn column = new OLVColumn();
+            column.AspectName = aspectName;
+            column.PutValue(person, newValue);
+            Assert.AreEqual(newValue, column.GetValue(person));
+        }
+
+        virtual public void ExecuteAspect(string aspectName, object newValue)
+        {
+            this.ExecuteAspect(aspectName, newValue, this.person1);
+        }
+
+        virtual public void ExecuteAspect2(string aspectName, object newValue)
+        {
+            this.ExecuteAspect(aspectName, newValue, this.person2);
+        }
+
+        [Test]
+        public void TestSimpleField()
+        {
+            this.ExecuteAspect("Comments", "NEW comments");
+        }
+
+        [Test]
+        public void TestSimpleProperty()
+        {
+            this.ExecuteAspect2("Occupation", "NEW occupation");
+        }
+
+        [Test]
+        public void TestSimpleMethod()
+        {
+            this.person1.SetRate(0.0);
+            OLVColumn column = new OLVColumn();
+            column.AspectName = "SetRate";
+            column.PutValue(this.person1, 10.0);
+            Assert.AreEqual(10.0, this.person1.GetRate());
+        }
+
+        [Test]
+        public void TestChaining()
+        {
+            DateTime dt = new DateTime(1965, 8, 28);
+            this.ExecuteAspect("Parent.Parent.BirthDate", dt);
+            Assert.AreEqual(dt, this.person1.Parent.Parent.BirthDate);
+        }
+
+        [Test]
+        public void TestChaining2()
+        {
+            this.person2.SetRate(0.0);
+            OLVColumn column = new OLVColumn();
+            column.AspectName = "Parent.Parent.SetRate";
+            column.PutValue(this.person2, 10.0);
+            // Person2 doubles the rate
+            Assert.AreEqual(20.0, this.person2.GetRate());
+        }
+
+        [TestFixtureSetUp]
+        public void Init()
+        {
+            this.person1 = new Person("name", "occupation", 100, DateTime.Now, 1.0, true, "  photo  ", "comments");
+            this.person2 = new Person2("name", "occupation", 100, DateTime.Now, 1.0, true, "  photo  ", "comments");
+
+        }
+
+        protected Person person1;
+        protected Person2 person2;
+    }
 }

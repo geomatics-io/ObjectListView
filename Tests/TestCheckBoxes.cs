@@ -236,11 +236,27 @@ namespace BrightIdeasSoftware.Tests
             // For some reason, SendKeys doesn't work here
 
             //this.olv.Select(); // Make the listview have the keyboard focus
-            //this.olv.Focus();
-            //Assert.IsTrue(this.olv.Focused);
             //this.olv.SelectAll();
             //SendKeys.SendWait(" ");
             //Assert.AreEqual(this.olv.GetItemCount(), this.olv.CheckedObjects.Count);
+        }
+
+        [Test]
+        public void TestCheckedAspectName()
+        {
+            foreach (Person p in PersonDb.All)
+                p.IsActive = false;
+
+            this.olv.CheckedAspectName = "IsActive";
+            this.olv.SetObjects(PersonDb.All);
+            Assert.IsEmpty(this.olv.CheckedObjects);
+
+            foreach (Person p in PersonDb.All)
+                p.IsActive = true;
+            this.olv.SetObjects(PersonDb.All);
+            Assert.AreEqual(PersonDb.All.Count, this.olv.CheckedObjects.Count);
+
+            this.olv.CheckedAspectName = null;
         }
 
         [TestFixtureSetUp]
