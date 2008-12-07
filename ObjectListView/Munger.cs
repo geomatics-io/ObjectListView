@@ -35,7 +35,7 @@ namespace BrightIdeasSoftware
 {
     /// <summary>
     /// An instance of Munger gets a value from or puts a value into a target object. The property
-    /// to be peeked (or poked) is determined from a string using reflection.
+    /// to be peeked (or poked) is determined from a string. The peeking or poking is done using reflection.
     /// </summary>
     class Munger
     {
