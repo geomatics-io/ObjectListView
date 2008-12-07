@@ -5,6 +5,8 @@
  * Date: 17/10/2008 9:15 PM
  *
  * Change log:
+ * 2008-12-06   JPP  - Added searching events
+ * 2008-12-01   JPP  - Added secondary sort information to Before/AfterSorting events
  * 2008-10-17   JPP  - Separated from ObjectListView.cs
  * 
  * Copyright (C) 2006-2008 Phillip Piper
@@ -48,10 +50,26 @@ namespace BrightIdeasSoftware
         #region Events
 
         /// <summary>
+        /// Triggered after a ObjectListView has been searched by the user typing into the list
+        /// </summary>
+        [Category("Behavior - ObjectListView")]
+        public event EventHandler<AfterSearchingEventArgs> AfterSearching;
+
+        /// <summary>
         /// Triggered after a ObjectListView has been sorted
         /// </summary>
         [Category("Behavior - ObjectListView")]
         public event EventHandler<AfterSortingEventArgs> AfterSorting;
+
+        /// <summary>
+        /// Triggered before a ObjectListView is searched by the user typing into the list
+        /// </summary>
+        /// <remarks>
+        /// Set Cancelled to true to prevent the searching from taking place.
+        /// Changing StringToFind or StartSearchFrom will change the subsequent search.
+        /// </remarks>
+        [Category("Behavior - ObjectListView")]
+        public event EventHandler<BeforeSearchingEventArgs> BeforeSearching;
 
         /// <summary>
         /// Triggered before a ObjectListView is sorted
@@ -127,10 +145,22 @@ namespace BrightIdeasSoftware
         //-----------------------------------------------------------------------------------
         #region OnEvents
 
+        protected virtual void OnAfterSearching(AfterSearchingEventArgs e)
+        {
+            if (this.AfterSearching != null)
+                this.AfterSearching(this, e);
+        }
+
         protected virtual void OnAfterSorting(AfterSortingEventArgs e)
         {
             if (this.AfterSorting != null)
                 this.AfterSorting(this, e);
+        }
+
+        protected virtual void OnBeforeSearching(BeforeSearchingEventArgs e)
+        {
+            if (this.BeforeSearching != null)
+                this.BeforeSearching(this, e);
         }
 
         protected virtual void OnBeforeSorting(BeforeSortingEventArgs e)
@@ -338,22 +368,28 @@ namespace BrightIdeasSoftware
 
     public class BeforeSortingEventArgs : CancellableEventArgs
     {
-        public BeforeSortingEventArgs(OLVColumn column, SortOrder order)
+        public BeforeSortingEventArgs(OLVColumn column, SortOrder order, OLVColumn column2, SortOrder order2)
         {
             this.ColumnToSort = column;
             this.SortOrder = order;
+            this.SecondaryColumnToSort = column2;
+            this.SecondarySortOrder = order2;
         }
 
         public OLVColumn ColumnToSort;
         public SortOrder SortOrder;
+        public OLVColumn SecondaryColumnToSort;
+        public SortOrder SecondarySortOrder;
     }
 
     public class AfterSortingEventArgs : EventArgs
     {
-        public AfterSortingEventArgs(OLVColumn column, SortOrder order)
+        public AfterSortingEventArgs(OLVColumn column, SortOrder order, OLVColumn column2, SortOrder order2)
         {
             this.columnToSort = column;
             this.sortOrder = order;
+            this.secondaryColumnToSort = column2;
+            this.secondarySortOrder = order2;
         }
 
         public OLVColumn ColumnToSort
@@ -367,6 +403,18 @@ namespace BrightIdeasSoftware
             get { return sortOrder; }
         }
         private SortOrder sortOrder;
+
+        public OLVColumn SecondaryColumnToSort
+        {
+            get { return secondaryColumnToSort; }
+        }
+        private OLVColumn secondaryColumnToSort;
+
+        public SortOrder SecondarySortOrder
+        {
+            get { return secondarySortOrder; }
+        }
+        private SortOrder secondarySortOrder;
     }
 
     /// <summary>
@@ -450,6 +498,49 @@ namespace BrightIdeasSoftware
         }
 
         public ICollection ObjectsToRemove;
+    }
+
+    /// <summary>
+    /// Triggered after the user types into a list
+    /// </summary>
+    public class AfterSearchingEventArgs : EventArgs
+    {
+        public AfterSearchingEventArgs(string stringToFind, int indexSelected)
+        {
+            this.stringToFind = stringToFind;
+            this.indexSelected = indexSelected;
+        }
+
+        public string StringToFind
+        {
+            get {
+                return this.stringToFind;
+            }
+        }
+        private string stringToFind;
+
+        public int IndexSelected
+        {
+            get {
+                return this.indexSelected;
+            }
+        }
+        private int indexSelected;
+    }
+
+    /// <summary>
+    /// Triggered when the user types into a list
+    /// </summary>
+    public class BeforeSearchingEventArgs : CancellableEventArgs
+    {
+        public BeforeSearchingEventArgs(string stringToFind, int startSearchFrom)
+        {
+            this.StringToFind = stringToFind;
+            this.StartSearchFrom = startSearchFrom;
+        }
+
+        public string StringToFind;
+        public int StartSearchFrom;
     }
 
     #endregion
