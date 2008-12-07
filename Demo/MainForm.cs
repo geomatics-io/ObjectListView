@@ -117,8 +117,21 @@ namespace ObjectListViewDemo
 
 		void InitializeSimpleExample(List<Person> list)
 		{
+            this.comboBox6.SelectedIndex = 0;
 
-            TypedObjectListView<Person> tlist = new TypedObjectListView<Person>(this.listViewSimple);
+            // Give this column an aspect putter, since it fetches its value using a method rather than a property
+            TypedColumn<Person> tcol = new TypedColumn<Person>(this.columnHeader16);
+            tcol.AspectPutter = delegate(Person x, object newValue) { x.SetRate((double)newValue); };
+
+			// Just one line of code make everything happen.
+			this.listViewSimple.SetObjects(list);
+		}
+
+		void InitializeComplexExample(List<Person> list)
+		{
+            // The following line makes getting aspect about 10x faster. Since getting the aspect is
+            // the slowest part of building the ListView, it is worthwhile BUT NOT NECESSARY to do.
+            TypedObjectListView<Person> tlist = new TypedObjectListView<Person>(this.listViewComplex);
             tlist.GenerateAspectGetters();
             /* The line above the equivilent to typing the following:
             tlist.GetColumn(0).AspectGetter = delegate(Person x) { return x.Name; };
@@ -130,29 +143,6 @@ namespace ObjectListViewDemo
             tlist.GetColumn(6).AspectGetter = delegate(Person x) { return x.Comments; };
             */
 
-            // Give this column an aspect putter, since it fetches its value using a method rather than a property
-            TypedColumn<Person> tcol = new TypedColumn<Person>(this.columnHeader16);
-            tcol.AspectGetter = delegate(Person x) { return x.GetRate(); };
-            tcol.AspectPutter = delegate(Person x, object newValue) { x.SetRate((double)newValue); };
-
-            this.comboBox6.SelectedIndex = 0;
-
-            //tlist.BooleanCheckStateGetter = delegate(Person x) {
-            //    return x.IsActive;
-            //};
-            //tlist.BooleanCheckStatePutter = delegate(Person x, bool newValue) {
-            //    x.IsActive = newValue;
-            //    return newValue;
-            //};
-			// Just one line of code make everything happen.
-			this.listViewSimple.SetObjects(list);
-		}
-
-		void InitializeComplexExample(List<Person> list)
-		{
-            this.personColumn.AspectGetter = delegate(object row) {
-                return ((Person)row).Name;
-            };
             this.personColumn.AspectToStringConverter = delegate(object cellValue) {
                 return ((String)cellValue).ToUpperInvariant();
             };
@@ -170,9 +160,6 @@ namespace ObjectListViewDemo
 			};
 
             // Cooking skill columns
-            this.columnCookingSkill.AspectGetter = delegate(object row) {
-                return ((Person)row).CulinaryRating;
-            };
             this.columnCookingSkill.Renderer = new MultiImageRenderer(Resource1.star16, 5, 0, 40);
             this.columnCookingSkill.MakeGroupies(
                 new Int32[]{10, 20, 30, 40},
@@ -222,20 +209,6 @@ namespace ObjectListViewDemo
                         ((Person)x).Name, col.Text, col.GetStringValue(x));
                 } else
                     return null;
-            };
-
-            // Uncomment these to get maximum speed
-            this.occupationColumn.AspectGetter = delegate(object row) {
-                return ((Person)row).Occupation;
-            };
-            this.hourlyRateColumn.AspectGetter = delegate(object row) {
-                return ((Person)row).GetRate();
-            };
-            this.hourlyRateColumn.AspectGetter = delegate(object row) {
-                return ((Person)row).GetRate();
-            };
-            this.birthdayColumn.AspectGetter = delegate(object row) {
-                return ((Person)row).BirthDate;
             };
 
             comboBox1.SelectedIndex = 4;
