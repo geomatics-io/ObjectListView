@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2008-12-07   JPP  - Trigger Before/AfterSearching events
  * 2008-11-15   JPP  - Fixed some caching issues
  * 2008-11-05   JPP  - Rewrote handling of check boxes
  * 2008-10-28   JPP  - Handle SetSelectedObjects(null)
@@ -648,20 +649,29 @@ namespace BrightIdeasSoftware
         /// <param name="e"></param>
         protected void HandleSearchForVirtualItem(object sender, SearchForVirtualItemEventArgs e)
         {
+            // The event has e.IsPrefixSearch, but as far as I can tell, this is always false (maybe that's different under Vista)
+            // So we ignore IsPrefixSearch and IsTextSearch and always to a case insensitve prefix match.
+
             // We can't do anything if we don't have a data source
             if (this.DataSource == null)
                 return;
 
             // Where should we start searching? If the last row is focused, the SearchForVirtualItemEvent starts searching
-            // from the next row, which is actually an invalidate index -- in that case, we rewind one row to the last row.
-            int start = e.StartIndex;
-            if (e.StartIndex == this.DataSource.GetObjectCount())
-                start--;
+            // from the next row, which is actually an invalidate index -- so we make sure we never go past the last object.
+            int start = Math.Min(e.StartIndex, this.DataSource.GetObjectCount() - 1);
 
-            // The event has e.IsPrefixSearch, but as far as I can tell, this is always false (maybe that's different under Vista)
-            // So we ignore IsPrefixSearch and IsTextSearch and always to a case insensitve prefix match
+            // Give the world a chance to fiddle with or completely avoid the searching process
+            BeforeSearchingEventArgs args = new BeforeSearchingEventArgs(e.Text, start);
+            this.OnBeforeSearching(args);
+            if (args.Canceled)
+                return;
 
-            int i = this.FindMatchingRow(e.Text, start, e.Direction);
+            // Do the search
+            int i = this.FindMatchingRow(args.StringToFind, args.StartSearchFrom, e.Direction);
+
+            // Tell the world that a search has occurred
+            AfterSearchingEventArgs args2 = new AfterSearchingEventArgs(args.StringToFind, i);
+            this.OnAfterSearching(args2);
 
             // If we found a match, tell the event
             if (i != -1)
