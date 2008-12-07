@@ -5,6 +5,7 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2008-12-01  JPP  - Search-by-typing now works.
  * 2008-11-26  JPP  - Corrected calculation of expand/collapse icon (SF#2338819)
  *                  - Fixed ugliness with dotted lines in renderer (SF#2332889)
  *                  - Fixed problem with custom selection colors (SF#2338805)
@@ -16,7 +17,7 @@
  * 2008-09-23  JPP  Initial version
  *
  * TO DO:
- * 2008-10-19  Think if we can remove the need to ownerdraw the tree view. 
+ * 2008-10-19  Can we remove the need to ownerdraw the tree view?
  *             If tree does not have checkboxes, we could use the state image
  *             to show the expand/collapse icon. If the tree has check boxes,
  *             it has to be owner drawn.
@@ -72,8 +73,8 @@ namespace BrightIdeasSoftware
     /// call RefreshObject() on the parent.
     /// </para>
     /// <para>The tree must be a directed acyclic graph -- no cycles are allowed.</para>
-    /// <para>More generally, each model object must appear only once in the tree. The same model object that appears in two
-    /// places in the tree will confuse the control.</para>
+    /// <para>More generally, each model object must appear only once in the tree. If the same model object appears in two
+    /// places in the tree, the control will become confused.</para>
     /// </remarks>
     public class TreeListView : VirtualObjectListView
     {
@@ -745,7 +746,7 @@ namespace BrightIdeasSoftware
 
             public int SearchText(string value, int first, int last, OLVColumn column)
             {
-                return -1;
+                return AbstractVirtualListDataSource.DefaultSearchText(value, first, last, column, this);
             }
 
             public void Sort(OLVColumn column, SortOrder order)
