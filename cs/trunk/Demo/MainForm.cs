@@ -575,15 +575,11 @@ namespace ObjectListViewDemo
                 DirectoryInfo dir = (DirectoryInfo)x;
                 return new ArrayList(dir.GetFileSystemInfos());
             };
-            this.treeListView.FullRowSelect = true;
-
-            this.treeListView.EnableCustomSelectionColors();
-            this.treeListView.HighlightBackgroundColor = Color.Yellow;
-            this.treeListView.HighlightForegroundColor = Color.Green;
 
             //-------------------------------------------------------------------
             // Eveything after this is the same as the Explorer example tab --
-            // nothing specific to the TreeListView
+            // nothing specific to the TreeListView. It doesn't have the grouping
+            // delegates, since TreeListViews can't show groups.
 
             // Draw the system icon next to the name
 #if !MONO
@@ -612,28 +608,6 @@ namespace ObjectListViewDemo
                 else
                     return this.FormatFileSize((long)x);
             };
-            this.treeColumnSize.MakeGroupies(new long[] { 0, 1024 * 1024, 512 * 1024 * 1024 },
-                new string[] { "Folders", "Small", "Big", "Disk space chewer" });
-
-            // Group by month-year, rather than date
-            // This code is duplicated for FileCreated and FileModified, so we really should
-            // create named methods rather than using anonymous delegates.
-            this.treeColumnCreated.GroupKeyGetter = delegate(object x) {
-                DateTime dt = ((FileSystemInfo)x).CreationTime;
-                return new DateTime(dt.Year, dt.Month, 1);
-            };
-            this.treeColumnCreated.GroupKeyToTitleConverter = delegate(object x) {
-                return ((DateTime)x).ToString("MMMM yyyy");
-            };
-
-            // Group by month-year, rather than date
-            this.treeColumnModified.GroupKeyGetter = delegate(object x) {
-                DateTime dt = ((FileSystemInfo)x).LastWriteTime;
-                return new DateTime(dt.Year, dt.Month, 1);
-            };
-            this.treeColumnModified.GroupKeyToTitleConverter = delegate(object x) {
-                return ((DateTime)x).ToString("MMMM yyyy");
-            };
 
             // Show the system description for this object
             this.treeColumnFileType.AspectGetter = delegate(object x) {
@@ -650,7 +624,7 @@ namespace ObjectListViewDemo
             attributesRenderer.Add(FileAttributes.System, "system");
             attributesRenderer.Add(FileAttributes.Hidden, "hidden");
             attributesRenderer.Add(FileAttributes.Temporary, "temporary");
-            this.olvColumnAttributes.Renderer = attributesRenderer;
+            this.treeColumnAttributes.Renderer = attributesRenderer;
 
             // List all drives as the roots of the tree
             ArrayList roots = new ArrayList();
