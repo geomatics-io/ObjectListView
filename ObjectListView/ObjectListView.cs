@@ -5,6 +5,10 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2008-12-10  JPP  - Handle Backspace key. Resets the seach-by-typing state without delay
+ *                  - Made some changes to the column collection editor to try and avoid
+ *                    the multiple column generation problem.
+ *                  - Updated some documentation
  * 2008-12-07  JPP  - Search-by-typing now works when showing groups
  *                  - Added BeforeSearching and AfterSearching events which are triggered when the user types
  *                    into the list.
@@ -213,7 +217,7 @@
  * 2006-10-09  JPP  Initial version
  *
  * TO DO:
- * - Handle TreeListView that doesn't have any icons
+ * - Nothing?
  *
  * Copyright (C) 2006-2008 Phillip Piper
  *
@@ -318,28 +322,34 @@ namespace BrightIdeasSoftware
         /// Get or set all the columns that this control knows about.
         /// Only those columns where IsVisible is true will be seen by the user.
         /// </summary>
-        /// <remarks>If you want to add new columns programmatically, add them to
+        /// <remarks>
+        /// <para>
+        /// If you want to add new columns programmatically, add them to
         /// AllColumns and then call RebuildColumns(). Normally, you do not have to
-        /// deal with this property directly. Just use the IDE.</remarks>
+        /// deal with this property directly. Just use the IDE.
+        /// </para>
+        /// <para>If you do add or remove columns from the AllColumns collection,
+        /// you have to call RebuildColumns() to make those changes take effect.</para>
+        /// </remarks>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         public List<OLVColumn> AllColumns
         {
             get {
-                // If someone has wiped out the columns, put the list back
-                if (allColumns == null)
-                    allColumns = new List<OLVColumn>();
-
                 // If we don't know the columns, use the columns from the control.
                 // This handles legacy cases
-                if (allColumns.Count == 0 && this.Columns.Count > 0) {
-                    for (int i = 0; i < this.Columns.Count; i++) {
-                        this.allColumns.Add(this.GetColumn(i));
-                    }
+                if (this.allColumns.Count == 0) {
+                    foreach (ColumnHeader x in this.Columns) 
+                        this.allColumns.Add((OLVColumn)x);
                 }
-                return allColumns;
+                return this.allColumns;
             }
-            set { allColumns = value; }
+            set {
+                if (value == null)
+                    this.allColumns = new List<OLVColumn>();
+                else
+                    this.allColumns = value;
+            }
         }
         private List<OLVColumn> allColumns = new List<OLVColumn>();
 
@@ -1702,6 +1712,8 @@ namespace BrightIdeasSoftware
             this.Clear();
             List<OLVColumn> cols = this.GetFilteredColumns(view);
             if (view == View.Details) {
+                // Where should each column be shown? We try to put it back where it last was,
+                // but if that's not possible, it appears at the end of the columns
                 foreach (OLVColumn x in cols) {
                     if (x.LastDisplayIndex == -1 || x.LastDisplayIndex > cols.Count - 1)
                         x.DisplayIndex = cols.Count - 1;
@@ -2396,6 +2408,12 @@ namespace BrightIdeasSoftware
 
             // What character did the user type and was it part of a longer string?
             char character = (char)m.WParam; //TODO: Will this work on 64 bit or MBCS?
+            if (character == 8) {
+                // Backspace forces the next key to be considered the start of a new search
+                this.timeLastCharEvent = 0;
+                return true;
+            }
+
             if (System.Environment.TickCount < (this.timeLastCharEvent + MILLISECONDS_BETWEEN_KEYPRESSES))
                 this.lastSearchString += character;
             else
@@ -4685,17 +4703,17 @@ namespace BrightIdeasSoftware
 
             public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
             {
-                ListView.ColumnHeaderCollection cols = (ListView.ColumnHeaderCollection)value;
-
                 // Figure out which ObjectListView we are working on. This should be the Instance of the context.
-                ObjectListView olv;
-                if (context != null && context.Instance is ObjectListView) 
-                    olv = (ObjectListView)context.Instance;
-                else {
-                    //TODO: Can this ever happen?
+                ObjectListView olv = null;
+                if (context != null) 
+                    olv = context.Instance as ObjectListView;
+
+                if (olv == null) {
+                    //THINK: Can this ever happen?
                     System.Diagnostics.Debug.WriteLine("context.Instance was NOT an ObjectListView");
 
                     // Hack to figure out which ObjectListView we are working on
+                    ListView.ColumnHeaderCollection cols = (ListView.ColumnHeaderCollection)value;
                     if (cols.Count == 0) {
                         cols.Add(new OLVColumn());
                         olv = (ObjectListView)cols[0].ListView;
@@ -4714,6 +4732,15 @@ namespace BrightIdeasSoftware
                 olv.Columns.AddRange(newColumns.ToArray());
 
                 return olv.Columns;
+            }
+
+            protected override string GetDisplayText(object value)
+            {
+                OLVColumn col = value as OLVColumn;
+                if (col == null || String.IsNullOrEmpty(col.AspectName))
+                    return base.GetDisplayText(value);
+
+                return base.GetDisplayText(value) + " (" + col.AspectName + ")";
             }
         }
 
