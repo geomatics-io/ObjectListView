@@ -5,6 +5,7 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2008-12-10  JPP  - Expand/collapse with mouse now works when there is no SmallImageList.
  * 2008-12-01  JPP  - Search-by-typing now works.
  * 2008-11-26  JPP  - Corrected calculation of expand/collapse icon (SF#2338819)
  *                  - Fixed ugliness with dotted lines in renderer (SF#2332889)
@@ -17,6 +18,7 @@
  * 2008-09-23  JPP  Initial version
  *
  * TO DO:
+ * 2008-12-10  If the TreeListView doesn't have a small image list, checkboxes do not work.
  * 2008-10-19  Can we remove the need to ownerdraw the tree view?
  *             If tree does not have checkboxes, we could use the state image
  *             to show the expand/collapse icon. If the tree has check boxes,
@@ -415,12 +417,24 @@ namespace BrightIdeasSoftware
                 return false;
 
             // Calculate if they clicked on the expand/collapse icon. This icon
-            // appears before the icon of the item.
+            // appears before the icon of the item. 
+            int smallImageWidth = 16;
+            if (this.SmallImageList != null)
+                smallImageWidth = this.SmallImageList.ImageSize.Width;
+
             Rectangle r = this.GetItemRect(olvItem.Index, ItemBoundsPortion.Icon);
+            if (r.Width == 0) {
+                // If GetItemRect() returns a  0-width rectangle, there are no images, 
+                // but we still need to check if the click was before the text.
+                r.X += (br.Level-1) * (smallImageWidth + 2);
+                r.Width = smallImageWidth;
+            } else
+                r.X -= (smallImageWidth + 2);
+
+            // Take the checkboxes into account
             if (this.CheckBoxes)
-                r.X -= (this.SmallImageList.ImageSize.Width + 2) * 2;
-            else
-                r.X -= (this.SmallImageList.ImageSize.Width + 2);
+                r.X -= (smallImageWidth + 2);
+
             if (!r.Contains(x, y))
                 return false;
 
