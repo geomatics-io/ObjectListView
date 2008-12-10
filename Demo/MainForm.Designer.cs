@@ -483,7 +483,6 @@ namespace ObjectListViewDemo
             this.listViewSimple.AllColumns.Add(this.columnHeader15);
             this.listViewSimple.AllColumns.Add(this.columnHeader16);
             this.listViewSimple.AllColumns.Add(this.olvColumn34);
-            this.listViewSimple.AlternateRowBackColor = System.Drawing.Color.Empty;
             this.listViewSimple.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -501,8 +500,6 @@ namespace ObjectListViewDemo
             this.listViewSimple.ContextMenuStrip = this.contextMenuStrip1;
             this.listViewSimple.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.listViewSimple.HideSelection = false;
-            this.listViewSimple.HighlightBackgroundColor = System.Drawing.Color.Empty;
-            this.listViewSimple.HighlightForegroundColor = System.Drawing.Color.Empty;
             this.listViewSimple.Location = new System.Drawing.Point(6, 55);
             this.listViewSimple.Name = "listViewSimple";
             this.listViewSimple.ShowGroups = false;
@@ -803,8 +800,6 @@ namespace ObjectListViewDemo
             this.listViewComplex.GroupWithItemCountFormat = "{0} ({1} people)";
             this.listViewComplex.GroupWithItemCountSingularFormat = "{0} ({1} person)";
             this.listViewComplex.HideSelection = false;
-            this.listViewComplex.HighlightBackgroundColor = System.Drawing.Color.Empty;
-            this.listViewComplex.HighlightForegroundColor = System.Drawing.Color.Empty;
             this.listViewComplex.LargeImageList = this.imageList2;
             this.listViewComplex.Location = new System.Drawing.Point(6, 57);
             this.listViewComplex.Name = "listViewComplex";
@@ -874,7 +869,6 @@ namespace ObjectListViewDemo
             // 
             // moneyImageColumn
             // 
-            this.moneyImageColumn.AspectName = null;
             this.moneyImageColumn.IsEditable = false;
             this.moneyImageColumn.Text = "Salary";
             this.moneyImageColumn.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -882,7 +876,6 @@ namespace ObjectListViewDemo
             // 
             // daysSinceBirthColumn
             // 
-            this.daysSinceBirthColumn.AspectName = null;
             this.daysSinceBirthColumn.IsEditable = false;
             this.daysSinceBirthColumn.Text = "Days Since Birth";
             this.daysSinceBirthColumn.Width = 81;
@@ -1074,7 +1067,6 @@ namespace ObjectListViewDemo
             this.listViewDataSet.AllColumns.Add(this.heightColumn);
             this.listViewDataSet.AllColumns.Add(this.olvColumnGif);
             this.listViewDataSet.AllowColumnReorder = true;
-            this.listViewDataSet.AlternateRowBackColor = System.Drawing.Color.Empty;
             this.listViewDataSet.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -1348,7 +1340,6 @@ namespace ObjectListViewDemo
             this.listViewVirtual.AllColumns.Add(this.olvColumn9);
             this.listViewVirtual.AllColumns.Add(this.olvColumn10);
             this.listViewVirtual.AllowColumnReorder = true;
-            this.listViewVirtual.AlternateRowBackColor = System.Drawing.Color.Empty;
             this.listViewVirtual.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -1366,8 +1357,6 @@ namespace ObjectListViewDemo
             this.listViewVirtual.FullRowSelect = true;
             this.listViewVirtual.GridLines = true;
             this.listViewVirtual.HideSelection = false;
-            this.listViewVirtual.HighlightBackgroundColor = System.Drawing.Color.Empty;
-            this.listViewVirtual.HighlightForegroundColor = System.Drawing.Color.Empty;
             this.listViewVirtual.LargeImageList = this.imageList2;
             this.listViewVirtual.Location = new System.Drawing.Point(6, 48);
             this.listViewVirtual.Name = "listViewVirtual";
@@ -1614,7 +1603,6 @@ namespace ObjectListViewDemo
             this.listViewFiles.AllColumns.Add(this.olvColumnAttributes);
             this.listViewFiles.AllColumns.Add(this.treeColumnFileExtension);
             this.listViewFiles.AllowColumnReorder = true;
-            this.listViewFiles.AlternateRowBackColor = System.Drawing.Color.Empty;
             this.listViewFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -1628,8 +1616,6 @@ namespace ObjectListViewDemo
             this.listViewFiles.EmptyListMsg = "This folder is completely empty!";
             this.listViewFiles.EmptyListMsgFont = new System.Drawing.Font("Comic Sans MS", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.listViewFiles.HideSelection = false;
-            this.listViewFiles.HighlightBackgroundColor = System.Drawing.Color.Empty;
-            this.listViewFiles.HighlightForegroundColor = System.Drawing.Color.Empty;
             this.listViewFiles.LargeImageList = this.imageList2;
             this.listViewFiles.Location = new System.Drawing.Point(6, 83);
             this.listViewFiles.Name = "listViewFiles";
@@ -1674,7 +1660,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumnFileType
             // 
-            this.olvColumnFileType.AspectName = null;
             this.olvColumnFileType.DisplayIndex = 3;
             this.olvColumnFileType.IsTileViewColumn = true;
             this.olvColumnFileType.Text = "File Type";
@@ -1682,7 +1667,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumnAttributes
             // 
-            this.olvColumnAttributes.AspectName = null;
             this.olvColumnAttributes.FillsFreeSpace = true;
             this.olvColumnAttributes.IsEditable = false;
             this.olvColumnAttributes.MinimumWidth = 20;
@@ -2358,8 +2342,6 @@ namespace ObjectListViewDemo
             this.olvFastList.FullRowSelect = true;
             this.olvFastList.GridLines = true;
             this.olvFastList.HideSelection = false;
-            this.olvFastList.HighlightBackgroundColor = System.Drawing.Color.Empty;
-            this.olvFastList.HighlightForegroundColor = System.Drawing.Color.Empty;
             this.olvFastList.LargeImageList = this.imageList2;
             this.olvFastList.Location = new System.Drawing.Point(6, 47);
             this.olvFastList.Name = "olvFastList";
@@ -2430,7 +2412,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumn31
             // 
-            this.olvColumn31.AspectName = null;
             this.olvColumn31.IsEditable = false;
             this.olvColumn31.Text = "Salary";
             this.olvColumn31.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -2438,7 +2419,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumn32
             // 
-            this.olvColumn32.AspectName = null;
             this.olvColumn32.IsEditable = false;
             this.olvColumn32.Text = "Days Since Birth";
             this.olvColumn32.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -2535,7 +2515,6 @@ namespace ObjectListViewDemo
             this.treeListView.AllColumns.Add(this.treeColumnAttributes);
             this.treeListView.AllColumns.Add(this.treeColumnFileExtension);
             this.treeListView.AllowColumnReorder = true;
-            this.treeListView.AlternateRowBackColor = System.Drawing.Color.Empty;
             this.treeListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -2549,15 +2528,11 @@ namespace ObjectListViewDemo
             this.treeListView.EmptyListMsg = "This folder is completely empty!";
             this.treeListView.EmptyListMsgFont = new System.Drawing.Font("Comic Sans MS", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.treeListView.HideSelection = false;
-            this.treeListView.HighlightBackgroundColor = System.Drawing.Color.Empty;
-            this.treeListView.HighlightForegroundColor = System.Drawing.Color.Empty;
-            this.treeListView.LargeImageList = this.imageList2;
             this.treeListView.Location = new System.Drawing.Point(6, 55);
             this.treeListView.Name = "treeListView";
             this.treeListView.OwnerDraw = true;
             this.treeListView.ShowGroups = false;
             this.treeListView.Size = new System.Drawing.Size(774, 395);
-            this.treeListView.SmallImageList = this.imageList1;
             this.treeListView.TabIndex = 13;
             this.treeListView.UseCompatibleStateImageBehavior = false;
             this.treeListView.View = System.Windows.Forms.View.Details;
@@ -2597,7 +2572,6 @@ namespace ObjectListViewDemo
             // 
             // treeColumnFileType
             // 
-            this.treeColumnFileType.AspectName = null;
             this.treeColumnFileType.DisplayIndex = 3;
             this.treeColumnFileType.IsTileViewColumn = true;
             this.treeColumnFileType.Text = "File Type";
@@ -2605,7 +2579,6 @@ namespace ObjectListViewDemo
             // 
             // treeColumnAttributes
             // 
-            this.treeColumnAttributes.AspectName = null;
             this.treeColumnAttributes.FillsFreeSpace = true;
             this.treeColumnAttributes.IsEditable = false;
             this.treeColumnAttributes.MinimumWidth = 20;
@@ -2793,61 +2766,51 @@ namespace ObjectListViewDemo
             // 
             // olvColumn24
             // 
-            this.olvColumn24.AspectName = null;
             this.olvColumn24.DisplayIndex = 5;
             this.olvColumn24.IsVisible = false;
             // 
             // olvColumn25
             // 
-            this.olvColumn25.AspectName = null;
             this.olvColumn25.DisplayIndex = 6;
             this.olvColumn25.IsVisible = false;
             // 
             // olvColumn20
             // 
-            this.olvColumn20.AspectName = null;
             this.olvColumn20.DisplayIndex = 2;
             this.olvColumn20.IsVisible = false;
             // 
             // olvColumn17
             // 
-            this.olvColumn17.AspectName = null;
             this.olvColumn17.DisplayIndex = 0;
             this.olvColumn17.Text = "Zero";
             // 
             // olvColumn13
             // 
-            this.olvColumn13.AspectName = null;
             this.olvColumn13.DisplayIndex = 1;
             this.olvColumn13.Text = "Two";
             // 
             // olvColumn14
             // 
-            this.olvColumn14.AspectName = null;
             this.olvColumn14.DisplayIndex = 2;
             this.olvColumn14.Text = "Three";
             // 
             // olvColumn15
             // 
-            this.olvColumn15.AspectName = null;
             this.olvColumn15.DisplayIndex = 3;
             this.olvColumn15.Text = "Four";
             // 
             // olvColumn6
             // 
-            this.olvColumn6.AspectName = null;
             this.olvColumn6.DisplayIndex = 0;
             // 
             // olvColumn11
             // 
-            this.olvColumn11.AspectName = null;
             this.olvColumn11.DisplayIndex = 1;
             this.olvColumn11.IsVisible = false;
             this.olvColumn11.Text = "One";
             // 
             // olvColumn16
             // 
-            this.olvColumn16.AspectName = null;
             this.olvColumn16.DisplayIndex = 4;
             this.olvColumn16.IsVisible = false;
             this.olvColumn16.Text = "Five";
@@ -2862,7 +2825,6 @@ namespace ObjectListViewDemo
             this.objectListView1.AllColumns.Add(this.olvColumn40);
             this.objectListView1.AllColumns.Add(this.treeColumnFileExtension);
             this.objectListView1.AllowColumnReorder = true;
-            this.objectListView1.AlternateRowBackColor = System.Drawing.Color.Empty;
             this.objectListView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -2876,8 +2838,6 @@ namespace ObjectListViewDemo
             this.objectListView1.EmptyListMsg = "This folder is completely empty!";
             this.objectListView1.EmptyListMsgFont = new System.Drawing.Font("Comic Sans MS", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.objectListView1.HideSelection = false;
-            this.objectListView1.HighlightBackgroundColor = System.Drawing.Color.Empty;
-            this.objectListView1.HighlightForegroundColor = System.Drawing.Color.Empty;
             this.objectListView1.LargeImageList = this.imageList2;
             this.objectListView1.Location = new System.Drawing.Point(6, 83);
             this.objectListView1.Name = "objectListView1";
@@ -2921,7 +2881,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumn39
             // 
-            this.olvColumn39.AspectName = null;
             this.olvColumn39.DisplayIndex = 3;
             this.olvColumn39.IsTileViewColumn = true;
             this.olvColumn39.Text = "File Type";
@@ -2929,7 +2888,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumn40
             // 
-            this.olvColumn40.AspectName = null;
             this.olvColumn40.FillsFreeSpace = true;
             this.olvColumn40.IsEditable = false;
             this.olvColumn40.MinimumWidth = 20;
