@@ -5,6 +5,7 @@
  * Date: 2007-11-01 11:15 AM
  *
  * Change log:
+ * 2008-12-16  JPP  - Hide all obsolete properties from the code generator
  * v2.0
  * The interaction with the IDE was completely rewritten in this version.
  * Old code should still work, but the IDE will not recognise the old configurations.
@@ -330,7 +331,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// What font will be used to draw the text of the list?
         /// </summary>
-        [Browsable(false)]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Font ListFont
         {
             get { return this.CellFormat.Font; }
@@ -342,7 +343,7 @@ namespace BrightIdeasSoftware
         /// If this is null, no grid will be drawn
         /// </summary>
         /// <remarks>This is just a conviencence wrapper around CellFormat.SetBorderPen</remarks>
-        [Browsable(false)]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Pen ListGridPen
         {
             get { return this.CellFormat.GetBorderPen(Sides.Top); }
@@ -444,7 +445,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Category("Appearance - Watermark"),
         Description("What foregroundColor should be used for the watermark?"),
-        DefaultValue(typeof(Color), "Empty")]
+        DefaultValue(typeof(Color), "")]
         public Color WatermarkColor
         {
             get { return watermarkColor; }
@@ -1105,7 +1106,7 @@ namespace BrightIdeasSoftware
         /// What color will all the borders be drawn in? 
         /// </summary>
         /// <remarks>This is just a conviencence wrapper around ListGridPen</remarks>
-        [Browsable(false), Obsolete("Use ListGridPen instead")]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Obsolete("Use ListGridPen instead")]
         public Color ListGridColor
         {
             get
@@ -1412,7 +1413,7 @@ namespace BrightIdeasSoftware
         /// If this is set, at least this much vertical space will be reserved for the text,
         /// even if the text is smaller.
         /// </summary>
-        [Browsable(false)]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public float MinimumTextHeight
         {
             get { return minimumTextHeight; }
@@ -1525,7 +1526,7 @@ namespace BrightIdeasSoftware
         /// What color will be used to draw the background?
         /// This is a convience method used by the IDE.
         /// </summary>
-        [Browsable(false), Obsolete("Use BackgroundBrush instead")]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Obsolete("Use BackgroundBrush instead")] 
         public Color BackgroundColor
         {
             get
@@ -1545,7 +1546,7 @@ namespace BrightIdeasSoftware
         /// What color will be used to draw the text?
         /// This is a convience method. Programmers should call TextBrush directly.
         /// </summary>
-        [Browsable(false)]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Color TextColor
         {
             get
@@ -1568,49 +1569,49 @@ namespace BrightIdeasSoftware
         // All of these attributes are solely to make them appear in the IDE
         // When programming by hand, use Get/SetBorderPen() rather than these methods.
 
-        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Obsolete("Use Get/SetBorderPen() instead")]
         public float TopBorderWidth
         {
             get { return this.GetBorderWidth(Sides.Top); }
             set { this.SetBorder(Sides.Top, value, this.GetBorderBrush(Sides.Top)); }
         }
-        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Obsolete("Use Get/SetBorderPen() instead")]
         public float LeftBorderWidth
         {
             get { return this.GetBorderWidth(Sides.Left); }
             set { this.SetBorder(Sides.Left, value, this.GetBorderBrush(Sides.Left)); }
         }
-        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Obsolete("Use Get/SetBorderPen() instead")]
         public float BottomBorderWidth
         {
             get { return this.GetBorderWidth(Sides.Bottom); }
             set { this.SetBorder(Sides.Bottom, value, this.GetBorderBrush(Sides.Bottom)); }
         }
-        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Obsolete("Use Get/SetBorderPen() instead")]
         public float RightBorderWidth
         {
             get { return this.GetBorderWidth(Sides.Right); }
             set { this.SetBorder(Sides.Right, value, this.GetBorderBrush(Sides.Right)); }
         }
-        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Obsolete("Use Get/SetBorderPen() instead")]
         public Color TopBorderColor
         {
             get { return this.GetSolidBorderColor(Sides.Top); }
             set { this.SetBorder(Sides.Top, this.GetBorderWidth(Sides.Top), new SolidBrush(value)); }
         }
-        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Obsolete("Use Get/SetBorderPen() instead")]
         public Color LeftBorderColor
         {
             get { return this.GetSolidBorderColor(Sides.Left); }
             set { this.SetBorder(Sides.Left, this.GetBorderWidth(Sides.Left), new SolidBrush(value)); }
         }
-        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Obsolete("Use Get/SetBorderPen() instead")]
         public Color BottomBorderColor
         {
             get { return this.GetSolidBorderColor(Sides.Bottom); }
             set { this.SetBorder(Sides.Bottom, this.GetBorderWidth(Sides.Bottom), new SolidBrush(value)); }
         }
-        [Browsable(false), Obsolete("Use Get/SetBorderPen() instead")]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Obsolete("Use Get/SetBorderPen() instead")]
         public Color RightBorderColor
         {
             get { return this.GetSolidBorderColor(Sides.Right); }

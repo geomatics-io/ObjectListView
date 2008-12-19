@@ -110,7 +110,7 @@ namespace BrightIdeasSoftware
                 return new SolidBrush(this.Color);
         }
 
-        [DefaultValue(typeof(Color), "Empty")]
+        [DefaultValue(typeof(Color), "")]
         public Color Color
         {
             get { return color; }
