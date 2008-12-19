@@ -5,6 +5,9 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2008-12-19  JPP  - Fixed bug with space filling columns and layout events
+ *                  - Fixed RowHeight so that it only changes the row height, not the width of the images.
+ * v2.0
  * 2008-12-10  JPP  - Handle Backspace key. Resets the seach-by-typing state without delay
  *                  - Made some changes to the column collection editor to try and avoid
  *                    the multiple column generation problem.
@@ -3019,7 +3022,10 @@ namespace BrightIdeasSoftware
 
         void HandleLayout(object sender, LayoutEventArgs e)
         {
-            this.ResizeFreeSpaceFillingColumns();
+            // We have to delay executing the recalculation of the columns, since virtual lists
+            // get terribly confused if we resize the column widths during this event.
+            if (this.Created)
+                this.BeginInvoke(new MethodInvoker(this.ResizeFreeSpaceFillingColumns));
         }
 
         /// <summary>
@@ -3980,8 +3986,10 @@ namespace BrightIdeasSoftware
             // If a row height hasn't been set, or an image list has been give which is the required size, just assign it
             if (rowHeight == -1 || (this.shadowedImageList != null && this.shadowedImageList.ImageSize.Height == rowHeight))
                 base.SmallImageList = this.shadowedImageList;
-            else
-                base.SmallImageList = this.MakeResizedImageList(rowHeight, shadowedImageList);
+            else {
+                int width = (this.shadowedImageList == null ? 16 : this.shadowedImageList.ImageSize.Width);
+                base.SmallImageList = this.MakeResizedImageList(width, rowHeight, shadowedImageList);
+            }
         }
 
         /// <summary>
@@ -3991,10 +3999,10 @@ namespace BrightIdeasSoftware
         /// <param name="height">Height and width of the new images</param>
         /// <param name="source">Source of the images (can be null)</param>
         /// <returns>A new image list</returns>
-        private ImageList MakeResizedImageList(int height, ImageList source)
+        private ImageList MakeResizedImageList(int width, int height, ImageList source)
         {
             ImageList il = new ImageList();
-            il.ImageSize = new Size(height, height);
+            il.ImageSize = new Size(width, height);
 
             // If there's nothing to copy, just return the new list
             if (source == null)
@@ -4005,7 +4013,7 @@ namespace BrightIdeasSoftware
 
             // Fill the imagelist with resized copies from the source
             for (int i = 0; i < source.Images.Count; i++) {
-                Bitmap bm = this.MakeResizedImage(height, source.Images[i], source.TransparentColor);
+                Bitmap bm = this.MakeResizedImage(width, height, source.Images[i], source.TransparentColor);
                 il.Images.Add(bm);
             }
 
@@ -4024,9 +4032,9 @@ namespace BrightIdeasSoftware
         /// <param name="image">Image to be centred</param>
         /// <param name="transparent">The background color</param>
         /// <returns>A new bitmap</returns>
-        private Bitmap MakeResizedImage(int height, Image image, Color transparent)
+        private Bitmap MakeResizedImage(int width, int height, Image image, Color transparent)
         {
-            Bitmap bm = new Bitmap(height, height);
+            Bitmap bm = new Bitmap(width, height);
             Graphics g = Graphics.FromImage(bm);
             g.Clear(transparent);
             int x = Math.Max(0, (bm.Size.Width - image.Size.Width) / 2);
