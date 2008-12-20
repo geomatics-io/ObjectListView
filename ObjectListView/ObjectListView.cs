@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2008-12-20  JPP  - Fixed bug with group comparisons when a group key was null (SF#2445761)
  * 2008-12-19  JPP  - Fixed bug with space filling columns and layout events
  *                  - Fixed RowHeight so that it only changes the row height, not the width of the images.
  * v2.0
@@ -1572,11 +1573,9 @@ namespace BrightIdeasSoftware
             int dummy = this.Items.Count;
 
             // Separate the list view items into groups, using the group key as the descrimanent
-            Dictionary<object, List<OLVListItem>> map = new Dictionary<object, List<OLVListItem>>();
+            NullableDictionary<object, List<OLVListItem>> map = new NullableDictionary<object, List<OLVListItem>>();
             foreach (OLVListItem olvi in this.Items) {
                 object key = column.GetGroupKey(olvi.RowObject);
-                if (key == null)
-                    key = "{null}"; // null can't be used as the key for a dictionary
                 if (!map.ContainsKey(key))
                     map[key] = new List<OLVListItem>();
                 map[key].Add(olvi);
@@ -5374,7 +5373,10 @@ namespace BrightIdeasSoftware
         public string ConvertGroupKeyToTitle(object value)
         {
             if (this.groupKeyToTitleConverter == null)
-                return this.ValueToString(value);
+                if (value == null)
+                    return "{null}";
+                else
+                    return this.ValueToString(value);
             else
                 return this.groupKeyToTitleConverter(value);
         }
@@ -5712,4 +5714,57 @@ namespace BrightIdeasSoftware
     }
 
     #endregion
+
+    /// <summary>
+    /// A simple-minded implementation of a Dictionary that can handle null as a key. 
+    /// </summary>
+    /// <typeparam name="TKey">The type of the dictionary key</typeparam>
+    /// <typeparam name="TValue">The type of the values to be stored</typeparam>
+    /// <remarks>This is not a full implementation and is only meant to handle
+    /// collecting groups by their keys, since groups can have null as a key value.</remarks>
+    internal class NullableDictionary<TKey, TValue> : Dictionary<TKey, TValue>
+    {
+        private bool hasNullKey;
+        private TValue nullValue;
+
+        new public TValue this[TKey key]
+        {
+            get
+            {
+                if (key == null) {
+                    if (hasNullKey)
+                        return nullValue;
+                    else 
+                        throw new KeyNotFoundException();
+                } else
+                    return base[key];
+            }
+            set
+            {
+                if (key == null) {
+                    this.hasNullKey = true;
+                    this.nullValue = value;
+                } else
+                    base[key] = value;
+            }
+        }
+
+        new public bool ContainsKey(TKey key)
+        {
+            if (key == null)
+                return this.hasNullKey;
+            else
+                return base.ContainsKey(key);
+        }
+
+        new public IList Keys
+        {
+            get {
+                ArrayList list = new ArrayList(base.Keys);
+                if (this.hasNullKey)
+                    list.Add(null);
+                return list;
+            }
+        }
+    }
 }
