@@ -5,6 +5,7 @@
  * Date: 25/11/2008 17:15 
  *
  * Change log:
+ * 2008-12-20  JPP  - Fixed bug with group comparisons when a group key was null (SF#2445761)
  * 2008-11-25  JPP  Initial version
  *
  * TO DO:
@@ -133,7 +134,7 @@ namespace BrightIdeasSoftware
             // since comparing to that value always produces a type exception.
             int result;
             IComparable comparable = x.Tag as IComparable;
-            if (comparable != null && y.Tag != System.DBNull.Value)
+            if (comparable != null && y.Tag != null && y.Tag != System.DBNull.Value)
                 result = comparable.CompareTo(y.Tag);
             else
                 result = String.Compare(x.Header, y.Header, StringComparison.CurrentCultureIgnoreCase);
