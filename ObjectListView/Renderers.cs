@@ -5,6 +5,10 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2008-12-29   JPP  - Render text correctly when HideSelection is true.
+ * 2008-12-26   JPP  - BaseRenderer now works correctly in all Views
+ * 2008-12-23   JPP  - Fixed two small bugs in BarRenderer
+ * v2.0
  * 2008-10-26   JPP  - Don't owner draw when in Design mode
  * 2008-09-27   JPP  - Separated from ObjectListView.cs
  * 
@@ -183,7 +187,7 @@ namespace BrightIdeasSoftware
         {
             get {
                 if (this.font == null) {
-                    if (this.ListItem.UseItemStyleForSubItems)
+                    if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
                         return this.ListItem.Font;
                     else
                         return this.SubItem.Font;
@@ -320,7 +324,7 @@ namespace BrightIdeasSoftware
                     if (!this.ListView.HideSelection)
                         return SystemColors.Control; //TODO: What color should this be?
             }
-            if (this.ListItem.UseItemStyleForSubItems)
+            if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
                 return this.ListItem.BackColor;
             else
                 return this.SubItem.BackColor;
@@ -335,7 +339,7 @@ namespace BrightIdeasSoftware
             if (this.IsItemSelected && (this.Column.Index == 0 || this.ListView.FullRowSelect))
                 return this.ListView.HighlightBackgroundColorOrDefault;
             else
-                if (this.ListItem.UseItemStyleForSubItems)
+                if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
                     return this.ListItem.BackColor;
                 else
                     return this.SubItem.BackColor;
@@ -347,13 +351,17 @@ namespace BrightIdeasSoftware
         /// <returns>The text color of the subitem</returns>
         protected Color GetForegroundColor()
         {
-            if (this.IsItemSelected && (this.Column.Index == 0 || this.ListView.FullRowSelect))
-                return this.ListView.HighlightForegroundColorOrDefault;
-            else
-                if (this.ListItem.UseItemStyleForSubItems)
-                    return this.ListItem.ForeColor;
+            if (this.IsItemSelected && (this.Column.Index == 0 || this.ListView.FullRowSelect)) {
+                if (this.ListView.Focused)
+                    return this.ListView.HighlightForegroundColorOrDefault;
                 else
-                    return this.SubItem.ForeColor;
+                    if (!this.ListView.HideSelection)
+                        return SystemColors.ControlText; //TODO: What color should this be?
+            } 
+            if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
+                return this.ListItem.ForeColor;
+            else
+                return this.SubItem.ForeColor;
         }
 
 
@@ -557,8 +565,8 @@ namespace BrightIdeasSoftware
                     top += ((r.Height - image.Size.Height) / 2);
 
                 g.DrawImageUnscaled(image, r.X, top);
-                r.X += image.Width;
-                r.Width -= image.Width;
+                r.X += image.Width + 2;
+                r.Width -= image.Width + 2;
             }
 
             StringFormat fmt = new StringFormat();
@@ -1228,7 +1236,7 @@ namespace BrightIdeasSoftware
 
             Rectangle frameRect = Rectangle.Inflate(r, 0 - this.Padding, 0 - this.Padding);
             frameRect.Width = Math.Min(frameRect.Width, this.MaximumWidth);
-            frameRect.Height = Math.Min(frameRect.Width, this.MaximumHeight);
+            frameRect.Height = Math.Min(frameRect.Height, this.MaximumHeight);
             frameRect = this.AlignRectangle(r, frameRect);
 
             // Convert our aspect to a numeric value
@@ -1249,6 +1257,8 @@ namespace BrightIdeasSoftware
             } else {
                 g.FillRectangle(this.BackgroundBrush, frameRect);
                 if (fillRect.Width > 0) {
+                    // FillRectangle fills inside the given rectangle, so expand it a little
+                    fillRect.Width++;
                     fillRect.Height++;
                     if (this.StartColor == Color.Empty)
                         g.FillRectangle(this.Brush, fillRect);
