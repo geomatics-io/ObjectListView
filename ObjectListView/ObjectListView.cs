@@ -893,6 +893,7 @@ namespace BrightIdeasSoftware
         /// your spouse or your pet if you use it.</para>
         /// </remarks>
         [Category("Appearance"),
+         Description("Specify the height of each row in pixels. -1 indicates default height"),
          DefaultValue(-1)]
         public int RowHeight
         {
@@ -1576,6 +1577,8 @@ namespace BrightIdeasSoftware
             NullableDictionary<object, List<OLVListItem>> map = new NullableDictionary<object, List<OLVListItem>>();
             foreach (OLVListItem olvi in this.Items) {
                 object key = column.GetGroupKey(olvi.RowObject);
+                //if (key == null)
+                //    key = key; // null can't be used as the key for a dictionary
                 if (!map.ContainsKey(key))
                     map[key] = new List<OLVListItem>();
                 map[key].Add(olvi);
