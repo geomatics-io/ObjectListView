@@ -576,6 +576,9 @@ namespace ObjectListViewDemo
                 return new ArrayList(dir.GetFileSystemInfos());
             };
 
+            // You can change the way the connection lines are drawn by changing the pen
+            //((TreeListView.TreeRenderer)this.treeListView.TreeColumnRenderer).LinePen = Pens.Plum;
+
             //-------------------------------------------------------------------
             // Eveything after this is the same as the Explorer example tab --
             // nothing specific to the TreeListView. It doesn't have the grouping
