@@ -5,6 +5,13 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2008-12-22  JPP  - Added UseWaitCursorWhenExpanding property
+ *                  - Made TreeRenderer public so that it can be subclassed
+ *                  - Added LinePen property to TreeRenderer to allow the connection drawing 
+ *                    pen to be changed 
+ *                  - Fixed some rendering issues where the text highlight rect was miscalculated
+ *                  - Fixed connection line problem when there is only a single root
+ * v2.0
  * 2008-12-10  JPP  - Expand/collapse with mouse now works when there is no SmallImageList.
  * 2008-12-01  JPP  - Search-by-typing now works.
  * 2008-11-26  JPP  - Corrected calculation of expand/collapse icon (SF#2338819)
@@ -157,6 +164,22 @@ namespace BrightIdeasSoftware
             }
         }
         private BaseRenderer treeRenderer;
+
+        /// <summary>
+        /// Should a wait cursor be shown when a branch is being expanded?
+        /// </summary>
+        /// <remarks>When this is true, the wait cursor will be shown whilst the children of the 
+        /// branch are being fetched. If the children of the branch have already been cached, 
+        /// the cursor will not change.</remarks>
+        [Category("Behavior - ObjectListView"),
+        Description("Should a wait cursor be shown when a branch is being expaned?"),
+        DefaultValue(true)]
+        public bool UseWaitCursorWhenExpanding
+        {
+            get { return useWaitCursorWhenExpanding; }
+            set { useWaitCursorWhenExpanding = value; }
+        }
+        private bool useWaitCursorWhenExpanding = true;
 	
         /// <summary>
         /// The model that is used to manage the tree structure
@@ -438,6 +461,7 @@ namespace BrightIdeasSoftware
             if (!r.Contains(x, y))
                 return false;
 
+            this.PossibleFinishCellEditing();
             this.ToggleExpansion(olvItem.RowObject);
             return true;
         }
@@ -539,18 +563,6 @@ namespace BrightIdeasSoftware
 
             //------------------------------------------------------------------------------------------
             // Properties
-
-            /// <summary>
-            /// Get or return the top level model objects in the tree
-            /// </summary>
-            public IEnumerable RootObjects
-            {
-                get { return this.trunk.Children; }
-                set { 
-                    this.trunk.Children = value;
-                    this.RebuildList();
-                }
-            }
 	
             /// <summary>
             /// This is the delegate that will be used to decide if a model object can be expanded.
@@ -573,7 +585,28 @@ namespace BrightIdeasSoftware
                 set { childrenGetter = value; }
             }
             private ChildrenGetterDelegate childrenGetter;
-	
+
+            /// <summary>
+            /// Get or return the top level model objects in the tree
+            /// </summary>
+            public IEnumerable RootObjects
+            {
+                get { return this.trunk.Children; }
+                set
+                {
+                    this.trunk.Children = value;
+                    this.RebuildList();
+                }
+            }
+
+            /// <summary>
+            /// What tree view is this Tree the model for?
+            /// </summary>
+            public TreeListView TreeView
+            {
+                get { return this.treeView; }
+            }
+
             //------------------------------------------------------------------------------------------
             // Commands
 
@@ -705,8 +738,10 @@ namespace BrightIdeasSoftware
             internal void RebuildList()
             {
                 this.objectList = ArrayList.Adapter(this.trunk.Flatten());
-                if (this.trunk.ChildBranches.Count > 0)
+                if (this.trunk.ChildBranches.Count > 0) {
                     this.trunk.ChildBranches[0].IsFirstBranch = true;
+                    this.trunk.ChildBranches[0].IsOnlyBranch = (this.trunk.ChildBranches.Count == 1);
+                }
                 this.RebuildObjectMap(0);
             }
 
@@ -834,7 +869,8 @@ namespace BrightIdeasSoftware
             [Flags]
             public enum BranchFlags {
                 FirstBranch = 1,
-                LastChild
+                LastChild = 2,
+                OnlyBranch = 4
             }
 
             public Branch(Branch parent, Tree tree, Object model)
@@ -958,14 +994,34 @@ namespace BrightIdeasSoftware
             /// </summary>
             public bool IsLastChild
             {
-                get { 
-                    return ((this.flags & Branch.BranchFlags.LastChild) != 0); 
+                get
+                {
+                    return ((this.flags & Branch.BranchFlags.LastChild) != 0);
                 }
-                set { 
+                set
+                {
                     if (value)
                         this.flags |= Branch.BranchFlags.LastChild;
                     else
-                        this.flags &= ~Branch.BranchFlags.LastChild; 
+                        this.flags &= ~Branch.BranchFlags.LastChild;
+                }
+            }
+
+            /// <summary>
+            /// Return true if this branch is the only top level branch
+            /// </summary>
+            public bool IsOnlyBranch
+            {
+                get
+                {
+                    return ((this.flags & Branch.BranchFlags.OnlyBranch) != 0);
+                }
+                set
+                {
+                    if (value)
+                        this.flags |= Branch.BranchFlags.OnlyBranch;
+                    else
+                        this.flags &= ~Branch.BranchFlags.OnlyBranch;
                 }
             }
 	
@@ -1003,8 +1059,18 @@ namespace BrightIdeasSoftware
                 if (this.alreadyHasChildren)
                     return;
 
-                if (this.Tree.ChildrenGetter != null)
-                    this.Children = this.Tree.ChildrenGetter(this.Model);
+                if (this.Tree.ChildrenGetter != null) {
+                    Cursor previous = Cursor.Current;
+                    try {
+                        if (this.Tree.TreeView.UseWaitCursorWhenExpanding)
+                            Cursor.Current = Cursors.WaitCursor;
+                        this.Children = this.Tree.ChildrenGetter(this.Model);
+                    }
+                    finally {
+                        if (this.Tree.TreeView.UseWaitCursorWhenExpanding)
+                            Cursor.Current = previous;
+                    }
+                }
 
                 this.alreadyHasChildren = true;
             }
@@ -1104,18 +1170,34 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// This class handles drawing the tree structure of the primary column.
         /// </summary>
-        internal class TreeRenderer : BaseRenderer
+        public class TreeRenderer : BaseRenderer
         {
+            public TreeRenderer()
+            {
+                this.LinePen =  new Pen(Color.Blue, 1.0f);
+                this.LinePen.DashStyle = DashStyle.Dot;
+            }
+
             /// <summary>
             /// Return the branch that the renderer is currently drawing.
             /// </summary>
-            protected Branch Branch
+            private Branch Branch
             {
                 get {
                     return this.TreeListView.TreeModel.GetBranch(this.RowObject);
                 }
             }
 
+            /// <summary>
+            /// Return the pen that will be used to draw the lines between branches
+            /// </summary>
+            public Pen LinePen
+            {
+                get { return linePen; }
+                set { linePen = value; }
+            }
+            private Pen linePen;
+	
             /// <summary>
             /// Return the TreeListView for which the renderer is being used.
             /// </summary>
@@ -1134,7 +1216,7 @@ namespace BrightIdeasSoftware
             /// <summary>
             /// How many pixels will be reserved for each level of indentation?
             /// </summary>
-            public static int PIXELS_PER_LEVEL = 16;
+            public static int PIXELS_PER_LEVEL = 16 + 1;
 
             /// <summary>
             /// The real work of drawing the tree is done in this method
@@ -1148,8 +1230,7 @@ namespace BrightIdeasSoftware
                 Branch br = this.Branch;
 
                 if (this.IsShowLines)
-                    using (Pen p = this.GetLinePen()) 
-                        this.DrawLines(g, r, p, br);
+                    this.DrawLines(g, r, this.LinePen, br);
 
                 if (br.CanExpand) {
                     Rectangle r2 = r;
@@ -1170,14 +1251,7 @@ namespace BrightIdeasSoftware
                 this.DrawImageAndText(g, r);
             }
 
-            protected Pen GetLinePen()
-            {
-                Pen pen =  new Pen(Color.Blue, 1.0f);
-                pen.DashStyle = DashStyle.Dot;
-                return pen;
-            }
-
-            protected void DrawLines(Graphics g, Rectangle r, Pen p, Branch br)
+            private void DrawLines(Graphics g, Rectangle r, Pen p, Branch br)
             {
                 Rectangle r2 = r;
                 r2.Width = PIXELS_PER_LEVEL;
@@ -1185,7 +1259,7 @@ namespace BrightIdeasSoftware
                 // Vertical lines have to start on even points, otherwise the dotted line looks wrong.
                 // This isn't need if pen isn't dotted.
                 int top = r2.Top;
-                if ((top & 1) == 1)
+                if (p.DashStyle == DashStyle.Dot && (top & 1) == 1)
                     top += 1;
 
                 // Draw lines for ancestors
@@ -1205,10 +1279,11 @@ namespace BrightIdeasSoftware
                 // Horizontal line first
                 g.DrawLine(p, midX, midY, r2.Right, midY);
                 // Vertical line second
-                if (br.IsFirstBranch) 
-                    g.DrawLine(p, midX, midY, midX, r2.Bottom);
-                else {
-                    if (br.IsLastChild) 
+                if (br.IsFirstBranch) {
+                    if (!br.IsOnlyBranch)
+                        g.DrawLine(p, midX, midY, midX, r2.Bottom);
+                }  else {
+                    if (br.IsLastChild)
                         g.DrawLine(p, midX, top, midX, midY);
                     else
                         g.DrawLine(p, midX, top, midX, r2.Bottom);
