@@ -86,7 +86,7 @@ namespace BrightIdeasSoftware
         /// Return the model object that is checked, if only one row is checked.
         /// If zero rows are checked, or more than one row, null is returned.
         /// </summary>
-        public T CheckedObject
+        public virtual T CheckedObject
         {
             get { return (T)this.olv.CheckedObject; }
         }
@@ -94,7 +94,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Return the list of all the checked model objects
         /// </summary>
-        public IList<T> CheckedObjects
+        public virtual IList<T> CheckedObjects
         {
             get {
                 IList checkedObjects = this.olv.CheckedObjects;
@@ -110,7 +110,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// The ObjectListView that is being wrapped
         /// </summary>
-        public ObjectListView ListView
+        public virtual ObjectListView ListView
         {
             get { return olv; }
             set { olv = value; }
@@ -121,7 +121,7 @@ namespace BrightIdeasSoftware
         /// Return the model object that is selected, if only one row is selected.
         /// If zero rows are selected, or more than one row, null is returned.
         /// </summary>
-        public T SelectedObject
+        public virtual T SelectedObject
         {
             get { return (T)this.olv.GetSelectedObject(); }
             set { this.olv.SelectObject(value, true); }
@@ -130,7 +130,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// The list of model objects that are selected.
         /// </summary>
-        public IList<T> SelectedObjects
+        public virtual IList<T> SelectedObjects
         {
             get {
                 List<T> objects = new List<T>(this.olv.SelectedIndices.Count);
@@ -150,7 +150,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="i">The index of the column</param>
         /// <returns>A typed column or null</returns>
-        public TypedColumn<T> GetColumn(int i)
+        public virtual TypedColumn<T> GetColumn(int i)
         {
             return new TypedColumn<T>(this.olv.GetColumn(i));
         }
@@ -160,7 +160,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="i">The name of the column</param>
         /// <returns>A typed column or null</returns>
-        public TypedColumn<T> GetColumn(string name)
+        public virtual TypedColumn<T> GetColumn(string name)
         {
             return new TypedColumn<T>(this.olv.GetColumn(name));
         }
@@ -170,7 +170,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="index">The index of the model object</param>
         /// <returns>The model object or null</returns>
-        public T GetModelObject(int index)
+        public virtual T GetModelObject(int index)
         {
             return (T)this.olv.GetModelObject(index);
         }
@@ -180,7 +180,7 @@ namespace BrightIdeasSoftware
 
         public delegate CheckState TypedCheckStateGetterDelegate(T rowObject);
 
-        public TypedCheckStateGetterDelegate CheckStateGetter
+        public virtual TypedCheckStateGetterDelegate CheckStateGetter
         {
             get { return checkStateGetter; }
             set {
@@ -197,7 +197,7 @@ namespace BrightIdeasSoftware
 
         public delegate bool TypedBooleanCheckStateGetterDelegate(T rowObject);
 
-        public TypedBooleanCheckStateGetterDelegate BooleanCheckStateGetter
+        public virtual TypedBooleanCheckStateGetterDelegate BooleanCheckStateGetter
         {
             set {
                 if (value == null)
@@ -211,7 +211,7 @@ namespace BrightIdeasSoftware
 
         public delegate CheckState TypedCheckStatePutterDelegate(T rowObject, CheckState newValue);
 
-        public TypedCheckStatePutterDelegate CheckStatePutter
+        public virtual TypedCheckStatePutterDelegate CheckStatePutter
         {
             get { return checkStatePutter; }
             set {
@@ -228,7 +228,7 @@ namespace BrightIdeasSoftware
 
         public delegate bool TypedBooleanCheckStatePutterDelegate(T rowObject, bool newValue);
 
-        public TypedBooleanCheckStatePutterDelegate BooleanCheckStatePutter
+        public virtual TypedBooleanCheckStatePutterDelegate BooleanCheckStatePutter
         {
             set {
                 if (value == null)
@@ -242,7 +242,7 @@ namespace BrightIdeasSoftware
 
         public delegate String TypedCellToolTipGetterDelegate(OLVColumn column, T modelObject);
 
-        public TypedCellToolTipGetterDelegate CellToolTipGetter
+        public virtual TypedCellToolTipGetterDelegate CellToolTipGetter
         {
             set {
                 if (value == null)
@@ -254,8 +254,9 @@ namespace BrightIdeasSoftware
             }
         }
 
-        public HeaderToolTipGetterDelegate HeaderToolTipGetter
+        public virtual HeaderToolTipGetterDelegate HeaderToolTipGetter
         {
+            get { return this.olv.HeaderToolTipGetter; }
             set { this.olv.HeaderToolTipGetter = value; }
         }
 
@@ -265,7 +266,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// This method will generate AspectGetters for any column that has an AspectName.
         /// </summary>
-        public void GenerateAspectGetters()
+        public virtual void GenerateAspectGetters()
         {
             for (int i = 0; i < this.ListView.Columns.Count; i++)
                 this.GetColumn(i).GenerateAspectGetter();
