@@ -1,3 +1,31 @@
+/*
+ * DataListView - A data-bindable listview
+ *
+ * Author: Phillip Piper
+ * Date: 27/09/2008 9:15 AM
+ *
+ * Change log:
+ * 2009-01-07   JPP  - Made all public and protected methods virtual 
+ * 2008-10-03   JPP  - Separated from ObjectListView.cs
+ * 
+ * Copyright (C) 2006-2008 Phillip Piper
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
+ */
+
 using System;
 using System.Collections;
 using System.ComponentModel;
@@ -56,7 +84,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Category("Data"),
         TypeConverter("System.Windows.Forms.Design.DataSourceConverter, System.Design")]
-        public Object DataSource
+        public virtual Object DataSource
         {
             get { return dataSource; }
             set {
@@ -76,7 +104,7 @@ namespace BrightIdeasSoftware
         [Category("Data"),
          Editor("System.Windows.Forms.Design.DataMemberListEditor, System.Design", typeof(UITypeEditor)),
          DefaultValue("")]
-        public string DataMember
+        public virtual string DataMember
         {
             get { return dataMember; }
             set {
@@ -97,7 +125,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Our data source has changed. Figure out how to handle the new source
         /// </summary>
-        protected void RebindDataSource()
+        protected virtual void RebindDataSource()
         {
             RebindDataSource(false);
         }
@@ -105,7 +133,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Our data source has changed. Figure out how to handle the new source
         /// </summary>
-        protected void RebindDataSource(bool forceDataInitialization)
+        protected virtual void RebindDataSource(bool forceDataInitialization)
         {
             if (this.BindingContext == null)
                 return;
@@ -147,7 +175,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// The data source for this control has changed. Reconfigure the control for the new source
         /// </summary>
-        protected void InitializeDataSource()
+        protected virtual void InitializeDataSource()
         {
             if (this.Frozen || this.currencyManager == null)
                 return;
@@ -171,7 +199,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// <para>This method will not replace existing columns.</para>
         /// </remarks>
-        protected void CreateColumnsFromSource()
+        protected virtual void CreateColumnsFromSource()
         {
             if (this.currencyManager == null || this.Columns.Count != 0)
                 return;
@@ -209,7 +237,7 @@ namespace BrightIdeasSoftware
         /// Generate aspect getters and putters for any columns that are missing them (and for which we have
         /// enough information to actually generate a getter)
         /// </summary>
-        protected void CreateMissingAspectGettersAndPutters()
+        protected virtual void CreateMissingAspectGettersAndPutters()
         {
             for (int i = 0; i < this.Columns.Count; i++) {
                 OLVColumn column = this.GetColumn(i);
@@ -247,7 +275,7 @@ namespace BrightIdeasSoftware
         /// <remarks>This is a no-op for data lists, since the data
         /// is controlled by the DataSource. Manipulate the data source
         /// rather than this view of the data source.</remarks>
-        override public void AddObjects(ICollection modelObjects)
+        public override void AddObjects(ICollection modelObjects)
         {
         }
 
@@ -257,7 +285,7 @@ namespace BrightIdeasSoftware
         /// <remarks>This is a no-op for data lists, since the data
         /// is controlled by the DataSource. Manipulate the data source
         /// rather than this view of the data source.</remarks>
-        override public void RemoveObjects(ICollection modelObjects)
+        public override void RemoveObjects(ICollection modelObjects)
         {
         }
 
@@ -268,7 +296,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// What should we do when the list is unfrozen
         /// </summary>
-        override protected void DoUnfreeze()
+        protected override void DoUnfreeze()
         {
             this.RebindDataSource(true);
         }
@@ -287,7 +315,6 @@ namespace BrightIdeasSoftware
             // same data source.
             this.RebindDataSource(false);
         }
-
 
         /// <summary>
         /// Handles parent binding context changes
@@ -310,7 +337,7 @@ namespace BrightIdeasSoftware
         // It's actually difficult to deal with these changes in a fine-grained manner.
         // If our listview is grouped, then any change may make a new group appear or
         // an old group disappear. It is rarely enough to simply update the affected row.
-        private void currencyManager_ListChanged(object sender, ListChangedEventArgs e)
+        protected virtual void currencyManager_ListChanged(object sender, ListChangedEventArgs e)
         {
             switch (e.ListChangedType) {
 
@@ -363,20 +390,18 @@ namespace BrightIdeasSoftware
             }
         }
 
-
         // The CurrencyManager calls this if the data source looks
         // different. We just reload everything.
         // CHECK: Do we need this if we are handle ListChanged metadata events?
-        private void currencyManager_MetaDataChanged(object sender, EventArgs e)
+        protected virtual void currencyManager_MetaDataChanged(object sender, EventArgs e)
         {
             this.InitializeDataSource();
         }
 
-
         // Called by the CurrencyManager when the currently selected item
         // changes. We update the ListView selection so that we stay in sync
         // with any other controls bound to the same source.
-        private void currencyManager_PositionChanged(object sender, EventArgs e)
+        protected virtual void currencyManager_PositionChanged(object sender, EventArgs e)
         {
             int index = this.currencyManager.Position;
 
