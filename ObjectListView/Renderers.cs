@@ -228,7 +228,6 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Can the renderer wrap lines that do not fit completely within the cell?
         /// </summary>
-        /// <remarks>This value is currently only used when printing a list view using ListViewPrinter.</remarks>
         public bool CanWrap
         {
             get { return canWrap; }
@@ -486,7 +485,7 @@ namespace BrightIdeasSoftware
         /// <returns>Returns whether the renderering has already taken place.
         /// If this returns false, the default processing will take over.
         /// </returns>
-        virtual public bool OptionalRender(Graphics g, Rectangle r)
+        public virtual bool OptionalRender(Graphics g, Rectangle r)
         {
             this.Render(g, r);
             return true;
@@ -500,7 +499,7 @@ namespace BrightIdeasSoftware
         /// to fall back on the default processing</para></remarks>
         /// <param name="g">The graphics context that should be used for drawing</param>
         /// <param name="r">The bounds of the subitem cell</param>
-        virtual public void Render(Graphics g, Rectangle r)
+        public virtual void Render(Graphics g, Rectangle r)
         {
             this.DrawBackground(g, r);
 
