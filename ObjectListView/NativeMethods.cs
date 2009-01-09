@@ -12,6 +12,7 @@ namespace BrightIdeasSoftware
     internal class NativeMethods
     {
         private const int LVM_FIRST = 0x1000;
+        private const int LVM_SCROLL = LVM_FIRST + 20;
         private const int LVM_GETHEADER = LVM_FIRST + 31;
         private const int LVM_SETITEMSTATE = LVM_FIRST + 43;
         private const int LVM_SETEXTENDEDLISTVIEWSTYLE = LVM_FIRST + 54;
@@ -413,7 +414,19 @@ namespace BrightIdeasSoftware
             lvItem.state = value;
             SendMessageLVItem(list.Handle, LVM_SETITEMSTATE, itemIndex, ref lvItem);
         }
-
+        
+        /// <summary>
+        /// Scroll the given listview by the given deltas
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="dx"></param>
+        /// <param name="dy"></param>
+        /// <returns>true if the scroll succeeded</returns>
+        public static bool Scroll(ListView list, int dx, int dy)
+        {
+            return SendMessage(list.Handle, LVM_SCROLL, dx, dy) != IntPtr.Zero;
+        }
+        
         /// <summary>
         /// Return the handle to the header control on the given list
         /// </summary>
