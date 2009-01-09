@@ -21,7 +21,7 @@
 		</xs:element>
 	</xs:schema>
 	<Person>
-		<Name>Phillip Piper</Name>
+		<Name>Jonathan Phillip Piper</Name>
 		<Company>Bright Ideas Software</Company>
 		<Occupation>CEO &amp; Honorary Blue Meanie</Occupation>
 		<Salary>5000</Salary>
