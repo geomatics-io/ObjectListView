@@ -392,7 +392,10 @@ namespace ObjectListViewDemo
             };
 
             this.rowHeightUpDown.Value = 32;
-            listViewDataSet.EnableCustomSelectionColors();
+            this.listViewDataSet.EnableCustomSelectionColors();
+
+            // Long values in the first column will wrap
+            this.listViewDataSet.GetColumn(0).Renderer.CanWrap = true;
 
             LoadXmlIntoList();
 		}
@@ -577,7 +580,7 @@ namespace ObjectListViewDemo
             };
 
             // You can change the way the connection lines are drawn by changing the pen
-            //((TreeListView.TreeRenderer)this.treeListView.TreeColumnRenderer).LinePen = Pens.Plum;
+            //((TreeListView.TreeRenderer)this.treeListView.TreeColumnRenderer).LinePen = Pens.Firebrick;
 
             //-------------------------------------------------------------------
             // Eveything after this is the same as the Explorer example tab --
@@ -829,7 +832,6 @@ namespace ObjectListViewDemo
 
         private void button7_Click(object sender, EventArgs e)
         {
-            //this.listViewSimple.SelectedItem = this.listViewSimple.GetNextItem(this.listViewSimple.SelectedItem);
             Person person = new Person("Some One Else " + System.Environment.TickCount);
             this.listViewSimple.AddObject(person);
             this.listViewSimple.EnsureModelVisible(person);
@@ -837,7 +839,6 @@ namespace ObjectListViewDemo
 
         private void button6_Click(object sender, EventArgs e)
         {
-            //this.listViewSimple.SelectedItem = this.listViewSimple.GetPreviousItem(this.listViewSimple.SelectedItem);
             this.listViewSimple.RemoveObject(this.listViewSimple.SelectedObject);
         }
 
@@ -1571,6 +1572,38 @@ namespace ObjectListViewDemo
         private void button28_Click(object sender, EventArgs e)
         {
             this.treeListView.RefreshObjects(this.treeListView.SelectedObjects);
+        }
+
+        private void listViewComplex_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Right) 
+                return;
+
+            ContextMenuStrip ms = new ContextMenuStrip();
+            ms.ItemClicked += new ToolStripItemClickedEventHandler(ms_ItemClicked);
+
+            ObjectListView olv = (ObjectListView)sender;
+            if (olv.ShowGroups) {
+                foreach (ListViewGroup lvg in olv.Groups) {
+                    ToolStripMenuItem mi = new ToolStripMenuItem(String.Format("Jump to group '{0}'", lvg.Header));
+                    mi.Tag = lvg;
+                    ms.Items.Add(mi);
+                }
+            } else {
+                ToolStripMenuItem mi = new ToolStripMenuItem("Turn on 'Show Groups' to see this context menu in action");
+                mi.Enabled = false;
+                ms.Items.Add(mi);
+            }
+
+            ms.Show((Control)sender, e.X, e.Y);
+        }
+
+        void ms_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            ToolStripMenuItem mi = (ToolStripMenuItem)e.ClickedItem;
+            ListViewGroup lvg = (ListViewGroup)mi.Tag;
+            ObjectListView olv = (ObjectListView)lvg.ListView;
+            olv.EnsureGroupVisible(lvg);
         }
 
     }
