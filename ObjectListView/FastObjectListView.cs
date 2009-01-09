@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-01-07   JPP  - Made all public and protected methods virtual 
  * 2008-09-27   JPP  - Separated from ObjectListView.cs
  * 
  * Copyright (C) 2006-2008 Phillip Piper
@@ -74,17 +75,17 @@ namespace BrightIdeasSoftware
 
         #region IVirtualListDataSource Members
 
-        override public object GetNthObject(int n)
+        public override object GetNthObject(int n)
         {
             return this.objectList[n];
         }
 
-        override public int GetObjectCount()
+        public override int GetObjectCount()
         {
             return this.objectList.Count;
         }
 
-        override public int GetObjectIndex(object model)
+        public override int GetObjectIndex(object model)
         {
             int index;
 
@@ -94,19 +95,19 @@ namespace BrightIdeasSoftware
                 return -1;
         }
 
-        override public int SearchText(string value, int first, int last, OLVColumn column)
+        public override int SearchText(string value, int first, int last, OLVColumn column)
         {
             return DefaultSearchText(value, first, last, column, this);
         }
 
-        override public void Sort(OLVColumn column, SortOrder sortOrder)
+        public override void Sort(OLVColumn column, SortOrder sortOrder)
         {
             if (sortOrder != SortOrder.None)
                 this.objectList.Sort(new ModelObjectComparer(column, sortOrder, this.listView.SecondarySortColumn, this.listView.SecondarySortOrder));
             this.RebuildIndexMap();
         }
 
-        override public void AddObjects(ICollection modelObjects)
+        public override void AddObjects(ICollection modelObjects)
         {
             foreach (object modelObject in modelObjects) {
                 if (modelObject != null)
@@ -115,7 +116,7 @@ namespace BrightIdeasSoftware
             this.RebuildIndexMap();
         }
 
-        override public void RemoveObjects(ICollection modelObjects)
+        public override void RemoveObjects(ICollection modelObjects)
         {
             List<int> indicesToRemove = new List<int>();
             foreach (object modelObject in modelObjects) {
@@ -138,7 +139,7 @@ namespace BrightIdeasSoftware
             this.RebuildIndexMap();
         }
 
-        override public void SetObjects(IEnumerable collection)
+        public override void SetObjects(IEnumerable collection)
         {
             ArrayList newObjects = new ArrayList();
             if (collection != null) {
