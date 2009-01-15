@@ -5,6 +5,8 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2009-01-13  JPP  - Changed TreeRenderer to work with visual styles are disabled
+ * v2.0.1
  * 2009-01-07  JPP  - Made all public and protected methods virtual 
  *                  - Changed some classes from 'internal' to 'protected' so that they
  *                    can be accessed by subclasses of TreeListView.
@@ -1241,14 +1243,28 @@ namespace BrightIdeasSoftware
 
                 if (br.CanExpand) {
                     Rectangle r2 = r;
-                    r2.Offset(1 + (br.Level - 1) * PIXELS_PER_LEVEL, 0);
+                    r2.Offset((br.Level - 1) * PIXELS_PER_LEVEL, 0);
                     r2.Width = PIXELS_PER_LEVEL;
 
-                    VisualStyleElement element = VisualStyleElement.TreeView.Glyph.Closed;
-                    if (br.IsExpanded)
-                        element = VisualStyleElement.TreeView.Glyph.Opened;
-                    VisualStyleRenderer renderer = new VisualStyleRenderer(element);
-                    renderer.DrawBackground(g, r2);
+                    if (Application.RenderWithVisualStyles) {
+                        VisualStyleElement element = VisualStyleElement.TreeView.Glyph.Closed;
+                        if (br.IsExpanded)
+                            element = VisualStyleElement.TreeView.Glyph.Opened;
+                        VisualStyleRenderer renderer = new VisualStyleRenderer(element);
+                        renderer.DrawBackground(g, r2);
+                    } else {
+                        int h = 8;
+                        int w = 8;
+                        int x = r2.X + 2;
+                        int y = r2.Y + (r2.Height / 2) - 4;
+
+                        g.DrawRectangle(new Pen(SystemBrushes.ControlDark), x, y, w, h);
+                        g.FillRectangle(Brushes.White, x + 1, y + 1, w - 1, h - 1);
+                        g.DrawLine(Pens.Black, x + 2, y + 4, x + w - 2, y + 4);
+
+                        if (!br.IsExpanded)
+                            g.DrawLine(Pens.Black, x + 4, y + 2, x + 4, y + h - 2);
+                    } 
                 }
 
                 int indent = br.Level * PIXELS_PER_LEVEL;
