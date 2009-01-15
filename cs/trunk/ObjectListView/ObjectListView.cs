@@ -4688,7 +4688,7 @@ namespace BrightIdeasSoftware
                 if (this.cellEditEventArgs.Cancel)
                     return false;
 
-                FinishCellEdit();
+                this.FinishCellEdit();
             }
 
             return true;
@@ -4697,8 +4697,13 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Finish the cell edit operation, writing changed data back to the model object
         /// </summary>
-        protected virtual void FinishCellEdit()
+        /// <remarks>This method does not trigger a Validating event, so it always finishes
+        /// the cell edit.</remarks>
+        public virtual void FinishCellEdit()
         {
+            if (!this.IsCellEditing)
+                return;
+
             this.cellEditEventArgs.Cancel = false;
             this.OnCellEditFinishing(this.cellEditEventArgs);
 
