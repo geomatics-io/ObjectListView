@@ -461,6 +461,9 @@ namespace BrightIdeasSoftware
 
                 this.CorrectSubItemColors(olvi);
             }
+            
+            if (this.UseHotItem && this.HotItemIndex == itemIndex)
+                this.ApplyHotItemStyle(olvi);
 
             this.SetSubItemImages(itemIndex, olvi);
             return olvi;
