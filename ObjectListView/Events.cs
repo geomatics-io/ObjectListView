@@ -5,6 +5,8 @@
  * Date: 17/10/2008 9:15 PM
  *
  * Change log:
+ * 2009-01-18   JPP  - Moved SelectionChanged event to this file
+ * v2.0
  * 2008-12-06   JPP  - Added searching events
  * 2008-12-01   JPP  - Added secondary sort information to Before/AfterSorting events
  * 2008-10-17   JPP  - Separated from ObjectListView.cs
@@ -140,6 +142,14 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView")]
         public event EventHandler<ItemsRemovingEventArgs> ItemsRemoving;
 
+        /// <summary>
+        /// This event is triggered once per user action that changes the selection state
+        /// of one or more rows.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered once per user action that changes the selection state of one or more rows.")]
+        public event EventHandler SelectionChanged;
+
         #endregion
 
         //-----------------------------------------------------------------------------------
@@ -197,6 +207,12 @@ namespace BrightIdeasSoftware
         {
             if (this.ItemsRemoving != null)
                 this.ItemsRemoving(this, e);
+        }
+
+        protected virtual void OnSelectionChanged(EventArgs e)
+        {
+            if (this.SelectionChanged != null)
+                this.SelectionChanged(this, e);
         }
 
         /// <summary>
