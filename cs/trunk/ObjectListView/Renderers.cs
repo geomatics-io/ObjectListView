@@ -5,6 +5,12 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-01-19   JPP  - Changed to draw text using GDI routines. Looks more like
+ *                     native control this way. Set UseGdiTextRendering to false to 
+ *                     revert to previous behavior.
+ * 2009-01-15   JPP  - Draw background correctly when control is disabled
+ *                   - Render checkboxes using CheckBoxRenderer
+ * v2.0.1
  * 2008-12-29   JPP  - Render text correctly when HideSelection is true.
  * 2008-12-26   JPP  - BaseRenderer now works correctly in all Views
  * 2008-12-23   JPP  - Fixed two small bugs in BarRenderer
@@ -43,6 +49,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
+using System.Runtime.InteropServices;
 
 namespace BrightIdeasSoftware
 {
@@ -130,7 +137,8 @@ namespace BrightIdeasSoftware
         /// </summary>
         public Object Aspect
         {
-            get {
+            get
+            {
                 if (aspect == null)
                     aspect = column.GetValue(this.rowObject);
                 return aspect;
@@ -139,6 +147,16 @@ namespace BrightIdeasSoftware
         }
         private Object aspect;
 
+        /// <summary>
+        /// What are the bounds of the cell that is being drawn?
+        /// </summary>
+        public Rectangle Bounds
+        {
+            get { return bounds; }
+            set { bounds = value; }
+        }
+        private Rectangle bounds;
+	
         /// <summary>
         /// Get or set the listitem that this renderer will be drawing
         /// </summary>
@@ -178,6 +196,10 @@ namespace BrightIdeasSoftware
         }
         private bool isItemSelected;
 
+        //public bool IsHotItem
+        //{
+        //    get { return this.ListItem.Index == this.ListView.HotItemIndex; }
+        //}
 
         /// <summary>
         /// Return the font to be used for text in this cell
@@ -185,16 +207,19 @@ namespace BrightIdeasSoftware
         /// <returns>The font of the subitem</returns>
         public Font Font
         {
-            get {
-                if (this.font == null) {
-                    if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
-                        return this.ListItem.Font;
-                    else
-                        return this.SubItem.Font;
-                } else
+            get
+            {
+                if (this.font != null)
                     return this.font;
+
+                Font f = this.ListItem.Font;
+                if (this.SubItem != null && !this.ListItem.UseItemStyleForSubItems)
+                    f = this.SubItem.Font;
+
+                return f;
             }
-            set {
+            set
+            {
                 this.font = value;
             }
         }
@@ -205,7 +230,8 @@ namespace BrightIdeasSoftware
         /// </summary>
         public Brush TextBrush
         {
-            get {
+            get
+            {
                 if (textBrush == null)
                     return new SolidBrush(this.GetForegroundColor());
                 else
@@ -216,14 +242,22 @@ namespace BrightIdeasSoftware
         private Brush textBrush;
 
         /// <summary>
+        /// Is this renderer being used on a printer context?
+        /// </summary>
+        public bool IsPrinting
+        {
+            get { return isPrinting; }
+            set { isPrinting = value; }
+        }
+        private bool isPrinting;
+
+        /// <summary>
         /// Should this renderer fill in the background before drawing?
         /// </summary>
         public bool IsDrawBackground
         {
-            get { return isDrawBackground; }
-            set { isDrawBackground = value; }
+            get { return !this.IsPrinting; }
         }
-        private bool isDrawBackground = true;
 
         /// <summary>
         /// Can the renderer wrap lines that do not fit completely within the cell?
@@ -316,6 +350,8 @@ namespace BrightIdeasSoftware
         /// <returns>The background color of the subitem</returns>
         public Color GetBackgroundColor()
         {
+            if (!this.ListView.Enabled)
+                return SystemColors.Control;
             if (this.IsItemSelected && this.ListView.FullRowSelect) {
                 if (this.ListView.Focused)
                     return this.ListView.HighlightBackgroundColorOrDefault;
@@ -356,7 +392,7 @@ namespace BrightIdeasSoftware
                 else
                     if (!this.ListView.HideSelection)
                         return SystemColors.ControlText; //TODO: What color should this be?
-            } 
+            }
             if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
                 return this.ListItem.ForeColor;
             else
@@ -371,7 +407,7 @@ namespace BrightIdeasSoftware
         /// <param name="outer">The cell's bounds</param>
         /// <param name="inner">The rectangle to be aligned within the bounds</param>
         /// <returns>An aligned rectangle</returns>
-        protected Rectangle AlignRectangle(Rectangle outer, Rectangle inner)
+        public Rectangle AlignRectangle(Rectangle outer, Rectangle inner)
         {
             Rectangle r = new Rectangle(outer.Location, inner.Size);
 
@@ -431,7 +467,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="g">Graphics context to use for drawing</param>
         /// <param name="r">Bounds of the cell</param>
-        protected void DrawBackground(Graphics g, Rectangle r)
+        protected virtual void DrawBackground(Graphics g, Rectangle r)
         {
             if (this.IsDrawBackground) {
                 using (Brush brush = new SolidBrush(this.GetBackgroundColor())) {
@@ -469,9 +505,9 @@ namespace BrightIdeasSoftware
             this.RowObject = rowObject;
             this.Aspect = null; // uncache previous result
             this.IsItemSelected = this.ListItem.Selected; // ((e.ItemState & ListViewItemStates.Selected) == ListViewItemStates.Selected);
-            this.IsDrawBackground = true;
             this.Font = null;
             this.TextBrush = null;
+            this.Bounds = r;
             return this.OptionalRender(g, r);
         }
 
@@ -522,7 +558,7 @@ namespace BrightIdeasSoftware
                 r.X += spaceUsed;
                 r.Width -= spaceUsed;
             }
-            
+
             this.DrawImageAndText(g, r, this.GetText(), this.GetImage());
         }
 
@@ -533,19 +569,33 @@ namespace BrightIdeasSoftware
         /// <param name="r">Bounds of the cell</param>
         protected int DrawCheckBox(Graphics g, Rectangle r)
         {
-            ImageList il = this.ListView.StateImageList;
-            if (il == null || this.ListItem.StateImageIndex < 0)
-                return 0;
-            try {
-                Image image = il.Images[this.ListItem.StateImageIndex];
-                Point pt = r.Location;
-                pt.Offset(2, (r.Height - il.ImageSize.Height) / 2);
-                g.DrawImage(image, pt);
+            int imageIndex = this.ListItem.StateImageIndex;
+
+            CheckBoxState boxState = CheckBoxState.UncheckedNormal;
+            int switchValue = (imageIndex << 4); // + (this.IsItemHot ? 1 : 0);
+            switch (switchValue) {
+                case 0x00:
+                    boxState = CheckBoxState.UncheckedNormal;
+                    break;
+                case 0x01:
+                    boxState = CheckBoxState.UncheckedHot;
+                    break;
+                case 0x10:
+                    boxState = CheckBoxState.CheckedNormal;
+                    break;
+                case 0x11:
+                    boxState = CheckBoxState.CheckedHot;
+                    break;
+                case 0x20:
+                    boxState = CheckBoxState.MixedNormal;
+                    break;
+                case 0x21:
+                    boxState = CheckBoxState.MixedHot;
+                    break;
             }
-            catch (ArgumentOutOfRangeException) {
-                return 0;
-            }
-            return il.ImageSize.Width + 4;
+            CheckBoxRenderer.DrawCheckBox(g, new Point(r.X + 2, r.Y + 2), boxState);
+
+            return CheckBoxRenderer.GetGlyphSize(g, boxState).Width + 4;
         }
 
         /// <summary>
@@ -557,16 +607,52 @@ namespace BrightIdeasSoftware
         /// <param name="image">The optional image to be drawn</param>
         protected void DrawImageAndText(Graphics g, Rectangle r, String txt, Image image)
         {
+            int textOffset = 0;
+
             // Draw the image
             if (image != null) {
+                // If we are only drawing a check box, obey the column alignment
+                if (this.Column.HasCheckBox && String.IsNullOrEmpty(txt)) {
+                    this.DrawAlignedImage(g, r, image);
+                    return;
+                }
                 int top = r.Y;
                 if (image.Size.Height < r.Height)
                     top += ((r.Height - image.Size.Height) / 2);
 
                 g.DrawImageUnscaled(image, r.X, top);
-                r.X += image.Width + 2;
-                r.Width -= image.Width + 2;
+                textOffset = image.Width + 2;
             }
+
+            if (this.UseGdiTextRendering)
+                this.DrawTextGdi(g, r, txt, textOffset);
+            else
+                this.DrawTextGdiPlus(g, r, txt, textOffset);
+        }
+
+        /// <summary>
+        /// Should text be rendered using GDI routines? This makes the text look more
+        /// like a native List view control.
+        /// </summary>
+        public bool UseGdiTextRendering
+        {
+            get { 
+                if (this.IsPrinting)
+                    return false; // Can't use GDI routines on a GDI+ printer context
+                else
+                    return useGdiTextRendering;
+            }
+            set { useGdiTextRendering = value; }
+        }
+        private bool useGdiTextRendering = true;
+
+        /// <summary>
+        /// Print the given text in the given rectangle using normal GDI+ .NET methods
+        /// </summary>
+        /// <remarks>Printing to a printer dc has to be done using this method.</remarks>
+        protected void DrawTextGdiPlus(Graphics g, Rectangle r, String txt, int offset)
+        {
+            r.X += offset;
 
             StringFormat fmt = new StringFormat();
             fmt.LineAlignment = StringAlignment.Center;
@@ -587,8 +673,9 @@ namespace BrightIdeasSoftware
 
             // Draw the background of the text as selected, if it's the primary column
             // and it's selected and it's not in FullRowSelect mode.
+            Font f = this.Font;
             if (this.IsDrawBackground && this.IsItemSelected && this.Column.Index == 0 && !this.ListView.FullRowSelect) {
-                SizeF size = g.MeasureString(txt, this.Font, r.Width, fmt);
+                SizeF size = g.MeasureString(txt, f, r.Width, fmt);
                 // This is a tighter selection box
                 //Rectangle r2 = this.AlignRectangle(r, new Rectangle(0, 0, (int)(size.Width + 1), (int)(size.Height + 1)));
                 Rectangle r2 = r;
@@ -598,7 +685,7 @@ namespace BrightIdeasSoftware
             }
 
             RectangleF rf = r;
-            g.DrawString(txt, this.Font, this.TextBrush, rf, fmt);
+            g.DrawString(txt, f, this.TextBrush, rf, fmt);
 
             // We should put a focus rectange around the column 0 text if it's selected --
             // but we don't because:
@@ -611,6 +698,55 @@ namespace BrightIdeasSoftware
             //        r.Width = size.Width;
             //    this.Event.DrawFocusRectangle(r);
             //}
+        }
+
+        /// <summary>
+        /// Print the given text in the given rectangle using only GDI routines
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="txt"></param>
+        /// <param name="offset"></param>
+        /// <remarks>
+        /// The native list control uses GDI routines to do its drawing, so using them
+        /// here makes the owner drawn mode looks more natural.
+        /// </remarks>
+        protected void DrawTextGdi(Graphics g, Rectangle r, String txt, int offset)
+        {
+            // It's probable that the given Graphics object is double buffered using a BufferedGraphics object.
+            // But the DrawText method doesn't honor the Translation matrix that's probably in effect on the buffered
+            // graphics. So we have to calculate our drawing rectangle, relative to the cells natural boundaries.
+            // This effectively simulates the Translation matrix.
+            Rectangle textBounds = new Rectangle(r.X - this.Bounds.X + offset, r.Y - this.Bounds.Y, r.Width - offset - 2, r.Height);
+            IntPtr hdc = g.GetHdc();
+
+            NativeMethods.SetTextColor(hdc, ColorTranslator.ToWin32(this.GetForegroundColor()));
+            if (this.IsDrawBackground && this.IsItemSelected && this.Column.Index == 0 && !this.ListView.FullRowSelect)
+                NativeMethods.SetBkColor(hdc, ColorTranslator.ToWin32(this.ListView.HighlightBackgroundColorOrDefault));
+            else
+                NativeMethods.SetBkMode(hdc, true);
+
+            IntPtr hFont = this.Font.ToHfont();
+            NativeMethods.SelectObject(hdc, hFont);
+
+            int flags = NativeMethods.DT_END_ELLIPSIS;
+            if (!this.CanWrap)
+                flags |= NativeMethods.DT_SINGLELINE | NativeMethods.DT_VCENTER;
+            switch (this.Column.TextAlign) {
+                case HorizontalAlignment.Center:
+                    flags |= NativeMethods.DT_CENTER;
+                    break;
+                case HorizontalAlignment.Left:
+                    flags |= NativeMethods.DT_LEFT;
+                    break;
+                case HorizontalAlignment.Right:
+                    flags |= NativeMethods.DT_RIGHT;
+                    break;
+            }
+            NativeMethods.DrawText(hdc, txt, textBounds, flags);
+
+            NativeMethods.DeleteObject(hFont);
+            g.ReleaseHdc(hdc);
         }
     }
 
@@ -952,7 +1088,7 @@ namespace BrightIdeasSoftware
             // Run through all the subitems in the view for our column, and for each one that
             // has an animation attached to it, see if the frame needs updating.
             foreach (ListViewItem lvi in this.ListView.Items) {
-                // Get the gif state from the subitem. If there isn't an animation state, skip this row.
+                // Get the animation state from the subitem. If there isn't an animation state, skip this row.
                 OLVListSubItem lvsi = (OLVListSubItem)lvi.SubItems[subItemIndex];
                 AnimationState state = lvsi.AnimationState;
                 if (state == null || !state.IsValid)
