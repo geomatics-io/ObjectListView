@@ -5,6 +5,8 @@
  * Date: 28/11/2008 17:15 
  *
  * Change log:
+ * 2009-01-18  JPP  Handle target objects from a DataListView (normally DataRowViews)
+ * v2.0
  * 2008-11-28  JPP  Initial version
  *
  * TO DO:
@@ -29,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Reflection;
 
 namespace BrightIdeasSoftware
@@ -95,7 +98,20 @@ namespace BrightIdeasSoftware
                     target = target.GetType().InvokeMember(property, flags, null, target, null);
                 }
                 catch (System.MissingMethodException) {
-                    return String.Format("'{0}' is not a parameter-less method, property or field of type '{1}'", property, target.GetType());
+                    // If the munger is used within a DataListView, the target maybe a DataRowView
+                    // so explicitly try that before giving up
+                    bool throwException = true;
+                    DataRowView drv = target as DataRowView;
+                    if (drv != null) {
+                        try {
+                            target = drv[property];
+                            throwException = false;
+                        }
+                        catch (ArgumentException) {
+                        }
+                    }
+                    if (throwException)
+                        return String.Format("'{0}' is not a parameter-less method, property or field of type '{1}'", property, target.GetType());
                 }
             }
             return target;
@@ -133,8 +149,22 @@ namespace BrightIdeasSoftware
                     target = target.GetType().InvokeMember(this.aspectNameParts[i], flags, null, target, null);
                 }
                 catch (System.MissingMethodException) {
-                    System.Diagnostics.Debug.WriteLine(String.Format("Cannot invoke '{0}' on a {1}", this.aspectNameParts[i], target.GetType()));
-                    return;
+                    // If the munger is used within a DataListView, the target maybe a DataRowView
+                    // so explicitly try that before giving up
+                    bool throwException = true;
+                    DataRowView drv = target as DataRowView;
+                    if (drv != null) {
+                        try {
+                            target = drv[this.aspectNameParts[i]];
+                            throwException = false;
+                        }
+                        catch (ArgumentException) {
+                        }
+                    }
+                    if (throwException) {
+                        System.Diagnostics.Debug.WriteLine(String.Format("Cannot invoke '{0}' on a {1}", this.aspectNameParts[i], target.GetType()));
+                        return;
+                    }
                 }
             }
 
@@ -155,6 +185,15 @@ namespace BrightIdeasSoftware
                     target.GetType().InvokeMember(lastPart, flags3, null, target, new Object[] { value });
                 }
                 catch (System.MissingMethodException ex2) {
+                    DataRowView drv = target as DataRowView;
+                    if (drv != null) {
+                        try {
+                            drv[lastPart] = value;
+                            return;
+                        }
+                        catch (ArgumentException) {
+                        }
+                    }
                     System.Diagnostics.Debug.WriteLine("Invoke PutAspectByName failed:");
                     System.Diagnostics.Debug.WriteLine(ex);
                     System.Diagnostics.Debug.WriteLine(ex2);
