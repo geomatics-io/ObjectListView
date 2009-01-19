@@ -11,6 +11,16 @@ namespace BrightIdeasSoftware
     /// </summary>
     internal class NativeMethods
     {
+        private const int OPAQUE = 0x02;
+        private const int TRANSPARENT = 0x01;
+
+        public const int DT_LEFT = 0x0;
+        public const int DT_CENTER = 0x1;
+        public const int DT_RIGHT = 0x2;
+        public const int DT_VCENTER = 0x4;
+        public const int DT_SINGLELINE = 0x20;
+        public const int DT_END_ELLIPSIS = 0x8000;
+
         private const int LVM_FIRST = 0x1000;
         private const int LVM_SCROLL = LVM_FIRST + 20;
         private const int LVM_GETHEADER = LVM_FIRST + 31;
@@ -209,6 +219,15 @@ namespace BrightIdeasSoftware
             public int top;
             public int right;
             public int bottom;
+                        
+            public RECT(Rectangle r)
+            {
+                this.left = r.Left;
+                this.top = r.Top;
+                this.bottom = r.Bottom;
+                this.right = r.Right;
+            }
+
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -276,15 +295,41 @@ namespace BrightIdeasSoftware
         // Entry points used by this code
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         public static extern bool GetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO si);
+        
+        [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
+        public static extern bool DeleteObject(IntPtr hObject);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern int DrawText(IntPtr hdc, string lpStr, int nCount, ref RECT lpRect, int wFormat);
 
         [DllImport("user32.dll", EntryPoint = "GetUpdateRect", CharSet = CharSet.Auto)]
         private static extern int GetUpdateRectInternal(IntPtr hWnd, ref Rectangle r, bool eraseBackground);
+        
+        [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
+        public static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiobj);
+        
+        [DllImport("gdi32.dll")]
+        public static extern int SetBkColor(IntPtr hdc, int crColor);
+        
+        [DllImport("gdi32.dll")]
+        public static extern int SetBkMode(IntPtr hdc, int iBkMode);
 
-        //[DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
-        //public static extern bool SetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO si, bool fRedraw);
-
+        [DllImport("gdi32.dll")]
+        public static extern int SetTextColor(IntPtr hdc, int crColor);
+        
         [DllImport("user32.dll", EntryPoint = "ValidateRect", CharSet = CharSet.Auto)]
         private static extern IntPtr ValidatedRectInternal(IntPtr hWnd, ref Rectangle r);
+
+        public static void DrawText(IntPtr hdc, string txt, Rectangle r, int flags)
+        {
+            RECT bounds = new RECT(r);
+            DrawText(hdc, txt, txt.Length, ref bounds, flags);
+        }
+
+        public static void SetBkMode(IntPtr hdc, bool isTransparent)
+        {
+            SetBkMode(hdc, isTransparent ? TRANSPARENT : OPAQUE);
+        }
 
         /// <summary>
         /// Make sure the ListView has the extended style that says to display subitem images.
