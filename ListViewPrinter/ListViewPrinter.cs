@@ -5,6 +5,8 @@
  * Date: 2007-11-01 11:15 AM
  *
  * Change log:
+ * 2009-01-19  JPP  - Use IsPrinting property on BaseRenderer
+ * v2.0.1
  * 2008-12-16  JPP  - Hide all obsolete properties from the code generator
  * v2.0
  * The interaction with the IDE was completely rewritten in this version.
@@ -1230,7 +1232,7 @@ namespace BrightIdeasSoftware
                     ((BarRenderer)renderer).UseStandardBar = false;
             }
 
-            renderer.IsDrawBackground = false;
+            renderer.IsPrinting = true;
             renderer.Aspect = null;
             renderer.Column = olvc;
             renderer.IsItemSelected = false;
