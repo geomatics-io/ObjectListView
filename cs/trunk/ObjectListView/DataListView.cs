@@ -5,6 +5,10 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-01-18   JPP  - Boolean columns are now handled as checkboxes
+ *                   - Auto-generated columns would fail if the data source was 
+ *                     reseated, even to the same data source
+ * v2.0.1
  * 2009-01-07   JPP  - Made all public and protected methods virtual 
  * 2008-10-03   JPP  - Separated from ObjectListView.cs
  * 
@@ -208,8 +212,8 @@ namespace BrightIdeasSoftware
             if (properties.Count == 0)
                 return;
 
+            bool hasBooleanColumns = false;
             for (int i = 0; i < properties.Count; i++) {
-                // Make a stack variable to hold the property so it can be used in the AspectGetter delegate
                 PropertyDescriptor property = properties[i];
 
                 // Relationships to other tables turn up as IBindibleLists. Don't make columns to show them.
@@ -219,18 +223,28 @@ namespace BrightIdeasSoftware
 
                 // Create a column
                 OLVColumn column = new OLVColumn(property.DisplayName, property.Name);
-                column.Width = 0; // zero-width since we will resize it once we have some data
-                column.AspectGetter = delegate(object row) {
-                    return property.GetValue(row);
-                };
-                // If our column is a BLOB, it could be an image, so assign a renderer to draw it.
-                // CONSIDER: Is this a common enough case to warrant this code?
-                if (property.PropertyType == typeof(System.Byte[]))
-                    column.Renderer = new ImageRenderer();
+                if (property.PropertyType == typeof(bool)) {
+                    hasBooleanColumns = true;
+                    column.TextAlign = HorizontalAlignment.Center;
+                    column.Width = 32;
+                    column.AspectName = null;
+                    column.CheckedAspectName = property.Name;
+                } else {
+                    column.Width = 0; // zero-width since we will resize it once we have some data
+
+                    // If our column is a BLOB, it could be an image, so assign a renderer to draw it.
+                    // CONSIDER: Is this a common enough case to warrant this code?
+                    if (property.PropertyType == typeof(System.Byte[]))
+                        column.Renderer = new ImageRenderer();
+                }
+                column.IsEditable = !property.IsReadOnly;
 
                 // Add it to our list
                 this.Columns.Add(column);
             }
+
+            if (hasBooleanColumns)
+                this.SetupSubItemCheckBoxes();
         }
 
         /// <summary>
@@ -241,7 +255,7 @@ namespace BrightIdeasSoftware
         {
             for (int i = 0; i < this.Columns.Count; i++) {
                 OLVColumn column = this.GetColumn(i);
-                if (column.AspectGetter == null && !String.IsNullOrEmpty(column.AspectName)) {
+                if (column.AspectGetter == null && String.IsNullOrEmpty(column.CheckedAspectName) && !String.IsNullOrEmpty(column.AspectName)) {
                     column.AspectGetter = delegate(object row) {
                         // In most cases, rows will be DataRowView objects
                         DataRowView drv = row as DataRowView;
@@ -251,7 +265,7 @@ namespace BrightIdeasSoftware
                             return column.GetAspectByName(row);
                     };
                 }
-                if (column.IsEditable && column.AspectPutter == null && !String.IsNullOrEmpty(column.AspectName)) {
+                if (column.IsEditable && column.AspectPutter == null && String.IsNullOrEmpty(column.CheckedAspectName) && !String.IsNullOrEmpty(column.AspectName)) {
                     column.AspectPutter = delegate(object row, object newValue) {
                         // In most cases, rows will be DataRowView objects
                         DataRowView drv = row as DataRowView;
