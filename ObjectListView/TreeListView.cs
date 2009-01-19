@@ -351,11 +351,6 @@ namespace BrightIdeasSoftware
         protected override void WndProc(ref Message m)
         {
             switch (m.Msg) {
-                case 0x0201: // WM_LBUTTONDOWN
-                    if (!this.HandleLButtonDown(ref m))
-                        base.WndProc(ref m);
-                    break;
-
                 case 0x1012: // LVM_HITTEST = (LVM_FIRST + 18)
                     this.HandleHitTest(ref m);
                     break;
@@ -407,7 +402,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="m"></param>
         /// <returns></returns>
-        protected virtual bool HandleLButtonDown(ref Message m)
+        protected override bool HandleLButtonDown(ref Message m)
         {
             /// We have to intercept this low level message rather than the more natural
             /// overridding of OnMouseDown, since ListCtrl's internal mouse down behavior
