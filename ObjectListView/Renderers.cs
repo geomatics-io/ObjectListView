@@ -5,6 +5,11 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-01-20   JPP  - Changed draw from image list if possible. 30% faster!
+ *                   - Tweaked some spacings to look more like native ListView
+ *                   - Text highlight for non FullRowSelect is now the right color
+ *                     when the control doesn't have focus.
+ *                   - Commented out experimental animations. Still needs work.
  * 2009-01-19   JPP  - Changed to draw text using GDI routines. Looks more like
  *                     native control this way. Set UseGdiTextRendering to false to 
  *                     revert to previous behavior.
@@ -279,6 +284,23 @@ namespace BrightIdeasSoftware
         }
         private int spacing = 1;
 
+        /// <summary>
+        /// Should text be rendered using GDI routines? This makes the text look more
+        /// like a native List view control.
+        /// </summary>
+        public bool UseGdiTextRendering
+        {
+            get
+            {
+                if (this.IsPrinting)
+                    return false; // Can't use GDI routines on a GDI+ printer context
+                else
+                    return useGdiTextRendering;
+            }
+            set { useGdiTextRendering = value; }
+        }
+        private bool useGdiTextRendering = true;
+
         #endregion
 
         #region Utilities
@@ -301,10 +323,17 @@ namespace BrightIdeasSoftware
         /// <returns>An Image or null if no image should be drawn.</returns>
         public Image GetImage()
         {
+            return this.GetImage(this.GetImageSelector());
+        }
+
+        /// <summary>
+        /// </summary>
+        public Object GetImageSelector()
+        {
             if (this.Column.Index == 0)
-                return this.GetImage(this.ListItem.ImageSelector);
+                return this.ListItem.ImageSelector;
             else
-                return this.GetImage(this.OLVSubItem.ImageSelector);
+                return this.OLVSubItem.ImageSelector;
         }
 
         /// <summary>
@@ -371,13 +400,18 @@ namespace BrightIdeasSoftware
         /// <returns>The background color of the subitem's text</returns>
         protected Color GetTextBackgroundColor()
         {
-            if (this.IsItemSelected && (this.Column.Index == 0 || this.ListView.FullRowSelect))
-                return this.ListView.HighlightBackgroundColorOrDefault;
-            else
-                if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
-                    return this.ListItem.BackColor;
+            if (this.IsItemSelected && (this.Column.Index == 0 || this.ListView.FullRowSelect)) {
+                if (this.ListView.Focused)
+                    return this.ListView.HighlightBackgroundColorOrDefault;
                 else
-                    return this.SubItem.BackColor;
+                    if (!this.ListView.HideSelection)
+                        return SystemColors.Control; //TODO: What color should this be?
+            }
+
+            if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
+                return this.ListItem.BackColor;
+            else
+                return this.SubItem.BackColor;
         }
 
         /// <summary>
@@ -469,10 +503,30 @@ namespace BrightIdeasSoftware
         /// <param name="r">Bounds of the cell</param>
         protected virtual void DrawBackground(Graphics g, Rectangle r)
         {
-            if (this.IsDrawBackground) {
-                using (Brush brush = new SolidBrush(this.GetBackgroundColor())) {
-                    g.FillRectangle(brush, r);
-                }
+            if (!this.IsDrawBackground)
+                return;
+
+            Color backgroundColor = this.GetBackgroundColor();
+
+            // Is this row in transition
+            //TransitionState state = this.ListView.GetHotItemTransitionState(this.ListItem.Index);
+            //if (state != null && !this.IsItemSelected && this.ListView.HotItemStyle != null) {
+            //    if (state.Progress >= 1.0f)
+            //        backgroundColor = this.ListView.HotItemStyle.BackColor;
+            //    else {
+            //        Color end = this.ListView.HotItemStyle.BackColor;
+            //        float endFactor = Math.Max(0, Math.Min(1.0f, state.Progress));
+            //        float startFactor = 1.0f - endFactor;
+
+            //        backgroundColor = Color.FromArgb(255,
+            //            Convert.ToInt32(end.R * endFactor + backgroundColor.R * startFactor),
+            //            Convert.ToInt32(end.G * endFactor + backgroundColor.G * startFactor),
+            //            Convert.ToInt32(end.B * endFactor + backgroundColor.B * startFactor));
+            //    }
+            //}
+
+            using (Brush brush = new SolidBrush(backgroundColor)) {
+                g.FillRectangle(brush, r);
             }
         }
 
@@ -539,11 +593,12 @@ namespace BrightIdeasSoftware
         {
             this.DrawBackground(g, r);
 
-            // Adjust the rectangle to match the padding used by the native mode of the ListView
-            Rectangle r2 = r;
-            r2.X += 4;
-            r2.Width -= 4;
-            this.DrawImageAndText(g, r2);
+            // Adjust the first columns rectangle to match the padding used by the native mode of the ListView
+            if (this.Column.Index == 0) {
+                r.X += 4;
+                r.Width -= 4;
+            }
+            this.DrawImageAndText(g, r);
         }
 
         /// <summary>
@@ -553,13 +608,18 @@ namespace BrightIdeasSoftware
         /// <param name="r">Bounds of the cell</param>
         protected void DrawImageAndText(Graphics g, Rectangle r)
         {
+            int offset = 0;
             if (this.ListView.CheckBoxes && this.Column.Index == 0) {
-                int spaceUsed = this.DrawCheckBox(g, r);
-                r.X += spaceUsed;
-                r.Width -= spaceUsed;
+                offset = this.DrawCheckBox(g, r);
+                r.X += offset;
+                r.Width -= offset;
             }
 
-            this.DrawImageAndText(g, r, this.GetText(), this.GetImage());
+            offset = this.DrawImage(g, r, this.GetImageSelector());
+            r.X += offset + 2;
+            r.Width -= offset + 4;
+
+            this.DrawText(g, r, this.GetText());
         }
 
         /// <summary>
@@ -605,55 +665,69 @@ namespace BrightIdeasSoftware
         /// <param name="r">Bounds of the cell</param>
         /// <param name="txt">The string to be drawn</param>
         /// <param name="image">The optional image to be drawn</param>
-        protected void DrawImageAndText(Graphics g, Rectangle r, String txt, Image image)
+        protected int DrawImage(Graphics g, Rectangle r, Object imageSelector)
         {
-            int textOffset = 0;
+            if (imageSelector == null || imageSelector == System.DBNull.Value)
+                return 0;
 
-            // Draw the image
-            if (image != null) {
-                // If we are only drawing a check box, obey the column alignment
-                if (this.Column.HasCheckBox && String.IsNullOrEmpty(txt)) {
-                    this.DrawAlignedImage(g, r, image);
-                    return;
+            // Draw from the image list (most common case)
+            ImageList il = this.ListView.BaseSmallImageList;
+            if (il != null) {
+                int selectorAsInt = -1;
+
+                if (imageSelector is Int32)
+                    selectorAsInt = (Int32)imageSelector;
+                else {
+                    String selectorAsString = imageSelector as String;
+                    if (selectorAsString != null)
+                        selectorAsInt = il.Images.IndexOfKey(selectorAsString);
                 }
+                if (selectorAsInt >= 0) {
+                    // If we are only drawing an image, obey the column alignment
+                    if (this.Column.HasCheckBox && String.IsNullOrEmpty(this.GetText())) {
+                        r = this.AlignRectangle(r, new Rectangle(new Point(0, 0), il.ImageSize));
+                    }
+                    Rectangle r2 = new Rectangle(r.X - this.Bounds.X, r.Y - this.Bounds.Y, r.Width, r.Height);
+                    il.Draw(g, r2.Location, selectorAsInt);
+                    return il.ImageSize.Width + 2;
+                }
+            }
+
+            // Is the selector actually an image?
+            Image image = imageSelector as Image;
+            if (image != null) {
                 int top = r.Y;
                 if (image.Size.Height < r.Height)
                     top += ((r.Height - image.Size.Height) / 2);
 
                 g.DrawImageUnscaled(image, r.X, top);
-                textOffset = image.Width + 2;
+                return image.Width + 2;
             }
 
-            if (this.UseGdiTextRendering)
-                this.DrawTextGdi(g, r, txt, textOffset);
-            else
-                this.DrawTextGdiPlus(g, r, txt, textOffset);
+            return 0;
         }
 
         /// <summary>
-        /// Should text be rendered using GDI routines? This makes the text look more
-        /// like a native List view control.
+        /// Draw the given text and optional image in the "normal" fashion
         /// </summary>
-        public bool UseGdiTextRendering
+        /// <param name="g">Graphics context to use for drawing</param>
+        /// <param name="r">Bounds of the cell</param>
+        /// <param name="txt">The string to be drawn</param>
+        /// <param name="image">The optional image to be drawn</param>
+        protected void DrawText(Graphics g, Rectangle r, String txt)
         {
-            get { 
-                if (this.IsPrinting)
-                    return false; // Can't use GDI routines on a GDI+ printer context
-                else
-                    return useGdiTextRendering;
-            }
-            set { useGdiTextRendering = value; }
+            if (this.UseGdiTextRendering)
+                this.DrawTextGdi(g, r, txt);
+            else
+                this.DrawTextGdiPlus(g, r, txt);
         }
-        private bool useGdiTextRendering = true;
 
         /// <summary>
         /// Print the given text in the given rectangle using normal GDI+ .NET methods
         /// </summary>
         /// <remarks>Printing to a printer dc has to be done using this method.</remarks>
-        protected void DrawTextGdiPlus(Graphics g, Rectangle r, String txt, int offset)
+        protected void DrawTextGdiPlus(Graphics g, Rectangle r, String txt)
         {
-            r.X += offset;
-
             StringFormat fmt = new StringFormat();
             fmt.LineAlignment = StringAlignment.Center;
             fmt.Trimming = StringTrimming.EllipsisCharacter;
@@ -706,32 +780,31 @@ namespace BrightIdeasSoftware
         /// <param name="g"></param>
         /// <param name="r"></param>
         /// <param name="txt"></param>
-        /// <param name="offset"></param>
         /// <remarks>
         /// The native list control uses GDI routines to do its drawing, so using them
         /// here makes the owner drawn mode looks more natural.
+        /// <para>This method doesn't honour the CanWrap setting on the renderer. All
+        /// text is single line</para>
         /// </remarks>
-        protected void DrawTextGdi(Graphics g, Rectangle r, String txt, int offset)
+        protected void DrawTextGdi(Graphics g, Rectangle r, String txt)
         {
             // It's probable that the given Graphics object is double buffered using a BufferedGraphics object.
             // But the DrawText method doesn't honor the Translation matrix that's probably in effect on the buffered
             // graphics. So we have to calculate our drawing rectangle, relative to the cells natural boundaries.
             // This effectively simulates the Translation matrix.
-            Rectangle textBounds = new Rectangle(r.X - this.Bounds.X + offset, r.Y - this.Bounds.Y, r.Width - offset - 2, r.Height);
+            Rectangle textBounds = new Rectangle(r.X - this.Bounds.X, r.Y - this.Bounds.Y, r.Width - 2, r.Height);
             IntPtr hdc = g.GetHdc();
 
             NativeMethods.SetTextColor(hdc, ColorTranslator.ToWin32(this.GetForegroundColor()));
             if (this.IsDrawBackground && this.IsItemSelected && this.Column.Index == 0 && !this.ListView.FullRowSelect)
-                NativeMethods.SetBkColor(hdc, ColorTranslator.ToWin32(this.ListView.HighlightBackgroundColorOrDefault));
+                NativeMethods.SetBkColor(hdc, ColorTranslator.ToWin32(this.GetTextBackgroundColor()));
             else
                 NativeMethods.SetBkMode(hdc, true);
 
             IntPtr hFont = this.Font.ToHfont();
             NativeMethods.SelectObject(hdc, hFont);
 
-            int flags = NativeMethods.DT_END_ELLIPSIS;
-            if (!this.CanWrap)
-                flags |= NativeMethods.DT_SINGLELINE | NativeMethods.DT_VCENTER;
+            int flags = NativeMethods.DT_END_ELLIPSIS | NativeMethods.DT_SINGLELINE | NativeMethods.DT_VCENTER;
             switch (this.Column.TextAlign) {
                 case HorizontalAlignment.Center:
                     flags |= NativeMethods.DT_CENTER;
