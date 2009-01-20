@@ -9,6 +9,8 @@
  */
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using NUnit.Framework;
@@ -101,7 +103,7 @@ namespace BrightIdeasSoftware.Tests
         [Test]
         public void TestReturningValueType2()
         {
-            this.ExecuteAspect("BirthDate.Year", this.person1.BirthDate.Year);
+            this.ExecuteAspect("BirthDate.Year", DateTime.Now.Year);
         }
 
         [Test]
@@ -130,7 +132,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestWrongName()
+        public virtual void TestWrongName()
         {
             this.ExecuteAspect("Unknown", "'Unknown' is not a parameter-less method, property or field of type 'BrightIdeasSoftware.Tests.Person'");
         }
@@ -153,9 +155,66 @@ namespace BrightIdeasSoftware.Tests
     }
 
     [TestFixture]
+    public class TestIndexedAspects : TestAspectGetting
+    {
+        public void ExecuteAspect(string aspectName, object expectedResult, object source)
+        {
+            OLVColumn column = new OLVColumn();
+            column.AspectName = aspectName;
+            Assert.AreEqual(expectedResult, column.GetValue(source));
+        }
+
+        override public void ExecuteAspect(string aspectName, object expectedResult)
+        {
+            this.ExecuteAspect(aspectName, expectedResult, this.dict1);
+        }
+
+        override public void ExecuteAspect2(string aspectName, object expectedResult)
+        {
+            this.ExecuteAspect(aspectName, expectedResult, this.dict2);
+        }
+
+        [Test]
+        public override void TestWrongName()
+        {
+            // Hashtables return null when a key is not found
+            this.ExecuteAspect("Unknown", null); 
+
+            // Dictionaries raise KeyNotFound exceptions
+            this.ExecuteAspect2("Unknown", "'Unknown' is not a parameter-less method, property or field of type 'System.Collections.Generic.Dictionary`2[System.String,System.Object]'");
+        }
+
+        [TestFixtureSetUp]
+        public new void Init()
+        {
+            this.dict1 = new Hashtable();
+            this.dict2 = new Dictionary<string, object>();
+            InitializeDictionary(this.dict1);
+            InitializeDictionary(this.dict2);
+            this.dict2["CulinaryRating"] = 200;
+            this.dict2["GetRate"] = 2.0;
+        }
+
+        private void InitializeDictionary(IDictionary dict)
+        {
+            dict["Name"] = "name";
+            dict["Occupation"] = "occupation";
+            dict["CulinaryRating"] = 100;
+            dict["BirthDate"] = DateTime.Now;
+            dict["GetRate"] = 1.0;
+            dict["CanTellJokes"] = true;
+            dict["Comments"] = "comments";
+            dict["Photo"] = "  photo  ";
+        }
+
+        protected Hashtable dict1;
+        protected Dictionary<string, Object> dict2;
+    }
+
+    [TestFixture]
     public class TestAspectGeneration : TestAspectGetting
     {
-        public void Execute<T>(string aspectName, object expectedResult, T person) where T: class
+        public void Execute<T>(string aspectName, object expectedResult, T person) where T : class
         {
             OLVColumn column = new OLVColumn();
             column.AspectName = aspectName;
@@ -264,4 +323,67 @@ namespace BrightIdeasSoftware.Tests
         protected Person person1;
         protected Person2 person2;
     }
+
+    [TestFixture]
+    public class TestIndexedAspectSetting 
+    {
+        public void ExecuteAspect(string aspectName, object newValue, object dict)
+        {
+            OLVColumn column = new OLVColumn();
+            column.AspectName = aspectName;
+            column.PutValue(dict, newValue);
+            Assert.AreEqual(newValue, column.GetValue(dict));
+        }
+
+        public void ExecuteAspect(string aspectName, object newValue)
+        {
+            this.ExecuteAspect(aspectName, newValue, this.dict1);
+        }
+
+        public void ExecuteAspect2(string aspectName, object newValue)
+        {
+            this.ExecuteAspect(aspectName, newValue, this.dict2);
+        }
+
+        [Test]
+        public void TestSimpleField()
+        {
+            this.ExecuteAspect("Comments", "NEW comments");
+            this.ExecuteAspect2("Comments", "NEW comments2");
+        }
+
+        [Test]
+        public void TestSimpleProperty()
+        {
+            this.ExecuteAspect("Occupation", "NEW occupation");
+            this.ExecuteAspect2("Occupation", "NEW occupation2");
+        }
+
+        [TestFixtureSetUp]
+        public void Init()
+        {
+            this.dict1 = new Hashtable();
+            this.dict2 = new Dictionary<string, object>();
+            InitializeDictionary(this.dict1);
+            InitializeDictionary(this.dict2);
+            this.dict2["CulinaryRating"] = 200;
+            this.dict2["GetRate"] = 2.0;
+        }
+
+        private void InitializeDictionary(IDictionary dict)
+        {
+            dict["Name"] = "name";
+            dict["Occupation"] = "occupation";
+            dict["CulinaryRating"] = 100;
+            dict["BirthDate"] = DateTime.Now;
+            dict["GetRate"] = 1.0;
+            dict["CanTellJokes"] = true;
+            dict["Comments"] = "comments";
+            dict["Photo"] = "  photo  ";
+        }
+
+        protected Hashtable dict1;
+        protected Dictionary<string, Object> dict2;
+    }
+
 }
