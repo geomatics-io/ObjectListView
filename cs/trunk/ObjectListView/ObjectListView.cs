@@ -5,10 +5,16 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
- * 2008-01-17  JPP  - Added HotItemStyle and UseHotItem to highlight the row under the cursor
+ * 2009-01-20  JPP  - Changed to always draw columns when owner drawn, rather than falling back on DrawDefault. 
+ *                    This simplified several owner drawn problems
+ *                  - Added DefaultRenderer property to help with the above
+ *                  - HotItem background color is applied to all cells even when FullRowSelect is false
+ *                  - Allow grouping by CheckedAspectName columns
+ *                  - Commented out experimental animations. Still needs work.
+ * 2009-01-17  JPP  - Added HotItemStyle and UseHotItem to highlight the row under the cursor
  *                  - Added UseCustomSelectionColors property
  *                  - Owner draw mode now honors ForeColor and BackColor settings on the list
- * 2008-01-16  JPP  - Changed to use EditorRegistry rather than hard coding cell editors
+ * 2009-01-16  JPP  - Changed to use EditorRegistry rather than hard coding cell editors
  * 2009-01-10  JPP  - Changed to use Equals() method rather than == to compare model objects.
  * v2.0.1
  * 2009-01-08  JPP  - Fixed long-standing "multiple columns generated" problem.
@@ -330,9 +336,9 @@ namespace BrightIdeasSoftware
             this.AlternateRowBackColor = Color.Empty;
             this.ShowSortIndicators = true;
 
-            this.tickler = new Timer();
-            this.tickler.Interval = 100;
-            this.tickler.Tick += new EventHandler(tickler_Tick);
+            //this.tickler = new Timer();
+            //this.tickler.Interval = 100;
+            //this.tickler.Tick += new EventHandler(tickler_Tick);
         }
 
         #region Public properties
@@ -590,6 +596,26 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// When owner drawing, this renderer will draw columns that do not have specific renderer
+        /// given to them
+        /// </summary>
+        /// <remarks>If you try to set this to null, it will revert to a BaseRenderer</remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public BaseRenderer DefaultRenderer
+        {
+            get { return defaultRenderer; }
+            set
+            {
+                if (value == null)
+                    defaultRenderer = new BaseRenderer();
+                else
+                    defaultRenderer = value;
+            }
+        }
+        private BaseRenderer defaultRenderer = new BaseRenderer();
+
+        /// <summary>
         /// This registry decides what control should be used to edit what cells, based
         /// on the type of the value in the cell.
         /// </summary>
@@ -602,7 +628,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Category("Appearance"),
          Description("When the list has no items, show this m in the control"),
-         DefaultValue("")]
+         DefaultValue(null)]
         public virtual String EmptyListMsg
         {
             get { return emptyListMsg; }
@@ -613,7 +639,7 @@ namespace BrightIdeasSoftware
                 }
             }
         }
-        private String emptyListMsg = "";
+        private String emptyListMsg;
 
         /// <summary>
         /// What font should the 'list empty' m be drawn in?
@@ -776,9 +802,8 @@ namespace BrightIdeasSoftware
         /// What color should be used for the background of selected rows?
         /// </summary>
         /// <remarks>Windows does not give the option of changing the selection background.
-        /// So this color is only used when control is owner drawn and when columns have a
-        /// renderer installed -- a basic new BaseRenderer() will suffice. The method
-        /// EnableCustomSelectionColors() is a convenience method that does this.</remarks>
+        /// So the control has to be owner drawn to see the result of this setting.
+        /// Setting UseCustomSelectionColors = true will do this for you.</remarks>
         [Category("Appearance"),
          Description("The background foregroundColor of selected rows when the control is owner drawn"),
          DefaultValue(typeof(Color), "")]
@@ -1260,8 +1285,7 @@ namespace BrightIdeasSoftware
         /// Should the selected row be drawn with non-standard foreground and background colors?
         /// </summary>
         /// <remarks>
-        /// When this is enabled, the control becomes owner drawn and each column is given a
-        /// renderer, if it doesn't already have one.
+        /// When this is enabled, the control becomes owner drawn.
         /// </remarks>
         [Category("Appearance"),
          Description("Should the selected row be drawn with non-standard foreground and background colors?"),
@@ -1272,17 +1296,8 @@ namespace BrightIdeasSoftware
             set {
                 this.useCustomSelectionColors = value;
 
-                if (this.DesignMode)
-                    return;
-
-                if (value) {
+                if (!this.DesignMode && value) 
                     this.OwnerDraw = true;
-
-                    foreach (OLVColumn column in this.AllColumns) {
-                        if (column.RendererDelegate == null)
-                            column.Renderer = new BaseRenderer();
-                    }
-                };
             }
         }
         private bool useCustomSelectionColors;
@@ -1299,10 +1314,10 @@ namespace BrightIdeasSoftware
             set {
                 this.useHotItem = value;
 
-                if (this.useHotItem && !this.DesignMode)
-                    this.tickler.Start();
-                else
-                    this.tickler.Stop();
+                //if (this.useHotItem && !this.DesignMode)
+                //    this.tickler.Start();
+                //else
+                //    this.tickler.Stop();
             }
         }
         private bool useHotItem;
@@ -2694,6 +2709,12 @@ namespace BrightIdeasSoftware
             return this.PossibleSubItemCheckBoxClick(x, y);
         }
         
+        /// <summary>
+        /// Did the user click in a subitem check box?
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns>True if the user clicked a checkbox</returns>
         protected virtual bool PossibleSubItemCheckBoxClick(int x, int y) 
         {
             // Did they click on row?
@@ -2726,31 +2747,6 @@ namespace BrightIdeasSoftware
             }
 
             return false;
-        }
-
-        public virtual bool IsSubItemChecked(object rowObject, OLVColumn column)
-        {
-            return (column.GetCheckState(rowObject) == CheckState.Checked);
-        }
-
-        public virtual void CheckSubItemCheckBox(object rowObject, OLVColumn column)
-        {
-            column.PutCheckState(rowObject, CheckState.Checked);
-            this.RefreshObject(rowObject);
-        }
-
-        public virtual void UncheckSubItemCheckBox(object rowObject, OLVColumn column)
-        {
-            column.PutCheckState(rowObject, CheckState.Unchecked);
-            this.RefreshObject(rowObject);
-        }
-
-        public virtual void ToggleSubItemCheckBox(object rowObject, OLVColumn column)
-        {
-            if (this.IsSubItemChecked(rowObject, column))
-                this.UncheckSubItemCheckBox(rowObject, column);
-            else
-                this.CheckSubItemCheckBox(rowObject, column);
         }
         
         /// <summary>
@@ -3269,6 +3265,20 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Put a check into the check box at the given cell
+        /// </summary>
+        /// <param name="rowObject"></param>
+        /// <param name="column"></param>
+        public virtual void CheckSubItemCheckBox(object rowObject, OLVColumn column)
+        {
+            if (column == null || rowObject == null || !column.HasCheckBox)
+                return;
+
+            column.PutCheckState(rowObject, CheckState.Checked);
+            this.RefreshObject(rowObject);
+        }
+
+        /// <summary>
         /// Return true of the given object is checked
         /// </summary>
         /// <param name="modelObject">The model object whose checkedness is returned</param>
@@ -3296,6 +3306,19 @@ namespace BrightIdeasSoftware
                 return false;
             else
                 return (olvi.CheckState == CheckState.Indeterminate);
+        }
+
+        /// <summary>
+        /// Is there a check at the check box at the given cell
+        /// </summary>
+        /// <param name="rowObject"></param>
+        /// <param name="column"></param>
+        public virtual bool IsSubItemChecked(object rowObject, OLVColumn column)
+        {
+            if (column != null || rowObject != null || column.HasCheckBox)
+                return (column.GetCheckState(rowObject) == CheckState.Checked);
+            else
+                return false;
         }
 
         /// <summary>
@@ -3356,12 +3379,39 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Toggle the check at the check box of the given cell
+        /// </summary>
+        /// <param name="rowObject"></param>
+        /// <param name="column"></param>
+        public virtual void ToggleSubItemCheckBox(object rowObject, OLVColumn column)
+        {
+            if (this.IsSubItemChecked(rowObject, column))
+                this.UncheckSubItemCheckBox(rowObject, column);
+            else
+                this.CheckSubItemCheckBox(rowObject, column);
+        }
+
+        /// <summary>
         /// Mark the given object as unchecked in the list
         /// </summary>
         /// <param name="modelObject">The model object to be unchecked</param>
         public virtual void UncheckObject(object modelObject)
         {
             this.SetObjectCheckedness(modelObject, CheckState.Unchecked);
+        }
+
+        /// <summary>
+        /// Uncheck the check at the given cell
+        /// </summary>
+        /// <param name="rowObject"></param>
+        /// <param name="column"></param>
+        public virtual void UncheckSubItemCheckBox(object rowObject, OLVColumn column)
+        {
+            if (column == null || rowObject == null || !column.HasCheckBox)
+                return;
+            
+            column.PutCheckState(rowObject, CheckState.Unchecked);
+            this.RefreshObject(rowObject);
         }
 
         #endregion
@@ -3977,12 +4027,12 @@ namespace BrightIdeasSoftware
         /// when an owner drawn cell uses DrawDefault=true</remarks>
         protected virtual void CorrectSubItemColors(ListViewItem olvi)
         {
-            if (this.OwnerDraw && olvi.UseItemStyleForSubItems)
-                foreach (ListViewItem.ListViewSubItem si in olvi.SubItems) {
-                    si.BackColor = olvi.BackColor;
-                    si.ForeColor = olvi.ForeColor;
-                    si.Font = olvi.Font;
-                }
+            //if (this.OwnerDraw && olvi.UseItemStyleForSubItems)
+            //    foreach (ListViewItem.ListViewSubItem si in olvi.SubItems) {
+            //        si.BackColor = olvi.BackColor;
+            //        si.ForeColor = olvi.ForeColor;
+            //        si.Font = olvi.Font;
+            //    }
         }
 
         /// <summary>
@@ -4146,24 +4196,13 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected virtual void SetAllSubItemImages()
         {
-            if (!this.ShowImagesOnSubItems)
+            if (!this.ShowImagesOnSubItems || this.OwnerDraw)
                 return;
 
             this.ForceSubItemImagesExStyle();
 
             for (int rowIndex = 0; rowIndex < this.GetItemCount(); rowIndex++)
                 SetSubItemImages(rowIndex, this.GetItem(rowIndex));
-        }
-
-        /// <summary>
-        /// For the given item and subitem, make it display the given image
-        /// </summary>
-        /// <param name="itemIndex">row number (0 based)</param>
-        /// <param name="subItemIndex">subitem (0 is the item itself)</param>
-        /// <param name="imageIndex">index into the image list</param>
-        protected virtual void SetSubItemImage(int itemIndex, int subItemIndex, int imageIndex)
-        {
-            NativeMethods.SetSubItemImage(this, itemIndex, subItemIndex, imageIndex);
         }
 
         /// <summary>
@@ -4184,13 +4223,13 @@ namespace BrightIdeasSoftware
         /// <param name="shouldClearImages">will existing images be cleared if no new image is provided?</param>
         protected virtual void SetSubItemImages(int rowIndex, OLVListItem item, bool shouldClearImages)
         {
-            if (!this.ShowImagesOnSubItems)
+            if (!this.ShowImagesOnSubItems || this.OwnerDraw)
                 return;
 
             for (int i = 1; i < item.SubItems.Count; i++) {
                 int imageIndex = this.GetActualImageIndex(((OLVListSubItem)item.SubItems[i]).ImageSelector);
                 if (shouldClearImages || imageIndex != -1)
-                    this.SetSubItemImage(rowIndex, i, imageIndex);
+                    NativeMethods.SetSubItemImage(this, rowIndex, i, imageIndex);
             }
         }
 
@@ -4458,9 +4497,10 @@ namespace BrightIdeasSoftware
 
             // Get the special renderer for this column. If there isn't one, use the default draw mechanism.
             OLVColumn column = this.GetColumn(e.ColumnIndex);
-            if (column.RendererDelegate == null) {
-                e.DrawDefault = true;
-                return;
+            RenderDelegate renderer = column.RendererDelegate;
+            if (renderer == null) {
+                this.DefaultRenderer.Column = column;
+                renderer = this.DefaultRenderer.HandleRendering;
             }
 #if !MONO
             // Optimize drawing by only redrawing subitems that touch the area that was damaged
@@ -4486,7 +4526,7 @@ namespace BrightIdeasSoftware
 #endif
             // Finally, give the renderer a chance to draw something
             Object row = ((OLVListItem)e.Item).RowObject;
-            e.DrawDefault = !column.RendererDelegate(e, g, r, row);
+            e.DrawDefault = !renderer(e, g, r, row);
 
             if (!e.DrawDefault && buffer != null) {
                 buffer.Render();
@@ -5016,7 +5056,7 @@ namespace BrightIdeasSoftware
         public virtual void ClearHotItem()
         {
             this.UpdateHotItem(new Point(-1, -1));
-            this.ClearTransitions();
+            //this.ClearTransitions();
         }
 
         /// <summary>
@@ -5063,7 +5103,7 @@ namespace BrightIdeasSoftware
 
         protected virtual void ApplyHotItemStyle(int index)
         {
-            this.RegisterHotItemTransition(index);
+            //this.RegisterHotItemTransition(index);
 
             // Virtual lists apply hot item style when fetching their rows
             if (this.VirtualMode)
@@ -5100,12 +5140,16 @@ namespace BrightIdeasSoftware
 
         protected virtual void ApplyHotItemStyle(ListViewItem olvi, ListViewItem.ListViewSubItem si)
         {
+            olvi.UseItemStyleForSubItems = false;
+
+            // Background color is applied to all sub items
             foreach (ListViewItem.ListViewSubItem x in olvi.SubItems) {
-                x.BackColor = olvi.BackColor;
+                if (this.HotItemStyle.BackColor == Color.Empty)
+                    x.BackColor = olvi.BackColor;
+                else
+                    x.BackColor = this.HotItemStyle.BackColor;
                 x.ForeColor = olvi.ForeColor;
             }
-
-            olvi.UseItemStyleForSubItems = false;
 
             if (this.HotItemStyle.Font != null)
                 si.Font = this.HotItemStyle.Font;
@@ -5119,9 +5163,6 @@ namespace BrightIdeasSoftware
 
             if (this.HotItemStyle.ForeColor != Color.Empty)
                 si.ForeColor = this.HotItemStyle.ForeColor;
-
-            if (this.HotItemStyle.BackColor != Color.Empty)
-                si.BackColor = this.HotItemStyle.BackColor;
         }
 
         protected virtual void UnapplyHotItemStyle(int index)
@@ -5139,54 +5180,54 @@ namespace BrightIdeasSoftware
             //this.FillInValues(olvi, olvi.RowObject);
         }
 
-        Dictionary<int, TransitionState> transitionStateMap = new Dictionary<int, TransitionState>();
+        //Dictionary<int, TransitionState> transitionStateMap = new Dictionary<int, TransitionState>();
 
-        internal TransitionState GetHotItemTransitionState(int rowIndex)
-        {
-            TransitionState state;
+        //internal TransitionState GetHotItemTransitionState(int rowIndex)
+        //{
+        //    TransitionState state;
 
-            if (this.transitionStateMap.TryGetValue(rowIndex, out state))
-                return state;
-            else
-                return null;
-        }
+        //    if (this.transitionStateMap.TryGetValue(rowIndex, out state))
+        //        return state;
+        //    else
+        //        return null;
+        //}
 
-        protected virtual void RegisterHotItemTransition(int newHotItem)
-        {
-            if (this.GetHotItemTransitionState(newHotItem) == null)
-                this.transitionStateMap[newHotItem] = new TransitionState(newHotItem);
-        }
+        //protected virtual void RegisterHotItemTransition(int newHotItem)
+        //{
+        //    if (this.GetHotItemTransitionState(newHotItem) == null)
+        //        this.transitionStateMap[newHotItem] = new TransitionState(newHotItem);
+        //}
 
-        protected virtual void tickler_Tick(object sender, EventArgs e)
-        {
-            if (this.InvokeRequired)
-                this.Invoke(new MethodInvoker(this.tickler_TickInUIThread));
-            else
-                this.tickler_TickInUIThread();
-        }
+        //protected virtual void tickler_Tick(object sender, EventArgs e)
+        //{
+        //    if (this.InvokeRequired)
+        //        this.Invoke(new MethodInvoker(this.tickler_TickInUIThread));
+        //    else
+        //        this.tickler_TickInUIThread();
+        //}
 
-        protected virtual void tickler_TickInUIThread()
-        {
-            List<int> toRemove = new List<int>();
-            foreach (TransitionState state in this.transitionStateMap.Values) {
-                state.Tick(state.RowIndex == this.HotItemIndex);
-                if (!this.UseHotItem || state.IsDone || state.RowIndex >= this.GetItemCount())
-                    toRemove.Add(state.RowIndex);
-                else
-                    this.RedrawItems(state.RowIndex, state.RowIndex, false);
-            }
+        //protected virtual void tickler_TickInUIThread()
+        //{
+        //    List<int> toRemove = new List<int>();
+        //    foreach (TransitionState state in this.transitionStateMap.Values) {
+        //        state.Tick(state.RowIndex == this.HotItemIndex);
+        //        if (!this.UseHotItem || state.IsDone || state.RowIndex >= this.GetItemCount())
+        //            toRemove.Add(state.RowIndex);
+        //        else
+        //            this.RedrawItems(state.RowIndex, state.RowIndex, false);
+        //    }
 
-            foreach (int rowIndex in toRemove) {
-                this.transitionStateMap.Remove(rowIndex);
-                this.RedrawItems(rowIndex, rowIndex, false);
-            }
-        }
+        //    foreach (int rowIndex in toRemove) {
+        //        this.transitionStateMap.Remove(rowIndex);
+        //        this.RedrawItems(rowIndex, rowIndex, false);
+        //    }
+        //}
 
-        protected virtual void ClearTransitions()
-        {
-            foreach (TransitionState state in this.transitionStateMap.Values)
-                state.IsDone = true;
-        }
+        //protected virtual void ClearTransitions()
+        //{
+        //    foreach (TransitionState state in this.transitionStateMap.Values)
+        //        state.IsDone = true;
+        //}
 
         #endregion
 
@@ -5270,7 +5311,7 @@ namespace BrightIdeasSoftware
         private Rectangle lastUpdateRectangle; // remember the update rect from the last WM_PAINT message
         private bool isOwnerOfObjects; // does this ObjectListView own the Objects collection?
         private bool hasIdleHandler; // has an Idle handler already been installed?
-        private Timer tickler; // use to fade animations
+        //private Timer tickler; // use to fade animations
 
         #endregion
     }
@@ -5528,7 +5569,6 @@ namespace BrightIdeasSoftware
                     return;
 
                 if (String.IsNullOrEmpty(checkedAspectName)) {
-                    this.Renderer = null;
                     this.CheckStateGetter = null;
                     this.CheckStatePutter = null;
                 } else {
@@ -5545,14 +5585,15 @@ namespace BrightIdeasSoftware
                         return this.CheckStateGetter(modelObject);
                     };
                     
-                    // Make sure the checkbox draws nicely when owner drawn
-                    if (this.RendererDelegate == null)
-                        this.Renderer = new BaseRenderer(); 
-                    
                     // Make sure that sorting works
                     if (String.IsNullOrEmpty(this.AspectName) && this.AspectGetter == null) {
-                        this.AspectName = value;
+                        this.AspectName = value; // needed for sorting to work
+
+                        // We don't want to show a checkbox and the word "true" next to it
                         this.AspectToStringConverter = delegate(object x) { return ""; };
+
+                        // We do want groups to have a title
+                        this.GroupKeyToTitleConverter = delegate(object x) { return x.ToString(); };
                 }
             }
         }
@@ -6404,169 +6445,169 @@ namespace BrightIdeasSoftware
         private Color backColor;
     }
 
-    internal class TransitionState
-    {
-        public TransitionState(int rowIndex)
-        {
-            this.RowIndex = rowIndex;
-        }
-        public int RowIndex;
-        public float Progress = 0.5f;
-        public float Step = 0.1f;
+    //internal class TransitionState
+    //{
+    //    public TransitionState(int rowIndex)
+    //    {
+    //        this.RowIndex = rowIndex;
+    //    }
+    //    public int RowIndex;
+    //    public float Progress = 0.5f;
+    //    public float Step = 0.1f;
 
-        public bool IsDone
-        {
-            get { return (this.Progress < 0.0f); }
-            set {
-                if (value)
-                    this.Progress = -1.0f;
-                else
-                    this.Progress = 0.0f;
-            }
-        }
+    //    public bool IsDone
+    //    {
+    //        get { return (this.Progress < 0.0f); }
+    //        set {
+    //            if (value)
+    //                this.Progress = -1.0f;
+    //            else
+    //                this.Progress = 0.0f;
+    //        }
+    //    }
 
-        public void Tick(bool forward)
-        {
-            if (forward)
-                this.Progress = Math.Min(1.0f, this.Progress + this.Step);
-            else
-                this.Progress = Math.Max(-this.Step, this.Progress - this.Step);
-        }
-    }
+    //    public void Tick(bool forward)
+    //    {
+    //        if (forward)
+    //            this.Progress = Math.Min(1.0f, this.Progress + this.Step);
+    //        else
+    //            this.Progress = Math.Max(-this.Step, this.Progress - this.Step);
+    //    }
+    //}
 
-    public class TransitionRenderer : BaseRenderer
-    {
-        public TransitionRenderer()
-        {
-        }
+   // public class TransitionRenderer : BaseRenderer
+   // {
+   //     public TransitionRenderer()
+   //     {
+   //     }
 
-        internal TransitionState GetTransitionState()
-        {
-            if (this.ListView == null)
-                return null;
-            else
-                return this.ListView.GetHotItemTransitionState(this.ListItem.Index);
-        }
+   //     internal TransitionState GetTransitionState()
+   //     {
+   //         if (this.ListView == null)
+   //             return null;
+   //         else
+   //             return this.ListView.GetHotItemTransitionState(this.ListItem.Index);
+   //     }
 
-        //public override bool OptionalRender(Graphics g, Rectangle r)
-        //{
-        //    TransitionState state = this.GetHotItemTransitionState();
-        //    if (state == null || this.IsItemSelected)
-        //        return base.OptionalRender(g, r);
+   //     //public override bool OptionalRender(Graphics g, Rectangle r)
+   //     //{
+   //     //    TransitionState state = this.GetHotItemTransitionState();
+   //     //    if (state == null || this.IsItemSelected)
+   //     //        return base.OptionalRender(g, r);
 
-        //    if (!state.IsInitialized)
-        //        this.InitializeState(g, r, state);
+   //     //    if (!state.IsInitialized)
+   //     //        this.InitializeState(g, r, state);
 
-        //    this.DrawBackground(g, r);
-        //    this.RenderBitmaps(g, r, state);
+   //     //    this.DrawBackground(g, r);
+   //     //    this.RenderBitmaps(g, r, state);
 
-        //    return true;
-        //}
+   //     //    return true;
+   //     //}
 
-        protected override void DrawBackground(Graphics g, Rectangle r)
-        {
-            base.DrawBackground(g, r);
+   //     protected override void DrawBackground(Graphics g, Rectangle r)
+   //     {
+   //         base.DrawBackground(g, r);
 
-            TransitionState state = this.GetTransitionState();
-            if (state == null || this.IsItemSelected)
-                return;
+   //         TransitionState state = this.GetTransitionState();
+   //         if (state == null || this.IsItemSelected)
+   //             return;
 
-            Color c = Color.Plum;
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            const int rounding = 16;
-            GraphicsPath path = this.GetRoundedRect(r, rounding);
-            //g.FillPath(new SolidBrush(Color.FromArgb((int)(196 * state.Progress), c)), path);
+   //         Color c = Color.Plum;
+   //         g.SmoothingMode = SmoothingMode.AntiAlias;
+   //         const int rounding = 16;
+   //         GraphicsPath path = this.GetRoundedRect(r, rounding);
+   //         //g.FillPath(new SolidBrush(Color.FromArgb((int)(196 * state.Progress), c)), path);
 
-            PathGradientBrush pthGrBrush = new PathGradientBrush(path);
-            pthGrBrush.CenterColor = Color.FromArgb((int)(255 * state.Progress), c);
-            Color[] colors = { Color.FromArgb((int)(96 * state.Progress), c) };
-            pthGrBrush.SurroundColors = colors;
-            g.FillPath(pthGrBrush, path);
-        }
+   //         PathGradientBrush pthGrBrush = new PathGradientBrush(path);
+   //         pthGrBrush.CenterColor = Color.FromArgb((int)(255 * state.Progress), c);
+   //         Color[] colors = { Color.FromArgb((int)(96 * state.Progress), c) };
+   //         pthGrBrush.SurroundColors = colors;
+   //         g.FillPath(pthGrBrush, path);
+   //     }
 
-        private GraphicsPath GetRoundedRect(RectangleF rect, float diameter)
-        {
-            GraphicsPath path = new GraphicsPath();
+   //     private GraphicsPath GetRoundedRect(RectangleF rect, float diameter)
+   //     {
+   //         GraphicsPath path = new GraphicsPath();
 
-            RectangleF arc = new RectangleF(rect.X, rect.Y, diameter, diameter);
-            path.AddArc(arc, 180, 90);
-            arc.X = rect.Right - diameter;
-            path.AddArc(arc, 270, 90);
-            arc.Y = rect.Bottom - diameter;
-            path.AddArc(arc, 0, 90);
-            arc.X = rect.Left;
-            path.AddArc(arc, 90, 90);
-            path.CloseFigure();
+   //         RectangleF arc = new RectangleF(rect.X, rect.Y, diameter, diameter);
+   //         path.AddArc(arc, 180, 90);
+   //         arc.X = rect.Right - diameter;
+   //         path.AddArc(arc, 270, 90);
+   //         arc.Y = rect.Bottom - diameter;
+   //         path.AddArc(arc, 0, 90);
+   //         arc.X = rect.Left;
+   //         path.AddArc(arc, 90, 90);
+   //         path.CloseFigure();
 
-            return path;
-        }
+   //         return path;
+   //     }
 
-        /*
-        private void InitializeState(Graphics g, Rectangle r, TransitionState state)
-        {
-            state.FromBitmap = new Bitmap(r.Width, r.Height, g);
-            Graphics bitmapGraphics = Graphics.FromImage(state.FromBitmap);
-            System.Diagnostics.Debug.WriteLine("from");
-            System.Diagnostics.Debug.WriteLine(this.GetText());
+   //     /*
+   //     private void InitializeState(Graphics g, Rectangle r, TransitionState state)
+   //     {
+   //         state.FromBitmap = new Bitmap(r.Width, r.Height, g);
+   //         Graphics bitmapGraphics = Graphics.FromImage(state.FromBitmap);
+   //         System.Diagnostics.Debug.WriteLine("from");
+   //         System.Diagnostics.Debug.WriteLine(this.GetText());
 
-            base.OptionalRender(bitmapGraphics, new Rectangle(0, 0, r.Width, r.Height));
+   //         base.OptionalRender(bitmapGraphics, new Rectangle(0, 0, r.Width, r.Height));
 
-            state.ToBitmap = new Bitmap(r.Width, r.Height, g);
-            Graphics bitmapGraphics2 = Graphics.FromImage(state.ToBitmap);
-            bitmapGraphics2.FillEllipse(Brushes.Gold, new Rectangle(0, 0, r.Width, r.Height));
-            this.IsDrawBackground = false;
-            System.Diagnostics.Debug.WriteLine("to");
-            System.Diagnostics.Debug.WriteLine(this.GetText());
-            base.OptionalRender(bitmapGraphics2, new Rectangle(0, 0, r.Width, r.Height));
-            this.IsDrawBackground = true;
-        }
+   //         state.ToBitmap = new Bitmap(r.Width, r.Height, g);
+   //         Graphics bitmapGraphics2 = Graphics.FromImage(state.ToBitmap);
+   //         bitmapGraphics2.FillEllipse(Brushes.Gold, new Rectangle(0, 0, r.Width, r.Height));
+   //         this.IsDrawBackground = false;
+   //         System.Diagnostics.Debug.WriteLine("to");
+   //         System.Diagnostics.Debug.WriteLine(this.GetText());
+   //         base.OptionalRender(bitmapGraphics2, new Rectangle(0, 0, r.Width, r.Height));
+   //         this.IsDrawBackground = true;
+   //     }
 
-        private void RenderBitmaps(Graphics g, Rectangle r, TransitionState state)
-        {
-            if (state.Progress >= 1.0f)
-                g.DrawImage(state.ToBitmap, r.X, r.Y);
-            else if (state.Progress <= 0.0f)
-                g.DrawImage(state.FromBitmap, r.X, r.Y);
-            else
-            this.BlendBitmaps(g, r, state.FromBitmap, state.ToBitmap, state.Progress);
-        }
+   //     private void RenderBitmaps(Graphics g, Rectangle r, TransitionState state)
+   //     {
+   //         if (state.Progress >= 1.0f)
+   //             g.DrawImage(state.ToBitmap, r.X, r.Y);
+   //         else if (state.Progress <= 0.0f)
+   //             g.DrawImage(state.FromBitmap, r.X, r.Y);
+   //         else
+   //         this.BlendBitmaps(g, r, state.FromBitmap, state.ToBitmap, state.Progress);
+   //     }
 
-        private void BlendBitmaps(Graphics g, Rectangle r, Bitmap fromBitmap, Bitmap toBitmap, float transition)
-        {
-            float[][] colorMatrixElements = { 
-   new float[] {1,  0,  0,  0, 0},        
-   new float[] {0,  1,  0,  0, 0},        
-   new float[] {0,  0,  1,  0, 0},        
-   new float[] {0,  0,  0,  transition, 0},        
-   new float[] {0,  0,  0,  0, 1}};    
+   //     private void BlendBitmaps(Graphics g, Rectangle r, Bitmap fromBitmap, Bitmap toBitmap, float transition)
+   //     {
+   //         float[][] colorMatrixElements = { 
+   //new float[] {1,  0,  0,  0, 0},        
+   //new float[] {0,  1,  0,  0, 0},        
+   //new float[] {0,  0,  1,  0, 0},        
+   //new float[] {0,  0,  0,  transition, 0},        
+   //new float[] {0,  0,  0,  0, 1}};    
 
-            ColorMatrix colorMatrix = new ColorMatrix(colorMatrixElements);
-            ImageAttributes imageAttributes = new ImageAttributes();
-            imageAttributes.SetColorMatrix(colorMatrix);
+   //         ColorMatrix colorMatrix = new ColorMatrix(colorMatrixElements);
+   //         ImageAttributes imageAttributes = new ImageAttributes();
+   //         imageAttributes.SetColorMatrix(colorMatrix);
 
-            g.DrawImage(
-               toBitmap,
-               new Rectangle(r.X, r.Y, toBitmap.Size.Width, toBitmap.Size.Height),  // destination rectangle 
-               0, 0,        // upper-left corner of source rectangle 
-               toBitmap.Size.Width,       // width of source rectangle
-               toBitmap.Size.Height,      // height of source rectangle
-               GraphicsUnit.Pixel,
-               imageAttributes);
+   //         g.DrawImage(
+   //            toBitmap,
+   //            new Rectangle(r.X, r.Y, toBitmap.Size.Width, toBitmap.Size.Height),  // destination rectangle 
+   //            0, 0,        // upper-left corner of source rectangle 
+   //            toBitmap.Size.Width,       // width of source rectangle
+   //            toBitmap.Size.Height,      // height of source rectangle
+   //            GraphicsUnit.Pixel,
+   //            imageAttributes);
 
-            colorMatrix.Matrix33 = 1.0f - transition;
-            imageAttributes.SetColorMatrix(colorMatrix);
+   //         colorMatrix.Matrix33 = 1.0f - transition;
+   //         imageAttributes.SetColorMatrix(colorMatrix);
 
-            g.DrawImage(
-               fromBitmap,
-               new Rectangle(r.X, r.Y, fromBitmap.Size.Width, fromBitmap.Size.Height),  // destination rectangle 
-               0, 0,        // upper-left corner of source rectangle 
-               fromBitmap.Size.Width,       // width of source rectangle
-               fromBitmap.Size.Height,      // height of source rectangle
-               GraphicsUnit.Pixel,
-               imageAttributes);
-        }
-        */
-    }
+   //         g.DrawImage(
+   //            fromBitmap,
+   //            new Rectangle(r.X, r.Y, fromBitmap.Size.Width, fromBitmap.Size.Height),  // destination rectangle 
+   //            0, 0,        // upper-left corner of source rectangle 
+   //            fromBitmap.Size.Width,       // width of source rectangle
+   //            fromBitmap.Size.Height,      // height of source rectangle
+   //            GraphicsUnit.Pixel,
+   //            imageAttributes);
+   //     }
+   //     */
+   // }
 
     /// <summary>
     /// A simple-minded implementation of a Dictionary that can handle null as a key. 
