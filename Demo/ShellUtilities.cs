@@ -61,8 +61,8 @@ namespace ObjectListViewDemo
                 listView.LargeImageList.ImageSize = new Size(32, 32);
             }
 
-            if (listView.SmallImageList.Images.Count != listView.LargeImageList.Images.Count)
-                throw new ArgumentException("Small and large image lists must have the same number of items.");
+            //if (listView.SmallImageList.Images.Count != listView.LargeImageList.Images.Count)
+            //    throw new ArgumentException("Small and large image lists must have the same number of items.");
 
             this.smallImageCollection = listView.SmallImageList.Images;
             this.largeImageCollection = listView.LargeImageList.Images;
