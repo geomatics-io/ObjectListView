@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Threading;
+using System.Drawing.Imaging;
 
 using BrightIdeasSoftware;
 
@@ -36,7 +37,7 @@ namespace ObjectListViewDemo
 		[STAThread]
         public static void Main(string[] args)
 		{
-			Application.EnableVisualStyles();
+            Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			Application.Run(new MainForm());
 		}
@@ -75,10 +76,10 @@ namespace ObjectListViewDemo
 
             // Change this value to see the performance on bigger lists.
             // Each list builds about 1000 rows per second.
-            //while (list.Count < 2000) {
-            //    foreach (Person p in masterList)
-            //        list.Add(new Person(p));
-            //}
+            while (list.Count < 2000) {
+                foreach (Person p in masterList)
+                    list.Add(new Person(p));
+            }
 
 			InitializeSimpleExample(list);
 			InitializeComplexExample(list);
@@ -229,9 +230,12 @@ namespace ObjectListViewDemo
             public override bool OptionalRender(Graphics g, Rectangle r)
             {
                 // If we're in any other view than Tile, just let the default process do it's stuff
-                if (this.ListView.View != View.Tile)
-                    return base.OptionalRender(g, r);
-
+                if (this.ListView.View != View.Tile) {
+                    if (this.ListView.View == View.Details)
+                        return base.OptionalRender(g, r);
+                    else
+                        return false;
+                }
                 const int spacing = 8;
 
                 // Use buffered graphics to kill flickers
@@ -392,9 +396,9 @@ namespace ObjectListViewDemo
             };
 
             this.rowHeightUpDown.Value = 32;
-            this.listViewDataSet.EnableCustomSelectionColors();
 
             // Long values in the first column will wrap
+            this.listViewDataSet.GetColumn(0).Renderer = new BaseRenderer();
             this.listViewDataSet.GetColumn(0).Renderer.CanWrap = true;
 
             LoadXmlIntoList();
@@ -828,6 +832,8 @@ namespace ObjectListViewDemo
 
             listViewSimple.SelectedObjects = listViewComplex.SelectedObjects;
             listViewSimple.Select();
+
+            listViewSimple.CopyObjectsToClipboard(listViewSimple.CheckedObjects);
 		}
 
         private void button7_Click(object sender, EventArgs e)
@@ -1282,7 +1288,7 @@ namespace ObjectListViewDemo
             cb.Font = ((ObjectListView)sender).Font;
             cb.DropDownStyle = ComboBoxStyle.DropDownList;
             cb.Items.AddRange(new String[] { "Pay to eat out", "Suggest take-away", "Passable", "Seek dinner invitation", "Hire as chef" });
-            cb.SelectedIndex = ((int)e.Value) / 10;
+            cb.SelectedIndex = Math.Max(0, Math.Min(cb.Items.Count-1, ((int)e.Value) / 10));
             cb.SelectedIndexChanged += new EventHandler(cb_SelectedIndexChanged);
             cb.Tag = e.RowObject; // remember which person we are editing
             e.Control = cb;
@@ -1606,6 +1612,53 @@ namespace ObjectListViewDemo
             olv.EnsureGroupVisible(lvg);
         }
 
+        private static void BlendBitmaps(Graphics g, Bitmap b1, Bitmap b2, float transition)
+        {
+            float[][] colorMatrixElements = { 
+   new float[] {1,  0,  0,  0, 0},        // red scaling factor of 2
+   new float[] {0,  1,  0,  0, 0},        // green scaling factor of 1
+   new float[] {0,  0,  1,  0, 0},        // blue scaling factor of 1
+   new float[] {0,  0,  0,  transition, 0},        // alpha scaling factor of 1
+   new float[] {0,  0,  0,  0, 1}};    // three translations of 0.2
+
+            ColorMatrix colorMatrix = new ColorMatrix(colorMatrixElements);
+            ImageAttributes imageAttributes = new ImageAttributes();
+            imageAttributes.SetColorMatrix(colorMatrix);
+
+            g.DrawImage(
+               b1,
+               new Rectangle(0, 0, b1.Size.Width, b1.Size.Height),  // destination rectangle 
+               0, 0,        // upper-left corner of source rectangle 
+               b1.Size.Width,       // width of source rectangle
+               b1.Size.Height,      // height of source rectangle
+               GraphicsUnit.Pixel,
+               imageAttributes);
+
+            colorMatrix.Matrix33 = 1.0f - transition;
+            imageAttributes.SetColorMatrix(colorMatrix);
+
+            g.DrawImage(
+               b2,
+               new Rectangle(0, 0, b2.Size.Width, b2.Size.Height),  // destination rectangle 
+               0, 0,        // upper-left corner of source rectangle 
+               b2.Size.Width,       // width of source rectangle
+               b2.Size.Height,      // height of source rectangle
+               GraphicsUnit.Pixel,
+               imageAttributes);
+        }
+
+        private void checkBox18_CheckedChanged(object sender, EventArgs e)
+        {
+            this.listViewSimple.UseHotItem = ((CheckBox)sender).Checked;
+        }
+    }
+        
+    enum MaritalStatus
+    {
+        Single,
+        Married,
+        Divorced,
+        Partnered
     }
 
 	class Person
@@ -1639,8 +1692,10 @@ namespace ObjectListViewDemo
             this.CanTellJokes = other.CanTellJokes;
             this.Photo = other.Photo;
             this.Comments = other.Comments;
+            this.MaritalStatus = other.MaritalStatus;
         }
 
+        // Allows tests for properties.
         public string Name
         {
             get { return name; }
@@ -1648,7 +1703,6 @@ namespace ObjectListViewDemo
         }
         private string name;
 
-        // Allows tests for fields.
         public string Occupation
         {
             get { return occupation; }
@@ -1674,6 +1728,7 @@ namespace ObjectListViewDemo
             set { this.BirthDate = new DateTime(value, birthDate.Month, birthDate.Day); }
         }
 
+        // Allow tests for methods
         public double GetRate()
         {
             return hourlyRate;
@@ -1690,6 +1745,9 @@ namespace ObjectListViewDemo
         public string Comments;
 		public int serialNumber;
         public bool CanTellJokes;
+
+        // Allow tests for enums
+        public MaritalStatus MaritalStatus = MaritalStatus.Single;
 	}
 
 }
