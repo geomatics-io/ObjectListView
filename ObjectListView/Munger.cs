@@ -5,7 +5,9 @@
  * Date: 28/11/2008 17:15 
  *
  * Change log:
- * 2009-01-18  JPP  Handle target objects from a DataListView (normally DataRowViews)
+ * 2009-01-20  JPP  - Made the Munger capable of handling indexed access.
+ *                    Incidentally, this removed the ugliness that the last change introduced.
+ * 2009-01-18  JPP  - Handle target objects from a DataListView (normally DataRowViews)
  * v2.0
  * 2008-11-28  JPP  Initial version
  *
@@ -89,29 +91,27 @@ namespace BrightIdeasSoftware
             if (this.aspectNameParts.Count == 0)
                 return null;
 
-            BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
+            // TODO: refactor this code with the same code that exists in SetValue()
+            const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
                 BindingFlags.InvokeMethod | BindingFlags.GetProperty | BindingFlags.GetField;
+            const BindingFlags flags2 = BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty;
             foreach (String property in this.aspectNameParts) {
                 if (target == null)
                     break;
                 try {
                     target = target.GetType().InvokeMember(property, flags, null, target, null);
                 }
-                catch (System.MissingMethodException) {
-                    // If the munger is used within a DataListView, the target maybe a DataRowView
-                    // so explicitly try that before giving up
-                    bool throwException = true;
-                    DataRowView drv = target as DataRowView;
-                    if (drv != null) {
-                        try {
-                            target = drv[property];
-                            throwException = false;
-                        }
-                        catch (ArgumentException) {
-                        }
+                catch (MissingMethodException) {
+                    // If that didn't work, try to use property as an indexer. This covers things like arrays
+                    // dictionaries and DataRows
+                    try {
+                        target = target.GetType().InvokeMember("Item", flags2, null, target, new Object[] { property });
                     }
-                    if (throwException)
+                    catch {
+                        // We could catch MissingMethodException, KeyNotFoundException, TargetInvocationException plus
+                        // others, but basically if anything goes wrong here, we give up
                         return String.Format("'{0}' is not a parameter-less method, property or field of type '{1}'", property, target.GetType());
+                    }
                 }
             }
             return target;
@@ -140,7 +140,7 @@ namespace BrightIdeasSoftware
                 return;
 
             // Get the object to be poked
-            BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
+            const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
                 BindingFlags.InvokeMethod | BindingFlags.GetProperty | BindingFlags.GetField;
             for (int i = 0; i < this.aspectNameParts.Count-1; i++) {
                 if (target == null)
@@ -149,19 +149,16 @@ namespace BrightIdeasSoftware
                     target = target.GetType().InvokeMember(this.aspectNameParts[i], flags, null, target, null);
                 }
                 catch (System.MissingMethodException) {
-                    // If the munger is used within a DataListView, the target maybe a DataRowView
-                    // so explicitly try that before giving up
-                    bool throwException = true;
-                    DataRowView drv = target as DataRowView;
-                    if (drv != null) {
-                        try {
-                            target = drv[this.aspectNameParts[i]];
-                            throwException = false;
-                        }
-                        catch (ArgumentException) {
-                        }
+                    // If that didn't work, try to use property as an indexer. This covers things like arrays
+                    // dictionaries and DataRows
+                    try {
+                        const BindingFlags flags2 = BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty;
+                        target = target.GetType().InvokeMember("Item", flags2, null, target, new Object[] { this.aspectNameParts[i] });
                     }
-                    if (throwException) {
+                    catch {
+                        // We could catch MissingMethodException, KeyNotFoundException, TargetInvocationException plus
+                        // others, but basically if anything goes wrong here, we give up
+
                         System.Diagnostics.Debug.WriteLine(String.Format("Cannot invoke '{0}' on a {1}", this.aspectNameParts[i], target.GetType()));
                         return;
                     }
@@ -175,28 +172,32 @@ namespace BrightIdeasSoftware
             String lastPart = this.aspectNameParts[this.aspectNameParts.Count - 1];
             try {
                 // Try to set a property or field first, since that's the most common case
-                BindingFlags flags2 = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty | BindingFlags.SetField;
-                target.GetType().InvokeMember(lastPart, flags2, null, target, new Object[] { value });
+                const BindingFlags flags3 = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | 
+                    BindingFlags.SetProperty | BindingFlags.SetField;
+                target.GetType().InvokeMember(lastPart, flags3, null, target, new Object[] { value });
             }
             catch (System.MissingMethodException ex) {
                 try {
                     // If that failed, it could be method name that we are looking for
-                    BindingFlags flags3 = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod;
-                    target.GetType().InvokeMember(lastPart, flags3, null, target, new Object[] { value });
+                    const BindingFlags flags4 = BindingFlags.Public | BindingFlags.NonPublic | 
+                        BindingFlags.Instance | BindingFlags.InvokeMethod;
+                    target.GetType().InvokeMember(lastPart, flags4, null, target, new Object[] { value });
                 }
                 catch (System.MissingMethodException ex2) {
-                    DataRowView drv = target as DataRowView;
-                    if (drv != null) {
-                        try {
-                            drv[lastPart] = value;
-                            return;
-                        }
-                        catch (ArgumentException) {
-                        }
+                    // If that didn't work, try to use property as an indexer. This covers things like arrays
+                    // dictionaries and DataRows
+                    try {
+                        const BindingFlags flags5 = BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetProperty;
+                        target = target.GetType().InvokeMember("Item", flags5, null, target,
+                            new Object[] { lastPart, value });
                     }
-                    System.Diagnostics.Debug.WriteLine("Invoke PutAspectByName failed:");
-                    System.Diagnostics.Debug.WriteLine(ex);
-                    System.Diagnostics.Debug.WriteLine(ex2);
+                    catch {
+                        // We could catch MissingMethodException, KeyNotFoundException, TargetInvocationException plus
+                        // others, but basically if anything goes wrong here, we give up
+                        System.Diagnostics.Debug.WriteLine("Invoke PutAspectByName failed:");
+                        System.Diagnostics.Debug.WriteLine(ex);
+                        System.Diagnostics.Debug.WriteLine(ex2);
+                    }
                 }
             }
         }
