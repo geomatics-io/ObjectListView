@@ -27,6 +27,7 @@ namespace BrightIdeasSoftware.Tests
 
             this.olv.SetObjects(PersonDb.All);
             this.olv.CheckedObjects = null;
+            this.olv.TriStateCheckBoxes = false;
         }
 
         [TearDown]
@@ -98,6 +99,7 @@ namespace BrightIdeasSoftware.Tests
         [Test]
         public void TestCheckStateGetter()
         {
+            this.olv.TriStateCheckBoxes = true;
             this.olv.CheckStateGetter = delegate(object x) {
                 int idx = PersonDb.All.IndexOf((Person)x);
                 switch (idx) {
@@ -110,10 +112,15 @@ namespace BrightIdeasSoftware.Tests
                 }
             };
             this.olv.SetObjects(PersonDb.All);
+
             Assert.IsTrue(this.olv.IsChecked(PersonDb.All[0]));
+            Assert.IsTrue(this.olv.ModelToItem(PersonDb.All[0]).CheckState == CheckState.Checked);
             Assert.IsFalse(this.olv.IsChecked(PersonDb.All[1]));
-            for (int i=2; i<PersonDb.All.Count; i++)
+            Assert.IsTrue(this.olv.ModelToItem(PersonDb.All[1]).CheckState == CheckState.Unchecked);
+            for (int i = 2; i < PersonDb.All.Count; i++) {
                 Assert.IsTrue(this.olv.IsCheckedIndeterminate(PersonDb.All[i]));
+                Assert.IsTrue(this.olv.ModelToItem(PersonDb.All[i]).CheckState == CheckState.Indeterminate);
+            }
         }
 
         [Test]
@@ -197,6 +204,8 @@ namespace BrightIdeasSoftware.Tests
             if (this.olv.VirtualMode)
                 return;
 
+            this.olv.TriStateCheckBoxes = true;
+
             try {
                 this.olv.ItemCheck += new ItemCheckEventHandler(olv_ItemCheck);
                 Person p = PersonDb.All[0];
@@ -257,6 +266,30 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual(PersonDb.All.Count, this.olv.CheckedObjects.Count);
 
             this.olv.CheckedAspectName = null;
+        }
+
+        [Test]
+        public void TestSubItemCheckBox()
+        {
+            PersonDb.All[0].IsActive = true;
+            PersonDb.All[1].IsActive = false;
+
+            OLVColumn column = this.olv.GetColumn(1);
+            string oldAspectName = column.AspectName;
+            column.AspectName = "IsActive";
+            column.CheckBoxes = true;
+
+            this.olv.SetObjects(PersonDb.All);
+            Assert.IsTrue(this.olv.IsSubItemChecked(PersonDb.All[0], column));
+            Assert.IsFalse(this.olv.IsSubItemChecked(PersonDb.All[1], column));
+
+            this.olv.ToggleSubItemCheckBox(PersonDb.All[0], column);
+            this.olv.ToggleSubItemCheckBox(PersonDb.All[1], column);
+
+            Assert.IsFalse(this.olv.IsSubItemChecked(PersonDb.All[0], column));
+            Assert.IsTrue(this.olv.IsSubItemChecked(PersonDb.All[1], column));
+
+            this.olv.GetColumn(1).AspectName = oldAspectName;
         }
 
         [TestFixtureSetUp]
