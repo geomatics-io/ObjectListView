@@ -5,7 +5,14 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
- * 2009-01-20   JPP  - Changed draw from image list if possible. 30% faster!
+ * 2009-01-26   JPP  - AUSTRALIA DAY (why aren't I on holidays!)
+ *                   - Major overhaul of renderers. Now uses IRenderer interface.
+ *                   - ImagesRenderer and FlagsRenderer<T> are now defunct.
+ *                     The names are retained for backward compatibility.
+ * 2009-01-23   JPP  - Align bitmap AND text according to column alignment (previously
+ *                     only text was aligned and bitmap was always to the left).
+ * 2009-01-21   JPP  - Changed to use TextRenderer rather than native GDI routines.
+ * 2009-01-20   JPP  - Draw images directly from image list if possible. 30% faster!
  *                   - Tweaked some spacings to look more like native ListView
  *                   - Text highlight for non FullRowSelect is now the right color
  *                     when the control doesn't have focus.
@@ -54,29 +61,120 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
-using System.Runtime.InteropServices;
 
 namespace BrightIdeasSoftware
 {
+    public interface IRenderer
+    {
+        /// <summary>
+        /// Render the whole item within an ObjectListView.
+        /// </summary>
+        /// <param name="e">The event</param>
+        /// <param name="g">A Graphics for rendering</param>
+        /// <param name="itemBounds">The bounds of the item</param>
+        /// <param name="rowObject">The model object to be drawn</param>
+        /// <returns>Return true to indicate that the event was handled and no further processing is needed.</returns>
+        bool RenderItem(DrawListViewItemEventArgs e, Graphics g, Rectangle itemBounds, Object rowObject);
+
+        /// <summary>
+        /// Render one cell within an ObjectListView when it is in Details mode.
+        /// </summary>
+        /// <param name="e">The event</param>
+        /// <param name="g">A Graphics for rendering</param>
+        /// <param name="cellBounds">The bounds of the cell</param>
+        /// <param name="rowObject">The model object to be drawn</param>
+        /// <returns>Return true to indicate that the event was handled and no further processing is needed.</returns>
+        bool RenderSubItem(DrawListViewSubItemEventArgs e, Graphics g, Rectangle cellBounds, Object rowObject);
+
+        /// <summary>
+        /// What is under the given point?
+        /// </summary>
+        /// <param name="hti"></param>
+        /// <param name="x">x co-ordinate</param>
+        /// <param name="y">y co-ordinate</param>
+        /// <remarks>This method should only alter HitTestLocation and/or UserData.</remarks>
+        void HitTest(OlvListViewHitTestInfo hti, int x, int y);
+
+        /// <summary>
+        /// When the value in the given cell is to be edited, where should the edit rectangle be placed?
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="cellBounds"></param>
+        /// <param name="item"></param>
+        /// <param name="subItemIndex"></param>
+        /// <returns></returns>
+        Rectangle GetEditRectangle(Graphics g, Rectangle cellBounds, OLVListItem item, int subItemIndex);
+    }
+
     /// <summary>
-    /// Renderers are responsible for drawing a single cell within an owner drawn ObjectListView.
+    /// An AbstractRenderer is a do-nothing implementation of the IRenderer interface.
+    /// </summary>
+    [Browsable(true),
+    ToolboxItem(false)]
+    public class AbstractRenderer : Component, IRenderer
+    {
+        #region IRenderer Members
+
+        public virtual bool RenderItem(DrawListViewItemEventArgs e, Graphics g, Rectangle itemBounds, object rowObject)
+        {
+            return true;
+        }
+
+        public virtual bool RenderSubItem(DrawListViewSubItemEventArgs e, Graphics g, Rectangle cellBounds, object rowObject)
+        {
+            return false;
+        }
+
+        public virtual void HitTest(OlvListViewHitTestInfo hti, int x, int y)
+        {
+        }
+
+        public virtual Rectangle GetEditRectangle(Graphics g, Rectangle cellBounds, OLVListItem item, int subItemIndex)
+        {
+            return cellBounds;
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// This class provides compatibility for v1 RendererDelegates
+    /// </summary>
+    [ToolboxItem(false)]
+    internal class Version1Renderer : AbstractRenderer
+    {
+        public Version1Renderer(RenderDelegate renderDelegate)
+        {
+            this.RenderDelegate = renderDelegate;
+        }
+        /// <summary>
+        /// The renderer delegate that this renderer wraps
+        /// </summary>
+        public RenderDelegate RenderDelegate;
+
+        #region IRenderer Members
+
+        public override bool RenderSubItem(DrawListViewSubItemEventArgs e, Graphics g, Rectangle cellBounds, object rowObject)
+        {
+            if (this.RenderDelegate == null)
+                return base.RenderSubItem(e, g, cellBounds, rowObject);
+            else
+                return this.RenderDelegate(e, g, cellBounds, rowObject);
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// A BaseRenderer provides useful base level functionality for any custom renderer.
     /// </summary>
     /// <remarks>
-    /// <para>Methods on this class are called during the DrawItem or DrawSubItemEvent.
-    /// Subclasses can tell which type of event they are handling by examining DrawItemEvent: if this
-    /// is not null, it is a DrawItem event.</para>
-    /// <para>Subclasses will normally override the RenderWithDefault or Render method, and use the other
+    /// <para>Subclasses will normally override the Render or OptionalRender method, and use the other
     /// methods as helper functions.</para>
-    /// <para>If a renderer is installed on the primary column (column 0), it will be given a chance
-    /// to draw the whole item in all views (Details, Tile, etc.). If the renderer returns true,
-    /// default processing will continue. If it returns false, no other rendering will happen.</para>
-    /// <para>This means that when an ObjectListView is in Details view, the renderer on column 0
-    /// will be called twice: once to handle the DrawItem event, and then again to draw only the
-    /// first cell. Subclasses must distinguish between these two very different events (using
-    /// the "this.DrawItemEvent == null" test).</para>
     /// </remarks>
-    [Browsable(false)]
-    public class BaseRenderer
+    [Browsable(true), 
+     ToolboxItem(true)]
+    public class BaseRenderer : AbstractRenderer
     {
         /// <summary>
         /// Make a simple renderer
@@ -85,61 +183,62 @@ namespace BrightIdeasSoftware
         {
         }
 
-        #region Properties
+        #region Configuration Properties
 
         /// <summary>
-        /// Get/set the event that caused this renderer to be called
+        /// Can the renderer wrap lines that do not fit completely within the cell?
         /// </summary>
-        public DrawListViewSubItemEventArgs Event
+        [Category("Appearance"),
+         Description("Can the renderer wrap text that does not fit completely within the cell"),
+         DefaultValue(false)]
+        public bool CanWrap
         {
-            get { return eventArgs; }
-            set { eventArgs = value; }
+            get { return canWrap; }
+            set { canWrap = value; }
         }
-        private DrawListViewSubItemEventArgs eventArgs;
+        private bool canWrap = false;
 
         /// <summary>
-        /// Get/set the event that caused this renderer to be called
+        /// When rendering multiple images, how many pixels should be between each image?
         /// </summary>
-        public DrawListViewItemEventArgs DrawItemEvent
+        [Category("Appearance"),
+         Description("When rendering multiple images, how many pixels should be between each image?"),
+         DefaultValue(1)]
+        public int Spacing
         {
-            get { return drawItemEventArgs; }
-            set { drawItemEventArgs = value; }
+            get { return spacing; }
+            set { spacing = value; }
         }
-        private DrawListViewItemEventArgs drawItemEventArgs;
+        private int spacing = 1;
 
         /// <summary>
-        /// Get/set the listview for which the drawing is to be done
+        /// Should text be rendered using GDI routines? This makes the text look more
+        /// like a native List view control.
         /// </summary>
-        public ObjectListView ListView
+        [Category("Appearance"),
+         Description("Should text be rendered using GDI routines?"),
+         DefaultValue(true)]
+        public bool UseGdiTextRendering
         {
-            get { return objectListView; }
-            set { objectListView = value; }
+            get {
+                if (this.IsPrinting)
+                    return false; // Can't use GDI routines on a GDI+ printer context
+                else
+                    return useGdiTextRendering;
+            }
+            set { useGdiTextRendering = value; }
         }
-        private ObjectListView objectListView;
+        private bool useGdiTextRendering = true;
 
-        /// <summary>
-        /// Get or set the OLVColumn that this renderer will draw
-        /// </summary>
-        public OLVColumn Column
-        {
-            get { return column; }
-            set { column = value; }
-        }
-        private OLVColumn column;
+        #endregion
 
-        /// <summary>
-        /// Get or set the model object that this renderer should draw
-        /// </summary>
-        public Object RowObject
-        {
-            get { return rowObject; }
-            set { rowObject = value; }
-        }
-        private Object rowObject;
+        #region State Properties
 
         /// <summary>
         /// Get or set the aspect of the model object that this renderer should draw
         /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Object Aspect
         {
             get
@@ -155,61 +254,56 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// What are the bounds of the cell that is being drawn?
         /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Rectangle Bounds
         {
             get { return bounds; }
             set { bounds = value; }
         }
         private Rectangle bounds;
-	
-        /// <summary>
-        /// Get or set the listitem that this renderer will be drawing
-        /// </summary>
-        public OLVListItem ListItem
-        {
-            get { return listItem; }
-            set { listItem = value; }
-        }
-        private OLVListItem listItem;
 
         /// <summary>
-        /// Get or set the list subitem that this renderer will be drawing
+        /// Get or set the OLVColumn that this renderer will draw
         /// </summary>
-        public ListViewItem.ListViewSubItem SubItem
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public OLVColumn Column
         {
-            get { return listSubItem; }
-            set { listSubItem = value; }
+            get { return column; }
+            set { column = value; }
         }
-        private ListViewItem.ListViewSubItem listSubItem;
+        private OLVColumn column;
 
         /// <summary>
-        /// Get the specialized OLVSubItem that this renderer is drawing
+        /// Get/set the event that caused this renderer to be called
         /// </summary>
-        /// <remarks>This returns null for column 0.</remarks>
-        public OLVListSubItem OLVSubItem
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public DrawListViewItemEventArgs DrawItemEvent
         {
-            get { return listSubItem as OLVListSubItem; }
+            get { return drawItemEventArgs; }
+            set { drawItemEventArgs = value; }
         }
+        private DrawListViewItemEventArgs drawItemEventArgs;
 
         /// <summary>
-        /// Cache whether or not our item is selected
+        /// Get/set the event that caused this renderer to be called
         /// </summary>
-        public bool IsItemSelected
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public DrawListViewSubItemEventArgs Event
         {
-            get { return isItemSelected; }
-            set { isItemSelected = value; }
+            get { return eventArgs; }
+            set { eventArgs = value; }
         }
-        private bool isItemSelected;
-
-        //public bool IsHotItem
-        //{
-        //    get { return this.ListItem.Index == this.ListView.HotItemIndex; }
-        //}
+        private DrawListViewSubItemEventArgs eventArgs;
 
         /// <summary>
         /// Return the font to be used for text in this cell
         /// </summary>
-        /// <returns>The font of the subitem</returns>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Font Font
         {
             get
@@ -217,11 +311,10 @@ namespace BrightIdeasSoftware
                 if (this.font != null)
                     return this.font;
 
-                Font f = this.ListItem.Font;
-                if (this.SubItem != null && !this.ListItem.UseItemStyleForSubItems)
-                    f = this.SubItem.Font;
-
-                return f;
+                if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
+                    return this.ListItem.Font;
+                else
+                    return this.SubItem.Font;
             }
             set
             {
@@ -231,8 +324,103 @@ namespace BrightIdeasSoftware
         private Font font;
 
         /// <summary>
+        /// Should this renderer fill in the background before drawing?
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool IsDrawBackground
+        {
+            get { return !this.IsPrinting; }
+        }
+
+        /// <summary>
+        /// Cache whether or not our item is selected
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool IsItemSelected
+        {
+            get { return isItemSelected; }
+            set { isItemSelected = value; }
+        }
+        private bool isItemSelected;
+
+        /// <summary>
+        /// Is this renderer being used on a printer context?
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool IsPrinting
+        {
+            get { return isPrinting; }
+            set { isPrinting = value; }
+        }
+        private bool isPrinting;
+
+        /// <summary>
+        /// Get or set the listitem that this renderer will be drawing
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public OLVListItem ListItem
+        {
+            get { return listItem; }
+            set { listItem = value; }
+        }
+        private OLVListItem listItem;
+
+        /// <summary>
+        /// Get/set the listview for which the drawing is to be done
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public ObjectListView ListView
+        {
+            get { return objectListView; }
+            set { objectListView = value; }
+        }
+        private ObjectListView objectListView;
+
+        /// <summary>
+        /// Get the specialized OLVSubItem that this renderer is drawing
+        /// </summary>
+        /// <remarks>This returns null for column 0.</remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public OLVListSubItem OLVSubItem
+        {
+            get { return listSubItem as OLVListSubItem; }
+        }
+
+        /// <summary>
+        /// Get or set the model object that this renderer should draw
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public Object RowObject
+        {
+            get { return rowObject; }
+            set { rowObject = value; }
+        }
+        private Object rowObject;
+
+        /// <summary>
+        /// Get or set the list subitem that this renderer will be drawing
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public ListViewItem.ListViewSubItem SubItem
+        {
+            get { return listSubItem; }
+            set { listSubItem = value; }
+        }
+        private ListViewItem.ListViewSubItem listSubItem;
+
+        /// <summary>
         /// The brush that will be used to paint the text
         /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Brush TextBrush
         {
             get
@@ -246,94 +434,193 @@ namespace BrightIdeasSoftware
         }
         private Brush textBrush;
 
-        /// <summary>
-        /// Is this renderer being used on a printer context?
-        /// </summary>
-        public bool IsPrinting
+        private void ClearState() 
         {
-            get { return isPrinting; }
-            set { isPrinting = value; }
+            this.Event = null;
+            this.DrawItemEvent = null;
+            this.Aspect = null; 
+            this.Font = null;
+            this.TextBrush = null;
         }
-        private bool isPrinting;
-
-        /// <summary>
-        /// Should this renderer fill in the background before drawing?
-        /// </summary>
-        public bool IsDrawBackground
-        {
-            get { return !this.IsPrinting; }
-        }
-
-        /// <summary>
-        /// Can the renderer wrap lines that do not fit completely within the cell?
-        /// </summary>
-        public bool CanWrap
-        {
-            get { return canWrap; }
-            set { canWrap = value; }
-        }
-        private bool canWrap = false;
-
-        /// <summary>
-        /// When rendering multiple images, how many pixels should be between each image?
-        /// </summary>
-        public int Spacing
-        {
-            get { return spacing; }
-            set { spacing = value; }
-        }
-        private int spacing = 1;
-
-        /// <summary>
-        /// Should text be rendered using GDI routines? This makes the text look more
-        /// like a native List view control.
-        /// </summary>
-        public bool UseGdiTextRendering
-        {
-            get
-            {
-                if (this.IsPrinting)
-                    return false; // Can't use GDI routines on a GDI+ printer context
-                else
-                    return useGdiTextRendering;
-            }
-            set { useGdiTextRendering = value; }
-        }
-        private bool useGdiTextRendering = true;
 
         #endregion
 
         #region Utilities
 
         /// <summary>
-        /// Return the string that should be drawn within this
+        /// Align the second rectangle with the first rectangle,
+        /// according to the alignment of the column
         /// </summary>
-        /// <returns></returns>
-        public string GetText()
+        /// <param name="outer">The cell's bounds</param>
+        /// <param name="inner">The rectangle to be aligned within the bounds</param>
+        /// <returns>An aligned rectangle</returns>
+        protected virtual Rectangle AlignRectangle(Rectangle outer, Rectangle inner)
         {
-            if (this.SubItem == null)
-                return this.ListItem.Text;
-            else
-                return this.SubItem.Text;
+            Rectangle r = new Rectangle(outer.Location, inner.Size);
+
+            // Centre horizontally depending on the column alignment
+            if (inner.Width < outer.Width) {
+                switch (this.Column.TextAlign) {
+                    case HorizontalAlignment.Left:
+                        r.X = outer.Left;
+                        break;
+                    case HorizontalAlignment.Center:
+                        r.X = outer.Left + ((outer.Width - inner.Width) / 2);
+                        break;
+                    case HorizontalAlignment.Right:
+                        r.X = outer.Right - inner.Width - 1;
+                        break;
+                }
+            }
+            // Centre vertically too
+            if (inner.Height < outer.Height)
+                r.Y = outer.Top + ((outer.Height - inner.Height) / 2);
+
+            return r;
         }
 
+        /// <summary>
+        /// Calculate the space that our rendering will occupy and then align that space
+        /// with the given rectangle, according to the Column alignment
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <returns></returns>
+        protected virtual Rectangle CalculateAlignedRectangle(Graphics g, Rectangle r)
+        {
+            if (this.Column.TextAlign == HorizontalAlignment.Left)
+                return r;
+
+            int width = this.CalculateCheckBoxWidth(g);
+            width += this.CalculateImageWidth(g, this.GetImageSelector());
+            width += this.CalculateTextWidth(g, this.GetText());
+
+            // If the combined width is greater than the whole cell, 
+            // we just use the cell itself
+            if (width >= r.Width)
+                return r;
+
+            return this.AlignRectangle(r, new Rectangle(0, 0, width, r.Height));
+        }
+
+        /// <summary>
+        /// How much space will the check box for this cell occupy?
+        /// </summary>
+        /// <remarks>Only column 0 can have check boxes. Sub item checkboxes are
+        /// treated as images</remarks>
+        /// <param name="g"></param>
+        /// <returns></returns>
+        protected virtual int CalculateCheckBoxWidth(Graphics g)
+        {
+            if (this.ListView.CheckBoxes && this.Column.Index == 0)
+                return CheckBoxRenderer.GetGlyphSize(g, CheckBoxState.UncheckedNormal).Width + 6;
+            else
+                return 0;
+        }
+
+        /// <summary>
+        /// How much horizontal space will the image of this cell occupy?
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="imageSelector"></param>
+        /// <returns></returns>
+        protected virtual int CalculateImageWidth(Graphics g, object imageSelector)
+        {
+            if (imageSelector == null || imageSelector == System.DBNull.Value)
+                return 0;
+
+            // Draw from the image list (most common case)
+            ImageList il = this.ListView.BaseSmallImageList;
+            if (il != null) {
+                int selectorAsInt = -1;
+
+                if (imageSelector is Int32)
+                    selectorAsInt = (Int32)imageSelector;
+                else {
+                    String selectorAsString = imageSelector as String;
+                    if (selectorAsString != null)
+                        selectorAsInt = il.Images.IndexOfKey(selectorAsString);
+                }
+                if (selectorAsInt >= 0)
+                    return il.ImageSize.Width;
+            }
+
+            // Is the selector actually an image?
+            Image image = imageSelector as Image;
+            if (image != null)
+                return image.Width;
+
+            return 0;
+        }
+
+        /// <summary>
+        /// How much horizontal space will the text of this cell occupy?
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="txt"></param>
+        /// <returns></returns>
+        protected virtual int CalculateTextWidth(Graphics g, string txt)
+        {
+            if (String.IsNullOrEmpty(txt))
+                return 0;
+
+            if (this.UseGdiTextRendering) {
+                Size proposedSize = new Size(int.MaxValue, int.MaxValue);
+                return TextRenderer.MeasureText(txt, this.Font, proposedSize, TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix).Width;
+            } else {
+                StringFormat fmt = new StringFormat();
+                fmt.Trimming = StringTrimming.EllipsisCharacter;
+                return (int)g.MeasureString(txt, font, int.MaxValue, fmt).Width;
+            }
+        }
+
+        /// <summary>
+        /// Return the Color that is the background color for this item's cell
+        /// </summary>
+        /// <returns>The background color of the subitem</returns>
+        protected virtual Color GetBackgroundColor()
+        {
+            if (!this.ListView.Enabled)
+                return SystemColors.Control;
+            if (this.IsItemSelected && this.ListView.FullRowSelect) {
+                if (this.ListView.Focused)
+                    return this.ListView.HighlightBackgroundColorOrDefault;
+                else
+                    if (!this.ListView.HideSelection)
+                        return SystemColors.Control; //TODO: What color should this be?
+            }
+            if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
+                return this.ListItem.BackColor;
+            else
+                return this.SubItem.BackColor;
+        }
+
+        /// <summary>
+        /// Return the color to be used for text in this cell
+        /// </summary>
+        /// <returns>The text color of the subitem</returns>
+        protected virtual Color GetForegroundColor()
+        {
+            if (this.IsItemSelected && (this.Column.Index == 0 || this.ListView.FullRowSelect)) {
+                if (this.ListView.Focused)
+                    return this.ListView.HighlightForegroundColorOrDefault;
+                else
+                    if (!this.ListView.HideSelection)
+                        return SystemColors.ControlText; //TODO: What color should this be?
+            }
+            if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
+                return this.ListItem.ForeColor;
+            else
+                return this.SubItem.ForeColor;
+        }
+        
         /// <summary>
         /// Return the image that should be drawn against this subitem
         /// </summary>
         /// <returns>An Image or null if no image should be drawn.</returns>
-        public Image GetImage()
+        protected virtual Image GetImage()
         {
             return this.GetImage(this.GetImageSelector());
-        }
-
-        /// <summary>
-        /// </summary>
-        public Object GetImageSelector()
-        {
-            if (this.Column.Index == 0)
-                return this.ListItem.ImageSelector;
-            else
-                return this.OLVSubItem.ImageSelector;
         }
 
         /// <summary>
@@ -346,7 +633,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="imageSelector">The value that indicates the image to be used</param>
         /// <returns>An Image or null</returns>
-        public Image GetImage(Object imageSelector)
+        protected virtual Image GetImage(Object imageSelector)
         {
             if (imageSelector == null || imageSelector == System.DBNull.Value)
                 return null;
@@ -374,32 +661,34 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Return the Color that is the background color for this item's cell
         /// </summary>
-        /// <returns>The background color of the subitem</returns>
-        public Color GetBackgroundColor()
+        protected virtual Object GetImageSelector()
         {
-            if (!this.ListView.Enabled)
-                return SystemColors.Control;
-            if (this.IsItemSelected && this.ListView.FullRowSelect) {
-                if (this.ListView.Focused)
-                    return this.ListView.HighlightBackgroundColorOrDefault;
-                else
-                    if (!this.ListView.HideSelection)
-                        return SystemColors.Control; //TODO: What color should this be?
-            }
-            if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
-                return this.ListItem.BackColor;
+            if (this.Column.Index == 0)
+                return this.ListItem.ImageSelector;
             else
-                return this.SubItem.BackColor;
+                return this.OLVSubItem.ImageSelector;
+        }
+
+        /// <summary>
+        /// Return the string that should be drawn within this
+        /// </summary>
+        /// <returns></returns>
+        protected virtual string GetText()
+        {
+            if (this.SubItem == null)
+                return this.ListItem.Text;
+            else
+                return this.SubItem.Text;
         }
 
         /// <summary>
         /// Return the Color that is the background color for this item's text
         /// </summary>
         /// <returns>The background color of the subitem's text</returns>
-        protected Color GetTextBackgroundColor()
+        protected virtual Color GetTextBackgroundColor()
         {
+            //TODO: Refactor with GetBackgroundColor() - they are almost identical
             if (this.IsItemSelected && (this.Column.Index == 0 || this.ListView.FullRowSelect)) {
                 if (this.ListView.Focused)
                     return this.ListView.HighlightBackgroundColorOrDefault;
@@ -414,57 +703,276 @@ namespace BrightIdeasSoftware
                 return this.SubItem.BackColor;
         }
 
+        #endregion
+
+        #region IRenderer members
+
         /// <summary>
-        /// Return the color to be used for text in this cell
+        /// Render the whole item in a non-details view.
         /// </summary>
-        /// <returns>The text color of the subitem</returns>
-        protected Color GetForegroundColor()
+        /// <param name="e"></param>
+        /// <param name="g"></param>
+        /// <param name="itemBounds"></param>
+        /// <param name="rowObject"></param>
+        /// <returns></returns>
+        public override bool RenderItem(DrawListViewItemEventArgs e, Graphics g, Rectangle itemBounds, object rowObject) 
         {
-            if (this.IsItemSelected && (this.Column.Index == 0 || this.ListView.FullRowSelect)) {
-                if (this.ListView.Focused)
-                    return this.ListView.HighlightForegroundColorOrDefault;
-                else
-                    if (!this.ListView.HideSelection)
-                        return SystemColors.ControlText; //TODO: What color should this be?
-            }
-            if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
-                return this.ListItem.ForeColor;
-            else
-                return this.SubItem.ForeColor;
+            this.ClearState();
+
+            this.DrawItemEvent = e;
+            this.ListItem = (OLVListItem)e.Item;
+            this.SubItem = null;
+            this.ListView = (ObjectListView)this.ListItem.ListView;
+            this.Column = this.ListView.GetColumn(0);
+            this.RowObject = rowObject;
+            this.Bounds = itemBounds;
+            this.IsItemSelected = this.ListItem.Selected; 
+
+            return this.OptionalRender(g, itemBounds);
         }
 
+        /// <summary>
+        /// Render one cell
+        /// </summary>
+        /// <param name="e"></param>
+        /// <param name="g"></param>
+        /// <param name="cellBounds"></param>
+        /// <param name="rowObject"></param>
+        /// <returns></returns>
+        public override bool RenderSubItem(DrawListViewSubItemEventArgs e, Graphics g, Rectangle cellBounds, object rowObject) 
+        {
+            this.ClearState();
+
+            this.Event = e;
+            this.ListItem = (OLVListItem)e.Item;
+            this.SubItem = e.SubItem;
+            this.ListView = (ObjectListView)this.ListItem.ListView;
+            this.Column = (OLVColumn)e.Header;
+            this.RowObject = rowObject;
+            this.Bounds = cellBounds;
+            this.IsItemSelected = this.ListItem.Selected; 
+
+            return this.OptionalRender(g, cellBounds);
+        }
 
         /// <summary>
-        /// Align the second rectangle with the first rectangle,
-        /// according to the alignment of the column
+        /// Calculate which part of this cell was hit
         /// </summary>
-        /// <param name="outer">The cell's bounds</param>
-        /// <param name="inner">The rectangle to be aligned within the bounds</param>
-        /// <returns>An aligned rectangle</returns>
-        public Rectangle AlignRectangle(Rectangle outer, Rectangle inner)
+        /// <param name="hti"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        public override void HitTest(OlvListViewHitTestInfo hti, int x, int y)
         {
-            Rectangle r = new Rectangle(outer.Location, inner.Size);
+            this.ClearState();
 
-            // Centre horizontally depending on the column alignment
-            if (inner.Width < outer.Width) {
-                switch (this.Column.TextAlign) {
-                    case HorizontalAlignment.Left:
-                        r.X = outer.Left;
-                        break;
-                    case HorizontalAlignment.Center:
-                        r.X = outer.Left + ((outer.Width - inner.Width) / 2);
-                        break;
-                    case HorizontalAlignment.Right:
-                        r.X = outer.Right - inner.Width - 1;
-                        break;
-                }
+            this.ListView = hti.ListView;
+            this.ListItem = hti.Item;
+            this.SubItem = hti.SubItem;
+            this.Column = hti.Column;
+            this.RowObject = hti.RowObject;
+            this.IsItemSelected = this.ListItem.Selected;
+            if (this.SubItem == null)
+                this.Bounds = this.ListItem.Bounds;
+            else 
+                this.Bounds = this.ListView.CalculateCellBounds(this.ListItem, this.Column.Index);
+
+            this.HandleHitTest(this.ListView.CreateGraphics(), hti, x, y);
+        }
+
+        public override Rectangle GetEditRectangle(Graphics g, Rectangle cellBounds, OLVListItem item, int subItemIndex)
+        {
+            this.ClearState();
+
+            this.ListView = (ObjectListView)item.ListView;
+            this.ListItem = item;
+            this.SubItem = item.SubItems[subItemIndex];
+            this.Column = this.ListView.GetColumn(subItemIndex);
+            this.RowObject = item.RowObject;
+            this.IsItemSelected = this.ListItem.Selected;
+            this.Bounds = cellBounds;
+
+            return this.HandleGetEditRectangle(g, cellBounds, item, subItemIndex);
+        }
+
+        #endregion
+
+        #region IRenderer implementation
+
+        // Subclasses will probably want to override these methods rather than the IRenderer
+        // interface methods.
+
+        /// <summary>
+        /// Draw our data into the given rectangle using the given graphics context.
+        /// </summary>
+        /// <remarks>
+        /// <para>Subclasses should override this method.</para></remarks>
+        /// <param name="g">The graphics context that should be used for drawing</param>
+        /// <param name="r">The bounds of the subitem cell</param>
+        /// <returns>Returns whether the renderering has already taken place.
+        /// If this returns false, the default processing will take over.
+        /// </returns>
+        public virtual bool OptionalRender(Graphics g, Rectangle r)
+        {
+            if (this.ListView.View == View.Details) {
+                this.Render(g, r);
+                return true;
+            } else
+                return false;
+        }
+
+        /// <summary>
+        /// Draw our data into the given rectangle using the given graphics context.
+        /// </summary>
+        /// <remarks>
+        /// <para>Subclasses should override this method if they never want
+        /// to fall back on the default processing</para></remarks>
+        /// <param name="g">The graphics context that should be used for drawing</param>
+        /// <param name="r">The bounds of the subitem cell</param>
+        public virtual void Render(Graphics g, Rectangle r)
+        {
+            this.StandardRender(g, r);
+        }
+
+        /// <summary>
+        /// Do the actual work of hit testing. Subclasses should override this rather than HitTest()
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="hti"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        protected virtual void HandleHitTest(Graphics g, OlvListViewHitTestInfo hti, int x, int y)
+        {
+            Rectangle r = this.CalculateAlignedRectangle(g, this.Bounds);
+            this.StandardHitTest(g, hti, r, x, y);
+        }
+
+        /// <summary>
+        /// Handle a HitTest request after all state information has been initialized
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="cellBounds"></param>
+        /// <param name="item"></param>
+        /// <param name="subItemIndex"></param>
+        /// <returns></returns>
+        protected virtual Rectangle HandleGetEditRectangle(Graphics g, Rectangle cellBounds, OLVListItem item, int subItemIndex)
+        {
+            // MAINTAINER NOTE: This type testing is wrong (design-wise). The base class should return cell bounds,
+            // and a more specialized class should return StandardGetEditRectangle(). But BaseRenderer is used directly
+            // to draw most normal cells, as well as being directly subclassed for user implemented renderers. And this
+            // method needs to return different bounds in each of those cases. We should have a StandardRenderer and make
+            // BaseRenderer into an ABC -- but that would break too much existing code. And so we have this hack :(
+
+            // If we are a standard renderer, return the position of the text, otherwise, use the whole cell.
+            if (this.GetType() == typeof(BaseRenderer))
+                return this.StandardGetEditRectangle(g, cellBounds);
+            else
+                return cellBounds;
+        }
+
+        #endregion
+
+        #region Standard IRenderer implementations
+
+        /// <summary>
+        /// Draw the standard "[checkbox] [image] [text]" cell after the state properties have been initialized.
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        protected void StandardRender(Graphics g, Rectangle r)
+        {
+            this.DrawBackground(g, r);
+
+            // Adjust the first columns rectangle to match the padding used by the native mode of the ListView
+            if (this.Column.Index == 0) {
+                r.X += 4;
+                r.Width -= 4;
             }
-            // Centre vertically too
-            if (inner.Height < outer.Height)
-                r.Y = outer.Top + ((outer.Height - inner.Height) / 2);
+            this.DrawAlignedImageAndText(g, r);
+        }
+
+        /// <summary>
+        /// Perform normal hit testing relative to the given bounds
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="hti"></param>
+        /// <param name="bounds"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        protected void StandardHitTest(Graphics g, OlvListViewHitTestInfo hti, Rectangle bounds, int x, int y)
+        {
+            Rectangle r = bounds;
+
+            // Did they hit a check box?
+            int width = this.CalculateCheckBoxWidth(g);
+            Rectangle r2 = r;
+            r2.Width = width;
+            if (r2.Contains(x, y)) {
+                hti.HitTestLocation = HitTestLocation.CheckBox;
+                return;
+            }
+
+            // Did they hit the image? If they hit the image of a 
+            // non-primary column that has a checkbox, it counts as a 
+            // checkbox hit
+            r.X += width;
+            r.Width -= width;
+            width = this.CalculateImageWidth(g, this.GetImageSelector());
+            r2 = r;
+            r2.Width = width;
+            if (r2.Contains(x, y)) {
+                if (this.Column.Index > 0 && this.Column.CheckBoxes)
+                    hti.HitTestLocation = HitTestLocation.CheckBox;
+                else
+                    hti.HitTestLocation = HitTestLocation.Image;
+                return;
+            }
+
+            // Did they hit the text?
+            r.X += width;
+            r.Width -= width;
+            width = this.CalculateTextWidth(g, this.GetText());
+            r2 = r;
+            r2.Width = width;
+            if (r2.Contains(x, y)) {
+                hti.HitTestLocation = HitTestLocation.Text;
+                return;
+            }
+
+            hti.HitTestLocation = HitTestLocation.InCell;
+        }
+
+        /// <summary>
+        /// This method calculates the bounds of the text within a standard layout
+        /// (i.e. optional checkbox, optional image, text)
+        /// </summary>
+        /// <remarks>This method only works correctly if the state of the renderer
+        /// has been fully initialized (see BaseRenderer.GetEditRectangle)</remarks>
+        /// <param name="g"></param>
+        /// <param name="cellBounds"></param>
+        /// <returns></returns>
+        protected Rectangle StandardGetEditRectangle(Graphics g, Rectangle cellBounds)
+        {
+            Rectangle r = this.CalculateAlignedRectangle(g, cellBounds);
+
+            int width = this.CalculateCheckBoxWidth(g);
+            width += this.CalculateImageWidth(g, this.GetImageSelector());
+
+            // If there wasn't either a check box or an image, just use the whole cell
+            if (width == 0)
+                return cellBounds;
+
+            // Take the check box and the image out of the rectangle
+            r.X += width;
+            r.Width -= width;
+
+            //TODO: Ensure minimum width
 
             return r;
         }
+
+        #endregion
+
+        #region Drawing routines
 
         /// <summary>
         /// Draw the given image aligned horizontally within the column.
@@ -476,7 +984,7 @@ namespace BrightIdeasSoftware
         /// <param name="g">Graphics context to use for drawing</param>
         /// <param name="r">Bounds of the cell</param>
         /// <param name="image">The image to be drawn</param>
-        protected void DrawAlignedImage(Graphics g, Rectangle r, Image image)
+        protected virtual void DrawAlignedImage(Graphics g, Rectangle r, Image image)
         {
             if (image == null)
                 return;
@@ -497,6 +1005,16 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Draw our subitems image and text
+        /// </summary>
+        /// <param name="g">Graphics context to use for drawing</param>
+        /// <param name="r">Bounds of the cell</param>
+        protected virtual void DrawAlignedImageAndText(Graphics g, Rectangle r)
+        {
+            this.DrawImageAndText(g, this.CalculateAlignedRectangle(g, r));
+        }
+
+        /// <summary>
         /// Fill in the background of this cell
         /// </summary>
         /// <param name="g">Graphics context to use for drawing</param>
@@ -508,118 +1026,9 @@ namespace BrightIdeasSoftware
 
             Color backgroundColor = this.GetBackgroundColor();
 
-            // Is this row in transition
-            //TransitionState state = this.ListView.GetHotItemTransitionState(this.ListItem.Index);
-            //if (state != null && !this.IsItemSelected && this.ListView.HotItemStyle != null) {
-            //    if (state.Progress >= 1.0f)
-            //        backgroundColor = this.ListView.HotItemStyle.BackColor;
-            //    else {
-            //        Color end = this.ListView.HotItemStyle.BackColor;
-            //        float endFactor = Math.Max(0, Math.Min(1.0f, state.Progress));
-            //        float startFactor = 1.0f - endFactor;
-
-            //        backgroundColor = Color.FromArgb(255,
-            //            Convert.ToInt32(end.R * endFactor + backgroundColor.R * startFactor),
-            //            Convert.ToInt32(end.G * endFactor + backgroundColor.G * startFactor),
-            //            Convert.ToInt32(end.B * endFactor + backgroundColor.B * startFactor));
-            //    }
-            //}
-
             using (Brush brush = new SolidBrush(backgroundColor)) {
                 g.FillRectangle(brush, r);
             }
-        }
-
-        #endregion
-
-
-        /// <summary>
-        /// The delegate that is called from the list view. This is the main entry point, but
-        /// subclasses should override Render instead of this method.
-        /// </summary>
-        /// <param name="e">The event that caused this redraw</param>
-        /// <param name="g">The context that our drawing should be done using</param>
-        /// <param name="r">The bounds of the cell within which the renderer can draw</param>
-        /// <param name="rowObject">The model object for this row</param>
-        /// <returns>A boolean indicating whether the default process should occur</returns>
-        public bool HandleRendering(EventArgs e, Graphics g, Rectangle r, Object rowObject)
-        {
-            this.ListView = (ObjectListView)this.Column.ListView;
-            if (e is DrawListViewSubItemEventArgs) {
-                this.Event = (DrawListViewSubItemEventArgs)e;
-                this.ListItem = this.Event.Item as OLVListItem;
-                this.SubItem = this.Event.SubItem;
-                this.Column = this.ListView.GetColumn(this.Event.ColumnIndex);
-            } else {
-                this.DrawItemEvent = (DrawListViewItemEventArgs)e;
-                this.ListItem = this.DrawItemEvent.Item as OLVListItem;
-                this.SubItem = null;
-                this.Column = this.ListView.GetColumn(0);
-            }
-            this.RowObject = rowObject;
-            this.Aspect = null; // uncache previous result
-            this.IsItemSelected = this.ListItem.Selected; // ((e.ItemState & ListViewItemStates.Selected) == ListViewItemStates.Selected);
-            this.Font = null;
-            this.TextBrush = null;
-            this.Bounds = r;
-            return this.OptionalRender(g, r);
-        }
-
-        /// <summary>
-        /// Draw our data into the given rectangle using the given graphics context.
-        /// </summary>
-        /// <remarks>
-        /// <para>Subclasses should override this method.</para></remarks>
-        /// <param name="g">The graphics context that should be used for drawing</param>
-        /// <param name="r">The bounds of the subitem cell</param>
-        /// <returns>Returns whether the renderering has already taken place.
-        /// If this returns false, the default processing will take over.
-        /// </returns>
-        public virtual bool OptionalRender(Graphics g, Rectangle r)
-        {
-            this.Render(g, r);
-            return true;
-        }
-
-        /// <summary>
-        /// Draw our data into the given rectangle using the given graphics context.
-        /// </summary>
-        /// <remarks>
-        /// <para>Subclasses should override this method if they never want
-        /// to fall back on the default processing</para></remarks>
-        /// <param name="g">The graphics context that should be used for drawing</param>
-        /// <param name="r">The bounds of the subitem cell</param>
-        public virtual void Render(Graphics g, Rectangle r)
-        {
-            this.DrawBackground(g, r);
-
-            // Adjust the first columns rectangle to match the padding used by the native mode of the ListView
-            if (this.Column.Index == 0) {
-                r.X += 4;
-                r.Width -= 4;
-            }
-            this.DrawImageAndText(g, r);
-        }
-
-        /// <summary>
-        /// Draw our subitems image and text
-        /// </summary>
-        /// <param name="g">Graphics context to use for drawing</param>
-        /// <param name="r">Bounds of the cell</param>
-        protected void DrawImageAndText(Graphics g, Rectangle r)
-        {
-            int offset = 0;
-            if (this.ListView.CheckBoxes && this.Column.Index == 0) {
-                offset = this.DrawCheckBox(g, r);
-                r.X += offset;
-                r.Width -= offset;
-            }
-
-            offset = this.DrawImage(g, r, this.GetImageSelector());
-            r.X += offset + 2;
-            r.Width -= offset + 4;
-
-            this.DrawText(g, r, this.GetText());
         }
 
         /// <summary>
@@ -627,7 +1036,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="g">Graphics context to use for drawing</param>
         /// <param name="r">Bounds of the cell</param>
-        protected int DrawCheckBox(Graphics g, Rectangle r)
+        protected virtual int DrawCheckBox(Graphics g, Rectangle r)
         {
             int imageIndex = this.ListItem.StateImageIndex;
 
@@ -653,9 +1062,10 @@ namespace BrightIdeasSoftware
                     boxState = CheckBoxState.MixedHot;
                     break;
             }
-            CheckBoxRenderer.DrawCheckBox(g, new Point(r.X + 2, r.Y + 2), boxState);
 
-            return CheckBoxRenderer.GetGlyphSize(g, boxState).Width + 4;
+            // The odd constants are to match checkbox placement in native mode (on XP at least)
+            CheckBoxRenderer.DrawCheckBox(g, new Point(r.X + 3, r.Y + 2), boxState);
+            return CheckBoxRenderer.GetGlyphSize(g, boxState).Width + 6;
         }
 
         /// <summary>
@@ -665,7 +1075,7 @@ namespace BrightIdeasSoftware
         /// <param name="r">Bounds of the cell</param>
         /// <param name="txt">The string to be drawn</param>
         /// <param name="image">The optional image to be drawn</param>
-        protected int DrawImage(Graphics g, Rectangle r, Object imageSelector)
+        protected virtual int DrawImage(Graphics g, Rectangle r, Object imageSelector)
         {
             if (imageSelector == null || imageSelector == System.DBNull.Value)
                 return 0;
@@ -683,13 +1093,16 @@ namespace BrightIdeasSoftware
                         selectorAsInt = il.Images.IndexOfKey(selectorAsString);
                 }
                 if (selectorAsInt >= 0) {
-                    // If we are only drawing an image, obey the column alignment
-                    if (this.Column.HasCheckBox && String.IsNullOrEmpty(this.GetText())) {
-                        r = this.AlignRectangle(r, new Rectangle(new Point(0, 0), il.ImageSize));
-                    }
+                    // It's probable that the given Graphics object is double buffered using a BufferedGraphics object.
+                    // But the ImageList.Draw method doesn't honor the Translation matrix that's probably in effect on the buffered
+                    // graphics. So we have to calculate our drawing rectangle, relative to the cells natural boundaries.
+                    // This effectively simulates the Translation matrix.
                     Rectangle r2 = new Rectangle(r.X - this.Bounds.X, r.Y - this.Bounds.Y, r.Width, r.Height);
                     il.Draw(g, r2.Location, selectorAsInt);
-                    return il.ImageSize.Width + 2;
+
+                    // Use this call instead of the above if you want to images to appear blended when selected
+                    //NativeMethods.DrawImageList(g, il, selectorAsInt, r2.X, r2.Y, this.IsItemSelected);
+                    return il.ImageSize.Width;
                 }
             }
 
@@ -701,10 +1114,66 @@ namespace BrightIdeasSoftware
                     top += ((r.Height - image.Size.Height) / 2);
 
                 g.DrawImageUnscaled(image, r.X, top);
-                return image.Width + 2;
+                return image.Width;
             }
 
             return 0;
+        }
+
+        /// <summary>
+        /// Draw our subitems image and text
+        /// </summary>
+        /// <param name="g">Graphics context to use for drawing</param>
+        /// <param name="r">Bounds of the cell</param>
+        protected virtual void DrawImageAndText(Graphics g, Rectangle r)
+        {
+            int offset = 0;
+            if (this.ListView.CheckBoxes && this.Column.Index == 0) {
+                offset = this.DrawCheckBox(g, r);
+                r.X += offset;
+                r.Width -= offset;
+            }
+
+            offset = this.DrawImage(g, r, this.GetImageSelector());
+            r.X += offset;
+            r.Width -= offset;
+
+            this.DrawText(g, r, this.GetText());
+        }
+
+        /// <summary>
+        /// Draw the given collection of image selectors
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="imageSelectors"></param>
+        protected virtual void DrawImages(Graphics g, Rectangle r, ICollection imageSelectors)
+        {
+            // Collect the non-null images
+            List<Image> images = new List<Image>();
+            foreach (Object selector in imageSelectors) {
+                Image image = this.GetImage(selector);
+                if (image != null)
+                    images.Add(image);
+            }
+
+            // Figure out how much space they will occupy
+            int width = 0;
+            int height = 0;
+            foreach (Image image in images) {
+                width += (image.Width + this.Spacing);
+                height = Math.Max(height, image.Height);
+            }
+
+            // Align the collection of images within the cell
+            Rectangle r2 = this.AlignRectangle(r, new Rectangle(0, 0, width, height));
+
+            // Finally, draw all the images in their correct location
+            Point pt = r2.Location;
+            foreach (Image image in images) {
+                g.DrawImage(image, pt);
+                pt.X += (image.Width + this.Spacing);
+            }
         }
 
         /// <summary>
@@ -714,8 +1183,11 @@ namespace BrightIdeasSoftware
         /// <param name="r">Bounds of the cell</param>
         /// <param name="txt">The string to be drawn</param>
         /// <param name="image">The optional image to be drawn</param>
-        protected void DrawText(Graphics g, Rectangle r, String txt)
+        protected virtual void DrawText(Graphics g, Rectangle r, String txt)
         {
+            if (String.IsNullOrEmpty(txt))
+                return;
+
             if (this.UseGdiTextRendering)
                 this.DrawTextGdi(g, r, txt);
             else
@@ -723,10 +1195,41 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Print the given text in the given rectangle using only GDI routines
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="txt"></param>
+        /// <remarks>
+        /// The native list control uses GDI routines to do its drawing, so using them
+        /// here makes the owner drawn mode looks more natural.
+        /// <para>This method doesn't honour the CanWrap setting on the renderer. All
+        /// text is single line</para>
+        /// </remarks>
+        protected virtual void DrawTextGdi(Graphics g, Rectangle r, String txt)
+        {
+            Color backColor = Color.Transparent;
+            if (this.IsDrawBackground && this.IsItemSelected && this.Column.Index == 0 && !this.ListView.FullRowSelect)
+                backColor = this.GetTextBackgroundColor();
+
+            TextFormatFlags flags = TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix |
+                TextFormatFlags.VerticalCenter | TextFormatFlags.PreserveGraphicsTranslateTransform;
+            //switch (this.Column.TextAlign) {
+            //    case HorizontalAlignment.Center:
+            //        flags |= TextFormatFlags.HorizontalCenter;
+            //        break;
+            //    case HorizontalAlignment.Right:
+            //        flags |= TextFormatFlags.Right;
+            //        break;
+            //}
+            TextRenderer.DrawText(g, txt, this.Font, r, this.GetForegroundColor(), backColor, flags);
+        }
+
+        /// <summary>
         /// Print the given text in the given rectangle using normal GDI+ .NET methods
         /// </summary>
         /// <remarks>Printing to a printer dc has to be done using this method.</remarks>
-        protected void DrawTextGdiPlus(Graphics g, Rectangle r, String txt)
+        protected virtual void DrawTextGdiPlus(Graphics g, Rectangle r, String txt)
         {
             StringFormat fmt = new StringFormat();
             fmt.LineAlignment = StringAlignment.Center;
@@ -750,8 +1253,6 @@ namespace BrightIdeasSoftware
             Font f = this.Font;
             if (this.IsDrawBackground && this.IsItemSelected && this.Column.Index == 0 && !this.ListView.FullRowSelect) {
                 SizeF size = g.MeasureString(txt, f, r.Width, fmt);
-                // This is a tighter selection box
-                //Rectangle r2 = this.AlignRectangle(r, new Rectangle(0, 0, (int)(size.Width + 1), (int)(size.Height + 1)));
                 Rectangle r2 = r;
                 r2.Width = (int)size.Width + 1;
                 using (Brush brush = new SolidBrush(this.ListView.HighlightBackgroundColorOrDefault))
@@ -774,53 +1275,7 @@ namespace BrightIdeasSoftware
             //}
         }
 
-        /// <summary>
-        /// Print the given text in the given rectangle using only GDI routines
-        /// </summary>
-        /// <param name="g"></param>
-        /// <param name="r"></param>
-        /// <param name="txt"></param>
-        /// <remarks>
-        /// The native list control uses GDI routines to do its drawing, so using them
-        /// here makes the owner drawn mode looks more natural.
-        /// <para>This method doesn't honour the CanWrap setting on the renderer. All
-        /// text is single line</para>
-        /// </remarks>
-        protected void DrawTextGdi(Graphics g, Rectangle r, String txt)
-        {
-            // It's probable that the given Graphics object is double buffered using a BufferedGraphics object.
-            // But the DrawText method doesn't honor the Translation matrix that's probably in effect on the buffered
-            // graphics. So we have to calculate our drawing rectangle, relative to the cells natural boundaries.
-            // This effectively simulates the Translation matrix.
-            Rectangle textBounds = new Rectangle(r.X - this.Bounds.X, r.Y - this.Bounds.Y, r.Width - 2, r.Height);
-            IntPtr hdc = g.GetHdc();
-
-            NativeMethods.SetTextColor(hdc, ColorTranslator.ToWin32(this.GetForegroundColor()));
-            if (this.IsDrawBackground && this.IsItemSelected && this.Column.Index == 0 && !this.ListView.FullRowSelect)
-                NativeMethods.SetBkColor(hdc, ColorTranslator.ToWin32(this.GetTextBackgroundColor()));
-            else
-                NativeMethods.SetBkMode(hdc, true);
-
-            IntPtr hFont = this.Font.ToHfont();
-            NativeMethods.SelectObject(hdc, hFont);
-
-            int flags = NativeMethods.DT_END_ELLIPSIS | NativeMethods.DT_SINGLELINE | NativeMethods.DT_VCENTER;
-            switch (this.Column.TextAlign) {
-                case HorizontalAlignment.Center:
-                    flags |= NativeMethods.DT_CENTER;
-                    break;
-                case HorizontalAlignment.Left:
-                    flags |= NativeMethods.DT_LEFT;
-                    break;
-                case HorizontalAlignment.Right:
-                    flags |= NativeMethods.DT_RIGHT;
-                    break;
-            }
-            NativeMethods.DrawText(hdc, txt, textBounds, flags);
-
-            NativeMethods.DeleteObject(hFont);
-            g.ReleaseHdc(hdc);
-        }
+        #endregion
     }
 
     /// <summary>
@@ -922,16 +1377,17 @@ namespace BrightIdeasSoftware
         {
             this.DrawBackground(g, r);
 
-            if (this.Aspect is ICollection)
-                this.RenderCollection(g, r, (ICollection)this.Aspect);
-            else
+            ICollection aspectAsCollection = this.Aspect as ICollection;
+            if (aspectAsCollection == null)
                 this.RenderOne(g, r, this.Aspect);
+            else
+                this.RenderCollection(g, r, aspectAsCollection);
         }
 
-        private void RenderCollection(Graphics g, Rectangle r, ICollection imageSelectors)
+        protected void RenderCollection(Graphics g, Rectangle r, ICollection imageSelectors)
         {
+            ArrayList images = new ArrayList();
             Image image = null;
-            Point pt = r.Location;
             foreach (Object selector in imageSelectors) {
                 if (selector == null)
                     image = this.GetImage(this.nullImage);
@@ -940,14 +1396,14 @@ namespace BrightIdeasSoftware
                 else
                     image = null;
 
-                if (image != null) {
-                    g.DrawImage(image, pt);
-                    pt.X += (image.Width + this.Spacing);
-                }
+                if (image != null)
+                    images.Add(image);
             }
+
+            this.DrawImages(g, r, images);
         }
 
-        private void RenderOne(Graphics g, Rectangle r, Object selector)
+        protected void RenderOne(Graphics g, Rectangle r, Object selector)
         {
             Image image = null;
             if (selector == null)
@@ -969,6 +1425,39 @@ namespace BrightIdeasSoftware
     }
 
     /// <summary>
+    /// This renderer draws just a checkbox to match the check state of our model object.
+    /// </summary>
+    public class CheckStateRenderer : BaseRenderer
+    {
+        public override void Render(Graphics g, Rectangle r)
+        {
+            this.DrawBackground(g, r);
+            r = this.CalculateCheckBoxBounds(g, r);
+            this.DrawImage(g, r, this.Column.GetCheckStateImage(this.RowObject));
+        }
+
+        protected override Rectangle HandleGetEditRectangle(Graphics g, Rectangle cellBounds, OLVListItem item, int subItemIndex)
+        {
+            return cellBounds;
+        }
+
+        protected override void HandleHitTest(Graphics g, OlvListViewHitTestInfo hti, int x, int y)
+        {
+            Rectangle r = this.CalculateCheckBoxBounds(g, this.Bounds);
+            if (r.Contains(x, y)) 
+                hti.HitTestLocation = HitTestLocation.CheckBox;
+        }
+
+        private Rectangle CalculateCheckBoxBounds(Graphics g, Rectangle cellBounds)
+        {
+            // We don't use this because the checkbox images were drawn into the small image list
+            //Size checkBoxSize = CheckBoxRenderer.GetGlyphSize(g, CheckBoxState.CheckedNormal);
+            Size checkBoxSize = this.ListView.SmallImageList.ImageSize;
+            return this.AlignRectangle(cellBounds, new Rectangle(new Point(0, 0), checkBoxSize));
+        }
+    }
+        
+    /// <summary>
     /// Render an image that comes from our data source.
     /// </summary>
     /// <remarks>The image can be sourced from:
@@ -977,6 +1466,7 @@ namespace BrightIdeasSoftware
     /// stored as a value in a database)</item>
     /// <item>an int, which is treated as an index into the image list</item>
     /// <item>a string, which is treated first as a file name, and failing that as an index into the image list</item>
+    /// <item>an ICollection of ints or strings, which will be drawn as consecutive images</item>
     /// </list>
     /// <para>If an image is an animated GIF, it's state is stored in the SubItem object.</para>
     /// <para>By default, the image renderer does not render animations (it begins life with animations paused).
@@ -1003,6 +1493,56 @@ namespace BrightIdeasSoftware
             this.Paused = !startAnimations;
         }
 
+        #region Properties
+
+        /// <summary>
+        /// Should the animations in this renderer be paused?
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool Paused
+        {
+            get { return isPaused; }
+            set
+            {
+                if (isPaused != value) {
+                    isPaused = value;
+                    if (isPaused) {
+                        this.tickler.Change(Timeout.Infinite, Timeout.Infinite);
+                        this.stopwatch.Stop();
+                    } else {
+                        this.tickler.Change(1, Timeout.Infinite);
+                        this.stopwatch.Start();
+                    }
+                }
+            }
+        }
+        private bool isPaused = true;
+
+        #endregion
+
+        #region Commands
+
+        /// <summary>
+        /// Pause any animations
+        /// </summary>
+        public void Pause()
+        {
+            this.Paused = true;
+        }
+
+        /// <summary>
+        /// Unpause any animations
+        /// </summary>
+        public void Unpause()
+        {
+            this.Paused = false;
+        }
+
+        #endregion
+
+        #region Drawing
+
         /// <summary>
         /// Draw our image
         /// </summary>
@@ -1011,7 +1551,15 @@ namespace BrightIdeasSoftware
         public override void Render(Graphics g, Rectangle r)
         {
             this.DrawBackground(g, r);
-            this.DrawAlignedImage(g, r, this.GetImageFromAspect());
+
+            if (this.Aspect == null || this.Aspect == System.DBNull.Value)
+                return;
+
+            ICollection imageSelectors = this.Aspect as ICollection;
+            if (imageSelectors == null)
+                this.DrawAlignedImage(g, r, this.GetImageFromAspect());
+            else
+                this.DrawImages(g, r, imageSelectors);
         }
 
         /// <summary>
@@ -1020,14 +1568,12 @@ namespace BrightIdeasSoftware
         /// <remarks>The strategy is:<list type="unordered">
         /// <item>If its a byte array, we treat it as an in-memory image</item>
         /// <item>If it's an int, we use that as an index into our image list</item>
-        /// <item>If it's a string, we try to load a file by that name. If we can't, we use the string as an index into our image list.</item>
+        /// <item>If it's a string, we try to load a file by that name. If we can't, 
+        /// we use the string as an index into our image list.</item>
         ///</list></remarks>
         /// <returns>An image</returns>
         protected Image GetImageFromAspect()
         {
-            if (this.Aspect == null || this.Aspect == System.DBNull.Value)
-                return null;
-
             // If we've already figured out the image, don't do it again
             if (this.OLVSubItem != null && this.OLVSubItem.ImageSelector is Image) {
                 if (this.OLVSubItem.AnimationState == null)
@@ -1080,42 +1626,9 @@ namespace BrightIdeasSoftware
             return image;
         }
 
-        /// <summary>
-        /// Should the animations in this renderer be paused?
-        /// </summary>
-        public bool Paused
-        {
-            get { return isPaused; }
-            set {
-                if (isPaused != value) {
-                    isPaused = value;
-                    if (isPaused) {
-                        this.tickler.Change(Timeout.Infinite, Timeout.Infinite);
-                        this.stopwatch.Stop();
-                    } else {
-                        this.tickler.Change(1, Timeout.Infinite);
-                        this.stopwatch.Start();
-                    }
-                }
-            }
-        }
-        private bool isPaused = true;
+        #endregion
 
-        /// <summary>
-        /// Pause any animations
-        /// </summary>
-        public void Pause()
-        {
-            this.Paused = true;
-        }
-
-        /// <summary>
-        /// Unpause any animations
-        /// </summary>
-        public void Unpause()
-        {
-            this.Paused = false;
-        }
+        #region Events
 
         /// <summary>
         /// This is the method that is invoked by the timer. It basically switches control to the listview thread.
@@ -1189,6 +1702,8 @@ namespace BrightIdeasSoftware
             // Renew the tickler in time for the next frame change
             this.tickler.Change(nextCheckAt - elapsedMilliseconds, Timeout.Infinite);
         }
+
+        #endregion
 
         /// <summary>
         /// Instances of this class kept track of the animation state of a single image.
@@ -1302,10 +1817,6 @@ namespace BrightIdeasSoftware
         public BarRenderer()
             : base()
         {
-            this.Pen = new Pen(Color.Blue, 1);
-            this.Brush = Brushes.Aquamarine;
-            this.BackgroundBrush = Brushes.White;
-            this.StartColor = Color.Empty;
         }
 
         /// <summary>
@@ -1362,62 +1873,229 @@ namespace BrightIdeasSoftware
 
         #endregion
 
-        #region Public variables
+        #region Configuration Properties
 
         /// <summary>
-        /// Should this bar be drawn in the system style
+        /// Should this bar be drawn in the system style?
         /// </summary>
-        public bool UseStandardBar = true;
+        [Category("Appearance"),
+         Description("Should this bar be drawn in the system style?"),
+         DefaultValue(true)]
+        public bool UseStandardBar
+        {
+            get { return useStandardBar; }
+            set { useStandardBar = value; }
+        }
+        private bool useStandardBar = true;
 
         /// <summary>
         /// How many pixels in from our cell border will this bar be drawn
         /// </summary>
-        public int Padding = 2;
+        [Category("Appearance"),
+         Description("How many pixels in from our cell border will this bar be drawn"),
+         DefaultValue(2)]
+        public int Padding
+        {
+            get { return padding; }
+            set { padding = value; }
+        }
+        private int padding = 2;
 
         /// <summary>
-        /// The Pen that will draw the frame surrounding this bar
+        /// What color will be used to fill the interior of the control before the 
+        /// progress bar is drawn?
         /// </summary>
-        public Pen Pen;
+        [Category("Appearance"),
+         Description("The color of the interior of the bar"),
+         DefaultValue(typeof(Color), "AliceBlue")]
+        public Color BackgroundColor
+        {
+            get { return backgroundColor; }
+            set { backgroundColor = value; }
+        }
+        private Color backgroundColor = Color.AliceBlue;
 
         /// <summary>
-        /// The brush that will be used to fill the bar
+        /// What color should the frame of the progress bar be?
         /// </summary>
-        public Brush Brush;
+        [Category("Appearance"),
+         Description("What color should the frame of the progress bar be"),
+         DefaultValue(typeof(Color), "Black")]
+        public Color FrameColor
+        {
+            get { return frameColor; }
+            set { frameColor = value; }
+        }
+        private Color frameColor = Color.Black;
 
         /// <summary>
-        /// The brush that will be used to fill the background of the bar
+        /// How many pixels wide should the frame of the progress bar be?
         /// </summary>
-        public Brush BackgroundBrush;
+        [Category("Appearance"),
+         Description("How many pixels wide should the frame of the progress bar be"),
+         DefaultValue(1.0f)]
+        public float FrameWidth
+        {
+            get { return frameWidth; }
+            set { frameWidth = value; }
+        }
+        private float frameWidth = 1.0f;
 
         /// <summary>
-        /// The first color when a gradient is used to fill the bar
+        /// What color should the 'filled in' part of the progress bar be?
         /// </summary>
-        public Color StartColor;
+        /// <remarks>This is only used if GradientStartColor is Color.Empty</remarks>
+        [Category("Appearance"),
+         Description("What color should the 'filled in' part of the progress bar be"),
+         DefaultValue(typeof(Color), "BlueViolet")]
+        public Color FillColor
+        {
+            get { return fillColor; }
+            set { fillColor = value; }
+        }
+        private Color fillColor = Color.BlueViolet;
 
         /// <summary>
-        /// The end color when a gradient is used to fill the bar
+        /// Use a gradient to fill the progress bar starting with this color
         /// </summary>
-        public Color EndColor;
+        [Category("Appearance"),
+         Description("Use a gradient to fill the progress bar starting with this color"),
+         DefaultValue(typeof(Color), "CornflowerBlue")]
+        public Color GradientStartColor
+        {
+            get { return startColor; }
+            set { 
+                startColor = value;
+            }
+        }
+        private Color startColor = Color.CornflowerBlue;
+
+        /// <summary>
+        /// Use a gradient to fill the progress bar ending with this color
+        /// </summary>
+        [Category("Appearance"),
+         Description("Use a gradient to fill the progress bar ending with this color"),
+         DefaultValue(typeof(Color), "DarkBlue")]
+        public Color GradientEndColor
+        {
+            get { return endColor; }
+            set { endColor = value;
+            }
+        }
+        private Color endColor = Color.DarkBlue;
 
         /// <summary>
         /// Regardless of how wide the column become the progress bar will never be wider than this
         /// </summary>
-        public int MaximumWidth = 100;
+        [Category("Behavior"),
+        Description("The progress bar will never be wider than this"),
+        DefaultValue(100)]
+        public int MaximumWidth
+        {
+            get { return maximumWidth; }
+            set { maximumWidth = value; }
+        }
+        private int maximumWidth = 100;
 
         /// <summary>
         /// Regardless of how high the cell is  the progress bar will never be taller than this
         /// </summary>
-        public int MaximumHeight = 16;
+        [Category("Behavior"),
+        Description("The progress bar will never be taller than this"),
+        DefaultValue(16)]
+        public int MaximumHeight
+        {
+            get { return maximumHeight; }
+            set { maximumHeight = value; }
+        }
+        private int maximumHeight = 16;
 
         /// <summary>
         /// The minimum data value expected. Values less than this will given an empty bar
         /// </summary>
-        public int MinimumValue = 0;
+        [Category("Behavior"),
+        Description("The minimum data value expected. Values less than this will given an empty bar"),
+        DefaultValue(0.0)]
+        public double MinimumValue
+        {
+            get { return minimumValue; }
+            set { minimumValue = value; }
+        }
+        private double minimumValue = 0.0;
 
         /// <summary>
         /// The maximum value for the range. Values greater than this will give a full bar
         /// </summary>
-        public int MaximumValue = 100;
+        [Category("Behavior"),
+        Description("The maximum value for the range. Values greater than this will give a full bar"),
+        DefaultValue(100.0)]
+        public double MaximumValue
+        {
+            get { return maximumValue; }
+            set { maximumValue = value; }
+        }
+        private double maximumValue = 100.0;
+
+        #endregion
+
+        #region Public Properties (non-IDE)
+
+        /// <summary>
+        /// The Pen that will draw the frame surrounding this bar
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public Pen Pen
+        {
+            get {
+                if (this.pen == null && !this.FrameColor.IsEmpty)
+                    return new Pen(this.FrameColor, this.FrameWidth);
+                else
+                    return this.pen;
+            }
+            set {
+                this.pen = value;
+            }
+        }
+        private Pen pen;
+
+        /// <summary>
+        /// The brush that will be used to fill the bar
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public Brush Brush
+        {
+            get {
+                if (this.brush == null && !this.FillColor.IsEmpty)
+                    return new SolidBrush(this.FillColor);
+                else
+                    return this.brush;
+            }
+            set {
+                this.brush = value;
+            }
+        }
+        private Brush brush;
+
+        /// <summary>
+        /// The brush that will be used to fill the background of the bar
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public Brush BackgroundBrush
+        {
+            get {
+                if (this.backgroundBrush == null && !this.BackgroundColor.IsEmpty)
+                    return new SolidBrush(this.BackgroundColor);
+                else
+                    return this.backgroundBrush;
+            }
+            set {
+                this.backgroundBrush = value;
+            }
+        }
+        private Brush backgroundBrush;
 
         #endregion
 
@@ -1428,9 +2106,8 @@ namespace BrightIdeasSoftware
         /// <param name="end"></param>
         public void SetGradient(Color start, Color end)
         {
-            this.StartColor = start;
-            this.EndColor = end;
-            this.UseStandardBar = false;
+            this.GradientStartColor = start;
+            this.GradientEndColor = end;
         }
 
         /// <summary>
@@ -1448,10 +2125,10 @@ namespace BrightIdeasSoftware
             frameRect = this.AlignRectangle(r, frameRect);
 
             // Convert our aspect to a numeric value
-            // CONSIDER: Is this the best way to do this?
-            if (!(this.Aspect is IConvertible))
+            IConvertible convertable = this.Aspect as IConvertible;
+            if (convertable == null)
                 return;
-            double aspectValue = ((IConvertible)this.Aspect).ToDouble(NumberFormatInfo.InvariantInfo);
+            double aspectValue = convertable.ToDouble(NumberFormatInfo.InvariantInfo);
 
             Rectangle fillRect = Rectangle.Inflate(frameRect, -1, -1);
             if (aspectValue <= this.MinimumValue)
@@ -1459,7 +2136,8 @@ namespace BrightIdeasSoftware
             else if (aspectValue < this.MaximumValue)
                 fillRect.Width = (int)(fillRect.Width * (aspectValue - this.MinimumValue) / this.MaximumValue);
 
-            if (this.UseStandardBar && ProgressBarRenderer.IsSupported) {
+            // MS-themed progress bars don't work when printing
+            if (this.UseStandardBar && ProgressBarRenderer.IsSupported && !this.IsPrinting) {
                 ProgressBarRenderer.DrawHorizontalBar(g, frameRect);
                 ProgressBarRenderer.DrawHorizontalChunks(g, fillRect);
             } else {
@@ -1468,10 +2146,10 @@ namespace BrightIdeasSoftware
                     // FillRectangle fills inside the given rectangle, so expand it a little
                     fillRect.Width++;
                     fillRect.Height++;
-                    if (this.StartColor == Color.Empty)
+                    if (this.GradientStartColor == Color.Empty)
                         g.FillRectangle(this.Brush, fillRect);
                     else {
-                        using (LinearGradientBrush gradient = new LinearGradientBrush(frameRect, this.StartColor, this.EndColor, LinearGradientMode.Horizontal)) {
+                        using (LinearGradientBrush gradient = new LinearGradientBrush(frameRect, this.GradientStartColor, this.GradientEndColor, LinearGradientMode.Horizontal)) {
                             g.FillRectangle(gradient, fillRect);
                         }
                     }
@@ -1485,32 +2163,13 @@ namespace BrightIdeasSoftware
     /// An ImagesRenderer draws zero or more images depending on the data returned by its Aspect.
     /// </summary>
     /// <remarks><para>This renderer's Aspect must return a ICollection of ints, strings or Images,
-    /// each of which will be drawn horizontally one after the other.</para></remarks>
-    public class ImagesRenderer : BaseRenderer
+    /// each of which will be drawn horizontally one after the other.</para>
+    /// <para>As of v2.1, this functionality has been absorbed into ImageRenderer and this is now an
+    /// empty shell, solely for backwards compatibility.</para>
+    /// </remarks>
+    [ToolboxItem(false)]
+    public class ImagesRenderer : ImageRenderer
     {
-
-        /// <summary>
-        /// Draw our data value
-        /// </summary>
-        /// <param name="g"></param>
-        /// <param name="r"></param>
-        public override void Render(Graphics g, Rectangle r)
-        {
-            this.DrawBackground(g, r);
-
-            ICollection imageSelectors = this.Aspect as ICollection;
-            if (imageSelectors == null)
-                return;
-
-            Point pt = r.Location;
-            foreach (Object selector in imageSelectors) {
-                Image image = this.GetImage(selector);
-                if (image != null) {
-                    g.DrawImage(image, pt);
-                    pt.X += (image.Width + this.Spacing);
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -1543,25 +2202,92 @@ namespace BrightIdeasSoftware
             this.MaximumValue = maxValue;
         }
 
+        #region Configuration Properties
+
+        /// <summary>
+        /// The index of the image that should be drawn
+        /// </summary>
+        [Category("Behavior"),
+         Description("The index of the image that should be drawn"),
+         DefaultValue(-1)]
+        public int ImageIndex
+        {
+            get {
+                if (imageSelector is Int32)
+                    return (Int32)imageSelector;
+                else
+                    return -1;
+            }
+            set { imageSelector = value; }
+        }
+
+        /// <summary>
+        /// The name of the image that should be drawn
+        /// </summary>
+        [Category("Behavior"),
+         Description("The index of the image that should be drawn"),
+         DefaultValue(null)]
+        public string ImageName
+        {
+            get {
+                return imageSelector as String;
+            }
+            set { imageSelector = value; }
+        }
+
         /// <summary>
         /// The image selector that will give the image to be drawn
         /// </summary>
-        public Object ImageSelector;
+        /// <remarks>Like all image selectors, this can be an int, string or Image</remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public Object ImageSelector
+        {
+            get { return imageSelector; }
+            set { imageSelector = value; }
+        }
+        private Object imageSelector;
 
         /// <summary>
         /// What is the maximum number of images that this renderer should draw?
         /// </summary>
-        public int MaxNumberImages = 10;
+        [Category("Behavior"),
+         Description("The maximum number of images that this renderer should draw"),
+         DefaultValue(10)]
+        public int MaxNumberImages
+        {
+            get { return maxNumberImages; }
+            set { maxNumberImages = value; }
+        }
+        private int maxNumberImages = 10;
 
         /// <summary>
         /// Values less than or equal to this will have 0 images drawn
         /// </summary>
-        public int MinimumValue = 0;
+        [Category("Behavior"),
+         Description("Values less than or equal to this will have 0 images drawn"),
+         DefaultValue(0)]
+        public int MinimumValue
+        {
+            get { return minimumValue; }
+            set { minimumValue = value; }
+        }
+        private int minimumValue = 0;
 
         /// <summary>
         /// Values greater than or equal to this will have MaxNumberImages images drawn
         /// </summary>
-        public int MaximumValue = 100;
+        [Category("Behavior"),
+         Description("Values greater than or equal to this will have MaxNumberImages images drawn"),
+         DefaultValue(100)]
+        public int MaximumValue
+        {
+            get { return maximumValue; }
+            set { maximumValue = value; }
+        }
+        private int maximumValue = 100;
+
+        #endregion
 
         /// <summary>
         /// Draw our data value
@@ -1577,10 +2303,10 @@ namespace BrightIdeasSoftware
                 return;
 
             // Convert our aspect to a numeric value
-            // CONSIDER: Is this the best way to do this?
-            if (!(this.Aspect is IConvertible))
+            IConvertible convertable = this.Aspect as IConvertible;
+            if (convertable == null)
                 return;
-            double aspectValue = ((IConvertible)this.Aspect).ToDouble(NumberFormatInfo.InvariantInfo);
+            double aspectValue = convertable.ToDouble(NumberFormatInfo.InvariantInfo);
 
             // Calculate how many images we need to draw to represent our aspect value
             int numberOfImages;
@@ -1616,15 +2342,14 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// A class to render a value that contains a bitwise-OR'ed collection of values.
     /// </summary>
-    /// <typeparam name="T">The type of value that holds the bit-OR'ed flag</typeparam>
-    public class FlagRenderer<T> : BaseRenderer //where T : IConvertible
+    public class FlagRenderer : BaseRenderer 
     {
         /// <summary>
         /// Register the given image to the given value
         /// </summary>
         /// <param name="key">When this flag is present...</param>
         /// <param name="imageSelector">...draw this image</param>
-        public void Add(T key, Object imageSelector)
+        public void Add(Object key, Object imageSelector)
         {
             Int32 k2 = ((IConvertible)key).ToInt32(NumberFormatInfo.InvariantInfo);
 
@@ -1642,7 +2367,11 @@ namespace BrightIdeasSoftware
         {
             this.DrawBackground(g, r);
 
-            Int32 v2 = ((IConvertible)this.Aspect).ToInt32(NumberFormatInfo.InvariantInfo);
+            IConvertible convertable = this.Aspect as IConvertible;
+            if (convertable == null)
+                return;
+
+            Int32 v2 = convertable.ToInt32(NumberFormatInfo.InvariantInfo);
 
             Point pt = r.Location;
             foreach (Int32 key in this.keysInOrder) {
@@ -1658,5 +2387,13 @@ namespace BrightIdeasSoftware
 
         private List<Int32> keysInOrder = new List<Int32>();
         private Dictionary<Int32, Object> imageMap = new Dictionary<Int32, object>();
+    }
+
+    /// <summary>
+    /// Typed version of FlagRenderer. Kept only for backwards compatibility
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class FlagRenderer<T> : FlagRenderer
+    {
     }
 }
