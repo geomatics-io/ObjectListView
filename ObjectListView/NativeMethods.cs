@@ -5,25 +5,15 @@ using System.Windows.Forms;
 
 namespace BrightIdeasSoftware
 {
-
     /// <summary>
     /// Wrapper for all native method calls on ListView controls
     /// </summary>
     internal class NativeMethods
     {
-        private const int OPAQUE = 0x02;
-        private const int TRANSPARENT = 0x01;
-
-        public const int DT_LEFT = 0x0;
-        public const int DT_CENTER = 0x1;
-        public const int DT_RIGHT = 0x2;
-        public const int DT_VCENTER = 0x4;
-        public const int DT_SINGLELINE = 0x20;
-        public const int DT_END_ELLIPSIS = 0x8000;
-
         private const int LVM_FIRST = 0x1000;
         private const int LVM_SCROLL = LVM_FIRST + 20;
         private const int LVM_GETHEADER = LVM_FIRST + 31;
+        private const int LVM_GETCOUNTPERPAGE = LVM_FIRST + 40;
         private const int LVM_SETITEMSTATE = LVM_FIRST + 43;
         private const int LVM_SETEXTENDEDLISTVIEWSTYLE = LVM_FIRST + 54;
         private const int LVM_SETITEM = LVM_FIRST + 76;
@@ -88,6 +78,13 @@ namespace BrightIdeasSoftware
         private const int SIF_DISABLENOSCROLL = 0x0008;
         private const int SIF_TRACKPOS = 0x0010;
         private const int SIF_ALL = (SIF_RANGE | SIF_PAGE | SIF_POS | SIF_TRACKPOS);
+
+        private const int ILD_NORMAL = 0x00000000;
+        private const int ILD_TRANSPARENT = 0x00000001;
+        private const int ILD_MASK = 0x00000010;
+        private const int ILD_IMAGE = 0x00000020;
+        private const int ILD_BLEND25 = 0x00000002;
+        private const int ILD_BLEND50 = 0x00000004;
 
         [StructLayout(LayoutKind.Sequential)]
         public struct HDITEM
@@ -219,15 +216,6 @@ namespace BrightIdeasSoftware
             public int top;
             public int right;
             public int bottom;
-                        
-            public RECT(Rectangle r)
-            {
-                this.left = r.Left;
-                this.top = r.Top;
-                this.bottom = r.Bottom;
-                this.right = r.Right;
-            }
-
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -295,40 +283,27 @@ namespace BrightIdeasSoftware
         // Entry points used by this code
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         public static extern bool GetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO si);
-        
-        [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
-        public static extern bool DeleteObject(IntPtr hObject);
-
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        private static extern int DrawText(IntPtr hdc, string lpStr, int nCount, ref RECT lpRect, int wFormat);
 
         [DllImport("user32.dll", EntryPoint = "GetUpdateRect", CharSet = CharSet.Auto)]
         private static extern int GetUpdateRectInternal(IntPtr hWnd, ref Rectangle r, bool eraseBackground);
-        
-        [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
-        public static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiobj);
-        
-        [DllImport("gdi32.dll")]
-        public static extern int SetBkColor(IntPtr hdc, int crColor);
-        
-        [DllImport("gdi32.dll")]
-        public static extern int SetBkMode(IntPtr hdc, int iBkMode);
 
-        [DllImport("gdi32.dll")]
-        public static extern int SetTextColor(IntPtr hdc, int crColor);
-        
+        [DllImport("comctl32.dll", CharSet = CharSet.Auto)]
+        private static extern bool ImageList_Draw(IntPtr himl, int i, IntPtr hdcDst, int x, int y, int fStyle);
+
+        //[DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        //public static extern bool SetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO si, bool fRedraw);
+
         [DllImport("user32.dll", EntryPoint = "ValidateRect", CharSet = CharSet.Auto)]
         private static extern IntPtr ValidatedRectInternal(IntPtr hWnd, ref Rectangle r);
 
-        public static void DrawText(IntPtr hdc, string txt, Rectangle r, int flags)
+        public static bool DrawImageList(Graphics g, ImageList il, int index, int x, int y, bool isSelected)
         {
-            RECT bounds = new RECT(r);
-            DrawText(hdc, txt, txt.Length, ref bounds, flags);
-        }
-
-        public static void SetBkMode(IntPtr hdc, bool isTransparent)
-        {
-            SetBkMode(hdc, isTransparent ? TRANSPARENT : OPAQUE);
+            int flags = ILD_TRANSPARENT;
+            if (isSelected)
+                flags |= ILD_BLEND25;
+            bool result = ImageList_Draw(il.Handle, index, g.GetHdc(), x, y, flags);
+            g.ReleaseHdc();
+            return result;
         }
 
         /// <summary>
@@ -337,11 +312,20 @@ namespace BrightIdeasSoftware
         /// <remarks>This method must be called after any .NET call that update the extended styles
         /// since they seem to erase this setting.</remarks>
         /// <param name="list">The listview to send a m to</param>
-        public static void ForceSubItemImagesExStyle(ListView list)
-        {
+        public static void ForceSubItemImagesExStyle(ListView list) {
             SendMessage(list.Handle, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_SUBITEMIMAGES, LVS_EX_SUBITEMIMAGES);
         }
 
+        /// <summary>
+        /// Calculates the number of items that can fit vertically in the visible area of a list-view (which
+        /// must be in details or list view.
+        /// </summary>
+        /// <param name="list">The listView</param>
+        /// <returns>Number of visible items per page</returns>
+        public static int GetCountPerPage(ListView list)
+        {
+            return (int)SendMessage(list.Handle, LVM_GETCOUNTPERPAGE, 0, 0);
+        }
         /// <summary>
         /// For the given item and subitem, make it display the given image
         /// </summary>
@@ -349,8 +333,7 @@ namespace BrightIdeasSoftware
         /// <param name="itemIndex">row number (0 based)</param>
         /// <param name="subItemIndex">subitem (0 is the item itself)</param>
         /// <param name="imageIndex">index into the image list</param>
-        public static void SetSubItemImage(ListView list, int itemIndex, int subItemIndex, int imageIndex)
-        {
+        public static void SetSubItemImage(ListView list, int itemIndex, int subItemIndex, int imageIndex) {
             LVITEM lvItem = new LVITEM();
             lvItem.mask = LVIF_IMAGE;
             lvItem.iItem = itemIndex;
@@ -367,8 +350,7 @@ namespace BrightIdeasSoftware
         /// <param name="columnIndex">Index of the column to modifiy</param>
         /// <param name="order"></param>
         /// <param name="imageIndex">Index into the small image list</param>
-        public static void SetColumnImage(ListView list, int columnIndex, SortOrder order, int imageIndex)
-        {
+        public static void SetColumnImage(ListView list, int columnIndex, SortOrder order, int imageIndex) {
             IntPtr hdrCntl = NativeMethods.GetHeaderControl(list);
             if (hdrCntl.ToInt32() == 0)
                 return;
@@ -384,7 +366,8 @@ namespace BrightIdeasSoftware
                     item.fmt |= HDF_SORTUP;
                 if (order == SortOrder.Descending)
                     item.fmt |= HDF_SORTDOWN;
-            } else {
+            }
+            else {
                 item.mask |= HDI_IMAGE;
                 item.fmt |= (HDF_IMAGE | HDF_BITMAP_ON_RIGHT);
                 item.iImage = imageIndex;
@@ -398,8 +381,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <returns>Are there builtin sort indicators</returns>
         /// <remarks>XP and later have these</remarks>
-        public static bool HasBuiltinSortIndicators()
-        {
+        public static bool HasBuiltinSortIndicators( ) {
             return OSFeature.Feature.GetVersionPresent(OSFeature.Themes) != null;
         }
 
@@ -410,8 +392,7 @@ namespace BrightIdeasSoftware
         /// So this call has to be made before the BeginPaint() call.</remarks>
         /// <param name="cntl">The control whose update region is be calculated</param>
         /// <returns>A rectangle</returns>
-        public static Rectangle GetUpdateRect(Control cntl)
-        {
+        public static Rectangle GetUpdateRect(Control cntl) {
             Rectangle r = new Rectangle();
             GetUpdateRectInternal(cntl.Handle, ref r, false);
             return r;
@@ -422,8 +403,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="cntl">The control to be validated</param>
         /// <param name="r">The area of the control to be validated</param>
-        public static void ValidateRect(Control cntl, Rectangle r)
-        {
+        public static void ValidateRect(Control cntl, Rectangle r) {
             ValidatedRectInternal(cntl.Handle, ref r);
         }
 
@@ -431,8 +411,7 @@ namespace BrightIdeasSoftware
         /// Select all rows on the given listview
         /// </summary>
         /// <param name="list">The listview whose items are to be selected</param>
-        public static void SelectAllItems(ListView list)
-        {
+        public static void SelectAllItems(ListView list) {
             NativeMethods.SetItemState(list, -1, 2, 2);
         }
 
@@ -440,8 +419,7 @@ namespace BrightIdeasSoftware
         /// Deselect all rows on the given listview
         /// </summary>
         /// <param name="list">The listview whose items are to be deselected</param>
-        public static void DeselectAllItems(ListView list)
-        {
+        public static void DeselectAllItems(ListView list) {
             NativeMethods.SetItemState(list, -1, 2, 0);
         }
 
@@ -452,14 +430,13 @@ namespace BrightIdeasSoftware
         /// <param name="itemIndex">The index of the item to be changed</param>
         /// <param name="mask">Which bits of the value are to be set?</param>
         /// <param name="value">The value to be set</param>
-        public static void SetItemState(ListView list, int itemIndex, int mask, int value)
-        {
+        public static void SetItemState(ListView list, int itemIndex, int mask, int value) {
             LVITEM lvItem = new LVITEM();
             lvItem.stateMask = mask;
             lvItem.state = value;
             SendMessageLVItem(list.Handle, LVM_SETITEMSTATE, itemIndex, ref lvItem);
         }
-        
+
         /// <summary>
         /// Scroll the given listview by the given deltas
         /// </summary>
@@ -467,18 +444,16 @@ namespace BrightIdeasSoftware
         /// <param name="dx"></param>
         /// <param name="dy"></param>
         /// <returns>true if the scroll succeeded</returns>
-        public static bool Scroll(ListView list, int dx, int dy)
-        {
+        public static bool Scroll(ListView list, int dx, int dy) {
             return SendMessage(list.Handle, LVM_SCROLL, dx, dy) != IntPtr.Zero;
         }
-        
+
         /// <summary>
         /// Return the handle to the header control on the given list
         /// </summary>
         /// <param name="list">The listview whose header control is to be returned</param>
         /// <returns>The handle to the header control</returns>
-        public static IntPtr GetHeaderControl(ListView list)
-        {
+        public static IntPtr GetHeaderControl(ListView list) {
             return SendMessage(list.Handle, LVM_GETHEADER, 0, 0);
         }
 
@@ -488,8 +463,7 @@ namespace BrightIdeasSoftware
         /// <param name="handle">The list we are interested in</param>
         /// <param name="pt">The client co-ords</param>
         /// <returns>The index of the divider under the point, or -1 if no divider is under that point</returns>
-        public static int GetDividerUnderPoint(IntPtr handle, Point pt)
-        {
+        public static int GetDividerUnderPoint(IntPtr handle, Point pt) {
             const int HHT_ONDIVIDER = 4;
             return NativeMethods.HeaderControlHitTest(handle, pt, HHT_ONDIVIDER);
         }
@@ -501,14 +475,12 @@ namespace BrightIdeasSoftware
         /// <param name="handle">The list we are interested in</param>
         /// <param name="pt">The client co-ords</param>
         /// <returns>The index of the column under the point, or -1 if no column header is under that point</returns>
-        public static int GetColumnUnderPoint(IntPtr handle, Point pt)
-        {
+        public static int GetColumnUnderPoint(IntPtr handle, Point pt) {
             const int HHT_ONHEADER = 2;
             return NativeMethods.HeaderControlHitTest(handle, pt, HHT_ONHEADER);
         }
 
-        private static int HeaderControlHitTest(IntPtr handle, Point pt, int flag)
-        {
+        private static int HeaderControlHitTest(IntPtr handle, Point pt, int flag) {
             HDHITTESTINFO testInfo = new HDHITTESTINFO();
             testInfo.pt_x = pt.X;
             testInfo.pt_y = pt.Y;
@@ -525,8 +497,7 @@ namespace BrightIdeasSoftware
         /// <param name="handle"></param>
         /// <param name="horizontalBar"></param>
         /// <returns></returns>
-        public static int GetScrollPosition(IntPtr handle, bool horizontalBar)
-        {
+        public static int GetScrollPosition(IntPtr handle, bool horizontalBar) {
             int fnBar = (horizontalBar ? SB_HORZ : SB_VERT);
 
             SCROLLINFO si = new SCROLLINFO();
