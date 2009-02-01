@@ -5,6 +5,8 @@
  * Date: 2007-11-01 11:15 AM
  *
  * Change log:
+ * 2009-01-26  JPP  - Use new renderer scheme
+ *                  - Removed ugly hack about BarRenderer when printing.
  * 2009-01-19  JPP  - Use IsPrinting property on BaseRenderer
  * v2.0.1
  * 2008-12-16  JPP  - Hide all obsolete properties from the code generator
@@ -1220,16 +1222,14 @@ namespace BrightIdeasSoftware
             }
 
             OLVColumn olvc = (OLVColumn)this.GetColumn(column);
+            BaseRenderer renderer = olvc.Renderer as BaseRenderer;
+            if (renderer == null) 
+                renderer = ((ObjectListView)lv).DefaultRenderer as BaseRenderer;
 
-            BaseRenderer renderer = null;
-            if (olvc.Renderer == null)
-                renderer = new BaseRenderer();
-            else {
-                renderer = olvc.Renderer;
-
-                // Nasty hack. MS themed ProgressBarRenderer will not work on printer graphic contexts.
-                if (renderer is BarRenderer)
-                    ((BarRenderer)renderer).UseStandardBar = false;
+            // We couldn't find a renderer we could use. Just use the default rendering
+            if (renderer == null) {
+                base.PrintCell(g, lv, lvi, row, column, cell);
+                return;
             }
 
             renderer.IsPrinting = true;
@@ -1255,10 +1255,6 @@ namespace BrightIdeasSoftware
             RectangleF r = this.CellFormat.CalculatePaddedTextBox(cell);
             Rectangle r2 = new Rectangle((int)r.X + 1, (int)r.Y + 1, (int)r.Width - 1, (int)r.Height - 1);
             renderer.Render(g, r2);
-
-            // TODO: Put back the previous value rather than just assuming it was true
-            if (renderer is BarRenderer)
-                ((BarRenderer)renderer).UseStandardBar = true;
         }
 #endif
     }
