@@ -223,12 +223,14 @@ namespace BrightIdeasSoftware
 
                 // Create a column
                 OLVColumn column = new OLVColumn(property.DisplayName, property.Name);
-                if (property.PropertyType == typeof(bool)) {
+                if (property.PropertyType == typeof(bool) || property.PropertyType == typeof(CheckState)) {
                     hasBooleanColumns = true;
                     column.TextAlign = HorizontalAlignment.Center;
                     column.Width = 32;
-                    column.AspectName = null;
-                    column.CheckedAspectName = property.Name;
+                    column.AspectName = property.Name;
+                    column.CheckBoxes = true;
+                    if (property.PropertyType == typeof(CheckState))
+                        column.TriStateCheckBoxes = true;
                 } else {
                     column.Width = 0; // zero-width since we will resize it once we have some data
 
@@ -255,7 +257,7 @@ namespace BrightIdeasSoftware
         {
             for (int i = 0; i < this.Columns.Count; i++) {
                 OLVColumn column = this.GetColumn(i);
-                if (column.AspectGetter == null && String.IsNullOrEmpty(column.CheckedAspectName) && !String.IsNullOrEmpty(column.AspectName)) {
+                if (column.AspectGetter == null && !String.IsNullOrEmpty(column.AspectName)) {
                     column.AspectGetter = delegate(object row) {
                         // In most cases, rows will be DataRowView objects
                         DataRowView drv = row as DataRowView;
@@ -265,7 +267,7 @@ namespace BrightIdeasSoftware
                             return column.GetAspectByName(row);
                     };
                 }
-                if (column.IsEditable && column.AspectPutter == null && String.IsNullOrEmpty(column.CheckedAspectName) && !String.IsNullOrEmpty(column.AspectName)) {
+                if (column.IsEditable && column.AspectPutter == null && !String.IsNullOrEmpty(column.AspectName)) {
                     column.AspectPutter = delegate(object row, object newValue) {
                         // In most cases, rows will be DataRowView objects
                         DataRowView drv = row as DataRowView;
