@@ -76,10 +76,10 @@ namespace ObjectListViewDemo
 
             // Change this value to see the performance on bigger lists.
             // Each list builds about 1000 rows per second.
-            while (list.Count < 2000) {
-                foreach (Person p in masterList)
-                    list.Add(new Person(p));
-            }
+            //while (list.Count < 200) {
+            //    foreach (Person p in masterList)
+            //        list.Add(new Person(p));
+            //}
 
 			InitializeSimpleExample(list);
 			InitializeComplexExample(list);
@@ -161,7 +161,6 @@ namespace ObjectListViewDemo
 			};
 
             // Cooking skill columns
-            this.columnCookingSkill.Renderer = new MultiImageRenderer(Resource1.star16, 5, 0, 40);
             this.columnCookingSkill.MakeGroupies(
                 new Int32[]{10, 20, 30, 40},
                 new String[] {"Pay to eat out", "Suggest take-away", "Passable", "Seek dinner invitation", "Hire as chef"});
@@ -216,7 +215,7 @@ namespace ObjectListViewDemo
             comboBox5.SelectedIndex = 0;
             listViewComplex.SetObjects(list);
 
-            this.personColumn.Renderer = new BusinessCardRenderer();
+            this.listViewComplex.ItemRenderer = new BusinessCardRenderer();
 		}
 
         /// <summary>
@@ -225,46 +224,45 @@ namespace ObjectListViewDemo
         /// <remarks>This is not the way to write a professional level renderer.
         /// It is hideously inefficient (we should at least cache the images),
         /// but it is obvious</remarks>
-        internal class BusinessCardRenderer : BaseRenderer
+        internal class BusinessCardRenderer : AbstractRenderer
         {
-            public override bool OptionalRender(Graphics g, Rectangle r)
+            public override bool RenderItem(DrawListViewItemEventArgs e, Graphics g, Rectangle itemBounds, object rowObject)
             {
-                // If we're in any other view than Tile, just let the default process do it's stuff
-                if (this.ListView.View != View.Tile) {
-                    if (this.ListView.View == View.Details)
-                        return base.OptionalRender(g, r);
-                    else
-                        return false;
-                }
+                // If we're in any other view than Tile, return false to say that we haven't done 
+                // the rendereing and the default process should do it's stuff
+                ObjectListView olv = e.Item.ListView as ObjectListView;
+                if (olv == null || olv.View != View.Tile)
+                    return false;
+
                 const int spacing = 8;
 
                 // Use buffered graphics to kill flickers
-                BufferedGraphics buffered = BufferedGraphicsManager.Current.Allocate(g, r);
+                BufferedGraphics buffered = BufferedGraphicsManager.Current.Allocate(g, itemBounds);
                 g = buffered.Graphics;
-                g.Clear(this.ListView.BackColor);
+                g.Clear(olv.BackColor);
 
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 Pen grey13Pen = new Pen(Color.FromArgb(0x33, 0x33, 0x33));
                 SolidBrush grey13Brush = new SolidBrush(Color.FromArgb(0x33, 0x33, 0x33));
 
                 // Allow a border around the card
-                r.Inflate(-2, -2);
+                itemBounds.Inflate(-2, -2);
 
                 // Draw card background
                 const int rounding = 20;
-                GraphicsPath path = this.GetRoundedRect(r, rounding);
+                GraphicsPath path = this.GetRoundedRect(itemBounds, rounding);
                 g.FillPath(Brushes.LemonChiffon, path);
-                if (this.IsItemSelected)
+                if (e.Item.Selected)
                     g.DrawPath(Pens.Blue, path);
                 else
                     g.DrawPath(grey13Pen, path);
 
-                g.Clip = new Region(r);
+                g.Clip = new Region(itemBounds);
 
                 // Draw the photo
-                Rectangle photoRect = r;
+                Rectangle photoRect = itemBounds;
                 photoRect.Inflate(-spacing, -spacing);
-                Person person = this.RowObject as Person;
+                Person person = rowObject as Person;
                 if (person != null) {
                     try {
                         photoRect.Width = 75;
@@ -282,7 +280,7 @@ namespace ObjectListViewDemo
                 // Now draw the text portion
                 RectangleF textBoxRect = photoRect;
                 textBoxRect.X += (photoRect.Width + spacing);
-                textBoxRect.Width = r.Right - textBoxRect.X - spacing;
+                textBoxRect.Width = itemBounds.Right - textBoxRect.X - spacing;
 
                 // Measure the height of the title
                 StringFormat fmt = new StringFormat(StringFormatFlags.NoWrap);
@@ -290,15 +288,15 @@ namespace ObjectListViewDemo
                 fmt.Alignment = StringAlignment.Center;
                 fmt.LineAlignment = StringAlignment.Near;
                 Font font = new Font("Tahoma", 11);
-                String txt = this.ListItem.Text;
+                String txt = e.Item.Text;
                 SizeF size = g.MeasureString(txt, font, (int)textBoxRect.Width, fmt);
 
                 // Draw the title
                 RectangleF r3 = textBoxRect;
                 r3.Height = size.Height;
                 path = this.GetRoundedRect(r3, 15);
-                if (this.IsItemSelected)
-                    g.FillPath(new SolidBrush(this.GetTextBackgroundColor()), path);
+                if (e.Item.Selected)
+                    g.FillPath(new SolidBrush(olv.HighlightBackgroundColorOrDefault), path);
                 else
                     g.FillPath(grey13Brush, path);
                 g.DrawString(txt, font, Brushes.AliceBlue, textBoxRect, fmt);
@@ -306,13 +304,13 @@ namespace ObjectListViewDemo
 
                 // Draw the other bits of information
                 font = new Font("Tahoma", 8);
-                size = g.MeasureString("Wj", font, r.Width, fmt);
+                size = g.MeasureString("Wj", font, itemBounds.Width, fmt);
                 textBoxRect.Height = size.Height;
                 fmt.Alignment = StringAlignment.Near;
-                for (int i = 0; i < this.ListView.Columns.Count; i++) {
-                    OLVColumn column = this.ListView.GetColumn(i);
+                for (int i = 0; i < olv.Columns.Count; i++) {
+                    OLVColumn column = olv.GetColumn(i);
                     if (column.IsTileViewColumn) {
-                        txt = column.GetStringValue(this.RowObject);
+                        txt = column.GetStringValue(rowObject);
                         g.DrawString(txt, font, grey13Brush, textBoxRect, fmt);
                         textBoxRect.Y += size.Height;
                     }
@@ -342,7 +340,6 @@ namespace ObjectListViewDemo
 
                 return path;
             }
-
         }
 
 		void InitializeDataSetExample ()
@@ -352,14 +349,14 @@ namespace ObjectListViewDemo
             this.salaryColumn.MakeGroupies(
                 new UInt32[] { 20000, 100000 },
                 new string[] { "Lowly worker", "Middle management", "Rarified elevation" });
-            this.salaryColumn.Renderer = new MultiImageRenderer(Resource1.tick16, 5, 10000, 500000);
+            //this.salaryColumn.Renderer = new MultiImageRenderer(Resource1.tick16, 5, 10000, 500000);
 
             this.heightColumn.MakeGroupies(
                 new Double[] { 1.50, 1.70, 1.85 },
                 new string[] { "Shortie",  "Normal", "Tall", "Really tall" });
-            this.heightColumn.Renderer = new BarRenderer(0, 2);
+            //this.heightColumn.Renderer = new BarRenderer(0, 2);
 
-            this.olvColumnGif.Renderer = new ImageRenderer(true);
+            //this.olvColumnGif.Renderer = new ImageRenderer(true);
 
             this.comboBox3.SelectedIndex = 4;
             this.comboBox7.SelectedIndex = 0;
@@ -398,8 +395,9 @@ namespace ObjectListViewDemo
             this.rowHeightUpDown.Value = 32;
 
             // Long values in the first column will wrap
-            this.listViewDataSet.GetColumn(0).Renderer = new BaseRenderer();
-            this.listViewDataSet.GetColumn(0).Renderer.CanWrap = true;
+            BaseRenderer renderer = new BaseRenderer();
+            renderer.CanWrap = true;
+            this.listViewDataSet.GetColumn(0).Renderer = renderer;
 
             LoadXmlIntoList();
 		}
@@ -582,6 +580,8 @@ namespace ObjectListViewDemo
                 DirectoryInfo dir = (DirectoryInfo)x;
                 return new ArrayList(dir.GetFileSystemInfos());
             };
+
+            this.treeListView.CheckBoxes = true;
 
             // You can change the way the connection lines are drawn by changing the pen
             //((TreeListView.TreeRenderer)this.treeListView.TreeColumnRenderer).LinePen = Pens.Firebrick;
@@ -789,16 +789,25 @@ namespace ObjectListViewDemo
 
         private void ChangeView(ObjectListView listview, ComboBox comboBox)
         {
-            if (listview.VirtualMode && comboBox.SelectedIndex == 3)
-                MessageBox.Show("Sorry, Microsoft says that virtual lists can't use Tile view.", "Object List View Demo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            else
-                switch (comboBox.SelectedIndex) {
-                    case 0: listview.View = View.SmallIcon; break;
-                    case 1: listview.View = View.LargeIcon; break;
-                    case 2: listview.View = View.List; break;
-                    case 3: listview.View = View.Tile; break;
-                    case 4: listview.View = View.Details; break;
+            // Handle restrictions on Tile view
+            if (comboBox.SelectedIndex == 3) {
+                if (listview.VirtualMode) {
+                    MessageBox.Show("Sorry, Microsoft says that virtual lists can't use Tile view.", "Object List View Demo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
                 }
+                if (listview.CheckBoxes) {
+                    MessageBox.Show("Microsoft says that Tile view can't have checkboxes, so CheckBoxes have been turned off on this list.", "Object List View Demo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    listview.CheckBoxes = false;
+                }
+            }
+            
+            switch (comboBox.SelectedIndex) {
+                case 0: listview.View = View.SmallIcon; break;
+                case 1: listview.View = View.LargeIcon; break;
+                case 2: listview.View = View.List; break;
+                case 3: listview.View = View.Tile; break;
+                case 4: listview.View = View.Details; break;
+            }
         }
 
         void ChangeOwnerDrawn(ObjectListView listview, CheckBox cb)
@@ -1744,7 +1753,7 @@ namespace ObjectListViewDemo
         public string Photo;
         public string Comments;
 		public int serialNumber;
-        public bool CanTellJokes;
+        public bool? CanTellJokes;
 
         // Allow tests for enums
         public MaritalStatus MaritalStatus = MaritalStatus.Single;
