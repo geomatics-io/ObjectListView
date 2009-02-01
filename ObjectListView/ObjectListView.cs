@@ -5,6 +5,14 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2009-02-01  JPP  - OLVColumn.CheckBoxes and TriStateCheckBoxes now work.
+ * 2009-01-28  JPP  - Complete overhaul of renderers!
+ *                       - Use IRenderer
+ *                       - Added ObjectListView.ItemRenderer to draw whole items
+ * 2009-01-23  JPP  - Simple Checkboxes now work properly
+ *                  - Added TriStateCheckBoxes property to control whether the user can
+ *                    set the row checkbox to have the Indeterminate value
+ *                  - CheckState property is now just a wrapper around the StateImageIndex property
  * 2009-01-20  JPP  - Changed to always draw columns when owner drawn, rather than falling back on DrawDefault. 
  *                    This simplified several owner drawn problems
  *                  - Added DefaultRenderer property to help with the above
@@ -333,7 +341,7 @@ namespace BrightIdeasSoftware
 
             base.View = View.Details;
             this.DoubleBuffered = true; // kill nasty flickers. hiss... me hates 'em
-            this.AlternateRowBackColor = Color.Empty;
+//            this.AlternateRowBackColor = Color.Empty; why is this here?
             this.ShowSortIndicators = true;
 
             //this.tickler = new Timer();
@@ -602,7 +610,7 @@ namespace BrightIdeasSoftware
         /// <remarks>If you try to set this to null, it will revert to a BaseRenderer</remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public BaseRenderer DefaultRenderer
+        public IRenderer DefaultRenderer
         {
             get { return defaultRenderer; }
             set
@@ -613,7 +621,7 @@ namespace BrightIdeasSoftware
                     defaultRenderer = value;
             }
         }
-        private BaseRenderer defaultRenderer = new BaseRenderer();
+        private IRenderer defaultRenderer = new BaseRenderer();
 
         /// <summary>
         /// This registry decides what control should be used to edit what cells, based
@@ -832,9 +840,8 @@ namespace BrightIdeasSoftware
         /// What color should be used for the foreground of selected rows?
         /// </summary>
         /// <remarks>Windows does not give the option of changing the selection foreground (text color).
-        /// So this color is only used when control is owner drawn and when columns have a
-        /// renderer installed -- a basic new BaseRenderer() will suffice. The method
-        /// EnableCustomSelectionColors() is a convenience method that does this.</remarks>
+        /// So the control has to be owner drawn to see the result of this setting.
+        /// Setting UseCustomSelectionColors = true will do this for you.</remarks>
         [Category("Appearance"),
          Description("The foreground foregroundColor of selected rows when the control is owner drawn"),
          DefaultValue(typeof(Color), "")]
@@ -882,6 +889,17 @@ namespace BrightIdeasSoftware
             set { isSearchOnSortColumn = value; }
         }
         private bool isSearchOnSortColumn = true;
+
+        /// <summary>
+        /// This renderer draws the items when in the list is in non-details view.
+        /// In details view, the renderers for the individuals columns are responsible.
+        /// </summary>
+        public IRenderer ItemRenderer
+        {
+            get { return itemRenderer; }
+            set { itemRenderer = value; }
+        }
+        private IRenderer itemRenderer;
 
         /// <summary>
         /// Which column did we last sort by
@@ -1127,8 +1145,8 @@ namespace BrightIdeasSoftware
         /// Should the list view show images on subitems?
         /// </summary>
         /// <remarks>
-        /// <para>Under Windows, this works by sending messages to the underlying
-        /// Windows control. To make this work under Mono, we would have to owner drawing the items :-(</para></remarks>
+        /// <para>Virtual lists have to be owner drawn in order to show images on subitems?</para>
+        /// </remarks>
         [Category("Behavior - ObjectListView"),
          Description("Should the list view show images on subitems?"),
          DefaultValue(false)]
@@ -1141,7 +1159,11 @@ namespace BrightIdeasSoftware
                 return showImagesOnSubItems;
 #endif
             }
-            set { showImagesOnSubItems = value; }
+            set { 
+                showImagesOnSubItems = value;
+                if (value && this.VirtualMode)
+                    this.OwnerDraw = true;
+            }
         }
         private bool showImagesOnSubItems;
 
@@ -1193,6 +1215,29 @@ namespace BrightIdeasSoftware
             set { this.sortGroupItemsByPrimaryColumn = value; }
         }
         private bool sortGroupItemsByPrimaryColumn = true;
+
+
+        /// <summary>
+        /// Should each row have a tri-state checkbox?
+        /// </summary>
+        /// <remarks>
+        /// If this is true, the user can choose the third state (normally Indeterminate). Otherwise, user clicks
+        /// alternate between checked and unchecked. CheckStateGetter can still return Indeterminate when this 
+        /// setting is false.
+        /// </remarks>
+        [Category("Behavior - ObjectListView"),
+         Description("Should the primary column have a checkbox that behaves as a tri-state checkbox?"),
+         DefaultValue(false)]
+        public virtual bool TriStateCheckBoxes {
+            get { return triStateCheckBoxes;  }
+            set { 
+                triStateCheckBoxes = value;
+                if (value && !this.CheckBoxes)
+                    this.CheckBoxes = true;
+                this.InitializeStateImageList();
+            }
+        }
+        private bool triStateCheckBoxes;
 
         /// <summary>
         /// Get or set the index of the top item of this listview
@@ -1321,6 +1366,26 @@ namespace BrightIdeasSoftware
             }
         }
         private bool useHotItem;
+            
+        /// <summary>
+        /// Should this control be configured to show check boxes on subitems?
+        /// </summary>
+        /// <remarks>If this is set to True, the control will be given a SmallImageList if it
+        /// doesn't already have one. Also, if it is a virtual list, it will be set to owner
+        /// drawn, since virtual lists can't draw check boxes without being owner drawn.</remarks>
+        [Category("Behavior - ObjectListView"),
+         Description("Should this control be configured to show check boxes on subitems."),
+         DefaultValue(false)]
+        public bool UseSubItemCheckBoxes
+        {
+            get { return this.useSubItemCheckBoxes; }
+            set {
+                this.useSubItemCheckBoxes = value;
+                if (value)
+                    this.SetupSubItemCheckBoxes();
+            }
+        }
+        private bool useSubItemCheckBoxes;
 
         /// <summary>
         /// Get/set the style of view that this listview is using
@@ -1444,19 +1509,29 @@ namespace BrightIdeasSoftware
             set {
                 checkedAspectName = value;
                 if (String.IsNullOrEmpty(checkedAspectName)) {
+                    this.checkedAspectMunger = null;
                     this.CheckStateGetter = null;
                     this.CheckStatePutter = null;
                 } else {
                     this.checkedAspectMunger = new Munger(checkedAspectName);
                     this.CheckStateGetter = delegate(Object modelObject) {
                         bool? result = this.checkedAspectMunger.GetValue(modelObject) as bool?;
-                        if (result.HasValue && result.Value)
-                            return CheckState.Checked;
+                        if (result.HasValue)
+                            if (result.Value)
+                                return CheckState.Checked;
+                            else
+                                return CheckState.Unchecked;
                         else
-                            return CheckState.Unchecked;
+                            if (this.TriStateCheckBoxes)
+                                return CheckState.Indeterminate;
+                            else
+                                return CheckState.Unchecked;
                     };
                     this.CheckStatePutter = delegate(Object modelObject, CheckState newValue) {
-                        this.checkedAspectMunger.PutValue(modelObject, newValue == CheckState.Checked);
+                        if (this.TriStateCheckBoxes && newValue == CheckState.Indeterminate)
+                            this.checkedAspectMunger.PutValue(modelObject, null);
+                        else
+                            this.checkedAspectMunger.PutValue(modelObject, newValue == CheckState.Checked);
                         return this.CheckStateGetter(modelObject);
                     };
                 }
@@ -2706,48 +2781,121 @@ namespace BrightIdeasSoftware
             int x = m.LParam.ToInt32() & 0xFFFF;
             int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
 
-            return this.PossibleSubItemCheckBoxClick(x, y);
+            OlvListViewHitTestInfo hti = this.OlvHitTest(x, y);
+            return ProcessLButtonDown(hti);
         }
-        
+
         /// <summary>
-        /// Did the user click in a subitem check box?
+        /// Handle a mouse down at the given hit test location
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns>True if the user clicked a checkbox</returns>
-        protected virtual bool PossibleSubItemCheckBoxClick(int x, int y) 
+        /// <remarks>Subclasses can override this to do something unique</remarks>
+        /// <param name="hti"></param>
+        /// <returns>True if the message has been handled</returns>
+        protected virtual bool ProcessLButtonDown(OlvListViewHitTestInfo hti)
         {
-            // Did they click on row?
-            ListViewHitTestInfo hti = this.HitTest(x, y);
-            if (hti.Item == null || hti.SubItem == null)
+            if (hti.Item == null)
                 return false;
-            
-            // Which subitem did they click?
-            OLVListItem olvi = (OLVListItem)hti.Item;
-            int columnIndex = olvi.SubItems.IndexOf(hti.SubItem);
-            if (columnIndex <= 0)
-                return false;
-            
-            // Does the subitem have a checkbox?
-                    OLVColumn column = this.GetColumn(columnIndex);
-            if (!column.HasCheckBox) 
-                return false;
-            
-            // Figure out if they clicked in the checkbox. This is made more difficult
-            // since if the list is owner drawn, solitary checkboxes are aligned within
-            // the column.
-            Rectangle r = hti.SubItem.Bounds;
-            if (this.OwnerDraw && column.Renderer != null && String.IsNullOrEmpty(column.GetStringValue(olvi.RowObject))) {
-                r = column.Renderer.AlignRectangle(r, new Rectangle(new Point(0, 0), this.SmallImageList.ImageSize));
-            } else
-                r.Width = this.SmallImageList.ImageSize.Width;
-            if (r.Contains(x, y)) {
-                this.ToggleSubItemCheckBox(olvi.RowObject, column);
+
+            // Did they click in a sub item check box?
+            if (this.View == View.Details && hti.Column.Index > 0 && hti.HitTestLocation == HitTestLocation.CheckBox) {
+                this.ToggleSubItemCheckBox(hti.RowObject, hti.Column);
                 return true;
             }
 
             return false;
         }
+
+        /// <summary>
+        /// What is under the given point? This takes the various parts of a cell into accout, including
+        /// any custom parts that a custom renderer might use
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns>An information block about what is under the point</returns>
+        public virtual OlvListViewHitTestInfo OlvHitTest(int x, int y) 
+        {
+            // This horrible sequence finds what item is under the given position.
+            // We want to find the item under the point, even if the point is not
+            // actually over the icon or label. HitTest() will only do that
+            // when FullRowSelect is true. 
+            ListViewHitTestInfo hitTestInfo = null;
+            if (this.FullRowSelect)
+                hitTestInfo = this.HitTest(x, y);
+            else {
+                this.FullRowSelect = true;
+                hitTestInfo = this.HitTest(x, y);
+                this.FullRowSelect = false;
+            }
+
+            OlvListViewHitTestInfo hti = new OlvListViewHitTestInfo(hitTestInfo);
+
+            if (this.OwnerDraw)
+                this.CalculateOwnerDrawnHitTest(hti, x, y);
+            else
+                this.CalculateStandardHitTest(hti, x, y);
+
+            return hti;
+        }
+
+        /// <summary>
+        /// Perform a hit test when the control is not owner drawn
+        /// </summary>
+        /// <param name="hti"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        protected virtual void CalculateStandardHitTest(OlvListViewHitTestInfo hti, int x, int y) {
+
+            // Check if the point is over a sub item checkbox
+
+            // Subitem checkboxes are only visible in details mode
+            if (this.View != View.Details)
+                return;
+
+            // Does the subitem have a checkbox?
+            if (hti.Column == null || !hti.Column.CheckBoxes) 
+                return;
+            
+            // Figure out if they clicked in the checkbox. 
+            Rectangle r = hti.SubItem.Bounds;
+            r.Width = this.SmallImageList.ImageSize.Width;
+            if (r.Contains(x, y))
+                hti.HitTestLocation = HitTestLocation.CheckBox;
+        }
+
+        /// <summary>
+        /// Perform a hit test when the control is owner drawn. This hands off responsibility
+        /// to the renderer.
+        /// </summary>
+        /// <param name="hti"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        protected virtual void CalculateOwnerDrawnHitTest(OlvListViewHitTestInfo hti, int x, int y) {
+            // If the click wasn't on an item, give up
+            if (hti.Item == null)
+                return;
+
+            // If the list is showing column, but they clicked outside the columns, also give up
+            if (this.View == View.Details && hti.Column == null)
+                return;
+
+            // Which renderer was responsible for drawing that point
+            IRenderer renderer = null;
+            if (this.View == View.Details) {
+                renderer = hti.Column.Renderer;
+                if (renderer == null)
+                    renderer = this.DefaultRenderer;
+            } else {
+                renderer = this.ItemRenderer;
+            }
+
+            // We can't decide who was responsible. Give up
+            if (renderer == null)
+                return;
+
+            // Ask the responsible renderer what is at that point
+            renderer.HitTest(hti, x, y);
+        }
+
         
         /// <summary>
         /// In the notification messages, we handle attempts to change the width of our columns
@@ -2786,23 +2934,14 @@ namespace BrightIdeasSoftware
                     if ((nmlistviewPtr->uChanged & LVIF_STATE) != 0) {
                         CheckState currentValue = this.CalculateState(nmlistviewPtr->uOldState);
                         CheckState newCheckValue = this.CalculateState(nmlistviewPtr->uNewState);
+
                         if (currentValue != newCheckValue) {
                             ItemCheckEventArgs ice = new ItemCheckEventArgs(nmlistviewPtr->iItem, newCheckValue, currentValue);
                             this.OnItemCheck(ice);
                             if (ice.NewValue == currentValue)
                                 m.Result = (IntPtr)1;
-                            else {
+                            else 
                                 m.Result = IntPtr.Zero;
-                                // Within this m, we cannot change to any other value but the expected one
-                                // So if we need to switch to another value, we use BeginInvole to change to the value
-                                // we want just after this m completes.
-                                if (ice.NewValue != newCheckValue) {
-                                    OLVListItem olvItem = this.GetItem(nmlistviewPtr->iItem);
-                                    this.BeginInvoke((MethodInvoker)delegate {
-                                        olvItem.CheckState = ice.NewValue;
-                                    });
-                                }
-                            }
                             //isMsgHandled = true;
                         }
                         // Prevent the base method from seeing the state change, since we've already handled it
@@ -3269,12 +3408,24 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowObject"></param>
         /// <param name="column"></param>
-        public virtual void CheckSubItemCheckBox(object rowObject, OLVColumn column)
-        {
-            if (column == null || rowObject == null || !column.HasCheckBox)
+        public virtual void CheckSubItem(object rowObject, OLVColumn column) {
+            if (column == null || rowObject == null || !column.CheckBoxes)
                 return;
 
             column.PutCheckState(rowObject, CheckState.Checked);
+            this.RefreshObject(rowObject);
+        }
+
+        /// <summary>
+        /// Put an indeterminate check into the check box at the given cell
+        /// </summary>
+        /// <param name="rowObject"></param>
+        /// <param name="column"></param>
+        public virtual void CheckIndeterminateSubItem(object rowObject, OLVColumn column) {
+            if (column == null || rowObject == null || !column.CheckBoxes)
+                return;
+
+            column.PutCheckState(rowObject, CheckState.Indeterminate);
             this.RefreshObject(rowObject);
         }
 
@@ -3315,7 +3466,7 @@ namespace BrightIdeasSoftware
         /// <param name="column"></param>
         public virtual bool IsSubItemChecked(object rowObject, OLVColumn column)
         {
-            if (column != null || rowObject != null || column.HasCheckBox)
+            if (column != null && rowObject != null && column.CheckBoxes)
                 return (column.GetCheckState(rowObject) == CheckState.Checked);
             else
                 return false;
@@ -3385,10 +3536,18 @@ namespace BrightIdeasSoftware
         /// <param name="column"></param>
         public virtual void ToggleSubItemCheckBox(object rowObject, OLVColumn column)
         {
-            if (this.IsSubItemChecked(rowObject, column))
-                this.UncheckSubItemCheckBox(rowObject, column);
-            else
-                this.CheckSubItemCheckBox(rowObject, column);
+            if (column.TriStateCheckBoxes) {
+                if (column.GetCheckState(rowObject) == CheckState.Checked)
+                    this.CheckIndeterminateSubItem(rowObject, column);
+                else if (column.GetCheckState(rowObject) == CheckState.Indeterminate)
+                    this.UncheckSubItem(rowObject, column);
+                else
+                    this.CheckSubItem(rowObject, column);
+            } else
+                if (this.IsSubItemChecked(rowObject, column))
+                    this.UncheckSubItem(rowObject, column);
+                else
+                    this.CheckSubItem(rowObject, column);
         }
 
         /// <summary>
@@ -3405,9 +3564,9 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowObject"></param>
         /// <param name="column"></param>
-        public virtual void UncheckSubItemCheckBox(object rowObject, OLVColumn column)
+        public virtual void UncheckSubItem(object rowObject, OLVColumn column)
         {
-            if (column == null || rowObject == null || !column.HasCheckBox)
+            if (column == null || rowObject == null || !column.CheckBoxes)
                 return;
             
             column.PutCheckState(rowObject, CheckState.Unchecked);
@@ -4356,6 +4515,9 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected virtual void InitializeStateImageList()
         {
+            if (this.DesignMode)
+                return;
+
             if (this.StateImageList == null) {
                 this.StateImageList = new ImageList();
                 this.StateImageList.ImageSize = new Size(16, 16);
@@ -4365,8 +4527,10 @@ namespace BrightIdeasSoftware
                 this.AddCheckStateBitmap(this.StateImageList, UNCHECKED_KEY, CheckBoxState.UncheckedNormal);
             if (this.StateImageList.Images.Count <= 1)
                 this.AddCheckStateBitmap(this.StateImageList, CHECKED_KEY, CheckBoxState.CheckedNormal);
-            if (this.StateImageList.Images.Count <= 2)
+            if (this.TriStateCheckBoxes && this.StateImageList.Images.Count <= 2)
                 this.AddCheckStateBitmap(this.StateImageList, INDETERMINATE_KEY, CheckBoxState.MixedNormal);
+            else
+                this.StateImageList.Images.RemoveByKey(INDETERMINATE_KEY);
         }
 
         /// <summary>
@@ -4447,17 +4611,16 @@ namespace BrightIdeasSoftware
         /// <param name="e"></param>
         protected override void OnDrawItem(DrawListViewItemEventArgs e)
         {
-            // If there is a custom renderer installed for the primary column,
-            // and we're not in details view, give it a chance to draw the item.
-            // So the renderer on the primary column can have two distinct tasks,
-            // in details view, it draws the primary cell; in non-details view,
-            // it draws the whole item.
-            OLVColumn column = this.GetColumn(0);
-            if (this.View != View.Details && column.RendererDelegate != null) {
-                Object row = ((OLVListItem)e.Item).RowObject;
-                e.DrawDefault = !column.RendererDelegate(e, e.Graphics, e.Bounds, row);
-            } else
-                e.DrawDefault = (this.View != View.Details);
+            if (this.View == View.Details)
+                e.DrawDefault = false;
+            else {
+                if (this.ItemRenderer == null)
+                    e.DrawDefault = true;
+                else {
+                    Object row = ((OLVListItem)e.Item).RowObject;
+                    e.DrawDefault = !this.ItemRenderer.RenderItem(e, e.Graphics, e.Bounds, row);
+                }
+            }
 
             if (e.DrawDefault)
                 base.OnDrawItem(e);
@@ -4494,20 +4657,18 @@ namespace BrightIdeasSoftware
                 r.X = this.columnRightEdge[e.Header.DisplayIndex - 1] + 1;
             } else
                 this.columnRightEdge[e.Header.DisplayIndex] = e.Bounds.Right;
-
-            // Get the special renderer for this column. If there isn't one, use the default draw mechanism.
-            OLVColumn column = this.GetColumn(e.ColumnIndex);
-            RenderDelegate renderer = column.RendererDelegate;
-            if (renderer == null) {
-                this.DefaultRenderer.Column = column;
-                renderer = this.DefaultRenderer.HandleRendering;
-            }
 #if !MONO
             // Optimize drawing by only redrawing subitems that touch the area that was damaged
             if (!r.IntersectsWith(this.lastUpdateRectangle)) {
                 return;
             }
 #endif
+            // Get the special renderer for this column. If there isn't one, use the default draw mechanism.
+            OLVColumn column = this.GetColumn(e.ColumnIndex);
+            IRenderer renderer = column.Renderer;
+            if (renderer == null) 
+                renderer = this.DefaultRenderer;
+
             // Get a graphics context for the renderer to use.
             // But we have more complications. Virtual lists have a nasty habit of drawing column 0
             // whenever there is any mouse move events over a row, and doing it in an un-double-buffered manner,
@@ -4525,11 +4686,11 @@ namespace BrightIdeasSoftware
             }
 #endif
             // Finally, give the renderer a chance to draw something
-            Object row = ((OLVListItem)e.Item).RowObject;
-            e.DrawDefault = !renderer(e, g, r, row);
+            e.DrawDefault = !renderer.RenderSubItem(e, g, r, ((OLVListItem)e.Item).RowObject);
 
-            if (!e.DrawDefault && buffer != null) {
-                buffer.Render();
+            if (buffer != null) {
+                if (!e.DrawDefault)
+                    buffer.Render();
                 buffer.Dispose();
             }
         }
@@ -4759,7 +4920,7 @@ namespace BrightIdeasSoftware
         protected virtual void StartCellEdit(OLVListItem item, int subItemIndex)
         {
             OLVColumn column = this.GetColumn(subItemIndex);
-            Rectangle r = this.CalculateCellBounds(item, subItemIndex);
+            Rectangle r = CalculateCellEditorBounds(item, subItemIndex);
             Control c = this.GetCellEditor(item, subItemIndex);
             c.Bounds = r;
 
@@ -4791,6 +4952,19 @@ namespace BrightIdeasSoftware
         }
         private Control cellEditor = null;
         private CellEditEventArgs cellEditEventArgs = null;
+
+        private Rectangle CalculateCellEditorBounds(OLVListItem item, int subItemIndex)
+        {
+            Rectangle r = this.CalculateCellBounds(item, subItemIndex);
+            if (!this.OwnerDraw) 
+                return r;
+
+            OLVColumn column = this.GetColumn(subItemIndex);
+            IRenderer renderer = column.Renderer;
+            if (renderer == null)
+                renderer = this.DefaultRenderer;
+            return renderer.GetEditRectangle(this.CreateGraphics(), r, item, subItemIndex);
+        }
 
         /// <summary>
         /// Try to give the given value to the provided control. Fall back to assigning a string
@@ -4866,6 +5040,9 @@ namespace BrightIdeasSoftware
             if (control is ComboBox)
                 return ((ComboBox)control).SelectedValue;
 
+            if (control is CheckBox)
+                return ((CheckBox)control).Checked;
+
             try {
                 return control.GetType().InvokeMember("Value", BindingFlags.GetProperty, null, control, null);
             } catch (MissingMethodException) { // Microsoft throws this
@@ -4898,14 +5075,36 @@ namespace BrightIdeasSoftware
         /// <param name="item">The row to be edited</param>
         /// <param name="subItemIndex">The index of the cell to be edited</param>
         /// <returns>A Rectangle</returns>
-        protected virtual Rectangle CalculateCellBounds(OLVListItem item, int subItemIndex)
+        public virtual Rectangle CalculateCellBounds(OLVListItem item, int subItemIndex)
         {
-            // Item 0 is special. Its bounds include all subitems. To get just the bounds
-            // of cell for item 0, we have to use GetItemRect().
-            if (subItemIndex == 0) {
-                return this.GetItemRect(item.Index, ItemBoundsPortion.Label);
-            } else
+            // SubItem.Bounds works for every subitem, except the first.
+            if (subItemIndex > 0) 
                 return item.SubItems[subItemIndex].Bounds;
+
+            // Finding the bounds of cell 0 should not be a difficult task, but it is. 
+            // I wonder if I am missing something. 
+
+            // OK, first problem: SubItem.Bounds of subitem 0 is always the full bounds of the entire row.
+            // So we use GetItemRect() to get the bounds of the text. We use Label rather than Item
+            // since Label extends to the right edge of the cell, whereas Item gives just the current text width.
+            Rectangle r = this.GetItemRect(item.Index, ItemBoundsPortion.Label);
+            int displayIndex = this.GetColumn(0).DisplayIndex;
+            if (displayIndex == 0)
+                return new Rectangle(4, r.Y, r.X + r.Width, r.Height);
+
+            // Second problem is that if column 0 has been dragged to some other position,
+            // there is no direct way to discover the location of the left edge of the cell.
+            // So, to find the left edge of cell 0 is, we find the subitem that appears 
+            // before it, and takes its right edge.
+            foreach (OLVColumn column in this.Columns) {
+                if (column.DisplayIndex == displayIndex - 1) {
+                    int columnZeroLeftEdge = item.SubItems[column.Index].Bounds.Right + 1;
+                    return new Rectangle(columnZeroLeftEdge+4, r.Y, r.X + r.Width - columnZeroLeftEdge, r.Height);
+                }
+            }
+
+            // We really should never reach here, but just in case
+            return r;
         }
 
         /// <summary>
@@ -5381,6 +5580,15 @@ namespace BrightIdeasSoftware
     public delegate String HeaderToolTipGetterDelegate(OLVColumn column);
 
     /// <summary>
+    /// These delegates are called by an ObjectListView when it wants to know what is under
+    /// a particular point in an owner drawn cell.
+    /// </summary>
+    /// <param name="hti"></param>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    public delegate void HitTestDelegate(OlvListViewHitTestInfo hti, int x, int y);
+
+    /// <summary>
     /// These delegates are used to fetch the image selector that should be used
     /// to choose an image for this column.
     /// </summary>
@@ -5546,93 +5754,43 @@ namespace BrightIdeasSoftware
         private string aspectToStringFormat;
 
         /// <summary>
-        /// The name of the property (or field) that holds whether or not the value in this column
-        /// shows a check box.
+        /// Should this column show a checkbox, rather than a string?
         /// </summary>
         /// <remarks>
-        /// <para>The property must have a return type of bool and must be modifiable.</para>
-        /// <para>Setting this property replaces any CheckStateGetter or CheckStatePutter that have been installed.
-        /// Conversely, later setting the CheckStateGetter or CheckStatePutter properties will take precedence
-        /// over the behavior of this property.</para>
+        /// Setting this on column 0 has no effect. Column 0 check box is controlled
+        /// by the list view itself.
         /// </remarks>
         [Category("Behavior - ObjectListView"),
-         Description("The name of the property or field that holds the 'checkedness' of the value in this column"),
-         DefaultValue(null)]
-        public virtual string CheckedAspectName
-        {
-            get { return checkedAspectName; }
-            set {
-                checkedAspectName = value;
-
-                // The rest of these configurations shouldn't be applied at design time
-                if (this.DesignMode)
-                    return;
-
-                if (String.IsNullOrEmpty(checkedAspectName)) {
-                    this.CheckStateGetter = null;
-                    this.CheckStatePutter = null;
-                } else {
-                    this.checkedAspectMunger = new Munger(checkedAspectName);
-                    this.CheckStateGetter = delegate(Object modelObject) {
-                        bool? result = this.checkedAspectMunger.GetValue(modelObject) as bool?;
-                        if (result.HasValue && result.Value)
-                            return CheckState.Checked;
-                        else
-                            return CheckState.Unchecked;
-                    };
-                    this.CheckStatePutter = delegate(Object modelObject, CheckState newValue) {
-                        this.checkedAspectMunger.PutValue(modelObject, newValue == CheckState.Checked);
-                        return this.CheckStateGetter(modelObject);
-                    };
-                    
-                    // Make sure that sorting works
-                    if (String.IsNullOrEmpty(this.AspectName) && this.AspectGetter == null) {
-                        this.AspectName = value; // needed for sorting to work
-
-                        // We don't want to show a checkbox and the word "true" next to it
-                        this.AspectToStringConverter = delegate(object x) { return ""; };
-
-                        // We do want groups to have a title
-                        this.GroupKeyToTitleConverter = delegate(object x) { return x.ToString(); };
-                }
-            }
-        }
-        }
-        private string checkedAspectName;
-        private Munger checkedAspectMunger;
-        
-        /// <summary>
-        /// This delegate will be called whenever the ObjectListView needs to know the check state
-        /// of the row associated with a given model object.
-        /// </summary>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public CheckStateGetterDelegate CheckStateGetter
-        {
-            get { return checkStateGetter; }
+         Description("Should values in this column be treated as a checkbox, rather than a string?"),
+         DefaultValue(false)]
+        public virtual bool CheckBoxes {
+            get { return checkBoxes; }
             set { 
-                checkStateGetter = value;
-
-                // Make sure the list view knows we want to show check boxes on sub items
-                if (value != null && this.ListView != null)
-                    ((ObjectListView)this.ListView).SetupSubItemCheckBoxes();
+                this.checkBoxes = value;
+                if (this.Renderer == null)
+                    this.Renderer = new CheckStateRenderer();
             }
         }
-        private CheckStateGetterDelegate checkStateGetter;
+        private bool checkBoxes;
 
         /// <summary>
-        /// This delegate will be called whenever the user tries to change the check state of a row.
-        /// The delegate should return the state that was actually set, which may be different
-        /// to the state given.
+        /// Should this column have a tri-state checkbox?
         /// </summary>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public CheckStatePutterDelegate CheckStatePutter
-        {
-            get { return checkStatePutter; }
-            set { checkStatePutter = value; }
+        /// <remarks>
+        /// If this is true, the user can choose the third state (normally Indeterminate). 
+        /// </remarks>
+        [Category("Behavior - ObjectListView"),
+         Description("Should values in this column be treated as a tri-state checkbox?"),
+         DefaultValue(false)]
+        public virtual bool TriStateCheckBoxes {
+            get { return triStateCheckBoxes; }
+            set {
+                triStateCheckBoxes = value;
+                if (value && !this.CheckBoxes)
+                    this.CheckBoxes = true;
+            }
         }
-        private CheckStatePutterDelegate checkStatePutter;
+        private bool triStateCheckBoxes;
 
         /// <summary>
         /// Should this column resize to fill the free space in the listview?
@@ -5811,15 +5969,15 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Does this column show a checkbox?
+        /// This delegate is called when ObjectListView needs know what is at a given point in an owner drawn cell
         /// </summary>
-        [Browsable(false)]
-        public bool HasCheckBox
-        {
-            get {
-                return this.CheckStateGetter != null;
-            }
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public HitTestDelegate HitTestDelegate {
+            get { return hitTestDelegate; }
+            set { hitTestDelegate = value; }
         }
+        private HitTestDelegate hitTestDelegate;
 
         /// <summary>
         /// This delegate is called to get the image selector of the image that should be shown in this column.
@@ -5947,34 +6105,38 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Get/set the renderer that will be invoked when a cell needs to be redrawn
         /// </summary>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public BaseRenderer Renderer
+        [Category("Behavior - ObjectListView"),
+        Description("The renderer will draw this column when the ListView is owner drawn"),
+        DefaultValue(null)]
+        public IRenderer Renderer
         {
             get { return renderer; }
-            set {
-                renderer = value;
-                if (renderer == null)
-                    this.RendererDelegate = null;
-                else {
-                    renderer.Column = this;
-                    this.RendererDelegate = new RenderDelegate(renderer.HandleRendering);
-                }
-            }
+            set { renderer = value; }
         }
-        private BaseRenderer renderer;
+        private IRenderer renderer;
 
         /// <summary>
         /// This delegate is called when a cell needs to be drawn in OwnerDrawn mode.
         /// </summary>
+        /// <remarks>This method is kept primarily for backwards compatibility.
+        /// New code should implement an IRenderer, though this property will be maintained.</remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public RenderDelegate RendererDelegate
         {
-            get { return rendererDelegate; }
-            set { rendererDelegate = value; }
+            get {
+                if (this.Renderer is Version1Renderer)
+                    return ((Version1Renderer)this.Renderer).RenderDelegate;
+                else
+                    return null;
+            }
+            set { 
+                if (value == null)
+                    this.Renderer = null;
+                else
+                    this.Renderer = new Version1Renderer(value);
+            }
         }
-        private RenderDelegate rendererDelegate;
 
         /// <summary>
         /// What string should be displayed when the mouse is hovered over the header of this column?
@@ -6035,10 +6197,18 @@ namespace BrightIdeasSoftware
         /// <returns>The checkedness of the object</returns>
         public CheckState GetCheckState(object rowObject)
         {
-            if (this.CheckStateGetter == null)
+            if (!this.CheckBoxes)
                 return CheckState.Unchecked;
-            else
-                return this.CheckStateGetter(rowObject);
+
+            Object aspect = this.GetValue(rowObject);
+            bool? aspectAsBool = aspect as bool?;
+            if (aspectAsBool.HasValue) {
+                if ((bool)aspectAsBool)
+                    return CheckState.Checked;
+                else
+                    return CheckState.Unchecked;
+            } else
+                return CheckState.Indeterminate;
         }
         
         /// <summary>
@@ -6048,8 +6218,13 @@ namespace BrightIdeasSoftware
         /// <returns>The checkedness of the object</returns>
         public void PutCheckState(object rowObject, CheckState newState)
         {
-            if (this.CheckStatePutter != null)
-                this.CheckStatePutter(rowObject, newState);
+            if (newState == CheckState.Checked)
+                this.PutValue(rowObject, true);
+            else
+                if (newState == CheckState.Unchecked)
+                    this.PutValue(rowObject, false);
+                else
+                    this.PutValue(rowObject, null);
         }
 
         /// <summary>
@@ -6092,7 +6267,7 @@ namespace BrightIdeasSoftware
         /// <returns>int or string or Image. int or string will be used as index into image list. null or -1 means no image</returns>
         public Object GetImage(object rowObject)
         {
-            if (this.HasCheckBox) 
+            if (this.CheckBoxes) 
                 return this.GetCheckStateImage(rowObject);
                 
             if (this.imageGetter != null)
@@ -6331,8 +6506,22 @@ namespace BrightIdeasSoftware
         /// and will return True for both Checked and Indeterminate states.</remarks>
         public CheckState CheckState
         {
-            get { return this.checkState; }
+            get {
+                switch (this.StateImageIndex) {
+                    case 0:
+                        return System.Windows.Forms.CheckState.Unchecked;
+                    case 1:
+                        return System.Windows.Forms.CheckState.Checked;
+                    case 2:
+                        return System.Windows.Forms.CheckState.Indeterminate;
+                    default:
+                        return System.Windows.Forms.CheckState.Unchecked;
+                }
+            }
             set {
+                if (this.checkState == value)
+                    return;
+
                 this.checkState = value;
 
                 //THINK: I don't think we need this, since the Checked property just uses StateImageIndex, which we are about to set.
@@ -6443,6 +6632,113 @@ namespace BrightIdeasSoftware
             set { this.backColor = value; }
         }
         private Color backColor;
+    }
+
+    /// <summary>
+    /// Instances of this class encapsulate the information gathered during a OlvHitTest()
+    /// operation.
+    /// </summary>
+    /// <remarks>Custom renderers can use HitTestLocation.UserDefined and the UserData
+    /// object to store more specific locations for use during event handlers.</remarks>
+    public class OlvListViewHitTestInfo
+    {
+        public OlvListViewHitTestInfo(ListViewHitTestInfo hti) {
+            this.item = (OLVListItem)hti.Item;
+            this.subItem = hti.SubItem;
+            this.location = hti.Location;
+
+            switch (hti.Location) {
+                case ListViewHitTestLocations.StateImage:
+                    this.HitTestLocation = HitTestLocation.CheckBox;
+                    break;
+                case ListViewHitTestLocations.Image:
+                    this.HitTestLocation = HitTestLocation.Image;
+                    break;
+                case ListViewHitTestLocations.Label:
+                    this.HitTestLocation = HitTestLocation.Text;
+                    break;
+                default:
+                    this.HitTestLocation = HitTestLocation.Nothing;
+                    break;
+            }
+        }
+
+        #region Public fields
+
+        /// <summary>
+        /// Where is the hit location?
+        /// </summary>
+        public HitTestLocation HitTestLocation;
+
+        /// <summary>
+        /// Custom renderers can use this information to supply more details about the hit location
+        /// </summary>
+        public Object UserData;
+
+        #endregion
+
+        #region Public read-only properties
+
+        public OLVListItem Item
+        {
+            get { return item; }
+        }
+        private OLVListItem item;
+
+        public ListViewItem.ListViewSubItem SubItem
+        {
+            get { return subItem; }
+        }
+        private ListViewItem.ListViewSubItem subItem;
+
+        public ListViewHitTestLocations Location
+        {
+            get { return location; }
+        }
+        private ListViewHitTestLocations location;
+
+        public ObjectListView ListView {
+            get {
+                if (this.Item == null)
+                    return null;
+                else
+                    return (ObjectListView)this.Item.ListView;
+            }
+        }
+
+        public Object RowObject {
+            get {
+                if (this.Item == null)
+                    return null;
+                else
+                    return this.Item.RowObject;
+            }
+        }
+
+        public OLVColumn Column {
+            get {
+                if (this.Item == null || this.SubItem == null)
+                    return null;
+                int index = this.Item.SubItems.IndexOf(this.SubItem);
+                if (index < 0)
+                    return null;
+                else
+                    return this.ListView.GetColumn(index);
+            }
+        }
+
+        #endregion
+    }
+
+    public enum HitTestLocation
+    {
+        Nothing,
+        Text,
+        Image,
+        CheckBox,
+        ExpandButton,
+        InCell, // in the cell but not in any more specific location
+        UserDefined
     }
 
     //internal class TransitionState
