@@ -62,7 +62,9 @@
     <Compile Include="HeaderControl.cs">
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Renderers.cs" />
+    <Compile Include="Renderers.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="TreeListView.cs">
       <SubType>Component</SubType>
     </Compile>
