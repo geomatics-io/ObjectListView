@@ -13,21 +13,21 @@ For the (mostly) complete change log, :ref:`see here <changelog>`.
 Complete overhaul of owner drawing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In the same way that 2.0 overhauled the virtual list processing, this version 
+In the same way that 2.0 overhauled the virtual list processing, this version
 completely reworks the owner drawn rendering process. However, this overhaul
 was done to be transparently backwards compatible.
 
-The only breaking change is for owner drawn non-details views (which I doubt 
-that anyone except me ever used). Previously, the renderer on column 0 was 
-double tasked for both rendering cell 0 and for rendering the entire item in 
-non-detail view. This second responsibility now belongs explicitly to the 
+The only breaking change is for owner drawn non-details views (which I doubt
+that anyone except me ever used). Previously, the renderer on column 0 was
+double tasked for both rendering cell 0 and for rendering the entire item in
+non-detail view. This second responsibility now belongs explicitly to the
 `ItemRenderer` property.
 
-* Renderers are now based on `IRenderer` interface. 
+* Renderers are now based on `IRenderer` interface.
 * Renderers are now Components and can be created, configured, and assigned within the IDE.
 * Renderers can now also do hit testing.
 * Owner draw text now looks like native ListView
-* The text AND bitmaps now follow the alignment of the column. Previously only the 
+* The text AND bitmaps now follow the alignment of the column. Previously only the
   text was aligned.
 * Added `ItemRenderer` to handle non-details owner drawing
 * Images are now drawn directly from the image list if possible. 30% faster than previous versions.
@@ -37,9 +37,9 @@ Other significant changes
 
 * Added hot tracking
 * Added checkboxes to subitems
-* AspectNames can now be used as indexes onto the model objects -- effectively 
-  something like this: `modelObject[this.AspectName]`.   This is particularly 
-  helpful for `DataListView` since `DataRows` and `DataRowViews` support this type of 
+* AspectNames can now be used as indexes onto the model objects -- effectively
+  something like this: `modelObject[this.AspectName]`.   This is particularly
+  helpful for `DataListView` since `DataRows` and `DataRowViews` support this type of
   indexing.
 * Added `EditorRegistry` to make it easier to change or add cell editors
 
@@ -49,18 +49,20 @@ Minor Changes
 * Added `TriStateCheckBoxes`, `UseCustomSelectionColors` and `UseHotItem` properties
 * Added `TreeListView.RevealAfterExpand` property
 * Enums are now edited by a ComboBox that shows all the possible values.
-* Changed model comparisons to use `Equals()` rather than `==`. This allows the model objects to 
+* Changed model comparisons to use `Equals()` rather than `==`. This allows the model objects to
   implement their own idea of equality.
 * `ImageRenderer` can now handle multiple images. This makes `ImagesRenderer` defunct.
-* `FlagsRenderer<T>` is no longer generic. It is simply `FlagsRenderer`. 
-  
+* `FlagsRenderer<T>` is no longer generic. It is simply `FlagsRenderer`.
+
 Bug fixes
 ^^^^^^^^^
 
+* `RefreshItem()` now correctly recalculates the background color
 * Fixed bug with simple checkboxes which meant that `CheckedObjects` always returned empty.
 * `TreeListView` now works when visual styles are disabled
 * `DataListView` now handles boolean types better. It also now longer crashes when the data source
   is reseated.
+* Fixed bug with `AlwaysGroupByColumn` where column header clicks would not resort groups.
 
 10 January 2009 - Version 2.0.1
 -------------------------------
@@ -127,27 +129,27 @@ Breaking changes
 Major changes
 ^^^^^^^^^^^^^
 
-* Allow check boxes on `FastObjectListViews`. .NET's ListView cannot support 
-  checkboxes on virtual lists. We cannot get around this limit for plain 
-  `VirtualObjectListViews`, but we can for `FastObjectListViews`. This is a 
-  significant piece of work and there may well be bugs that I have missed. This 
-  implementation does not modify the traditional `CheckedIndicies`/`CheckedItems` 
-  properties, which will still fail. It uses the new `CheckedObjects` property as 
-  the way to access the checked rows. Once `CheckBoxes` is set on a 
+* Allow check boxes on `FastObjectListViews`. .NET's ListView cannot support
+  checkboxes on virtual lists. We cannot get around this limit for plain
+  `VirtualObjectListViews`, but we can for `FastObjectListViews`. This is a
+  significant piece of work and there may well be bugs that I have missed. This
+  implementation does not modify the traditional `CheckedIndicies`/`CheckedItems`
+  properties, which will still fail. It uses the new `CheckedObjects` property as
+  the way to access the checked rows. Once `CheckBoxes` is set on a
   `FastObjectListView`, trying to turn it off again will throw an exception.
 
-* There is now a `CellEditValidating` event, which allows a cell editor to be 
-  validated before it loses focus. If validation fails, the cell editor will 
-  remain. Previous versions could not prevent the cell editor from losing focus. 
+* There is now a `CellEditValidating` event, which allows a cell editor to be
+  validated before it loses focus. If validation fails, the cell editor will
+  remain. Previous versions could not prevent the cell editor from losing focus.
   Thanks to Artiom Chilaru for the idea and the initial implementation.
 
-* Allow selection foreground and background colors to be changed. Windows does 
-  not allow these colours to be customised, so we can only do these when the 
-  `ObjectListView` is owner drawn. To see this in action, set the 
-  `HighlightForegroundColor` and `HighlightBackgroundColor` properties and then set 
+* Allow selection foreground and background colors to be changed. Windows does
+  not allow these colours to be customised, so we can only do these when the
+  `ObjectListView` is owner drawn. To see this in action, set the
+  `HighlightForegroundColor` and `HighlightBackgroundColor` properties and then set
   `UseCustomSelectionColors` to true.
 
-* Added `AlwaysGroupByColumn` and `AlwaysGroupBySortOrder` properties, which 
+* Added `AlwaysGroupByColumn` and `AlwaysGroupBySortOrder` properties, which
   force the list view to always be grouped by a particular column.
 
 Minor improvements
@@ -180,8 +182,8 @@ Bug fixes (not a complete list)
 * Fixed the required number of bugs:
 * The column select menu will now appear when the header is right clicked even when a context menu is installed on the `ObjectListView`
 * Tabbing while editing the primary column in a non-details view no longer tries to edit the new column's value
-* When a virtual list that is scrolled vertically is cleared, the underlying 
-  `ListView` becomes confused about the scroll position, and incorrectly renders 
+* When a virtual list that is scrolled vertically is cleared, the underlying
+  `ListView` becomes confused about the scroll position, and incorrectly renders
   items after that. ObjectListView now avoids this problem.
 
 1 May 2008 - Version 1.11
@@ -216,28 +218,28 @@ Bug fixes (not a complete list)
 16 January 2008 - Version 1.9
 -----------------------------
 
-* Added ability to have hidden columns, i.e. columns that the ObjectListView 
-  knows about but that are not visible to the user. This is controlled by 
-  `OLVColumn.IsVisible`. I added `ColumnSelectionForm` to the demo project to show 
-  how it could be used in an application. Also, right clicking on the column 
-  header will allow the user to choose which columns are visible. Set 
+* Added ability to have hidden columns, i.e. columns that the ObjectListView
+  knows about but that are not visible to the user. This is controlled by
+  `OLVColumn.IsVisible`. I added `ColumnSelectionForm` to the demo project to show
+  how it could be used in an application. Also, right clicking on the column
+  header will allow the user to choose which columns are visible. Set
   `SelectColumnsOnRightClick` to false to prevent this behaviour.
 
-* Added `CopySelectionToClipboard()` which pastes a text and HTML representation 
+* Added `CopySelectionToClipboard()` which pastes a text and HTML representation
   of the selected rows onto the Clipboard. By default, this is bound to Ctrl-C.
 
-* Added support for checkboxes via `CheckStateGetter` and `CheckStatePutter` 
+* Added support for checkboxes via `CheckStateGetter` and `CheckStatePutter`
   properties. See `ColumnSelectionForm` for an example of how to use.
 
 * Added `ImagesRenderer` to draw more than one image in a column.
 
-* Made `ObjectListView` and `OLVColumn` into partial classes so that others can 
+* Made `ObjectListView` and `OLVColumn` into partial classes so that others can
   extend them.
 
-* Added experimental `IncrementalUpdate()` method, which operates like 
-  `SetObjects()` but without changing the scrolling position, the selection, or 
-  the sort order. And it does this without a single flicker. Good for lists that 
-  are updated regularly. [Better to use a `FastObjectListView` and the `Objects` 
+* Added experimental `IncrementalUpdate()` method, which operates like
+  `SetObjects()` but without changing the scrolling position, the selection, or
+  the sort order. And it does this without a single flicker. Good for lists that
+  are updated regularly. [Better to use a `FastObjectListView` and the `Objects`
   property]
 
 * Fixed the required quota of small bugs.
@@ -267,18 +269,18 @@ Bug fixes (not a complete list)
 Major changes
 ^^^^^^^^^^^^^
 
-* Added ability to give each column a minimum and maximum width (set the minimum 
-  equal to the maximum to make a fixed-width column). Thanks to Andrew Philips for 
+* Added ability to give each column a minimum and maximum width (set the minimum
+  equal to the maximum to make a fixed-width column). Thanks to Andrew Philips for
   his suggestions and input.
 
 * Complete overhaul of `DataListView` to now be a fully functional, data-
-  bindable control. This is based on Ian Griffiths' excellent example, which 
-  should be available here__, but unfortunately seems to have disappeared from the 
+  bindable control. This is based on Ian Griffiths' excellent example, which
+  should be available here__, but unfortunately seems to have disappeared from the
   Web. Thanks to ereigo for significant help with debugging this new code.
 
-* Added the ability for the listview to display a "this list is empty"-type 
-  message when the ListView is empty (obviously). This is controlled by the 
-  `EmptyListMsg` and `EmptyListMsgFont` properties. Have a look at the "File 
+* Added the ability for the listview to display a "this list is empty"-type
+  message when the ListView is empty (obviously). This is controlled by the
+  `EmptyListMsg` and `EmptyListMsgFont` properties. Have a look at the "File
   Explorer" tab in the demo to see what it looks like.
 
 .. __: http://www.interact-sw.co.uk/utilities/bindablelistview
