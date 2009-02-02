@@ -1541,10 +1541,13 @@ namespace ObjectListViewDemo
         private void checkBox15_CheckedChanged(object sender, EventArgs e)
         {
             if (((CheckBox)sender).Checked) {
-                if (this.listViewSimple.ShowGroups)
+                if (this.listViewSimple.ShowGroups) {
                     this.listViewSimple.AlwaysGroupByColumn = this.listViewSimple.LastSortColumn;
+                    this.listViewSimple.AlwaysGroupBySortOrder = this.listViewSimple.LastSortOrder;
+                }
             } else {
                 this.listViewSimple.AlwaysGroupByColumn = null;
+                this.listViewSimple.AlwaysGroupBySortOrder = SortOrder.None;
             }
         }
 
