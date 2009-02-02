@@ -20,7 +20,11 @@
             <table class="nomargin"><tr>
             <td valign="bottom"><img src="_static/{{ current_page_name }}-icon.png" /></td>
             <td><h1><span>{{ title }}</span></h1>
+            {% if current_page_name == "search" %}
+            <h2><span>Darn! Where did that needle go to?</span></h2>
+            {% else %}
             <h2><span>{{ meta["Subtitle"] }}</span></h2>
+            {% endif %}
             </td></tr></table>
         </div>
         <div class="b"><div></div></div>
@@ -35,10 +39,10 @@
                 <h3><span><a href="gettingStarted.html">Getting Started </a></span></h3>
                 <h3><span><a href="recipes.html">Cookbook</a></span></h3>
                 <h3><span><a href="faq.html">FAQ</a></span></h3>
-                <h3><span><a href="https://sourceforge.net/project/showfiles.php?group_id=225207&package_id=280564">Download</a></span></h3>
+                <h3><span><a href="http://sourceforge.net/project/showfiles.php?group_id=225207&package_id=272405">Download</a></span></h3>
                 <p>Version {{ release }} (2008/02/04)</p>
-                <h3><span><a href="https://sourceforge.net/forum/forum.php?forum_id=825500">Discussion</a></span></h3>
-                <h3><span><a href="https://sourceforge.net/donate/index.php?group_id=225207">Donations</a></span></h3>
+                <h3><span><a href="http://sourceforge.net/forum/forum.php?forum_id=812922">Discussion</a></span></h3>
+                <h3><span><a href="http://sourceforge.net/donate/index.php?group_id=225207">Donations</a></span></h3>
                 <p>ddzina, ctussey, fuenfschmitz, john m, john l, jono, mikko, peteb, ulf, kim</p>
                 <h3><span><a href="search.html">Quick search</a></span></h3>
                 <form class="search" action="search.html" method="get">
