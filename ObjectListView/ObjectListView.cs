@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2009-02-02  JPP  - Fixed bug with AlwaysGroupByColumn where column header clicks would not resort groups.
  * 2009-02-01  JPP  - OLVColumn.CheckBoxes and TriStateCheckBoxes now work.
  * 2009-01-28  JPP  - Complete overhaul of renderers!
  *                       - Use IRenderer
@@ -1723,9 +1724,11 @@ namespace BrightIdeasSoftware
             SortOrder order = this.lastSortOrder;
             if (order == SortOrder.None)
                 order = this.Sorting;
-            this.RationalizeColumnForGrouping(ref column, ref order);
+            OLVColumn secondaryColumn = this.SecondarySortColumn;
+            SortOrder secondaryOrder = this.SecondarySortOrder;
+            this.RationalizeColumnForGrouping(ref column, ref order, ref secondaryColumn, ref secondaryOrder);
 
-            BeforeSortingEventArgs args = new BeforeSortingEventArgs(column, order, this.SecondarySortColumn, this.SecondarySortOrder);
+            BeforeSortingEventArgs args = new BeforeSortingEventArgs(column, order, secondaryColumn, secondaryOrder);
             this.OnBeforeSorting(args);
             if (args.Canceled)
                 return;
@@ -2482,10 +2485,15 @@ namespace BrightIdeasSoftware
                 return;
 
             // Toggle the sorting direction on successive clicks on the same column
-            if (this.lastSortColumn != null && e.Column == this.lastSortColumn.Index)
-                this.lastSortOrder = (this.lastSortOrder == SortOrder.Descending ? SortOrder.Ascending : SortOrder.Descending);
+            // We use lastClickedSortOrder rather than lastSortOrder so that column clicks always
+            // toggle sorting order, regardless of any playing with lastSortOrder that external code might do
+            if (this.lastSortColumn != null && e.Column == this.lastClickedColumnIndex)
+                this.lastClickedSortOrder = (this.lastClickedSortOrder == SortOrder.Descending ? SortOrder.Ascending : SortOrder.Descending);
             else
-                this.lastSortOrder = SortOrder.Ascending;
+                this.lastClickedSortOrder = SortOrder.Ascending;
+
+            this.lastClickedColumnIndex = e.Column;
+            this.lastSortOrder = this.lastClickedSortOrder;
 
             this.BeginUpdate();
             try {
@@ -2495,6 +2503,8 @@ namespace BrightIdeasSoftware
                 this.EndUpdate();
             }
         }
+        private int lastClickedColumnIndex = -1;
+        private SortOrder lastClickedSortOrder = SortOrder.None;
 
         /// <summary>
         /// Handle when a user checks/unchecks a row
@@ -4005,11 +4015,13 @@ namespace BrightIdeasSoftware
             this.ClearHotItem();
 
             // If we are showing groups, there are some options that can override these settings
-            if (this.ShowGroups) 
-                this.RationalizeColumnForGrouping(ref columnToSort, ref order);
+            OLVColumn secondaryColumn = this.SecondarySortColumn;
+            SortOrder secondaryOrder = this.SecondarySortOrder;
+            if (this.ShowGroups)
+                this.RationalizeColumnForGrouping(ref columnToSort, ref order, ref secondaryColumn, ref secondaryOrder);
 
             // Give the world a chance to fiddle with or completely avoid the sorting process
-            BeforeSortingEventArgs args = new BeforeSortingEventArgs(columnToSort, order, this.SecondarySortColumn, this.SecondarySortOrder);
+            BeforeSortingEventArgs args = new BeforeSortingEventArgs(columnToSort, order, secondaryColumn, secondaryOrder);
             this.OnBeforeSorting(args);
             if (args.Canceled)
                 return;
@@ -4017,8 +4029,8 @@ namespace BrightIdeasSoftware
             // The event handler may have changed the sorting pattern
             columnToSort = args.ColumnToSort;
             order = args.SortOrder;
-            OLVColumn secondaryColumn = args.SecondaryColumnToSort;
-            SortOrder secondaryOrder = args.SecondarySortOrder;
+            secondaryColumn = args.SecondaryColumnToSort;
+            secondaryOrder = args.SecondarySortOrder;
 
             // Sanity checks
             if (columnToSort == null || order == SortOrder.None || this.Columns.Count < 1)
@@ -4060,12 +4072,17 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="columnToSort"></param>
         /// <param name="order"></param>
-        private void RationalizeColumnForGrouping(ref OLVColumn columnToSort, ref SortOrder order)
+        private void RationalizeColumnForGrouping(ref OLVColumn columnToSort, ref SortOrder order, 
+            ref OLVColumn secondarycolumn, ref SortOrder secondaryOrder)
         {
-            if (this.AlwaysGroupByColumn != null)
+            if (this.AlwaysGroupByColumn != null) {
+                secondarycolumn = columnToSort;
+                secondaryOrder = order;
                 columnToSort = this.AlwaysGroupByColumn;
-            if (this.AlwaysGroupBySortOrder != SortOrder.None)
+            }
+            if (this.AlwaysGroupBySortOrder != SortOrder.None) {
                 order = this.AlwaysGroupBySortOrder;
+            }
 
             // Groups have to have a sorting column
             if (columnToSort == null && this.Columns.Count > 0)
