@@ -1663,6 +1663,35 @@ namespace ObjectListViewDemo
         {
             this.listViewSimple.UseHotItem = ((CheckBox)sender).Checked;
         }
+
+        private void treeListView_ItemChecked(object sender, ItemCheckedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("tree checked");
+        }
+
+        private void treeListView_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("tree check");
+        }
+
+        private void listViewSimple_ItemChecked(object sender, ItemCheckedEventArgs e) {
+            System.Diagnostics.Debug.WriteLine("simple checked");
+
+        }
+
+        private void olvFastList_ItemChecked(object sender, ItemCheckedEventArgs e) {
+            System.Diagnostics.Debug.WriteLine("fast checked");
+        }
+
+        private void listViewSimple_ItemCheck(object sender, ItemCheckEventArgs e) {
+            System.Diagnostics.Debug.WriteLine("simple check");
+
+        }
+
+        private void olvFastList_ItemCheck(object sender, ItemCheckEventArgs e) {
+            System.Diagnostics.Debug.WriteLine("fast check");
+
+        }
     }
         
     enum MaritalStatus
