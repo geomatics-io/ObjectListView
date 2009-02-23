@@ -5,6 +5,7 @@
  * Date: 28/11/2008 17:15 
  *
  * Change log:
+ * 2009-02-15  JPP  - Made Munger a public class
  * 2009-01-20  JPP  - Made the Munger capable of handling indexed access.
  *                    Incidentally, this removed the ugliness that the last change introduced.
  * 2009-01-18  JPP  - Handle target objects from a DataListView (normally DataRowViews)
@@ -42,7 +43,7 @@ namespace BrightIdeasSoftware
     /// An instance of Munger gets a value from or puts a value into a target object. The property
     /// to be peeked (or poked) is determined from a string. The peeking or poking is done using reflection.
     /// </summary>
-    class Munger
+    public class Munger
     {
         public Munger()
         {
