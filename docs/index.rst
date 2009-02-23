@@ -114,6 +114,10 @@ What people have said about ObjectListView
 
 When thinking about using some new code, it's always interesting to hear what others have said about it.
 
+.. pull-quote:: ObjectListView has got to be one of the slickest controls out there - simple, quick and powerful.
+
+   -- `jake <http://www.riggshill.com/home/node/23>`_
+   
 .. pull-quote:: I wanted to say that your control, your code, and your support on the forums, has been one of the best experiences I have had with working with someone elses' product. Great job man, and very nice programming.
 
    -- Mike Coffey (in personal email)
