@@ -1031,6 +1031,8 @@ namespace ObjectListViewDemo
             // checkBox9
             // 
             this.checkBox9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.checkBox9.Checked = true;
+            this.checkBox9.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBox9.Location = new System.Drawing.Point(6, 454);
             this.checkBox9.Name = "checkBox9";
             this.checkBox9.Size = new System.Drawing.Size(113, 21);
@@ -2015,7 +2017,9 @@ namespace ObjectListViewDemo
             this.listViewSimple.UseCompatibleStateImageBehavior = false;
             this.listViewSimple.UseHotItem = true;
             this.listViewSimple.View = System.Windows.Forms.View.Details;
+            this.listViewSimple.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.listViewSimple_ItemCheck);
             this.listViewSimple.SelectedIndexChanged += new System.EventHandler(this.ListViewSelectedIndexChanged);
+            this.listViewSimple.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.listViewSimple_ItemChecked);
             // 
             // columnHeader11
             // 
@@ -2618,7 +2622,9 @@ namespace ObjectListViewDemo
             this.olvFastList.UseHotItem = true;
             this.olvFastList.View = System.Windows.Forms.View.Details;
             this.olvFastList.VirtualMode = true;
+            this.olvFastList.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.olvFastList_ItemCheck);
             this.olvFastList.SelectionChanged += new System.EventHandler(this.olvFastList_SelectionChanged);
+            this.olvFastList.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.olvFastList_ItemChecked);
             // 
             // olvColumn18
             // 
@@ -2707,6 +2713,7 @@ namespace ObjectListViewDemo
             this.treeListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
+            this.treeListView.CheckBoxes = true;
             this.treeListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.treeColumnName,
             this.treeColumnCreated,
@@ -2728,7 +2735,9 @@ namespace ObjectListViewDemo
             this.treeListView.UseHotItem = true;
             this.treeListView.View = System.Windows.Forms.View.Details;
             this.treeListView.VirtualMode = true;
+            this.treeListView.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.treeListView_ItemCheck);
             this.treeListView.ItemActivate += new System.EventHandler(this.treeListView_ItemActivate);
+            this.treeListView.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.treeListView_ItemChecked);
             // 
             // treeColumnName
             // 
