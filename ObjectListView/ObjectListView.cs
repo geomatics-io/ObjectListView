@@ -5,6 +5,8 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2009-02-22  JPP  - Reworked checkboxes so that events are triggered for virtual lists
+ * 2009-02-15  JPP  - Added ObjectListView.ConfigureAutoComplete utility method
  * 2009-02-02  JPP  - Fixed bug with AlwaysGroupByColumn where column header clicks would not resort groups.
  * 2009-02-01  JPP  - OLVColumn.CheckBoxes and TriStateCheckBoxes now work.
  * 2009-01-28  JPP  - Complete overhaul of renderers!
@@ -335,19 +337,13 @@ namespace BrightIdeasSoftware
             : base()
         {
             this.ColumnClick += new ColumnClickEventHandler(this.HandleColumnClick);
-            this.ItemCheck += new ItemCheckEventHandler(this.HandleItemCheck);
             this.Layout += new LayoutEventHandler(this.HandleLayout);
             this.ColumnWidthChanging += new ColumnWidthChangingEventHandler(this.HandleColumnWidthChanging);
             this.ColumnWidthChanged += new ColumnWidthChangedEventHandler(this.HandleColumnWidthChanged);
 
             base.View = View.Details;
             this.DoubleBuffered = true; // kill nasty flickers. hiss... me hates 'em
-//            this.AlternateRowBackColor = Color.Empty; why is this here?
             this.ShowSortIndicators = true;
-
-            //this.tickler = new Timer();
-            //this.tickler.Interval = 100;
-            //this.tickler.Tick += new EventHandler(tickler_Tick);
         }
 
         #region Public properties
@@ -993,6 +989,16 @@ namespace BrightIdeasSoftware
             }
         }
         private int rowHeight = -1;
+
+        /// <summary>
+        /// How many rows appear on each page of this control
+        /// </summary>
+        public virtual int RowsPerPage
+        {
+            get {
+                return NativeMethods.GetCountPerPage(this);
+            }
+        }
 
         /// <summary>
         /// Get/set the column that will be used to resolve comparisons that are equal when sorting.
@@ -2218,6 +2224,20 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Return true if the row representing the given model is selected
+        /// </summary>
+        /// <param name="model">The model object to look for</param>
+        /// <returns>Is the row selected</returns>
+        public bool IsSelected(object model)
+        {
+            OLVListItem item = this.ModelToItem(model);
+            if (item == null)
+                return false;
+            else
+                return item.Selected;
+        }
+
+        /// <summary>
         /// Pause (or unpause) all animations in the list
         /// </summary>
         /// <param name="isPause">true to pause, false to unpause</param>
@@ -2506,20 +2526,6 @@ namespace BrightIdeasSoftware
         private int lastClickedColumnIndex = -1;
         private SortOrder lastClickedSortOrder = SortOrder.None;
 
-        /// <summary>
-        /// Handle when a user checks/unchecks a row
-        /// </summary>
-        protected virtual void HandleItemCheck(object sender, ItemCheckEventArgs e)
-        {
-            if (!this.Created) // || this.CheckStatePutter == null) THINK do we need this
-                return;
-
-            Object modelObject = this.GetModelObject(e.Index);
-            OLVListItem olvi = this.ModelToItem(modelObject);
-            if (olvi != null && olvi.CheckState != e.NewValue)
-                 e.NewValue = this.PutCheckState(modelObject, e.NewValue);
-        }
-
         #endregion
 
         #region Low level Windows Message handling
@@ -2567,10 +2573,11 @@ namespace BrightIdeasSoftware
                     if (!this.HandleContextMenu(ref m))
                         base.WndProc(ref m);
                     break;
-                case 0x1053: // LVM_FINDITEM = (LVM_FIRST + 83)
-                    if (!this.HandleFindItem(ref m))
-                        base.WndProc(ref m);
-                    break;
+                // This doesn't seem to be called when i expected
+                //case 0x1053: // LVM_FINDITEM = (LVM_FIRST + 83)
+                //    if (!this.HandleFindItem(ref m))
+                //        base.WndProc(ref m);
+                //    break;
                 default:
                     base.WndProc(ref m);
                     break;
@@ -2806,13 +2813,28 @@ namespace BrightIdeasSoftware
             if (hti.Item == null)
                 return false;
 
-            // Did they click in a sub item check box?
-            if (this.View == View.Details && hti.Column.Index > 0 && hti.HitTestLocation == HitTestLocation.CheckBox) {
+            // If they didn't click checkbox, we can just return
+            if (this.View != View.Details  || hti.HitTestLocation != HitTestLocation.CheckBox) 
+                return false;
+
+            // Did they click a sub item checkbox?
+            if (hti.Column.Index > 0) {
                 this.ToggleSubItemCheckBox(hti.RowObject, hti.Column);
                 return true;
             }
 
-            return false;
+            // They must have clicked the primary checkbox
+            this.ToggleCheckObject(hti.RowObject);
+
+            // If they change the checkbox of a selecte row, all the rows in the selection
+            // should be given the same state
+            if (hti.Item.Selected) {
+                CheckState state = this.ModelToItem(hti.RowObject).CheckState;
+                foreach (Object x in this.SelectedObjects)
+                    this.SetObjectCheckedness(x, state);
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -2908,7 +2930,7 @@ namespace BrightIdeasSoftware
 
         
         /// <summary>
-        /// In the notification messages, we handle attempts to change the width of our columns
+        /// In the notification messages, we handle change of state of list items
         /// </summary>
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the m has been handled</returns>
@@ -2919,17 +2941,16 @@ namespace BrightIdeasSoftware
             const int LVIF_STATE = 8;
 
             bool isMsgHandled = false;
-            NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
 
-            switch (nmhdr.code) {
+            NativeMethods.NMHDR *nmhdr = (NativeMethods.NMHDR*)m.LParam;
+
+            switch (nmhdr->code) {
                 case LVN_ITEMCHANGED:
                     NativeMethods.NMLISTVIEW* nmlistviewPtr2 = (NativeMethods.NMLISTVIEW*)m.LParam;
                     if ((nmlistviewPtr2->uChanged & LVIF_STATE) != 0) {
                         CheckState currentValue = this.CalculateState(nmlistviewPtr2->uOldState);
                         CheckState newCheckValue = this.CalculateState(nmlistviewPtr2->uNewState);
                         if (currentValue != newCheckValue) {
-                            ItemCheckedEventArgs args4 = new ItemCheckedEventArgs(this.Items[nmlistviewPtr2->iItem]);
-                            this.OnItemChecked(args4);
                             // Remove the state indicies so that we don't trigger the OnItemChecked method
                             // when we call our base method after exiting this method
                             nmlistviewPtr2->uOldState = (nmlistviewPtr2->uOldState & 0x0FFF);
@@ -2939,23 +2960,16 @@ namespace BrightIdeasSoftware
                     break;
 
                 case LVN_ITEMCHANGING:
-                    // Change the CheckBox handling to cope with indeterminate state
                     NativeMethods.NMLISTVIEW* nmlistviewPtr = (NativeMethods.NMLISTVIEW*)m.LParam;
                     if ((nmlistviewPtr->uChanged & LVIF_STATE) != 0) {
                         CheckState currentValue = this.CalculateState(nmlistviewPtr->uOldState);
                         CheckState newCheckValue = this.CalculateState(nmlistviewPtr->uNewState);
 
                         if (currentValue != newCheckValue) {
-                            ItemCheckEventArgs ice = new ItemCheckEventArgs(nmlistviewPtr->iItem, newCheckValue, currentValue);
-                            this.OnItemCheck(ice);
-                            if (ice.NewValue == currentValue)
-                                m.Result = (IntPtr)1;
-                            else 
-                                m.Result = IntPtr.Zero;
-                            //isMsgHandled = true;
+                            // Prevent the base method from seeing the state change, 
+                            // since we handled it elsewhere
+                            nmlistviewPtr->uChanged &= ~LVIF_STATE;
                         }
-                        // Prevent the base method from seeing the state change, since we've already handled it
-                        nmlistviewPtr->uChanged &= ~LVIF_STATE;
                     }
                     break;
 
@@ -3006,7 +3020,8 @@ namespace BrightIdeasSoftware
             const int TTN_GETDISPINFO = -530;
 
             // Handle the notification, remembering to handle both ANSI and Unicode versions
-            NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
+            //NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
+            NativeMethods.NMHDR* nmhdr = (NativeMethods.NMHDR*)m.LParam;
             //if (nmhdr.code < HDN_FIRST)
             //    System.Diagnostics.Debug.WriteLine(nmhdr.code);
 
@@ -3024,7 +3039,7 @@ namespace BrightIdeasSoftware
             // commented out code below. But without unsafe code, the best we can do is allow the user to drag the column to
             // any width, and then spring it back to within bounds once they release the mouse button. UI-wise it's very ugly.
             NativeMethods.NMHEADER nmheader;
-            switch (nmhdr.code) {
+            switch (nmhdr->code) {
 
                 case HDN_ITEMCLICKA:
                 case HDN_ITEMCLICKW:
@@ -3091,7 +3106,7 @@ namespace BrightIdeasSoftware
                         String tip = this.GetCellToolTip(columnIndex, info.Item.Index);
                         if (!String.IsNullOrEmpty(tip)) {
                             // HeaderControl has almost identical code. Is there some way to unify?
-                            NativeMethods.SendMessage(nmhdr.hwndFrom, 0x418, 0, SystemInformation.MaxWindowTrackSize.Width);
+                            NativeMethods.SendMessage(nmhdr->hwndFrom, 0x418, 0, SystemInformation.MaxWindowTrackSize.Width);
                             NativeMethods.TOOLTIPTEXT ttt = (NativeMethods.TOOLTIPTEXT)m.GetLParam(typeof(NativeMethods.TOOLTIPTEXT));
                             ttt.lpszText = tip;
                             if (this.RightToLeft == RightToLeft.Yes)
@@ -3520,23 +3535,48 @@ namespace BrightIdeasSoftware
         protected virtual void SetObjectCheckedness(object modelObject, CheckState state)
         {
             OLVListItem olvi = this.ModelToItem(modelObject);
-            if (olvi != null && olvi.CheckState != state) {
-                olvi.CheckState = this.PutCheckState(modelObject, state);
-                this.RefreshItem(olvi);
-            }
+            if (olvi == null || olvi.CheckState == state) 
+                return;
+
+            // Trigger checkbox changing event. We only need to do this for virtual
+            // lists, since setting CheckState triggers these events for non-virtual lists
+            ItemCheckEventArgs ice = new ItemCheckEventArgs(olvi.Index, state, olvi.CheckState);
+            this.OnItemCheck(ice);
+            if (ice.NewValue == olvi.CheckState)
+                return;
+
+            olvi.CheckState = this.PutCheckState(modelObject, state);
+            this.RefreshItem(olvi);
+
+            // Trigger check changed event
+            this.OnItemChecked(new ItemCheckedEventArgs(olvi));
         }
 
         /// <summary>
         /// Toggle the checkedness of the given object. A checked object becomes
         /// unchecked; an unchecked or indeterminate object becomes checked.
+        /// If the list has tristate checkboxes, the order is:
+        ///    unchecked -> checked -> indeterminate -> unchecked ...
         /// </summary>
         /// <param name="modelObject">The model object to be checked</param>
         public virtual void ToggleCheckObject(object modelObject)
         {
-            if (this.IsChecked(modelObject))
-                this.SetObjectCheckedness(modelObject, CheckState.Unchecked);
-            else
-                this.SetObjectCheckedness(modelObject, CheckState.Checked);
+            OLVListItem olvi = this.ModelToItem(modelObject);
+            if (olvi == null)
+                return;
+
+            CheckState newState = CheckState.Checked;
+
+            if (olvi.CheckState == CheckState.Checked) {
+                if (this.TriStateCheckBoxes)
+                    newState = CheckState.Indeterminate;
+                else
+                    newState = CheckState.Unchecked;
+            } else {
+                if (olvi.CheckState == CheckState.Indeterminate && this.TriStateCheckBoxes)
+                    newState = CheckState.Unchecked;
+            }
+            this.SetObjectCheckedness(modelObject, newState);
         }
 
         /// <summary>
@@ -3665,7 +3705,11 @@ namespace BrightIdeasSoftware
         /// <returns>A model object</returns>
         public virtual object GetModelObject(int index)
         {
-            return this.GetItem(index).RowObject;
+            OLVListItem item = this.GetItem(index);
+            if (item == null)
+                return null;
+            else
+                return item.RowObject;
         }
 
         /// <summary>
@@ -4403,10 +4447,15 @@ namespace BrightIdeasSoftware
                 return;
 
             for (int i = 1; i < item.SubItems.Count; i++) {
-                int imageIndex = this.GetActualImageIndex(((OLVListSubItem)item.SubItems[i]).ImageSelector);
-                if (shouldClearImages || imageIndex != -1)
-                    NativeMethods.SetSubItemImage(this, rowIndex, i, imageIndex);
+                this.SetSubItemImage(rowIndex, i, (OLVListSubItem)item.SubItems[i], shouldClearImages);
             }
+        }
+
+        public virtual void SetSubItemImage(int rowIndex, int subItemIndex, OLVListSubItem subItem, bool shouldClearImages)
+        {
+            int imageIndex = this.GetActualImageIndex(subItem.ImageSelector);
+            if (shouldClearImages || imageIndex != -1)
+                NativeMethods.SetSubItemImage(this, rowIndex, subItemIndex, imageIndex);
         }
 
         /// <summary>
@@ -5160,27 +5209,50 @@ namespace BrightIdeasSoftware
         protected virtual Control MakeDefaultCellEditor(OLVColumn column)
         {
             TextBox tb = new TextBox();
-            String str;
+            this.ConfigureAutoComplete(tb, column);
+            return tb;
+        }
+
+        /// <summary>
+        /// Configure the given text box to autocomplete unique values
+        /// from the given column. At most 1000 rows will be considered.
+        /// </summary>
+        /// <param name="tb">The textbox to configure</param>
+        /// <param name="column">The column used to calculate values</param>
+        public void ConfigureAutoComplete(TextBox tb, OLVColumn column)
+        {
+            this.ConfigureAutoComplete(tb, column, 1000);
+        }
+
+
+        /// <summary>
+        /// Configure the given text box to autocomplete unique values
+        /// from the given column. At most 1000 rows will be considered.
+        /// </summary>
+        /// <param name="tb">The textbox to configure</param>
+        /// <param name="column">The column used to calculate values</param>
+        /// <param name="maxRows">Consider only this many rows</param>
+        public void ConfigureAutoComplete(TextBox tb, OLVColumn column, int maxRows)
+        {
+            // Don't consider more rows than we actually have
+            maxRows = Math.Min(this.GetItemCount(), maxRows);
+
+            // Reset any existing autocomplete
+            tb.AutoCompleteCustomSource.Clear();
 
             // Build a list of unique values, to be used as autocomplete on the editor
-            Dictionary<String, bool> alreadySeen = new Dictionary<string, bool>();
-            for (int i = 0; i < Math.Min(this.GetItemCount(), 1000); i++) {
-                Object value = column.GetValue(this.GetModelObject(i));
-                String valueAsString = value as String;
-                if (valueAsString == null)
-                    str = column.ValueToString(value);
-                else
-                    str = valueAsString;
-                if (!alreadySeen.ContainsKey(str)) {
-                    tb.AutoCompleteCustomSource.Add(str);
-                    alreadySeen[str] = true;
+            Dictionary<string, bool> alreadySeen = new Dictionary<string, bool>();
+            string valueAsString;
+            for (int i = 0; i < maxRows; i++) {
+                valueAsString = column.GetStringValue(this.GetModelObject(i));
+                if (!String.IsNullOrEmpty(valueAsString) && !alreadySeen.ContainsKey(valueAsString)) {
+                    tb.AutoCompleteCustomSource.Add(valueAsString);
+                    alreadySeen[valueAsString] = true;
                 }
             }
 
             tb.AutoCompleteSource = AutoCompleteSource.CustomSource;
             tb.AutoCompleteMode = AutoCompleteMode.Append;
-
-            return tb;
         }
 
         /// <summary>
