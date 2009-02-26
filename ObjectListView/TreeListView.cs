@@ -5,6 +5,8 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2009-02-24  JPP  - All commands now work when the list is empty (SF #2631054)
+ *                  - TreeListViews can now be printed with ListViewPrinter
  * 2009-01-27  JPP  - Changed to use new Renderer and HitTest scheme
  * 2009-01-22  JPP  - Added RevealAfterExpand property. If this is true (the default),
  *                    after expanding a branch, the control scrolls to reveal as much of the
@@ -232,6 +234,8 @@ namespace BrightIdeasSoftware
         /// <param name="model"></param>
         public virtual void Collapse(Object model)
         {
+            if (this.GetItemCount() == 0)
+                return;
             IList selection = this.SelectedObjects;
             int idx = this.TreeModel.Collapse(model);
             if (idx >= 0) {
@@ -246,6 +250,8 @@ namespace BrightIdeasSoftware
         /// </summary>
         public virtual void CollapseAll()
         {
+            if (this.GetItemCount() == 0)
+                return;
             IList selection = this.SelectedObjects;
             int idx = this.TreeModel.CollapseAll();
             if (idx >= 0) {
@@ -255,29 +261,14 @@ namespace BrightIdeasSoftware
             }
         }
 
-        ///// <summary>
-        ///// Setup the list so it will draw selected rows using custom colours.
-        ///// </summary>
-        ///// <remarks>
-        ///// This method makes the list owner drawn, and ensures that all columns have at
-        ///// least a BaseRender installed.
-        ///// </remarks>
-        //public override void EnableCustomSelectionColors()
-        //{
-        //    this.OwnerDraw = true;
-
-        //    foreach (OLVColumn column in this.AllColumns) {
-        //        if (column.Index > 0 && column.RendererDelegate == null)
-        //            column.Renderer = new BaseRenderer();
-        //    }
-        //}
-
         /// <summary>
         /// Expand the subtree underneath the given model object
         /// </summary>
         /// <param name="model"></param>
         public virtual void Expand(Object model)
         {
+            if (this.GetItemCount() == 0)
+                return;
             IList selection = this.SelectedObjects;
             int idx = this.TreeModel.Expand(model);
             if (idx >= 0) {
@@ -307,6 +298,8 @@ namespace BrightIdeasSoftware
         /// <remarks>Be careful: this method could take a long time for large trees.</remarks>
         public virtual void ExpandAll()
         {
+            if (this.GetItemCount() == 0)
+                return;
             IList selection = this.SelectedObjects;
             int idx = this.TreeModel.ExpandAll();
             if (idx >= 0) {
@@ -430,39 +423,10 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Catch the Left Button down event.
+        /// Handle a left button down event
         /// </summary>
-        /// <param name="m"></param>
+        /// <param name="hti"></param>
         /// <returns></returns>
-        //protected override bool HandleLButtonDown(ref Message m)
-        //{
-        //    /// We have to intercept this low level message rather than the more natural
-        //    /// overridding of OnMouseDown, since ListCtrl's internal mouse down behavior
-        //    /// is to select (or deselect) rows when the mouse is released. We don't
-        //    /// want the selection to change when the user expand/collapse rows, so if the
-        //    /// mouse down event was to expand/collapse, we have to hide this mouse
-        //    /// down event from the control. 
-
-        //    int x = m.LParam.ToInt32() & 0xFFFF;
-        //    int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
-
-        //    // This horrible sequence finds what item is under the mouse position.
-        //    // We want to find the item under the mouse, even if the mouse is not
-        //    // actually over the icon or label. GetItemAt() will only do that
-        //    // when FullRowSelect is true. 
-        //    ListViewItem lvi = null;
-        //    if (this.FullRowSelect)
-        //        lvi = this.GetItemAt(x, y);
-        //    else {
-        //        this.FullRowSelect = true;
-        //        lvi = this.GetItemAt(x, y);
-        //        this.FullRowSelect = false;
-        //    }
-
-        //    // Are they trying to expand/collapse a row?
-        //    return (lvi != null && this.HandlePossibleExpandClick((OLVListItem)lvi, x, y));
-        //}
-
         protected override bool ProcessLButtonDown(OlvListViewHitTestInfo hti)
         {
             // Did they click in the expander?
@@ -474,45 +438,6 @@ namespace BrightIdeasSoftware
 
             return base.ProcessLButtonDown(hti);
         }
-
-        /// <summary>
-        /// Handle the given mouse down event as a possible attempt to expand/collapse
-        /// a row. Return true if the event was handled.
-        /// </summary>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        //protected virtual bool HandlePossibleExpandClick(OLVListItem olvItem, int x, int y)
-        //{
-        //    Branch br = this.TreeModel.GetBranch(olvItem.RowObject);
-        //    if (br == null || !br.CanExpand)
-        //        return false;
-
-        //    // Calculate if they clicked on the expand/collapse icon. This icon
-        //    // appears before the icon of the item. 
-        //    int smallImageWidth = 16;
-        //    if (this.SmallImageList != null)
-        //        smallImageWidth = this.SmallImageList.ImageSize.Width;
-
-        //    Rectangle r = this.GetItemRect(olvItem.Index, ItemBoundsPortion.Icon);
-        //    if (r.Width == 0) {
-        //        // If GetItemRect() returns a  0-width rectangle, there are no images, 
-        //        // but we still need to check if the click was before the text.
-        //        r.X += (br.Level-1) * (smallImageWidth + 2);
-        //        r.Width = smallImageWidth;
-        //    } else
-        //        r.X -= (smallImageWidth + 2);
-
-        //    // Take the checkboxes into account
-        //    if (this.CheckBoxes)
-        //        r.X -= (smallImageWidth + 2);
-
-        //    if (!r.Contains(x, y))
-        //        return false;
-
-        //    this.PossibleFinishCellEditing();
-        //    this.ToggleExpansion(olvItem.RowObject);
-        //    return true;
-        //}
 
         /// <summary>
         /// Create a OLVListItem for given row index
@@ -1299,7 +1224,7 @@ namespace BrightIdeasSoftware
                     r2.Offset((br.Level - 1) * PIXELS_PER_LEVEL, 0);
                     r2.Width = PIXELS_PER_LEVEL;
 
-                    if (Application.RenderWithVisualStyles) {
+                    if (!this.IsPrinting && Application.RenderWithVisualStyles) {
                         VisualStyleElement element = VisualStyleElement.TreeView.Glyph.Closed;
                         if (br.IsExpanded)
                             element = VisualStyleElement.TreeView.Glyph.Opened;
@@ -1308,7 +1233,7 @@ namespace BrightIdeasSoftware
                     } else {
                         int h = 8;
                         int w = 8;
-                        int x = r2.X + 2;
+                        int x = r2.X + 4;
                         int y = r2.Y + (r2.Height / 2) - 4;
 
                         g.DrawRectangle(new Pen(SystemBrushes.ControlDark), x, y, w, h);
