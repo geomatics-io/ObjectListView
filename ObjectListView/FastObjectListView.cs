@@ -5,9 +5,9 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
- * 2009-01-07   JPP  - Made all public and protected methods virtual 
+ * 2009-01-07   JPP  - Made all public and protected methods virtual
  * 2008-09-27   JPP  - Separated from ObjectListView.cs
- * 
+ *
  * Copyright (C) 2006-2008 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
@@ -48,11 +48,9 @@ namespace BrightIdeasSoftware
     /// <list>
     /// <item>shows groups</item>
     /// <item>use Tile view</item>
-    /// <item>display images on subitems</item>
+    /// <item>display images on subitems (though you can easily circumvent this limit by making the list owner drawn)</item>
     /// </list>
     /// </para>
-    /// <para>You can circumvent the limit on subitem images by making the list owner drawn, and giving the column
-    /// a Renderer of BaseRenderer, e.g. <code>myColumnWithImage.Renderer = new BaseRenderer();</code> </para>
     /// </remarks>
     public class FastObjectListView : VirtualObjectListView
     {
@@ -133,7 +131,7 @@ namespace BrightIdeasSoftware
             foreach (int i in indicesToRemove)
                 this.listView.SelectedIndices.Remove(i);
 
-            foreach (int i in indicesToRemove) 
+            foreach (int i in indicesToRemove)
                 this.objectList.RemoveAt(i);
 
             this.RebuildIndexMap();
@@ -172,7 +170,7 @@ namespace BrightIdeasSoftware
                 this.objectsToIndexMap[this.objectList[i]] = i;
         }
         Dictionary<Object, int> objectsToIndexMap = new Dictionary<Object, int>();
-        
+
         #endregion
     }
 
