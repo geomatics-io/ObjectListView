@@ -64,6 +64,25 @@ update just one object, or you can call `RepopulateList()` to rebuild everything
 immediately reflected in the `DataListView`.
 
 
+Don't you have some class diagrams for all this stuff?
+------------------------------------------------------
+
+     *There seems to be an awful lot going on here. Don't you have some class
+     diagram so I can see how things fit together?*
+
+Some people love class diagrams. Other regard them as just one more piece of out
+of date documentation. As of v2.1, these diagrams are accurate.
+
+The basic classes are show here:
+
+.. image:: images/ClassDiagram.png
+
+More details about the relationship between virtual listviews and their data sources
+can be seen in this diagram:
+
+.. image:: images/ClassDiagram-VirtualList.png
+
+
 Why doesn't it do *some-feature-I-really-want*?
 -----------------------------------------------
 

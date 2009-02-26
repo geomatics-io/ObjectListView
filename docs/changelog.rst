@@ -9,6 +9,7 @@ Change Log
 
 Version Index
 -------------
+* `v2.1 - 24 February 2009`_
 * `v2.1a - 07 February 2009`_
 * `v2.0.1 - 10 January 2009`_
 * `v2.0 - 30 November 2008`_
@@ -23,6 +24,42 @@ Version Index
 * `v1.5 - 03 August 2007`_
 * `v1.4 - 30 April 2007`_
 * `Previous versions - 04 April 2007`_
+
+
+v2.1 - 24 February 2009
+-----------------------
+
+2009-02-23 22:07 (#461) - Tests/Program.cs, Tests/TestCheckBoxes.cs
+  - Allow tests for check events for virtual lists
+
+2009-02-23 22:07 (#460) - docs/index.rst
+  - Added some more nice references
+
+2009-02-23 22:05 (#459) - ObjectListView/ObjectListView.cs, ObjectListView/TreeListView.cs
+  - Reworked checkboxes so that events are triggered for virtual lists
+  - ToggleCheckObject() now handle TriStateCheckBoxes
+  - Removed some commented out code
+
+2009-02-23 20:15 (#458) - Demo/MainForm.Designer.cs, Demo/MainForm.cs
+  - ItemCheck and ItemChecked events
+
+2009-02-23 20:14 (#457) - ObjectListView/ObjectListView.cs, ObjectListView/VirtualObjectListView.cs
+  - Try to get ItemCheck and ItemChecked events to work on virtual lists
+
+2009-02-23 15:13 (#456) - ObjectListView/ObjectListView.cs
+  - Added ObjectListView.ConfigureAutoComplete utility method
+  - Added RowsPerPage property
+  - Optimized native windows message handling
+
+2009-02-23 15:10 (#455) - ObjectListView/Munger.cs
+  - Made Munger a public class
+
+2009-02-23 15:08 (#453) - ObjectListView/ObjectListView.cs, ObjectListView/ObjectListView2008.csproj, ObjectListView/VirtualObjectListView.cs, ObjectListView/Properties/AssemblyInfo.cs
+  - Checked items with virtual lists now works again
+
+2009-02-09 17:15 (#452) - ObjectListView/ObjectListView.cs
+  - Added IsSelected()
+
 
 
 v2.1a - 07 February 2009
