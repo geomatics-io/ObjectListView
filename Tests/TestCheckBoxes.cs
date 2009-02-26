@@ -200,10 +200,6 @@ namespace BrightIdeasSoftware.Tests
         [Test]
         public void TestItemCheckEvent()
         {
-            // Virtual lists do not trigger ItemCheck events
-            if (this.olv.VirtualMode)
-                return;
-
             this.olv.TriStateCheckBoxes = true;
 
             try {
