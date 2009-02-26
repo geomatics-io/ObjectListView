@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-02-24   JPP  - Work properly with ListViewPrinter again
  * 2009-01-26   JPP  - AUSTRALIA DAY (why aren't I on holidays!)
  *                   - Major overhaul of renderers. Now uses IRenderer interface.
  *                   - ImagesRenderer and FlagsRenderer<T> are now defunct.
@@ -308,7 +309,7 @@ namespace BrightIdeasSoftware
         {
             get
             {
-                if (this.font != null)
+                if (this.font != null || this.ListItem == null)
                     return this.font;
 
                 if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
@@ -1040,6 +1041,13 @@ namespace BrightIdeasSoftware
         {
             int imageIndex = this.ListItem.StateImageIndex;
 
+            if (this.IsPrinting) {
+                if (this.ListView.StateImageList == null || imageIndex < 0)
+                    return 0;
+                else
+                    return this.DrawImage(g, r, this.ListView.StateImageList.Images[imageIndex]) + 4;
+            }
+
             CheckBoxState boxState = CheckBoxState.UncheckedNormal;
             int switchValue = (imageIndex << 4); // + (this.IsItemHot ? 1 : 0);
             switch (switchValue) {
@@ -1093,16 +1101,22 @@ namespace BrightIdeasSoftware
                         selectorAsInt = il.Images.IndexOfKey(selectorAsString);
                 }
                 if (selectorAsInt >= 0) {
-                    // It's probable that the given Graphics object is double buffered using a BufferedGraphics object.
-                    // But the ImageList.Draw method doesn't honor the Translation matrix that's probably in effect on the buffered
-                    // graphics. So we have to calculate our drawing rectangle, relative to the cells natural boundaries.
-                    // This effectively simulates the Translation matrix.
-                    Rectangle r2 = new Rectangle(r.X - this.Bounds.X, r.Y - this.Bounds.Y, r.Width, r.Height);
-                    il.Draw(g, r2.Location, selectorAsInt);
+                    if (this.IsPrinting) {
+                        // For some reason, printing from an image list doesn't work onto a printer context
+                        // So get the image from the list and fall through to the "print an image" case
+                        imageSelector = il.Images[selectorAsInt];
+                    } else {
+                        // If we are not printing, it's probable that the given Graphics object is double buffered using a BufferedGraphics object.
+                        // But the ImageList.Draw method doesn't honor the Translation matrix that's probably in effect on the buffered
+                        // graphics. So we have to calculate our drawing rectangle, relative to the cells natural boundaries.
+                        // This effectively simulates the Translation matrix.
+                        Rectangle r2 = new Rectangle(r.X - this.Bounds.X, r.Y - this.Bounds.Y, r.Width, r.Height);
+                        il.Draw(g, r2.Location, selectorAsInt);
 
-                    // Use this call instead of the above if you want to images to appear blended when selected
-                    //NativeMethods.DrawImageList(g, il, selectorAsInt, r2.X, r2.Y, this.IsItemSelected);
-                    return il.ImageSize.Width;
+                        // Use this call instead of the above if you want to images to appear blended when selected
+                        //NativeMethods.DrawImageList(g, il, selectorAsInt, r2.X, r2.Y, this.IsItemSelected);
+                        return il.ImageSize.Width;
+                    }
                 }
             }
 
