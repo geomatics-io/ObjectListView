@@ -5,6 +5,7 @@
  * Date: 2007-11-01 11:15 AM
  *
  * Change log:
+ * 2009-02-24  JPP  - Correctly use new renderer scheme :)
  * 2009-01-26  JPP  - Use new renderer scheme
  *                  - Removed ugly hack about BarRenderer when printing.
  * 2009-01-19  JPP  - Use IsPrinting property on BaseRenderer
@@ -1255,6 +1256,8 @@ namespace BrightIdeasSoftware
             RectangleF r = this.CellFormat.CalculatePaddedTextBox(cell);
             Rectangle r2 = new Rectangle((int)r.X + 1, (int)r.Y + 1, (int)r.Width - 1, (int)r.Height - 1);
             renderer.Render(g, r2);
+
+            renderer.IsPrinting = false;
         }
 #endif
     }
