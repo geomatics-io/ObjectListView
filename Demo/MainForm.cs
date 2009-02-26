@@ -1085,38 +1085,6 @@ namespace ObjectListViewDemo
 
         #endregion
 
-        #region Testing Only
-
-        void RunTimingTest()
-        {
-            Stopwatch sw = new Stopwatch();
-
-            Person p = this.masterList[0];
-            OLVColumn colIndirect = new OLVColumn("name", "Name");
-            OLVColumn colDirect = new OLVColumn();
-            colDirect.AspectGetter = delegate(object x) { return ((Person)x).Name; };
-
-            string name;
-            int iterations = 1000000;
-
-            sw.Start();
-            for (int i = 0; i < iterations; i++)
-                name = (string)colDirect.GetValue(p);
-            sw.Stop();
-            long durationDirect = sw.ElapsedMilliseconds;
-
-            sw.Reset();
-            sw.Start();
-            for (int i = 0; i < iterations; i++)
-                name = (string)colIndirect.GetValue(p);
-            sw.Stop();
-            long durationIndirect = sw.ElapsedMilliseconds;
-
-            MessageBox.Show(String.Format("direct duration: {0}\nindirect duration: {1}", durationDirect, durationIndirect));
-        }
-
-        #endregion
-
         #region ListView printing
 
         private void button10_Click_1(object sender, EventArgs e)
@@ -1623,7 +1591,7 @@ namespace ObjectListViewDemo
             ObjectListView olv = (ObjectListView)lvg.ListView;
             olv.EnsureGroupVisible(lvg);
         }
-
+        /*
         private static void BlendBitmaps(Graphics g, Bitmap b1, Bitmap b2, float transition)
         {
             float[][] colorMatrixElements = { 
@@ -1658,7 +1626,7 @@ namespace ObjectListViewDemo
                GraphicsUnit.Pixel,
                imageAttributes);
         }
-
+        */
         private void checkBox18_CheckedChanged(object sender, EventArgs e)
         {
             this.listViewSimple.UseHotItem = ((CheckBox)sender).Checked;
@@ -1676,7 +1644,6 @@ namespace ObjectListViewDemo
 
         private void listViewSimple_ItemChecked(object sender, ItemCheckedEventArgs e) {
             System.Diagnostics.Debug.WriteLine("simple checked");
-
         }
 
         private void olvFastList_ItemChecked(object sender, ItemCheckedEventArgs e) {
@@ -1685,12 +1652,10 @@ namespace ObjectListViewDemo
 
         private void listViewSimple_ItemCheck(object sender, ItemCheckEventArgs e) {
             System.Diagnostics.Debug.WriteLine("simple check");
-
         }
 
         private void olvFastList_ItemCheck(object sender, ItemCheckEventArgs e) {
             System.Diagnostics.Debug.WriteLine("fast check");
-
         }
     }
         
