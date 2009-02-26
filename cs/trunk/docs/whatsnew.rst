@@ -53,6 +53,7 @@ Minor Changes
   implement their own idea of equality.
 * `ImageRenderer` can now handle multiple images. This makes `ImagesRenderer` defunct.
 * `FlagsRenderer<T>` is no longer generic. It is simply `FlagsRenderer`.
+* Virtual ObjectListViews now trigger `ItemCheck` and `ItemChecked` events
 
 Bug fixes
 ^^^^^^^^^
