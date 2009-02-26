@@ -416,6 +416,7 @@ Putting all these bits together, we now have something that looks like this:
 
 Hey! That's starting to not look too bad.
 
+.. _grouping-label:
 
 Grouping
 --------
