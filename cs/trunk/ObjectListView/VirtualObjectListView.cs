@@ -5,6 +5,8 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-02-24   JPP  - Removed redundant OnMouseDown() since checkbox
+ *                     handling is now handled in the base class
  * 2009-01-07   JPP  - Made all public and protected methods virtual 
  * 2008-12-07   JPP  - Trigger Before/AfterSearching events
  * 2008-11-15   JPP  - Fixed some caching issues
@@ -13,7 +15,7 @@
  * 2008-10-02   JPP  - MAJOR CHANGE: Use IVirtualListDataSource
  * 2008-09-27   JPP  - Separated from ObjectListView.cs
  * 
- * Copyright (C) 2006-2008 Phillip Piper
+ * Copyright (C) 2006-2009 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -687,31 +689,6 @@ namespace BrightIdeasSoftware
         protected override int FindMatchInRange(string text, int first, int last, OLVColumn column)
         {
             return this.DataSource.SearchText(text, first, last, column);
-        }
-
-        /// <summary>
-        /// Handle a mouse down event
-        /// </summary>
-        /// <param name="e"></param>
-        protected override void OnMouseDown(MouseEventArgs e)
-        {
-            base.OnMouseDown(e);
-
-            if (!this.CheckBoxes)
-                return;
-
-            // Did the user click the state icon? If so, toggle the clicked row. 
-            // If the given row is selected, all selected rows are given the same checkedness.
-            ListViewHitTestInfo htInfo = this.HitTest(e.Location);
-            if ((htInfo.Location & ListViewHitTestLocations.StateImage) != 0) {
-                OLVListItem clickedItem = (OLVListItem)htInfo.Item;
-                this.ToggleCheckObject(clickedItem.RowObject);
-                if (clickedItem.Selected) {
-                    CheckState state = this.ModelToItem(clickedItem.RowObject).CheckState;
-                    foreach (Object x in this.SelectedObjects)
-                        this.SetObjectCheckedness(x, state);
-                }
-            }
         }
 
         #endregion
