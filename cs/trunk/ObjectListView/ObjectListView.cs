@@ -5,6 +5,10 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2009-04-06  JPP  - Double-clicking no longer toggles the checkbox
+ *                  - Double-clicking on a checkbox no longer confuses the checkbox
+ * 2009-03-16  JPP  - Optimized the build of autocomplete lists
+ * v2.1
  * 2009-02-24  JPP  - Fix bug where double-clicking VERY quickly on two different cells
  *                    could give two editors
  *                  - Maintain focused item when rebuilding list (SF #2547060)
@@ -252,9 +256,9 @@
  * 2006-10-09  JPP  Initial version
  *
  * TO DO:
- * - Nothing?
+ * - Drag and drop support
  *
- * Copyright (C) 2006-2008 Phillip Piper
+ * Copyright (C) 2006-2009 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -337,8 +341,7 @@ namespace BrightIdeasSoftware
         /// Create an ObjectListView
         /// </summary>
         public ObjectListView()
-            : base()
-        {
+            : base() {
             this.ColumnClick += new ColumnClickEventHandler(this.HandleColumnClick);
             this.Layout += new LayoutEventHandler(this.HandleLayout);
             this.ColumnWidthChanging += new ColumnWidthChangingEventHandler(this.HandleColumnWidthChanging);
@@ -348,6 +351,14 @@ namespace BrightIdeasSoftware
             this.DoubleBuffered = true; // kill nasty flickers. hiss... me hates 'em
             this.ShowSortIndicators = true;
         }
+
+        //#region Drag and drop
+
+        //protected override void OnDragDrop(DragEventArgs drgevent) {
+        //    base.OnDragDrop(drgevent);
+        //}
+
+        //#endregion
 
         #region Public properties
 
@@ -366,8 +377,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-        public virtual List<OLVColumn> AllColumns
-        {
+        public virtual List<OLVColumn> AllColumns {
             get {
                 return this.allColumns;
             }
@@ -386,8 +396,7 @@ namespace BrightIdeasSoftware
         [Category("Appearance"),
          Description("If using alternate colors, what foregroundColor should alterate rows be?"),
          DefaultValue(typeof(Color), "")]
-        public Color AlternateRowBackColor
-        {
+        public Color AlternateRowBackColor {
             get { return alternateRowBackColor; }
             set { alternateRowBackColor = value; }
         }
@@ -397,8 +406,7 @@ namespace BrightIdeasSoftware
         /// Return the alternate row background color that has been set, or the default color
         /// </summary>
         [Browsable(false)]
-        public virtual Color AlternateRowBackColorOrDefault
-        {
+        public virtual Color AlternateRowBackColorOrDefault {
             get {
                 if (alternateRowBackColor == Color.Empty)
                     return Color.LemonChiffon;
@@ -412,8 +420,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual OLVColumn AlwaysGroupByColumn
-        {
+        public virtual OLVColumn AlwaysGroupByColumn {
             get { return alwaysGroupByColumn; }
             set { alwaysGroupByColumn = value; }
         }
@@ -426,8 +433,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual SortOrder AlwaysGroupBySortOrder
-        {
+        public virtual SortOrder AlwaysGroupBySortOrder {
             get { return alwaysGroupBySortOrder; }
             set { alwaysGroupBySortOrder = value; }
         }
@@ -437,8 +443,7 @@ namespace BrightIdeasSoftware
         /// Give access to the image list that is actually being used by the control
         /// </summary>
         [Browsable(false)]
-        public virtual ImageList BaseSmallImageList
-        {
+        public virtual ImageList BaseSmallImageList {
             get { return base.SmallImageList; }
         }
 
@@ -479,8 +484,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
         Description("How does the user indicate that they want to edit a cell?"),
         DefaultValue(CellEditActivateMode.None)]
-        public virtual CellEditActivateMode CellEditActivation
-        {
+        public virtual CellEditActivateMode CellEditActivation {
             get { return cellEditActivation; }
             set { cellEditActivation = value; }
         }
@@ -489,8 +493,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Should this list show checkboxes?
         /// </summary>
-        public new bool CheckBoxes
-        {
+        public new bool CheckBoxes {
             get {
                 return base.CheckBoxes;
             }
@@ -507,8 +510,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual Object CheckedObject
-        {
+        public virtual Object CheckedObject {
             get {
                 IList checkedObjects = this.CheckedObjects;
                 if (checkedObjects.Count == 1)
@@ -545,8 +547,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual IList CheckedObjects
-        {
+        public virtual IList CheckedObjects {
             get {
                 ArrayList objects = new ArrayList();
                 if (this.CheckBoxes) {
@@ -580,8 +581,7 @@ namespace BrightIdeasSoftware
         [Browsable(false),
         Obsolete("Use GetFilteredColumns() and OLVColumn.IsTileViewColumn instead"),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public List<OLVColumn> ColumnsForTileView
-        {
+        public List<OLVColumn> ColumnsForTileView {
             get { return this.GetFilteredColumns(View.Tile); }
         }
 
@@ -589,8 +589,7 @@ namespace BrightIdeasSoftware
         /// Return the visible columns in the order they are displayed to the user
         /// </summary>
         [Browsable(false)]
-        public virtual List<OLVColumn> ColumnsInDisplayOrder
-        {
+        public virtual List<OLVColumn> ColumnsInDisplayOrder {
             get {
                 List<OLVColumn> columnsInDisplayOrder = new List<OLVColumn>(this.Columns.Count);
                 for (int i = 0; i < this.Columns.Count; i++)
@@ -610,11 +609,9 @@ namespace BrightIdeasSoftware
         /// <remarks>If you try to set this to null, it will revert to a BaseRenderer</remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public IRenderer DefaultRenderer
-        {
+        public IRenderer DefaultRenderer {
             get { return defaultRenderer; }
-            set
-            {
+            set {
                 if (value == null)
                     defaultRenderer = new BaseRenderer();
                 else
@@ -637,8 +634,7 @@ namespace BrightIdeasSoftware
         [Category("Appearance"),
          Description("When the list has no items, show this m in the control"),
          DefaultValue(null)]
-        public virtual String EmptyListMsg
-        {
+        public virtual String EmptyListMsg {
             get { return emptyListMsg; }
             set {
                 if (emptyListMsg != value) {
@@ -655,8 +651,7 @@ namespace BrightIdeasSoftware
         [Category("Appearance"),
         Description("What font should the 'list empty' m be drawn in?"),
         DefaultValue(null)]
-        public virtual Font EmptyListMsgFont
-        {
+        public virtual Font EmptyListMsgFont {
             get { return emptyListMsgFont; }
             set { emptyListMsgFont = value; }
         }
@@ -666,8 +661,7 @@ namespace BrightIdeasSoftware
         /// Return the font for the 'list empty' m or a default
         /// </summary>
         [Browsable(false)]
-        public virtual Font EmptyListMsgFontOrDefault
-        {
+        public virtual Font EmptyListMsgFontOrDefault {
             get {
                 if (this.EmptyListMsgFont == null)
                     return new Font("Tahoma", 14);
@@ -686,8 +680,7 @@ namespace BrightIdeasSoftware
         /// </example>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual bool Frozen
-        {
+        public virtual bool Frozen {
             get { return freezeCount > 0; }
             set {
                 if (value)
@@ -714,8 +707,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("The format to use when suffixing item counts to group titles"),
          DefaultValue(null)]
-        public virtual string GroupWithItemCountFormat
-        {
+        public virtual string GroupWithItemCountFormat {
             get { return groupWithItemCountFormat; }
             set { groupWithItemCountFormat = value; }
         }
@@ -725,8 +717,7 @@ namespace BrightIdeasSoftware
         /// Return this.GroupWithItemCountFormat or a reasonable default
         /// </summary>
         [Browsable(false)]
-        public virtual string GroupWithItemCountFormatOrDefault
-        {
+        public virtual string GroupWithItemCountFormatOrDefault {
             get {
                 if (String.IsNullOrEmpty(this.GroupWithItemCountFormat))
                     return "{0} [{1} items]";
@@ -750,8 +741,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("The format to use when suffixing item counts to group titles"),
          DefaultValue(null)]
-        public virtual string GroupWithItemCountSingularFormat
-        {
+        public virtual string GroupWithItemCountSingularFormat {
             get { return groupWithItemCountSingularFormat; }
             set { groupWithItemCountSingularFormat = value; }
         }
@@ -761,8 +751,7 @@ namespace BrightIdeasSoftware
         /// Return this.GroupWithItemCountSingularFormat or a reasonable default
         /// </summary>
         [Browsable(false)]
-        public virtual string GroupWithItemCountSingularFormatOrDefault
-        {
+        public virtual string GroupWithItemCountSingularFormatOrDefault {
             get {
                 if (String.IsNullOrEmpty(this.GroupWithItemCountSingularFormat))
                     return "{0} [{1} item]";
@@ -775,8 +764,7 @@ namespace BrightIdeasSoftware
         /// Does this listview have a m that should be drawn when the list is empty?
         /// </summary>
         [Browsable(false)]
-        public virtual bool HasEmptyListMsg
-        {
+        public virtual bool HasEmptyListMsg {
             get { return !String.IsNullOrEmpty(this.EmptyListMsg); }
         }
 
@@ -785,8 +773,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual int HotItemIndex
-        {
+        public virtual int HotItemIndex {
             get { return hotItemIndex; }
             set { hotItemIndex = value; }
         }
@@ -799,8 +786,7 @@ namespace BrightIdeasSoftware
         [Category("Appearance"),
          Description("How should the row under the cursor be highlighted"),
          DefaultValue(null)]
-        public virtual HotItemStyle HotItemStyle
-        {
+        public virtual HotItemStyle HotItemStyle {
             get { return this.hotItemStyle; }
             set { this.hotItemStyle = value; }
         }
@@ -815,8 +801,7 @@ namespace BrightIdeasSoftware
         [Category("Appearance"),
          Description("The background foregroundColor of selected rows when the control is owner drawn"),
          DefaultValue(typeof(Color), "")]
-        public virtual Color HighlightBackgroundColor
-        {
+        public virtual Color HighlightBackgroundColor {
             get { return highlightBackgroundColor; }
             set { highlightBackgroundColor = value; }
         }
@@ -826,9 +811,8 @@ namespace BrightIdeasSoftware
         /// Return the color should be used for the background of selected rows or a reasonable default
         /// </summary>
         [Browsable(false)]
-        public virtual Color HighlightBackgroundColorOrDefault
-        {
-            get  {
+        public virtual Color HighlightBackgroundColorOrDefault {
+            get {
                 if (this.HighlightBackgroundColor.IsEmpty)
                     return SystemColors.Highlight;
                 else
@@ -845,8 +829,7 @@ namespace BrightIdeasSoftware
         [Category("Appearance"),
          Description("The foreground foregroundColor of selected rows when the control is owner drawn"),
          DefaultValue(typeof(Color), "")]
-        public virtual Color HighlightForegroundColor
-        {
+        public virtual Color HighlightForegroundColor {
             get { return highlightForegroundColor; }
             set { highlightForegroundColor = value; }
         }
@@ -856,8 +839,7 @@ namespace BrightIdeasSoftware
         /// Return the color should be used for the foreground of selected rows or a reasonable default
         /// </summary>
         [Browsable(false)]
-        public virtual Color HighlightForegroundColorOrDefault
-        {
+        public virtual Color HighlightForegroundColorOrDefault {
             get {
                 if (this.HighlightForegroundColor.IsEmpty)
                     return SystemColors.HighlightText;
@@ -870,8 +852,7 @@ namespace BrightIdeasSoftware
         /// Return true if a cell edit operation is currently happening
         /// </summary>
         [Browsable(false)]
-        public virtual bool IsCellEditing
-        {
+        public virtual bool IsCellEditing {
             get { return this.cellEditor != null; }
         }
 
@@ -883,8 +864,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
         Description("When the user types into a list, should the values in the current sort column be searched to find a match?"),
         DefaultValue(true)]
-        public virtual bool IsSearchOnSortColumn
-        {
+        public virtual bool IsSearchOnSortColumn {
             get { return isSearchOnSortColumn; }
             set { isSearchOnSortColumn = value; }
         }
@@ -894,8 +874,7 @@ namespace BrightIdeasSoftware
         /// This renderer draws the items when in the list is in non-details view.
         /// In details view, the renderers for the individuals columns are responsible.
         /// </summary>
-        public IRenderer ItemRenderer
-        {
+        public IRenderer ItemRenderer {
             get { return itemRenderer; }
             set { itemRenderer = value; }
         }
@@ -906,8 +885,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual OLVColumn LastSortColumn
-        {
+        public virtual OLVColumn LastSortColumn {
             get { return lastSortColumn; }
             set { lastSortColumn = value; }
         }
@@ -918,8 +896,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual SortOrder LastSortOrder
-        {
+        public virtual SortOrder LastSortOrder {
             get { return lastSortOrder; }
             set { lastSortOrder = value; }
         }
@@ -941,16 +918,14 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual IEnumerable Objects
-        {
+        public virtual IEnumerable Objects {
             get {
                 if (this.VirtualMode) {
                     ArrayList contents = new ArrayList(this.GetItemCount());
                     for (int i = 0; i < this.GetItemCount(); i++)
                         contents.Add(this.GetModelObject(i));
                     return contents;
-                }
-                else
+                } else
                     return this.objects;
             }
             set {
@@ -980,8 +955,7 @@ namespace BrightIdeasSoftware
         [Category("Appearance"),
          Description("Specify the height of each row in pixels. -1 indicates default height"),
          DefaultValue(-1)]
-        public virtual int RowHeight
-        {
+        public virtual int RowHeight {
             get { return rowHeight; }
             set {
                 if (value < 1)
@@ -996,8 +970,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// How many rows appear on each page of this control
         /// </summary>
-        public virtual int RowsPerPage
-        {
+        public virtual int RowsPerPage {
             get {
                 return NativeMethods.GetCountPerPage(this);
             }
@@ -1010,8 +983,7 @@ namespace BrightIdeasSoftware
         /// The default is the first column.</remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual OLVColumn SecondarySortColumn
-        {
+        public virtual OLVColumn SecondarySortColumn {
             get {
                 if (this.secondarySortColumn == null) {
                     if (this.Columns.Count > 0)
@@ -1032,8 +1004,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual SortOrder SecondarySortOrder
-        {
+        public virtual SortOrder SecondarySortOrder {
             get { return this.secondarySortOrder; }
             set { this.secondarySortOrder = value; }
         }
@@ -1046,8 +1017,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
         Description("When the user right clicks on the column headers, should a menu be presented which will allow them to choose which columns will be shown in the view?"),
         DefaultValue(true)]
-        public virtual bool SelectColumnsOnRightClick
-        {
+        public virtual bool SelectColumnsOnRightClick {
             get { return selectColumnsOnRightClick; }
             set { selectColumnsOnRightClick = value; }
         }
@@ -1060,8 +1030,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
         Description("When the column select menu is open, should it stay open after an item is selected?"),
         DefaultValue(true)]
-        public virtual bool SelectColumnsMenuStaysOpen
-        {
+        public virtual bool SelectColumnsMenuStaysOpen {
             get { return selectColumnsMenuStaysOpen; }
             set { selectColumnsMenuStaysOpen = value; }
         }
@@ -1073,8 +1042,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual int SelectedIndex
-        {
+        public virtual int SelectedIndex {
             get {
                 if (this.SelectedIndices.Count == 1)
                     return this.SelectedIndices[0];
@@ -1093,8 +1061,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual ListViewItem SelectedItem
-        {
+        public virtual ListViewItem SelectedItem {
             get {
                 if (this.SelectedIndices.Count == 1)
                     return this.GetItem(this.SelectedIndices[0]);
@@ -1114,8 +1081,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual Object SelectedObject
-        {
+        public virtual Object SelectedObject {
             get { return this.GetSelectedObject(); }
             set { this.SelectObject(value); }
         }
@@ -1126,8 +1092,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual IList SelectedObjects
-        {
+        public virtual IList SelectedObjects {
             get { return this.GetSelectedObjects(); }
             set { this.SelectObjects(value); }
         }
@@ -1144,8 +1109,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("Should the list view show sort indicators in the column headers?"),
          DefaultValue(true)]
-        public virtual bool ShowSortIndicators
-        {
+        public virtual bool ShowSortIndicators {
             get { return showSortIndicators; }
             set { showSortIndicators = value; }
         }
@@ -1160,8 +1124,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("Should the list view show images on subitems?"),
          DefaultValue(false)]
-        public virtual bool ShowImagesOnSubItems
-        {
+        public virtual bool ShowImagesOnSubItems {
             get {
 #if MONO
                 return false;
@@ -1186,8 +1149,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("Will group titles be suffixed with a count of the items in the group?"),
          DefaultValue(false)]
-        public virtual bool ShowItemCountOnGroups
-        {
+        public virtual bool ShowItemCountOnGroups {
             get { return showItemCountOnGroups; }
             set { showItemCountOnGroups = value; }
         }
@@ -1202,8 +1164,7 @@ namespace BrightIdeasSoftware
         /// as this will work:
         /// <code>listView1.SmallImageList = listView1.SmallImageList;</code></para>
         /// </remarks>
-        new public ImageList SmallImageList
-        {
+        new public ImageList SmallImageList {
             get { return this.shadowedImageList; }
             set {
                 this.shadowedImageList = value;
@@ -1219,8 +1180,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("When the listview is grouped, should the items be sorted by the primary column? If this is false, the items will be sorted by the same column as they are grouped."),
          DefaultValue(true)]
-        public virtual bool SortGroupItemsByPrimaryColumn
-        {
+        public virtual bool SortGroupItemsByPrimaryColumn {
             get { return this.sortGroupItemsByPrimaryColumn; }
             set { this.sortGroupItemsByPrimaryColumn = value; }
         }
@@ -1239,7 +1199,7 @@ namespace BrightIdeasSoftware
          Description("Should the primary column have a checkbox that behaves as a tri-state checkbox?"),
          DefaultValue(false)]
         public virtual bool TriStateCheckBoxes {
-            get { return triStateCheckBoxes;  }
+            get { return triStateCheckBoxes; }
             set {
                 triStateCheckBoxes = value;
                 if (value && !this.CheckBoxes)
@@ -1264,8 +1224,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual int TopItemIndex
-        {
+        public virtual int TopItemIndex {
             get {
                 if (this.View == View.Details && this.TopItem != null)
                     return this.TopItem.Index;
@@ -1313,8 +1272,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
         Description("When resizing a column by dragging its divider, should any space filling columns be resized at each mouse move?"),
         DefaultValue(true)]
-        public virtual bool UpdateSpaceFillingColumnsWhenDraggingColumnDivider
-        {
+        public virtual bool UpdateSpaceFillingColumnsWhenDraggingColumnDivider {
             get { return updateSpaceFillingColumnsWhenDraggingColumnDivider; }
             set { updateSpaceFillingColumnsWhenDraggingColumnDivider = value; }
         }
@@ -1329,8 +1287,7 @@ namespace BrightIdeasSoftware
         [Category("Appearance"),
          Description("Should the list view use a different backcolor to alternate rows?"),
          DefaultValue(false)]
-        public virtual bool UseAlternatingBackColors
-        {
+        public virtual bool UseAlternatingBackColors {
             get { return useAlternatingBackColors; }
             set { useAlternatingBackColors = value; }
         }
@@ -1345,8 +1302,7 @@ namespace BrightIdeasSoftware
         [Category("Appearance"),
          Description("Should the selected row be drawn with non-standard foreground and background colors?"),
          DefaultValue(false)]
-        public bool UseCustomSelectionColors
-        {
+        public bool UseCustomSelectionColors {
             get { return this.useCustomSelectionColors; }
             set {
                 this.useCustomSelectionColors = value;
@@ -1363,8 +1319,7 @@ namespace BrightIdeasSoftware
         [Category("Appearance"),
          Description("Should HotTracking be used? Hot tracking applies special formatting to the row under the cursor"),
          DefaultValue(false)]
-        public bool UseHotItem
-        {
+        public bool UseHotItem {
             get { return this.useHotItem; }
             set {
                 this.useHotItem = value;
@@ -1386,8 +1341,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("Should this control be configured to show check boxes on subitems."),
          DefaultValue(false)]
-        public bool UseSubItemCheckBoxes
-        {
+        public bool UseSubItemCheckBoxes {
             get { return this.useSubItemCheckBoxes; }
             set {
                 this.useSubItemCheckBoxes = value;
@@ -1402,8 +1356,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>Switching to tile or details view installs the columns appropriate to that view.
         /// Confusingly, in tile view, every column is shown as a row of information.</remarks>
-        new public View View
-        {
+        new public View View {
             get { return base.View; }
             set {
                 if (base.View == value)
@@ -1444,10 +1397,8 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual BooleanCheckStateGetterDelegate BooleanCheckStateGetter
-        {
-            set
-            {
+        public virtual BooleanCheckStateGetterDelegate BooleanCheckStateGetter {
+            set {
                 if (value == null)
                     this.CheckStateGetter = null;
                 else
@@ -1469,10 +1420,8 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual BooleanCheckStatePutterDelegate BooleanCheckStatePutter
-        {
-            set
-            {
+        public virtual BooleanCheckStatePutterDelegate BooleanCheckStatePutter {
+            set {
                 if (value == null)
                     this.CheckStatePutter = null;
                 else
@@ -1494,8 +1443,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual CellToolTipGetterDelegate CellToolTipGetter
-        {
+        public virtual CellToolTipGetterDelegate CellToolTipGetter {
             get { return cellToolTipGetter; }
             set { cellToolTipGetter = value; }
         }
@@ -1514,8 +1462,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("The name of the property or field that holds the 'checkedness' of the model"),
          DefaultValue(null)]
-        public virtual string CheckedAspectName
-        {
+        public virtual string CheckedAspectName {
             get { return checkedAspectName; }
             set {
                 checkedAspectName = value;
@@ -1561,8 +1508,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual CheckStateGetterDelegate CheckStateGetter
-        {
+        public virtual CheckStateGetterDelegate CheckStateGetter {
             get { return checkStateGetter; }
             set { checkStateGetter = value; }
         }
@@ -1575,8 +1521,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual CheckStatePutterDelegate CheckStatePutter
-        {
+        public virtual CheckStatePutterDelegate CheckStatePutter {
             get { return checkStatePutter; }
             set { checkStatePutter = value; }
         }
@@ -1598,8 +1543,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual SortDelegate CustomSorter
-        {
+        public virtual SortDelegate CustomSorter {
             get { return customSorter; }
             set { customSorter = value; }
         }
@@ -1615,8 +1559,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual HeaderToolTipGetterDelegate HeaderToolTipGetter
-        {
+        public virtual HeaderToolTipGetterDelegate HeaderToolTipGetter {
             get { return headerToolTipGetter; }
             set { headerToolTipGetter = value; }
         }
@@ -1636,8 +1579,7 @@ namespace BrightIdeasSoftware
         /// when UseAlternatingBackColors is true does not work well.</para></remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual RowFormatterDelegate RowFormatter
-        {
+        public virtual RowFormatterDelegate RowFormatter {
             get { return rowFormatter; }
             set { rowFormatter = value; }
         }
@@ -1652,8 +1594,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="modelObject">The model object to be displayed</param>
         /// <remarks>See AddObjects() for more details</remarks>
-        public virtual void AddObject(object modelObject)
-        {
+        public virtual void AddObject(object modelObject) {
             this.AddObjects(new object[] { modelObject });
         }
 
@@ -1667,8 +1608,7 @@ namespace BrightIdeasSoftware
         /// <para>No check is performed to see if any of the objects are already in the ListView.</para>
         /// <para>Null objects are silently ignored.</para>
         /// </remarks>
-        public virtual void AddObjects(ICollection modelObjects)
-        {
+        public virtual void AddObjects(ICollection modelObjects) {
             if (modelObjects == null)
                 return;
 
@@ -1712,8 +1652,7 @@ namespace BrightIdeasSoftware
         /// Organise the view items into groups, based on the last sort column or the first column
         /// if there is no last sort column
         /// </summary>
-        public virtual void BuildGroups()
-        {
+        public virtual void BuildGroups() {
             this.BuildGroups(this.lastSortColumn);
         }
 
@@ -1729,8 +1668,7 @@ namespace BrightIdeasSoftware
         /// <para>This method triggers sorting events: BeforeSorting and AfterSorting.</para>
         /// </remarks>
         /// <param name="column">The column whose values should be used for sorting.</param>
-        public virtual void BuildGroups(OLVColumn column)
-        {
+        public virtual void BuildGroups(OLVColumn column) {
             SortOrder order = this.lastSortOrder;
             if (order == SortOrder.None)
                 order = this.Sorting;
@@ -1756,8 +1694,7 @@ namespace BrightIdeasSoftware
         /// <param name="secondaryColumn">When the values from 'column' are equal, use the values provided by this column</param>
         /// <param name="order">How will the secondary values be sorted</param>
         /// <remarks>This method does not trigger sorting events. Use BuildGroups() to do that</remarks>
-        public virtual void BuildGroups(OLVColumn column, SortOrder order, OLVColumn secondaryColumn, SortOrder secondaryOrder)
-        {
+        public virtual void BuildGroups(OLVColumn column, SortOrder order, OLVColumn secondaryColumn, SortOrder secondaryOrder) {
             // Sanity checks
             if (column == null || order == SortOrder.None)
                 return;
@@ -1816,8 +1753,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Build/rebuild all the list view items in the list
         /// </summary>
-        public virtual void BuildList()
-        {
+        public virtual void BuildList() {
             this.BuildList(true);
         }
 
@@ -1837,8 +1773,7 @@ namespace BrightIdeasSoftware
         /// the control is in Details view AND it is not showing groups.
         /// </para>
         /// </remarks>
-        public virtual void BuildList(bool shouldPreserveState)
-        {
+        public virtual void BuildList(bool shouldPreserveState) {
             if (this.Frozen)
                 return;
 
@@ -1899,8 +1834,7 @@ namespace BrightIdeasSoftware
         /// Give the listview a reasonable size of its tiles, based on the number of lines of
         /// information that each tile is going to display.
         /// </summary>
-        public virtual void CalculateReasonableTileSize()
-        {
+        public virtual void CalculateReasonableTileSize() {
             if (this.Columns.Count <= 0)
                 return;
 
@@ -1915,8 +1849,7 @@ namespace BrightIdeasSoftware
         /// Rebuild this list for the given view
         /// </summary>
         /// <param name="view"></param>
-        public virtual void ChangeToFilteredColumns(View view)
-        {
+        public virtual void ChangeToFilteredColumns(View view) {
             // Store the state
             IList previousSelection = this.SelectedObjects;
             int previousTopIndex = this.TopItemIndex;
@@ -1949,8 +1882,7 @@ namespace BrightIdeasSoftware
         /// Remove all items from this list
         /// </summary>
         /// <remark>This method can safely be called from background threads.</remark>
-        public virtual void ClearObjects()
-        {
+        public virtual void ClearObjects() {
             if (this.InvokeRequired)
                 this.Invoke(new MethodInvoker(ClearObjects));
             else
@@ -1963,8 +1895,7 @@ namespace BrightIdeasSoftware
         /// <remarks>Be careful when using this with virtual lists. If the user has selected
         /// 10,000,000 rows, this method will faithfully try to copy all of them to the clipboard.
         /// From the user's point of view, your program will appear to have hung.</remarks>
-        public virtual void CopySelectionToClipboard()
-        {
+        public virtual void CopySelectionToClipboard() {
             //THINK: Do we want to include something like this?
             //if (this.SelectedIndices.Count > 10000)
             //    return;
@@ -1975,81 +1906,19 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Copy a text and html representation of the given objects onto the clipboard.
         /// </summary>
-        public virtual void CopyObjectsToClipboard(IList objectsToCopy)
-        {
+        public virtual void CopyObjectsToClipboard(IList objectsToCopy) {
             if (objectsToCopy.Count == 0)
                 return;
 
-            List<OLVColumn> columns = this.ColumnsInDisplayOrder;
-
-            // Build text and html versions of the selection
-            StringBuilder sbText = new StringBuilder();
-            StringBuilder sbHtml = new StringBuilder("<table>");
-
-            foreach (object modelObject in objectsToCopy) {
-                sbHtml.Append("<tr><td>");
-                foreach (OLVColumn col in columns) {
-                    if (col != columns[0]) {
-                        sbText.Append("\t");
-                        sbHtml.Append("</td><td>");
-                    }
-                    string strValue = col.GetStringValue(modelObject);
-                    sbText.Append(strValue);
-                    sbHtml.Append(strValue); //TODO: Should encode the string value
-                }
-                sbText.AppendLine();
-                sbHtml.AppendLine("</td></tr>");
-            }
-            sbHtml.AppendLine("</table>");
-
-            // Put both the text and html versions onto the clipboard
-            DataObject dataObject = new DataObject();
-            dataObject.SetText(sbText.ToString(), TextDataFormat.UnicodeText);
-            dataObject.SetText(ConvertToHtmlFragment(sbHtml.ToString()), TextDataFormat.Html);
+            OLVDataObject dataObject = new OLVDataObject(this, objectsToCopy);
+            dataObject.CreateTextFormats();
             Clipboard.SetDataObject(dataObject);
-        }
-
-        /// <summary>
-        /// Convert the fragment of HTML into the Clipboards HTML format.
-        /// </summary>
-        /// <remarks>The HTML format is found here http://msdn2.microsoft.com/en-us/library/aa767917.aspx
-        /// </remarks>
-        /// <param name="fragment">The HTML to put onto the clipboard. It must be valid HTML!</param>
-        /// <returns>A string that can be put onto the clipboard and will be recognized as HTML</returns>
-        private string ConvertToHtmlFragment(string fragment)
-        {
-            // Minimal implementation of HTML clipboard format
-            string source = "http://www.codeproject.com/KB/list/ObjectListView.aspx";
-
-            const String MARKER_BLOCK =
-                "Version:1.0\r\n" +
-                "StartHTML:{0,8}\r\n" +
-                "EndHTML:{1,8}\r\n" +
-                "StartFragment:{2,8}\r\n" +
-                "EndFragment:{3,8}\r\n" +
-                "StartSelection:{2,8}\r\n" +
-                "EndSelection:{3,8}\r\n" +
-                "SourceURL:{4}\r\n" +
-                "{5}";
-
-            int prefixLength = String.Format(MARKER_BLOCK, 0, 0, 0, 0, source, "").Length;
-
-            const String DEFAULT_HTML_BODY =
-                "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">" +
-                "<HTML><HEAD></HEAD><BODY><!--StartFragment-->{0}<!--EndFragment--></BODY></HTML>";
-
-            string html = String.Format(DEFAULT_HTML_BODY, fragment);
-            int startFragment = prefixLength + html.IndexOf(fragment);
-            int endFragment = startFragment + fragment.Length;
-
-            return String.Format(MARKER_BLOCK, prefixLength, prefixLength + html.Length, startFragment, endFragment, source, html);
         }
 
         /// <summary>
         /// Deselect all rows in the listview
         /// </summary>
-        public virtual void DeselectAll()
-        {
+        public virtual void DeselectAll() {
             NativeMethods.DeselectAllItems(this);
         }
 
@@ -2060,8 +1929,7 @@ namespace BrightIdeasSoftware
         /// This method makes the list owner drawn, and ensures that all columns have at
         /// least a BaseRender installed.
         /// </remarks>
-        public virtual void EnableCustomSelectionColors()
-        {
+        public virtual void EnableCustomSelectionColors() {
             this.UseCustomSelectionColors = true;
         }
 
@@ -2072,8 +1940,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="itemToFind">The item that is before the item that is returned, or null</param>
         /// <returns>A ListViewItem</returns>
-        public virtual ListViewItem GetNextItem(ListViewItem itemToFind)
-        {
+        public virtual ListViewItem GetNextItem(ListViewItem itemToFind) {
             if (this.ShowGroups) {
                 bool isFound = (itemToFind == null);
                 foreach (ListViewGroup group in this.Groups) {
@@ -2102,8 +1969,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public virtual OLVListItem GetNthItemInDisplayOrder(int n)
-        {
+        public virtual OLVListItem GetNthItemInDisplayOrder(int n) {
             if (!this.ShowGroups)
                 return this.GetItem(n);
 
@@ -2124,8 +1990,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public virtual int GetItemIndexInDisplayOrder(ListViewItem value)
-        {
+        public virtual int GetItemIndexInDisplayOrder(ListViewItem value) {
             if (!this.ShowGroups)
                 return value.Index;
 
@@ -2149,8 +2014,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="itemToFind">The item that is before the item that is returned</param>
         /// <returns>A ListViewItem</returns>
-        public virtual ListViewItem GetPreviousItem(ListViewItem itemToFind)
-        {
+        public virtual ListViewItem GetPreviousItem(ListViewItem itemToFind) {
             if (this.ShowGroups) {
                 ListViewItem previousItem = null;
                 foreach (ListViewGroup group in this.Groups) {
@@ -2188,8 +2052,7 @@ namespace BrightIdeasSoftware
         /// <para>In most situations, if you need this functionality, use a FastObjectListView instead. JPP 2/2/2008</para>
         /// </remarks>
         [Obsolete("Use a FastObjectListView instead of this method.", false)]
-        public virtual void IncrementalUpdate(IEnumerable collection)
-        {
+        public virtual void IncrementalUpdate(IEnumerable collection) {
             if (this.InvokeRequired) {
                 this.Invoke((MethodInvoker)delegate { this.IncrementalUpdate(collection); });
                 return;
@@ -2239,8 +2102,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="model">The model object to look for</param>
         /// <returns>Is the row selected</returns>
-        public bool IsSelected(object model)
-        {
+        public bool IsSelected(object model) {
             OLVListItem item = this.ModelToItem(model);
             if (item == null)
                 return false;
@@ -2252,8 +2114,7 @@ namespace BrightIdeasSoftware
         /// Pause (or unpause) all animations in the list
         /// </summary>
         /// <param name="isPause">true to pause, false to unpause</param>
-        public virtual void PauseAnimations(bool isPause)
-        {
+        public virtual void PauseAnimations(bool isPause) {
             for (int i = 0; i < this.Columns.Count; i++) {
                 OLVColumn col = this.GetColumn(i);
                 if (col.Renderer is ImageRenderer)
@@ -2264,8 +2125,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Rebuild the columns based upon its current view and column visibility settings
         /// </summary>
-        public virtual void RebuildColumns()
-        {
+        public virtual void RebuildColumns() {
             if (this.UseCustomSelectionColors)
                 this.EnableCustomSelectionColors();
 
@@ -2277,8 +2137,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="modelObject">The model to be removed</param>
         /// <remarks>See RemoveObjects() for more details</remarks>
-        public virtual void RemoveObject(object modelObject)
-        {
+        public virtual void RemoveObject(object modelObject) {
             this.RemoveObjects(new object[] { modelObject });
         }
 
@@ -2289,8 +2148,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// <para>Nulls and model objects that are not in the ListView are silently ignored.</para>
         /// </remarks>
-        public virtual void RemoveObjects(ICollection modelObjects)
-        {
+        public virtual void RemoveObjects(ICollection modelObjects) {
             if (modelObjects == null)
                 return;
 
@@ -2325,8 +2183,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Select all rows in the listview
         /// </summary>
-        public virtual void SelectAll()
-        {
+        public virtual void SelectAll() {
             NativeMethods.SelectAllItems(this);
         }
 
@@ -2336,8 +2193,7 @@ namespace BrightIdeasSoftware
         /// <remark>This method can safely be called from background threads.</remark>
         /// <remarks>The list is updated immediately</remarks>
         /// <param name="collection">The objects to be displayed</param>
-        public virtual void SetObjects(IEnumerable collection)
-        {
+        public virtual void SetObjects(IEnumerable collection) {
             if (this.InvokeRequired) {
                 this.Invoke((MethodInvoker)delegate { this.SetObjects(collection); });
                 return;
@@ -2363,8 +2219,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Sort the items by the last sort column
         /// </summary>
-        new public void Sort()
-        {
+        new public void Sort() {
             this.Sort(this.lastSortColumn);
         }
 
@@ -2391,8 +2246,7 @@ namespace BrightIdeasSoftware
         /// </para>
         /// </remarks>
         /// <returns>A byte array representing the state of the ObjectListView</returns>
-        public virtual byte[] SaveState()
-        {
+        public virtual byte[] SaveState() {
             ObjectListViewState olvState = new ObjectListViewState();
             olvState.VersionNumber = 1;
             olvState.NumberOfColumns = this.AllColumns.Count;
@@ -2430,14 +2284,14 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="state">A byte array returned from SaveState()</param>
         /// <returns>Returns true if the state was restored</returns>
-        public virtual bool RestoreState(byte[] state)
-        {
+        public virtual bool RestoreState(byte[] state) {
             MemoryStream ms = new MemoryStream(state);
             BinaryFormatter deserializer = new BinaryFormatter();
             ObjectListViewState olvState;
             try {
                 olvState = deserializer.Deserialize(ms) as ObjectListViewState;
-            } catch (System.Runtime.Serialization.SerializationException) {
+            }
+            catch (System.Runtime.Serialization.SerializationException) {
                 return false;
             }
 
@@ -2498,8 +2352,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void Application_Idle(object sender, EventArgs e)
-        {
+        protected virtual void Application_Idle(object sender, EventArgs e) {
             // Remove the handler before triggering the event
             Application.Idle -= new EventHandler(Application_Idle);
             this.hasIdleHandler = false;
@@ -2510,8 +2363,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Event handler for the column click event
         /// </summary>
-        protected virtual void HandleColumnClick(object sender, ColumnClickEventArgs e)
-        {
+        protected virtual void HandleColumnClick(object sender, ColumnClickEventArgs e) {
             if (!this.PossibleFinishCellEditing())
                 return;
 
@@ -2545,8 +2397,8 @@ namespace BrightIdeasSoftware
         /// Override the basic m pump for this control
         /// </summary>
         /// <param name="m"></param>
-        protected override void WndProc(ref Message m)
-        {
+        protected override void WndProc(ref Message m) {
+
             switch (m.Msg) {
                 case 0x0F: // WM_PAINT
                     this.HandlePrePaint();
@@ -2567,6 +2419,10 @@ namespace BrightIdeasSoftware
                     break;
                 case 0x0201: // WM_LBUTTONDOWN
                     if (this.PossibleFinishCellEditing() && !this.HandleLButtonDown(ref m))
+                        base.WndProc(ref m);
+                    break;
+                case 0x0203: // WM_LBUTTONDBLCLK
+                    if (this.PossibleFinishCellEditing() && !this.HandleLButtonDoubleClick(ref m))
                         base.WndProc(ref m);
                     break;
                 case 0x204E: // WM_REFLECT_NOTIFY
@@ -2603,8 +2459,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// We want to ignore context menu requests that are triggered by right clicks on the header
         /// </remarks>
-        protected virtual bool HandleContextMenu(ref Message m)
-        {
+        protected virtual bool HandleContextMenu(ref Message m) {
             // Don't try to handle context menu commands at design time.
             if (this.DesignMode)
                 return false;
@@ -2632,8 +2487,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the m has been handled</returns>
-        protected virtual bool HandleChar(ref Message m)
-        {
+        protected virtual bool HandleChar(ref Message m) {
             const int MILLISECONDS_BETWEEN_KEYPRESSES = 1000;
 
             // What character did the user type and was it part of a longer string?
@@ -2709,8 +2563,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the m has been handled</returns>
-        protected virtual bool HandleFindItem(ref Message m)
-        {
+        protected virtual bool HandleFindItem(ref Message m) {
             // NOTE: As far as I can see, this message is never actually sent to the control, making this
             // method redundant!
 
@@ -2738,8 +2591,7 @@ namespace BrightIdeasSoftware
         /// <returns>The index of the first row that matched, or -1</returns>
         /// <remarks>The text comparison is a case-insensitive, prefix match. The search will
         /// search the every row until a match is found, wrapping at the end if needed.</remarks>
-        public virtual int FindMatchingRow(string text, int start, SearchDirectionHint direction)
-        {
+        public virtual int FindMatchingRow(string text, int start, SearchDirectionHint direction) {
             // We also can't do anything if we don't have data
             int rowCount = this.GetItemCount();
             if (rowCount == 0)
@@ -2773,8 +2625,7 @@ namespace BrightIdeasSoftware
         /// <param name="last"></param>
         /// <param name="column"></param>
         /// <returns>The index of the matched row, or -1</returns>
-        protected virtual int FindMatchInRange(string text, int first, int last, OLVColumn column)
-        {
+        protected virtual int FindMatchInRange(string text, int first, int last, OLVColumn column) {
             if (first <= last) {
                 for (int i = first; i <= last; i++) {
                     string data = column.GetStringValue(this.GetNthItemInDisplayOrder(i).RowObject);
@@ -2797,8 +2648,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the m has been handled</returns>
-        protected virtual bool HandleLButtonDown(ref Message m)
-        {
+        protected virtual bool HandleLButtonDown(ref Message m) {
             /// We have to intercept this low level message rather than the more natural
             /// overridding of OnMouseDown, since ListCtrl's internal mouse down behavior
             /// is to select (or deselect) rows when the mouse is released. We don't
@@ -2810,7 +2660,7 @@ namespace BrightIdeasSoftware
             int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
 
             OlvListViewHitTestInfo hti = this.OlvHitTest(x, y);
-            return ProcessLButtonDown(hti);
+            return this.ProcessLButtonDown(hti);
         }
 
         /// <summary>
@@ -2819,13 +2669,12 @@ namespace BrightIdeasSoftware
         /// <remarks>Subclasses can override this to do something unique</remarks>
         /// <param name="hti"></param>
         /// <returns>True if the message has been handled</returns>
-        protected virtual bool ProcessLButtonDown(OlvListViewHitTestInfo hti)
-        {
+        protected virtual bool ProcessLButtonDown(OlvListViewHitTestInfo hti) {
             if (hti.Item == null)
                 return false;
 
             // If they didn't click checkbox, we can just return
-            if (this.View != View.Details  || hti.HitTestLocation != HitTestLocation.CheckBox)
+            if (this.View != View.Details || hti.HitTestLocation != HitTestLocation.CheckBox)
                 return false;
 
             // Did they click a sub item checkbox?
@@ -2849,14 +2698,39 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Catch the Left Button double click event.
+        /// </summary>
+        /// <param name="m">The m to be processed</param>
+        /// <returns>bool to indicate if the m has been handled</returns>
+        protected virtual bool HandleLButtonDoubleClick(ref Message m) {
+            int x = m.LParam.ToInt32() & 0xFFFF;
+            int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
+
+            OlvListViewHitTestInfo hti = this.OlvHitTest(x, y);
+            return this.ProcessLButtonDoubleClick(hti);
+        }
+
+
+        /// <summary>
+        /// Handle a mouse double click at the given hit test location
+        /// </summary>
+        /// <remarks>Subclasses can override this to do something unique</remarks>
+        /// <param name="hti"></param>
+        /// <returns>True if the message has been handled</returns>
+        protected virtual bool ProcessLButtonDoubleClick(OlvListViewHitTestInfo hti) {
+
+            // If the user double clicked on a checkbox, ignore it
+            return (hti.HitTestLocation == HitTestLocation.CheckBox);
+        }
+
+        /// <summary>
         /// What is under the given point? This takes the various parts of a cell into accout, including
         /// any custom parts that a custom renderer might use
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns>An information block about what is under the point</returns>
-        public virtual OlvListViewHitTestInfo OlvHitTest(int x, int y)
-        {
+        public virtual OlvListViewHitTestInfo OlvHitTest(int x, int y) {
             // This horrible sequence finds what item is under the given position.
             // We want to find the item under the point, even if the point is not
             // actually over the icon or label. HitTest() will only do that
@@ -2945,17 +2819,24 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the m has been handled</returns>
-        unsafe protected bool HandleReflectNotify(ref Message m)
-        {
+        unsafe protected bool HandleReflectNotify(ref Message m) {
+            const int WM_NMDBLCLICK = -3;
             const int LVN_ITEMCHANGED = -101;
             const int LVN_ITEMCHANGING = -100;
             const int LVIF_STATE = 8;
 
             bool isMsgHandled = false;
 
-            NativeMethods.NMHDR *nmhdr = (NativeMethods.NMHDR*)m.LParam;
+            NativeMethods.NMHDR* nmhdr = (NativeMethods.NMHDR*)m.LParam;
 
             switch (nmhdr->code) {
+                case WM_NMDBLCLICK:
+                    // The default behavior of a .NET ListView with checkboxes is to toggle the checkbox on
+                    // double-click. That's just silly, if you ask me :)
+                    if (this.CheckBoxes)
+                        isMsgHandled = true;
+                    break;
+
                 case LVN_ITEMCHANGED:
                     NativeMethods.NMLISTVIEW* nmlistviewPtr2 = (NativeMethods.NMLISTVIEW*)m.LParam;
                     if ((nmlistviewPtr2->uChanged & LVIF_STATE) != 0) {
@@ -2991,8 +2872,7 @@ namespace BrightIdeasSoftware
             return isMsgHandled;
         }
 
-        private CheckState CalculateState(int state)
-        {
+        private CheckState CalculateState(int state) {
             switch ((state & 0xf000) >> 12) {
                 case 1:
                     return CheckState.Unchecked;
@@ -3010,8 +2890,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the m has been handled</returns>
-        unsafe protected bool HandleNotify(ref Message m)
-        {
+        unsafe protected bool HandleNotify(ref Message m) {
             bool isMsgHandled = false;
 
             const int HDN_FIRST = (0 - 300);
@@ -3138,8 +3017,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Perform any steps needed before painting the control
         /// </summary>
-        protected virtual void HandlePrePaint()
-        {
+        protected virtual void HandlePrePaint() {
             // When we get a WM_PAINT m, remember the rectangle that is being updated.
             // We can't get this information later, since the BeginPaint call wipes it out.
             this.lastUpdateRectangle = NativeMethods.GetUpdateRect(this);
@@ -3158,8 +3036,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Perform any steps needed after painting the control
         /// </summary>
-        protected virtual void HandlePostPaint()
-        {
+        protected virtual void HandlePostPaint() {
             // If the list isn't empty or there isn't an emptyList m, do nothing
             if (this.GetItemCount() != 0 || !this.HasEmptyListMsg)
                 return;
@@ -3182,8 +3059,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the m has been handled</returns>
-        protected virtual bool HandleWindowPosChanging(ref Message m)
-        {
+        protected virtual bool HandleWindowPosChanging(ref Message m) {
             const int SWP_NOSIZE = 1;
 
             NativeMethods.WINDOWPOS pos = (NativeMethods.WINDOWPOS)m.GetLParam(typeof(NativeMethods.WINDOWPOS));
@@ -3206,15 +3082,14 @@ namespace BrightIdeasSoftware
 #endif
         }
 #if !MONO
-        private HeaderControl hdrCtrl = null;
+        internal HeaderControl hdrCtrl = null;
 #endif
 
         /// <summary>
         /// The user has right clicked on the column headers. Do whatever is required
         /// </summary>
         /// <returns>Return true if this event has been handle</returns>
-        protected virtual bool HandleHeaderRightClick(int columnIndex)
-        {
+        protected virtual bool HandleHeaderRightClick(int columnIndex) {
             ColumnClickEventArgs eventArgs = new ColumnClickEventArgs(columnIndex);
             this.OnColumnRightClick(eventArgs);
 
@@ -3229,8 +3104,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <returns>Return true if this event has been handle</returns>
         [Obsolete("Use HandleHeaderRightClick(int) instead")]
-        protected virtual bool HandleHeaderRightClick()
-        {
+        protected virtual bool HandleHeaderRightClick() {
             return false;
         }
 
@@ -3239,8 +3113,7 @@ namespace BrightIdeasSoftware
         /// are visible on this listview
         /// </summary>
         /// <param name="pt">Where should the menu be placed</param>
-        protected virtual void ShowColumnSelectMenu(Point pt)
-        {
+        protected virtual void ShowColumnSelectMenu(Point pt) {
             ToolStripDropDown m = this.MakeColumnSelectMenu(new ContextMenuStrip());
             m.Show(pt);
         }
@@ -3250,8 +3123,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="strip">The menu to which the items will be added.</param>
         /// <returns>Return the menu to which the items were added</returns>
-        public virtual ToolStripDropDown MakeColumnSelectMenu(ToolStripDropDown strip)
-        {
+        public virtual ToolStripDropDown MakeColumnSelectMenu(ToolStripDropDown strip) {
             strip.ItemClicked += new ToolStripItemClickedEventHandler(ColumnSelectMenu_ItemClicked);
             strip.Closing += new ToolStripDropDownClosingEventHandler(ColumnSelectMenu_Closing);
 
@@ -3279,8 +3151,7 @@ namespace BrightIdeasSoftware
             return strip;
         }
 
-        private void ColumnSelectMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
-        {
+        private void ColumnSelectMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
             ToolStripMenuItem mi = (ToolStripMenuItem)e.ClickedItem;
             OLVColumn col = (OLVColumn)mi.Tag;
             mi.Checked = !mi.Checked;
@@ -3288,8 +3159,7 @@ namespace BrightIdeasSoftware
             this.BeginInvoke(new MethodInvoker(this.RebuildColumns));
         }
 
-        private void ColumnSelectMenu_Closing(object sender, ToolStripDropDownClosingEventArgs e)
-        {
+        private void ColumnSelectMenu_Closing(object sender, ToolStripDropDownClosingEventArgs e) {
             e.Cancel = (this.SelectColumnsMenuStaysOpen &&
                 e.CloseReason == ToolStripDropDownCloseReason.ItemClicked);
         }
@@ -3298,8 +3168,7 @@ namespace BrightIdeasSoftware
         /// Override the OnColumnReordered method to do what we want
         /// </summary>
         /// <param name="e"></param>
-        protected override void OnColumnReordered(ColumnReorderedEventArgs e)
-        {
+        protected override void OnColumnReordered(ColumnReorderedEventArgs e) {
             base.OnColumnReordered(e);
 
             // The internal logic of the .NET code behind a ENDDRAG event means that,
@@ -3309,8 +3178,7 @@ namespace BrightIdeasSoftware
             this.BeginInvoke(new MethodInvoker(this.RememberDisplayIndicies));
         }
 
-        private void RememberDisplayIndicies()
-        {
+        private void RememberDisplayIndicies() {
             // Remember the display indexes so we can put them back at a later date
             foreach (OLVColumn x in this.AllColumns)
                 x.LastDisplayIndex = x.DisplayIndex;
@@ -3321,8 +3189,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void HandleColumnWidthChanging(object sender, ColumnWidthChangingEventArgs e)
-        {
+        protected virtual void HandleColumnWidthChanging(object sender, ColumnWidthChangingEventArgs e) {
             if (this.UpdateSpaceFillingColumnsWhenDraggingColumnDivider && !this.GetColumn(e.ColumnIndex).FillsFreeSpace) {
                 // If the width of a column is increasing, resize any space filling columns allowing the extra
                 // space that the new column width is going to consume
@@ -3339,8 +3206,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void HandleColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
-        {
+        protected virtual void HandleColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e) {
             if (!this.GetColumn(e.ColumnIndex).FillsFreeSpace)
                 this.ResizeFreeSpaceFillingColumns();
         }
@@ -3350,8 +3216,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void HandleLayout(object sender, LayoutEventArgs e)
-        {
+        protected virtual void HandleLayout(object sender, LayoutEventArgs e) {
             // We have to delay executing the recalculation of the columns, since virtual lists
             // get terribly confused if we resize the column widths during this event.
             if (this.Created)
@@ -3361,16 +3226,14 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Resize our space filling columns so they fill any unoccupied width in the control
         /// </summary>
-        protected virtual void ResizeFreeSpaceFillingColumns()
-        {
+        protected virtual void ResizeFreeSpaceFillingColumns() {
             this.ResizeFreeSpaceFillingColumns(this.ClientSize.Width);
         }
 
         /// <summary>
         /// Resize our space filling columns so they fill any unoccupied width in the control
         /// </summary>
-        protected virtual void ResizeFreeSpaceFillingColumns(int freeSpace)
-        {
+        protected virtual void ResizeFreeSpaceFillingColumns(int freeSpace) {
             // It's too confusing to dynamically resize columns at design time.
             if (this.DesignMode)
                 return;
@@ -3425,8 +3288,7 @@ namespace BrightIdeasSoftware
         /// Mark the given object as indeterminate check state
         /// </summary>
         /// <param name="modelObject">The model object to be marked indeterminate</param>
-        public virtual void CheckIndeterminateObject(object modelObject)
-        {
+        public virtual void CheckIndeterminateObject(object modelObject) {
             this.SetObjectCheckedness(modelObject, CheckState.Indeterminate);
         }
 
@@ -3434,8 +3296,7 @@ namespace BrightIdeasSoftware
         /// Mark the given object as checked in the list
         /// </summary>
         /// <param name="modelObject">The model object to be checked</param>
-        public virtual void CheckObject(object modelObject)
-        {
+        public virtual void CheckObject(object modelObject) {
             this.SetObjectCheckedness(modelObject, CheckState.Checked);
         }
 
@@ -3471,8 +3332,7 @@ namespace BrightIdeasSoftware
         /// <param name="modelObject">The model object whose checkedness is returned</param>
         /// <returns>Is the given object checked?</returns>
         /// <remarks>If the given object is not in the list, this method returns false.</remarks>
-        public virtual bool IsChecked(object modelObject)
-        {
+        public virtual bool IsChecked(object modelObject) {
             OLVListItem olvi = this.ModelToItem(modelObject);
             if (olvi == null)
                 return false;
@@ -3486,8 +3346,7 @@ namespace BrightIdeasSoftware
         /// <param name="modelObject">The model object whose checkedness is returned</param>
         /// <returns>Is the given object indeterminately checked?</returns>
         /// <remarks>If the given object is not in the list, this method returns false.</remarks>
-        public virtual bool IsCheckedIndeterminate(object modelObject)
-        {
+        public virtual bool IsCheckedIndeterminate(object modelObject) {
             OLVListItem olvi = this.ModelToItem(modelObject);
             if (olvi == null)
                 return false;
@@ -3500,8 +3359,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowObject"></param>
         /// <param name="column"></param>
-        public virtual bool IsSubItemChecked(object rowObject, OLVColumn column)
-        {
+        public virtual bool IsSubItemChecked(object rowObject, OLVColumn column) {
             if (column != null && rowObject != null && column.CheckBoxes)
                 return (column.GetCheckState(rowObject) == CheckState.Checked);
             else
@@ -3514,8 +3372,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="modelObject"></param>
         /// <returns></returns>
-        protected virtual CheckState? GetCheckState(Object modelObject)
-        {
+        protected virtual CheckState? GetCheckState(Object modelObject) {
             if (this.CheckStateGetter == null)
                 return null;
             else
@@ -3530,8 +3387,7 @@ namespace BrightIdeasSoftware
         /// <param name="state"></param>
         /// <returns>The check state that was recorded and that should be used to update
         /// the control.</returns>
-        protected virtual CheckState PutCheckState(Object modelObject, CheckState state)
-        {
+        protected virtual CheckState PutCheckState(Object modelObject, CheckState state) {
             if (this.CheckStatePutter == null)
                 return state;
             else
@@ -3543,8 +3399,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="modelObject"></param>
         /// <param name="state"></param>
-        protected virtual void SetObjectCheckedness(object modelObject, CheckState state)
-        {
+        protected virtual void SetObjectCheckedness(object modelObject, CheckState state) {
             OLVListItem olvi = this.ModelToItem(modelObject);
             if (olvi == null || olvi.CheckState == state)
                 return;
@@ -3570,8 +3425,7 @@ namespace BrightIdeasSoftware
         ///    unchecked -> checked -> indeterminate -> unchecked ...
         /// </summary>
         /// <param name="modelObject">The model object to be checked</param>
-        public virtual void ToggleCheckObject(object modelObject)
-        {
+        public virtual void ToggleCheckObject(object modelObject) {
             OLVListItem olvi = this.ModelToItem(modelObject);
             if (olvi == null)
                 return;
@@ -3595,8 +3449,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowObject"></param>
         /// <param name="column"></param>
-        public virtual void ToggleSubItemCheckBox(object rowObject, OLVColumn column)
-        {
+        public virtual void ToggleSubItemCheckBox(object rowObject, OLVColumn column) {
             if (column.TriStateCheckBoxes) {
                 if (column.GetCheckState(rowObject) == CheckState.Checked)
                     this.CheckIndeterminateSubItem(rowObject, column);
@@ -3615,8 +3468,7 @@ namespace BrightIdeasSoftware
         /// Mark the given object as unchecked in the list
         /// </summary>
         /// <param name="modelObject">The model object to be unchecked</param>
-        public virtual void UncheckObject(object modelObject)
-        {
+        public virtual void UncheckObject(object modelObject) {
             this.SetObjectCheckedness(modelObject, CheckState.Unchecked);
         }
 
@@ -3625,8 +3477,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowObject"></param>
         /// <param name="column"></param>
-        public virtual void UncheckSubItem(object rowObject, OLVColumn column)
-        {
+        public virtual void UncheckSubItem(object rowObject, OLVColumn column) {
             if (column == null || rowObject == null || !column.CheckBoxes)
                 return;
 
@@ -3643,8 +3494,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="index">Index of the column to be returned</param>
         /// <returns>An OLVColumn</returns>
-        public virtual OLVColumn GetColumn(int index)
-        {
+        public virtual OLVColumn GetColumn(int index) {
             return (OLVColumn)this.Columns[index];
         }
 
@@ -3653,8 +3503,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="name">Name of the column to be returned</param>
         /// <returns>An OLVColumn</returns>
-        public virtual OLVColumn GetColumn(string name)
-        {
+        public virtual OLVColumn GetColumn(string name) {
             foreach (ColumnHeader column in this.Columns) {
                 if (column.Text == name)
                     return (OLVColumn)column;
@@ -3668,8 +3517,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="view">Which view are the columns being calculate for?</param>
         /// <returns>A list of columns</returns>
-        public virtual List<OLVColumn> GetFilteredColumns(View view)
-        {
+        public virtual List<OLVColumn> GetFilteredColumns(View view) {
             // For both detail and tile view, the first column must be included. Normally, we would
             // use the ColumnHeader.Index property, but if the header is not currently part of a ListView
             // that property returns -1. So, we track the index of
@@ -3691,8 +3539,7 @@ namespace BrightIdeasSoftware
         /// Return the number of items in the list
         /// </summary>
         /// <returns>the number of items in the list</returns>
-        public virtual int GetItemCount()
-        {
+        public virtual int GetItemCount() {
             return this.Items.Count;
         }
 
@@ -3701,8 +3548,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="index">Index of the item to be returned</param>
         /// <returns>An OLVListItem</returns>
-        public virtual OLVListItem GetItem(int index)
-        {
+        public virtual OLVListItem GetItem(int index) {
             if (index >= 0 && index < this.GetItemCount())
                 return (OLVListItem)this.Items[index];
             else
@@ -3714,8 +3560,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="index">Index of the model object to be returned</param>
         /// <returns>A model object</returns>
-        public virtual object GetModelObject(int index)
-        {
+        public virtual object GetModelObject(int index) {
             OLVListItem item = this.GetItem(index);
             if (item == null)
                 return null;
@@ -3730,8 +3575,7 @@ namespace BrightIdeasSoftware
         /// <param name="y">Y co-ord</param>
         /// <param name="selectedColumn">The column under the given point</param>
         /// <returns>The item under the given point. Can be null.</returns>
-        public virtual OLVListItem GetItemAt(int x, int y, out OLVColumn selectedColumn)
-        {
+        public virtual OLVListItem GetItemAt(int x, int y, out OLVColumn selectedColumn) {
             selectedColumn = null;
             ListViewHitTestInfo info = this.HitTest(x, y);
             if (info.Item == null)
@@ -3753,8 +3597,7 @@ namespace BrightIdeasSoftware
         /// Ensure that the given model object is visible
         /// </summary>
         /// <param name="modelObject">The model object to be revealed</param>
-        public virtual void EnsureModelVisible(Object modelObject)
-        {
+        public virtual void EnsureModelVisible(Object modelObject) {
             int idx = this.IndexOf(modelObject);
             if (idx >= 0)
                 this.EnsureVisible(idx);
@@ -3764,8 +3607,7 @@ namespace BrightIdeasSoftware
         /// Return the model object of the row that is selected or null if there is no selection or more than one selection
         /// </summary>
         /// <returns>Model object or null</returns>
-        public virtual object GetSelectedObject()
-        {
+        public virtual object GetSelectedObject() {
             if (this.SelectedIndices.Count == 1)
                 return this.GetModelObject(this.SelectedIndices[0]);
             else
@@ -3776,8 +3618,7 @@ namespace BrightIdeasSoftware
         /// Return the model objects of the rows that are selected or an empty collection if there is no selection
         /// </summary>
         /// <returns>ArrayList</returns>
-        public virtual ArrayList GetSelectedObjects()
-        {
+        public virtual ArrayList GetSelectedObjects() {
             ArrayList objects = new ArrayList(this.SelectedIndices.Count);
             foreach (int index in this.SelectedIndices)
                 objects.Add(this.GetModelObject(index));
@@ -3792,8 +3633,7 @@ namespace BrightIdeasSoftware
         /// <returns>Model object or null</returns>
         /// <remarks>Use CheckedObject property instead of this method</remarks>
         [Obsolete("Use CheckedObject property instead of this method")]
-        public virtual object GetCheckedObject()
-        {
+        public virtual object GetCheckedObject() {
             return this.CheckedObject;
         }
 
@@ -3802,8 +3642,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>Use CheckedObjects property instead of this method</remarks>
         [Obsolete("Use CheckedObjects property instead of this method")]
-        public virtual ArrayList GetCheckedObjects()
-        {
+        public virtual ArrayList GetCheckedObjects() {
             return (ArrayList)this.CheckedObjects;
         }
 
@@ -3814,8 +3653,7 @@ namespace BrightIdeasSoftware
         /// probably be very slow.</remarks>
         /// <param name="modelObject">The model object to be found</param>
         /// <returns>The index of the object. -1 means the object was not present</returns>
-        public virtual int IndexOf(Object modelObject)
-        {
+        public virtual int IndexOf(Object modelObject) {
             for (int i = 0; i < this.GetItemCount(); i++) {
                 if (this.GetModelObject(i) == modelObject)
                     return i;
@@ -3828,8 +3666,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>This method does not resort or regroup the view. It simply updates
         /// the displayed data of the given item</remarks>
-        public virtual void RefreshItem(OLVListItem olvi)
-        {
+        public virtual void RefreshItem(OLVListItem olvi) {
             olvi.SubItems.Clear();
             this.FillInValues(olvi, olvi.RowObject);
             this.SetSubItemImages(olvi.Index, olvi, true);
@@ -3851,8 +3688,7 @@ namespace BrightIdeasSoftware
         /// Update the rows that are showing the given objects
         /// </summary>
         /// <remarks>This method does not resort or regroup the view.</remarks>
-        public virtual void RefreshObject(object modelObject)
-        {
+        public virtual void RefreshObject(object modelObject) {
             this.RefreshObjects(new object[] { modelObject });
         }
 
@@ -3863,8 +3699,7 @@ namespace BrightIdeasSoftware
         /// <para>This method does not resort or regroup the view.</para>
         /// <para>This method can safely be called from background threads.</para>
         /// </remarks>
-        public virtual void RefreshObjects(IList modelObjects)
-        {
+        public virtual void RefreshObjects(IList modelObjects) {
             if (this.InvokeRequired) {
                 this.Invoke((MethodInvoker)delegate { this.RefreshObjects(modelObjects); });
                 return;
@@ -3880,8 +3715,7 @@ namespace BrightIdeasSoftware
         /// Update the rows that are selected
         /// </summary>
         /// <remarks>This method does not resort or regroup the view.</remarks>
-        public virtual void RefreshSelectedObjects()
-        {
+        public virtual void RefreshSelectedObjects() {
             foreach (ListViewItem lvi in this.SelectedItems)
                 this.RefreshItem((OLVListItem)lvi);
         }
@@ -3896,8 +3730,7 @@ namespace BrightIdeasSoftware
         /// </para>
         /// <para>This only works when the list is showing groups (obviously)</para>
         /// </remarks>
-        public virtual void EnsureGroupVisible(ListViewGroup lvg)
-        {
+        public virtual void EnsureGroupVisible(ListViewGroup lvg) {
             if (!this.ShowGroups || lvg == null)
                 return;
 
@@ -3923,8 +3756,7 @@ namespace BrightIdeasSoftware
         /// Select the row that is displaying the given model object. All other rows are deselected.
         /// </summary>
         /// <param name="modelObject">The object to be selected or null to deselect all</param>
-        public virtual void SelectObject(object modelObject)
-        {
+        public virtual void SelectObject(object modelObject) {
             this.SelectObject(modelObject, false);
         }
 
@@ -3933,8 +3765,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="modelObject">The object to be selected or null to deselect all</param>
         /// <param name="setFocus">Should the object be focused as well?</param>
-        public virtual void SelectObject(object modelObject, bool setFocus)
-        {
+        public virtual void SelectObject(object modelObject, bool setFocus) {
             // If the given model is already selected, don't do anything else (prevents an flicker)
             if (this.SelectedItems.Count == 1 && ((OLVListItem)this.SelectedItems[0]).RowObject.Equals(modelObject))
                 return;
@@ -3953,12 +3784,11 @@ namespace BrightIdeasSoftware
         /// Select the rows that is displaying any of the given model object. All other rows are deselected.
         /// </summary>
         /// <param name="modelObjects">A collection of model objects</param>
-        public virtual void SelectObjects(IList modelObjects)
-        {
+        public virtual void SelectObjects(IList modelObjects) {
             this.SelectedItems.Clear();
 
             if (modelObjects == null)
-            	return;
+                return;
 
             foreach (object modelObject in modelObjects) {
                 OLVListItem olvi = this.ModelToItem(modelObject);
@@ -3975,8 +3805,7 @@ namespace BrightIdeasSoftware
         /// Freeze the listview so that it no longer updates itself.
         /// </summary>
         /// <remarks>Freeze()/Unfreeze() calls nest correctly</remarks>
-        public virtual void Freeze()
-        {
+        public virtual void Freeze() {
             freezeCount++;
         }
 
@@ -3985,8 +3814,7 @@ namespace BrightIdeasSoftware
         /// the contents of the listview will be rebuilt.
         /// </summary>
         /// <remarks>Freeze()/Unfreeze() calls nest correctly</remarks>
-        public virtual void Unfreeze()
-        {
+        public virtual void Unfreeze() {
             if (freezeCount <= 0)
                 return;
 
@@ -3998,8 +3826,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Do the actual work required when the listview is unfrozen
         /// </summary>
-        protected virtual void DoUnfreeze()
-        {
+        protected virtual void DoUnfreeze() {
             this.ResizeFreeSpaceFillingColumns();
             this.BuildList();
         }
@@ -4014,8 +3841,7 @@ namespace BrightIdeasSoftware
         /// otherwise, it will be a straight sort.
         /// </summary>
         /// <param name="columnToSortName">The name of the column whose values will be used for the sorting</param>
-        public virtual void Sort(string columnToSortName)
-        {
+        public virtual void Sort(string columnToSortName) {
             this.Sort(this.GetColumn(columnToSortName));
         }
 
@@ -4025,8 +3851,7 @@ namespace BrightIdeasSoftware
         /// otherwise, it will be a straight sort.
         /// </summary>
         /// <param name="columnToSortIndex">The index of the column whose values will be used for the sorting</param>
-        public virtual void Sort(int columnToSortIndex)
-        {
+        public virtual void Sort(int columnToSortIndex) {
             if (columnToSortIndex >= 0 && columnToSortIndex < this.Columns.Count)
                 this.Sort(this.GetColumn(columnToSortIndex));
         }
@@ -4037,8 +3862,7 @@ namespace BrightIdeasSoftware
         /// otherwise, it will be a straight sort.
         /// </summary>
         /// <param name="columnToSort">The column whose values will be used for the sorting</param>
-        public virtual void Sort(OLVColumn columnToSort)
-        {
+        public virtual void Sort(OLVColumn columnToSort) {
             if (this.InvokeRequired) {
                 this.Invoke((MethodInvoker)delegate { this.Sort(columnToSort); });
                 return;
@@ -4060,8 +3884,7 @@ namespace BrightIdeasSoftware
         /// <remarks>If ShowGroups is true and the AlwaysGroupByColumn property is not null,
         /// the list view items will be grouped by that column,
         /// and the columnToSort parameter will be ignored.</remarks>
-        public virtual void Sort(OLVColumn columnToSort, SortOrder order)
-        {
+        public virtual void Sort(OLVColumn columnToSort, SortOrder order) {
             if (this.InvokeRequired) {
                 this.Invoke((MethodInvoker)delegate { this.Sort(columnToSort, order); });
                 return;
@@ -4128,8 +3951,7 @@ namespace BrightIdeasSoftware
         /// <param name="columnToSort"></param>
         /// <param name="order"></param>
         private void RationalizeColumnForGrouping(ref OLVColumn columnToSort, ref SortOrder order,
-            ref OLVColumn secondarycolumn, ref SortOrder secondaryOrder)
-        {
+            ref OLVColumn secondarycolumn, ref SortOrder secondaryOrder) {
             if (this.AlwaysGroupByColumn != null) {
                 secondarycolumn = columnToSort;
                 secondaryOrder = order;
@@ -4149,8 +3971,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Put a sort indicator next to the text of the sort column
         /// </summary>
-        public virtual void ShowSortIndicator()
-        {
+        public virtual void ShowSortIndicator() {
             if (this.ShowSortIndicators && this.lastSortOrder != SortOrder.None)
                 this.ShowSortIndicator(this.lastSortColumn, this.lastSortOrder);
         }
@@ -4160,8 +3981,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="columnToSort">The column to be marked</param>
         /// <param name="sortOrder">The sort order in effect on that column</param>
-        protected virtual void ShowSortIndicator(OLVColumn columnToSort, SortOrder sortOrder)
-        {
+        protected virtual void ShowSortIndicator(OLVColumn columnToSort, SortOrder sortOrder) {
             int imageIndex = -1;
 
             if (!NativeMethods.HasBuiltinSortIndicators()) {
@@ -4200,8 +4020,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// If the sort indicator images don't already exist, this method will make and install them
         /// </summary>
-        protected virtual void MakeSortIndicatorImages()
-        {
+        protected virtual void MakeSortIndicatorImages() {
             // Don't mess with the image list in design mode
             if (this.DesignMode)
                 return;
@@ -4235,8 +4054,7 @@ namespace BrightIdeasSoftware
             this.SmallImageList = il;
         }
 
-        private Bitmap MakeTriangleBitmap(Size sz, Point[] pts)
-        {
+        private Bitmap MakeTriangleBitmap(Size sz, Point[] pts) {
             Bitmap bm = new Bitmap(sz.Width, sz.Height);
             Graphics g = Graphics.FromImage(bm);
             g.FillPolygon(new SolidBrush(Color.Gray), pts);
@@ -4256,8 +4074,7 @@ namespace BrightIdeasSoftware
         /// <param name="olvi">The item whose subitems are to be corrected</param>
         /// <remarks>Cells drawn via BaseRenderer don't need this, but it is needed
         /// when an owner drawn cell uses DrawDefault=true</remarks>
-        protected virtual void CorrectSubItemColors(ListViewItem olvi)
-        {
+        protected virtual void CorrectSubItemColors(ListViewItem olvi) {
             //if (this.OwnerDraw && olvi.UseItemStyleForSubItems)
             //    foreach (ListViewItem.ListViewSubItem si in olvi.SubItems) {
             //        si.BackColor = olvi.BackColor;
@@ -4271,8 +4088,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="lvi">the OLVListItem that is to be stuff with values</param>
         /// <param name="rowObject">the model object from which values will be taken</param>
-        protected virtual void FillInValues(OLVListItem lvi, object rowObject)
-        {
+        protected virtual void FillInValues(OLVListItem lvi, object rowObject) {
             if (this.Columns.Count == 0)
                 return;
 
@@ -4310,8 +4126,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>This method must be called after any .NET call that update the extended styles
         /// since they seem to erase this setting.</remarks>
-        protected virtual void ForceSubItemImagesExStyle()
-        {
+        protected virtual void ForceSubItemImagesExStyle() {
             NativeMethods.ForceSubItemImagesExStyle(this);
         }
 
@@ -4321,8 +4136,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="imageSelector"></param>
         /// <returns>Index of the image in the imageList, or -1</returns>
-        protected virtual int GetActualImageIndex(Object imageSelector)
-        {
+        protected virtual int GetActualImageIndex(Object imageSelector) {
             if (imageSelector == null)
                 return -1;
 
@@ -4341,8 +4155,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="columnIndex">The column index whose tool tip is to be fetched</param>
         /// <returns>A string or null if no tool tip is to be shown</returns>
-        public virtual String GetHeaderToolTip(int columnIndex)
-        {
+        public virtual String GetHeaderToolTip(int columnIndex) {
             OLVColumn column = this.GetColumn(columnIndex);
             if (column == null)
                 return null;
@@ -4357,8 +4170,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="columnIndex">The column index whose tool tip is to be fetched</param>
         /// <returns>A string or null if no tool tip is to be shown</returns>
-        public virtual String GetCellToolTip(int columnIndex, int rowIndex)
-        {
+        public virtual String GetCellToolTip(int columnIndex, int rowIndex) {
             if (this.CellToolTipGetter == null)
                 return null;
             else
@@ -4371,8 +4183,7 @@ namespace BrightIdeasSoftware
         /// <param name="modelObject">The modelObject whose item is to be found</param>
         /// <returns>The OLVListItem that displays the model, or null</returns>
         /// <remarks>This method has O(n) performance.</remarks>
-        public virtual OLVListItem ModelToItem(object modelObject)
-        {
+        public virtual OLVListItem ModelToItem(object modelObject) {
             if (modelObject == null)
                 return null;
 
@@ -4391,8 +4202,7 @@ namespace BrightIdeasSoftware
         /// whether the row should be colored. But when organised by groups, lvi.Index is not
         /// useable because it still refers to the position in the overall list, not the display order.
         ///</remarks>
-        protected virtual void PrepareAlternateBackColors()
-        {
+        protected virtual void PrepareAlternateBackColors() {
             // If this method is called during a BeginUpdate/EndUpdate pair, changes to the
             // Items collection are cached. Getting the Count flushes that cache.
             int count = this.Items.Count;
@@ -4425,8 +4235,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Setup all subitem images on all rows
         /// </summary>
-        protected virtual void SetAllSubItemImages()
-        {
+        protected virtual void SetAllSubItemImages() {
             if (!this.ShowImagesOnSubItems || this.OwnerDraw)
                 return;
 
@@ -4441,8 +4250,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowIndex">the index at which the item occurs</param>
         /// <param name="item">the item whose subitems are to be set</param>
-        protected virtual void SetSubItemImages(int rowIndex, OLVListItem item)
-        {
+        protected virtual void SetSubItemImages(int rowIndex, OLVListItem item) {
             this.SetSubItemImages(rowIndex, item, false);
         }
 
@@ -4452,8 +4260,7 @@ namespace BrightIdeasSoftware
         /// <param name="rowIndex">the index at which the item occurs</param>
         /// <param name="item">the item whose subitems are to be set</param>
         /// <param name="shouldClearImages">will existing images be cleared if no new image is provided?</param>
-        protected virtual void SetSubItemImages(int rowIndex, OLVListItem item, bool shouldClearImages)
-        {
+        protected virtual void SetSubItemImages(int rowIndex, OLVListItem item, bool shouldClearImages) {
             if (!this.ShowImagesOnSubItems || this.OwnerDraw)
                 return;
 
@@ -4462,8 +4269,7 @@ namespace BrightIdeasSoftware
             }
         }
 
-        public virtual void SetSubItemImage(int rowIndex, int subItemIndex, OLVListSubItem subItem, bool shouldClearImages)
-        {
+        public virtual void SetSubItemImage(int rowIndex, int subItemIndex, OLVListSubItem subItem, bool shouldClearImages) {
             int imageIndex = this.GetActualImageIndex(subItem.ImageSelector);
             if (shouldClearImages || imageIndex != -1)
                 NativeMethods.SetSubItemImage(this, rowIndex, subItemIndex, imageIndex);
@@ -4482,8 +4288,7 @@ namespace BrightIdeasSoftware
         /// This method has the intentional side-effect of converting our list of objects to an ArrayList.
         /// </para>
         /// </remarks>
-        protected virtual void TakeOwnershipOfObjects()
-        {
+        protected virtual void TakeOwnershipOfObjects() {
             if (this.isOwnerOfObjects)
                 return;
 
@@ -4505,13 +4310,11 @@ namespace BrightIdeasSoftware
 
         #region ISupportInitialize Members
 
-        void ISupportInitialize.BeginInit()
-        {
+        void ISupportInitialize.BeginInit() {
             this.Frozen = true;
         }
 
-        void ISupportInitialize.EndInit()
-        {
+        void ISupportInitialize.EndInit() {
             if (this.UseCustomSelectionColors)
                 this.EnableCustomSelectionColors();
 
@@ -4525,8 +4328,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Update our externally visible image list so it holds the same images as our shadow list, but sized correctly
         /// </summary>
-        private void SetupExternalImageList()
-        {
+        private void SetupExternalImageList() {
             // If a row height hasn't been set, or an image list has been give which is the required size, just assign it
             if (rowHeight == -1 || (this.shadowedImageList != null && this.shadowedImageList.ImageSize.Height == rowHeight))
                 base.SmallImageList = this.shadowedImageList;
@@ -4543,8 +4345,7 @@ namespace BrightIdeasSoftware
         /// <param name="height">Height and width of the new images</param>
         /// <param name="source">Source of the images (can be null)</param>
         /// <returns>A new image list</returns>
-        private ImageList MakeResizedImageList(int width, int height, ImageList source)
-        {
+        private ImageList MakeResizedImageList(int width, int height, ImageList source) {
             ImageList il = new ImageList();
             il.ImageSize = new Size(width, height);
 
@@ -4576,8 +4377,7 @@ namespace BrightIdeasSoftware
         /// <param name="image">Image to be centred</param>
         /// <param name="transparent">The background color</param>
         /// <returns>A new bitmap</returns>
-        private Bitmap MakeResizedImage(int width, int height, Image image, Color transparent)
-        {
+        private Bitmap MakeResizedImage(int width, int height, Image image, Color transparent) {
             Bitmap bm = new Bitmap(width, height);
             Graphics g = Graphics.FromImage(bm);
             g.Clear(transparent);
@@ -4590,8 +4390,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Initialize the state image list with the required checkbox images
         /// </summary>
-        protected virtual void InitializeStateImageList()
-        {
+        protected virtual void InitializeStateImageList() {
             if (this.DesignMode)
                 return;
 
@@ -4629,8 +4428,7 @@ namespace BrightIdeasSoftware
         /// Setup this control so it can display check boxes on subitems
         /// </summary>
         /// <remarks>This gives the ListView a small image list, if it doesn't already have one.</remarks>
-        public virtual void SetupSubItemCheckBoxes()
-        {
+        public virtual void SetupSubItemCheckBoxes() {
             this.ShowImagesOnSubItems = true;
             if (this.SmallImageList == null || !this.SmallImageList.Images.ContainsKey(CHECKED_KEY))
                 this.InitializeCheckBoxImages();
@@ -4640,8 +4438,7 @@ namespace BrightIdeasSoftware
         /// Make sure the small image list for this control has checkbox images
         /// </summary>
         /// <remarks>This gives the ListView a small image list, if it doesn't already have one.</remarks>
-        protected virtual void InitializeCheckBoxImages()
-        {
+        protected virtual void InitializeCheckBoxImages() {
             // Don't mess with the image list in design mode
             if (this.DesignMode)
                 return;
@@ -4659,8 +4456,7 @@ namespace BrightIdeasSoftware
             this.SmallImageList = il;
         }
 
-        private void AddCheckStateBitmap(ImageList il, string key, CheckBoxState boxState)
-        {
+        private void AddCheckStateBitmap(ImageList il, string key, CheckBoxState boxState) {
             Bitmap b = new Bitmap(il.ImageSize.Width, il.ImageSize.Height);
             Graphics g = Graphics.FromImage(b);
             g.Clear(il.TransparentColor);
@@ -4676,8 +4472,7 @@ namespace BrightIdeasSoftware
         /// Owner draw the column header
         /// </summary>
         /// <param name="e"></param>
-        protected override void OnDrawColumnHeader(DrawListViewColumnHeaderEventArgs e)
-        {
+        protected override void OnDrawColumnHeader(DrawListViewColumnHeaderEventArgs e) {
             e.DrawDefault = true;
             base.OnDrawColumnHeader(e);
         }
@@ -4686,8 +4481,7 @@ namespace BrightIdeasSoftware
         /// Owner draw the item
         /// </summary>
         /// <param name="e"></param>
-        protected override void OnDrawItem(DrawListViewItemEventArgs e)
-        {
+        protected override void OnDrawItem(DrawListViewItemEventArgs e) {
             if (this.View == View.Details)
                 e.DrawDefault = false;
             else {
@@ -4709,8 +4503,7 @@ namespace BrightIdeasSoftware
         /// Owner draw a single subitem
         /// </summary>
         /// <param name="e"></param>
-        protected override void OnDrawSubItem(DrawListViewSubItemEventArgs e)
-        {
+        protected override void OnDrawSubItem(DrawListViewSubItemEventArgs e) {
             // Don't try to do owner drawing at design time
             if (this.DesignMode) {
                 e.DrawDefault = true;
@@ -4779,8 +4572,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// When the control is created capture the messages for the header.
         /// </summary>
-        protected override void OnCreateControl()
-        {
+        protected override void OnCreateControl() {
             base.OnCreateControl();
             this.BeginInvoke(new MethodInvoker(this.CreateHeaderControl));
         }
@@ -4790,8 +4582,7 @@ namespace BrightIdeasSoftware
         /// So we have to remember the click count from the preceding mouse down event.
         /// </summary>
         /// <param name="e"></param>
-        protected override void OnMouseDown(MouseEventArgs e)
-        {
+        protected override void OnMouseDown(MouseEventArgs e) {
             base.OnMouseDown(e);
             this.lastMouseDownClickCount = e.Clicks;
         }
@@ -4801,8 +4592,7 @@ namespace BrightIdeasSoftware
         /// When the mouse leaves the control, remove any hot item highlighting
         /// </summary>
         /// <param name="e"></param>
-        protected override void OnMouseLeave(EventArgs e)
-        {
+        protected override void OnMouseLeave(EventArgs e) {
             base.OnMouseLeave(e);
             this.UpdateHotItem(new Point(-1, -1));
         }
@@ -4819,8 +4609,7 @@ namespace BrightIdeasSoftware
         /// When the mouse moves, we might need to change the hot item.
         /// </summary>
         /// <param name="e"></param>
-        protected override void OnMouseMove(MouseEventArgs e)
-        {
+        protected override void OnMouseMove(MouseEventArgs e) {
             base.OnMouseMove(e);
             this.UpdateHotItem(e.Location);
         }
@@ -4829,8 +4618,7 @@ namespace BrightIdeasSoftware
         /// Check to see if we need to start editing a cell
         /// </summary>
         /// <param name="e"></param>
-        protected override void OnMouseUp(MouseEventArgs e)
-        {
+        protected override void OnMouseUp(MouseEventArgs e) {
             base.OnMouseUp(e);
 
             // What event should we listen for to start cell editing?
@@ -4863,8 +4651,7 @@ namespace BrightIdeasSoftware
         /// trigger one event for any number of select/deselects that come from one user action
         /// </summary>
         /// <param name="e"></param>
-        protected override void OnSelectedIndexChanged(EventArgs e)
-        {
+        protected override void OnSelectedIndexChanged(EventArgs e) {
             base.OnSelectedIndexChanged(e);
 
             // If we haven't already scheduled an event, schedule it to be triggered
@@ -4885,8 +4672,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="e"></param>
         /// <returns></returns>
-        protected virtual bool ShouldStartCellEdit(MouseEventArgs e)
-        {
+        protected virtual bool ShouldStartCellEdit(MouseEventArgs e) {
             if (this.IsCellEditing)
                 return false;
 
@@ -4908,8 +4694,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="keyData"></param>
         /// <returns></returns>
-        protected override bool ProcessDialogKey(Keys keyData)
-        {
+        protected override bool ProcessDialogKey(Keys keyData) {
             bool isSimpleTabKey = ((keyData & Keys.KeyCode) == Keys.Tab) && ((keyData & (Keys.Alt | Keys.Control)) == Keys.None);
 
             if (isSimpleTabKey && this.IsCellEditing) { // Tab key while editing
@@ -4975,8 +4760,7 @@ namespace BrightIdeasSoftware
         /// <remarks>This performs various sanity checks and passes off the real work to StartCellEdit().</remarks>
         /// <param name="item">The row to be edited</param>
         /// <param name="subItemIndex">The index of the cell to be edited</param>
-        public virtual void EditSubItem(OLVListItem item, int subItemIndex)
-        {
+        public virtual void EditSubItem(OLVListItem item, int subItemIndex) {
             if (item == null)
                 return;
 
@@ -4997,8 +4781,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="item">The row to be edited</param>
         /// <param name="subItemIndex">The index of the cell to be edited</param>
-        protected virtual void StartCellEdit(OLVListItem item, int subItemIndex)
-        {
+        protected virtual void StartCellEdit(OLVListItem item, int subItemIndex) {
             OLVColumn column = this.GetColumn(subItemIndex);
             Rectangle r = CalculateCellEditorBounds(item, subItemIndex);
             Control c = this.GetCellEditor(item, subItemIndex);
@@ -5033,8 +4816,7 @@ namespace BrightIdeasSoftware
         private Control cellEditor = null;
         private CellEditEventArgs cellEditEventArgs = null;
 
-        private Rectangle CalculateCellEditorBounds(OLVListItem item, int subItemIndex)
-        {
+        private Rectangle CalculateCellEditorBounds(OLVListItem item, int subItemIndex) {
             Rectangle r = this.CalculateCellBounds(item, subItemIndex);
             if (!this.OwnerDraw)
                 return r;
@@ -5053,8 +4835,7 @@ namespace BrightIdeasSoftware
         /// <param name="c">A control</param>
         /// <param name="value">The value to be given to the control</param>
         /// <param name="stringValue">The string to be given if the value doesn't work</param>
-        protected virtual void SetControlValue(Control control, Object value, String stringValue)
-        {
+        protected virtual void SetControlValue(Control control, Object value, String stringValue) {
             // Handle combobox explicitly
             if (control is ComboBox) {
                 ComboBox cb = ((ComboBox)control);
@@ -5071,7 +4852,8 @@ namespace BrightIdeasSoftware
             PropertyInfo pinfo = null;
             try {
                 pinfo = control.GetType().GetProperty("Value");
-            } catch (AmbiguousMatchException) {
+            }
+            catch (AmbiguousMatchException) {
                 // The lowest level class of the control must have overridden the "Value" property.
                 // We now have to specifically  look for only public instance properties declared in the lowest level class.
                 pinfo = control.GetType().GetProperty("Value", BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
@@ -5082,10 +4864,12 @@ namespace BrightIdeasSoftware
                 try {
                     pinfo.SetValue(control, value, null);
                     return;
-                } catch (TargetInvocationException) {
+                }
+                catch (TargetInvocationException) {
                     // Not a lot we can do about this one. Something went wrong in the bowels
                     // of the method. Let's take the ostrich approach and just ignore it :-)
-                } catch (ArgumentException) {
+                }
+                catch (ArgumentException) {
                 }
             }
 
@@ -5096,7 +4880,8 @@ namespace BrightIdeasSoftware
                     control.Text = stringValue;
                 else
                     control.Text = valueAsString;
-            } catch (ArgumentOutOfRangeException) {
+            }
+            catch (ArgumentOutOfRangeException) {
                 // The value couldn't be set via the Text property.
             }
         }
@@ -5104,8 +4889,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Setup the given control to be a cell editor
         /// </summary>
-        protected virtual void ConfigureControl()
-        {
+        protected virtual void ConfigureControl() {
             this.cellEditor.Validating += new CancelEventHandler(CellEditor_Validating);
             this.cellEditor.Select();
         }
@@ -5115,8 +4899,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="c"></param>
         /// <returns></returns>
-        protected virtual Object GetControlValue(Control control)
-        {
+        protected virtual Object GetControlValue(Control control) {
             if (control is TextBox)
                 return ((TextBox)control).Text;
 
@@ -5128,9 +4911,11 @@ namespace BrightIdeasSoftware
 
             try {
                 return control.GetType().InvokeMember("Value", BindingFlags.GetProperty, null, control, null);
-            } catch (MissingMethodException) { // Microsoft throws this
+            }
+            catch (MissingMethodException) { // Microsoft throws this
                 return control.Text;
-            } catch (MissingFieldException) { // Mono throws this
+            }
+            catch (MissingFieldException) { // Mono throws this
                 return control.Text;
             }
         }
@@ -5140,8 +4925,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void CellEditor_Validating(object sender, CancelEventArgs e)
-        {
+        protected virtual void CellEditor_Validating(object sender, CancelEventArgs e) {
             this.cellEditEventArgs.Cancel = false;
             this.OnCellEditorValidating(this.cellEditEventArgs);
 
@@ -5158,8 +4942,7 @@ namespace BrightIdeasSoftware
         /// <param name="item">The row to be edited</param>
         /// <param name="subItemIndex">The index of the cell to be edited</param>
         /// <returns>A Rectangle</returns>
-        public virtual Rectangle CalculateCellBounds(OLVListItem item, int subItemIndex)
-        {
+        public virtual Rectangle CalculateCellBounds(OLVListItem item, int subItemIndex) {
             // SubItem.Bounds works for every subitem, except the first.
             if (subItemIndex > 0)
                 return item.SubItems[subItemIndex].Bounds;
@@ -5182,7 +4965,7 @@ namespace BrightIdeasSoftware
             foreach (OLVColumn column in this.Columns) {
                 if (column.DisplayIndex == displayIndex - 1) {
                     int columnZeroLeftEdge = item.SubItems[column.Index].Bounds.Right + 1;
-                    return new Rectangle(columnZeroLeftEdge+4, r.Y, r.X + r.Width - columnZeroLeftEdge, r.Height);
+                    return new Rectangle(columnZeroLeftEdge + 4, r.Y, r.X + r.Width - columnZeroLeftEdge, r.Height);
                 }
             }
 
@@ -5196,14 +4979,13 @@ namespace BrightIdeasSoftware
         /// <param name="item">The row to be edited</param>
         /// <param name="subItemIndex">The index of the cell to be edited</param>
         /// <returns>A Control to edit the given cell</returns>
-        protected virtual Control GetCellEditor(OLVListItem item, int subItemIndex)
-        {
+        protected virtual Control GetCellEditor(OLVListItem item, int subItemIndex) {
             OLVColumn column = this.GetColumn(subItemIndex);
             Object value = column.GetValue(item.RowObject);
 
             // If the value of the cell is null, we can't decide what type of editor to use.
             // Run through the first 1000 rows looking for a non-null value in this column.
-            for (int i=0; value == null && i < Math.Min(this.GetItemCount(), 1000); i++)
+            for (int i = 0; value == null && i < Math.Min(this.GetItemCount(), 1000); i++)
                 value = column.GetValue(this.GetModelObject(i));
 
             // TODO: What do we do if value is still null here?
@@ -5223,8 +5005,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="column">What column does the cell belong to?</param>
         /// <returns></returns>
-        protected virtual Control MakeDefaultCellEditor(OLVColumn column)
-        {
+        protected virtual Control MakeDefaultCellEditor(OLVColumn column) {
             TextBox tb = new TextBox();
             this.ConfigureAutoComplete(tb, column);
             return tb;
@@ -5236,8 +5017,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="tb">The textbox to configure</param>
         /// <param name="column">The column used to calculate values</param>
-        public void ConfigureAutoComplete(TextBox tb, OLVColumn column)
-        {
+        public void ConfigureAutoComplete(TextBox tb, OLVColumn column) {
             this.ConfigureAutoComplete(tb, column, 1000);
         }
 
@@ -5249,8 +5029,7 @@ namespace BrightIdeasSoftware
         /// <param name="tb">The textbox to configure</param>
         /// <param name="column">The column used to calculate values</param>
         /// <param name="maxRows">Consider only this many rows</param>
-        public void ConfigureAutoComplete(TextBox tb, OLVColumn column, int maxRows)
-        {
+        public void ConfigureAutoComplete(TextBox tb, OLVColumn column, int maxRows) {
             // Don't consider more rows than we actually have
             maxRows = Math.Min(this.GetItemCount(), maxRows);
 
@@ -5259,15 +5038,17 @@ namespace BrightIdeasSoftware
 
             // Build a list of unique values, to be used as autocomplete on the editor
             Dictionary<string, bool> alreadySeen = new Dictionary<string, bool>();
+            List<string> values = new List<string>();
             string valueAsString;
             for (int i = 0; i < maxRows; i++) {
                 valueAsString = column.GetStringValue(this.GetModelObject(i));
                 if (!String.IsNullOrEmpty(valueAsString) && !alreadySeen.ContainsKey(valueAsString)) {
-                    tb.AutoCompleteCustomSource.Add(valueAsString);
+                    values.Add(valueAsString);
                     alreadySeen[valueAsString] = true;
                 }
             }
 
+            tb.AutoCompleteCustomSource.AddRange(values.ToArray());
             tb.AutoCompleteSource = AutoCompleteSource.CustomSource;
             tb.AutoCompleteMode = AutoCompleteMode.Append;
         }
@@ -5275,8 +5056,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Stop editing a cell and throw away any changes.
         /// </summary>
-        public virtual void CancelCellEdit()
-        {
+        public virtual void CancelCellEdit() {
             if (!this.IsCellEditing)
                 return;
 
@@ -5297,8 +5077,7 @@ namespace BrightIdeasSoftware
         /// process can cause the finishing to be aborted. Developers should check the return value
         /// or use IsCellEditing property after calling this method to see if the user is still
         /// editing a cell.</remarks>
-        public virtual bool PossibleFinishCellEditing()
-        {
+        public virtual bool PossibleFinishCellEditing() {
             if (this.IsCellEditing) {
                 this.cellEditEventArgs.Cancel = false;
                 this.OnCellEditorValidating(this.cellEditEventArgs);
@@ -5317,8 +5096,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>This method does not trigger a Validating event, so it always finishes
         /// the cell edit.</remarks>
-        public virtual void FinishCellEdit()
-        {
+        public virtual void FinishCellEdit() {
             if (!this.IsCellEditing)
                 return;
 
@@ -5338,8 +5116,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Remove all trace of any existing cell edit operation
         /// </summary>
-        protected virtual void CleanupCellEdit()
-        {
+        protected virtual void CleanupCellEdit() {
             if (this.cellEditor == null)
                 return;
 
@@ -5358,8 +5135,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Force the hot item to be recalculated
         /// </summary>
-        public virtual void ClearHotItem()
-        {
+        public virtual void ClearHotItem() {
             this.UpdateHotItem(new Point(-1, -1));
             //this.ClearTransitions();
         }
@@ -5367,8 +5143,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Force the hot item to be recalculated
         /// </summary>
-        public virtual void RefreshHotItem()
-        {
+        public virtual void RefreshHotItem() {
             this.UpdateHotItem(this.PointToClient(Cursor.Position));
         }
 
@@ -5377,8 +5152,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="pt">Where is the mouse?</param>
         /// <remarks>This is the main entry point for hot item handling</remarks>
-        protected virtual void UpdateHotItem(Point pt)
-        {
+        protected virtual void UpdateHotItem(Point pt) {
             if (!this.UseHotItem || this.HotItemStyle == null)
                 return;
 
@@ -5406,8 +5180,7 @@ namespace BrightIdeasSoftware
                 this.ApplyHotItemStyle(newHotItem);
         }
 
-        protected virtual void ApplyHotItemStyle(int index)
-        {
+        protected virtual void ApplyHotItemStyle(int index) {
             //this.RegisterHotItemTransition(index);
 
             // Virtual lists apply hot item style when fetching their rows
@@ -5417,8 +5190,7 @@ namespace BrightIdeasSoftware
                 this.ApplyHotItemStyle(this.GetItem(index));
         }
 
-        protected virtual void ApplyHotItemStyle(OLVListItem olvi)
-        {
+        protected virtual void ApplyHotItemStyle(OLVListItem olvi) {
             if (!this.FullRowSelect) {
                 this.ApplyHotItemStyle(olvi, olvi.SubItems[0]);
                 return;
@@ -5443,8 +5215,7 @@ namespace BrightIdeasSoftware
             this.CorrectSubItemColors(olvi);
         }
 
-        protected virtual void ApplyHotItemStyle(ListViewItem olvi, ListViewItem.ListViewSubItem si)
-        {
+        protected virtual void ApplyHotItemStyle(ListViewItem olvi, ListViewItem.ListViewSubItem si) {
             olvi.UseItemStyleForSubItems = false;
 
             // Background color is applied to all sub items
@@ -5470,16 +5241,14 @@ namespace BrightIdeasSoftware
                 si.ForeColor = this.HotItemStyle.ForeColor;
         }
 
-        protected virtual void UnapplyHotItemStyle(int index)
-        {
+        protected virtual void UnapplyHotItemStyle(int index) {
             if (this.VirtualMode)
                 this.RedrawItems(index, index, false);
             else
                 this.UnapplyHotItemStyle(this.GetItem(index));
         }
 
-        protected virtual void UnapplyHotItemStyle(OLVListItem olvi)
-        {
+        protected virtual void UnapplyHotItemStyle(OLVListItem olvi) {
             olvi.UseItemStyleForSubItems = true;
             this.RefreshItem(olvi);
             //this.FillInValues(olvi, olvi.RowObject);
@@ -5545,17 +5314,14 @@ namespace BrightIdeasSoftware
         internal class OLVColumnCollectionEditor : System.ComponentModel.Design.CollectionEditor
         {
             public OLVColumnCollectionEditor(Type t)
-                : base(t)
-            {
+                : base(t) {
             }
 
-            protected override Type CreateCollectionItemType()
-            {
+            protected override Type CreateCollectionItemType() {
                 return typeof(OLVColumn);
             }
 
-            public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
-            {
+            public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value) {
                 // Figure out which ObjectListView we are working on. This should be the Instance of the context.
                 ObjectListView olv = null;
                 if (context != null)
@@ -5587,8 +5353,7 @@ namespace BrightIdeasSoftware
                 return olv.Columns;
             }
 
-            protected override string GetDisplayText(object value)
-            {
+            protected override string GetDisplayText(object value) {
                 OLVColumn col = value as OLVColumn;
                 if (col == null || String.IsNullOrEmpty(col.AspectName))
                     return base.GetDisplayText(value);
@@ -5602,8 +5367,7 @@ namespace BrightIdeasSoftware
         /// a specialised editor with it.
         /// </summary>
         [Editor(typeof(OLVColumnCollectionEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        new public ListView.ColumnHeaderCollection Columns
-        {
+        new public ListView.ColumnHeaderCollection Columns {
             get {
                 return base.Columns;
             }
@@ -5738,8 +5502,7 @@ namespace BrightIdeasSoftware
         /// Create an OLVColumn
         /// </summary>
         public OLVColumn()
-            : base()
-        {
+            : base() {
         }
 
         /// <summary>
@@ -5748,8 +5511,7 @@ namespace BrightIdeasSoftware
         /// <param name="title">The title of the column</param>
         /// <param name="aspect">The aspect to be shown in the column</param>
         public OLVColumn(string title, string aspect)
-            : this()
-        {
+            : this() {
             this.Text = title;
             this.AspectName = aspect;
         }
@@ -5764,8 +5526,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public AspectGetterDelegate AspectGetter
-        {
+        public AspectGetterDelegate AspectGetter {
             get { return aspectGetter; }
             set { aspectGetter = value; }
         }
@@ -5778,8 +5539,7 @@ namespace BrightIdeasSoftware
         [Obsolete("This property is no longer maintained", true),
          Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public bool AspectGetterAutoGenerated
-        {
+        public bool AspectGetterAutoGenerated {
             get { return aspectGetterAutoGenerated; }
             set { aspectGetterAutoGenerated = value; }
         }
@@ -5795,8 +5555,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("The name of the property or method that should be called to get the aspect to display in this column"),
          DefaultValue(null)]
-        public string AspectName
-        {
+        public string AspectName {
             get { return aspectName; }
             set {
                 aspectName = value;
@@ -5813,8 +5572,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public AspectPutterDelegate AspectPutter
-        {
+        public AspectPutterDelegate AspectPutter {
             get { return aspectPutter; }
             set { aspectPutter = value; }
         }
@@ -5826,8 +5584,7 @@ namespace BrightIdeasSoftware
         /// <remarks>If this value is set, AspectToStringFormat will be ignored.</remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public AspectToStringConverterDelegate AspectToStringConverter
-        {
+        public AspectToStringConverterDelegate AspectToStringConverter {
             get { return aspectToStringConverter; }
             set { aspectToStringConverter = value; }
         }
@@ -5843,8 +5600,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("The format string that will be used to convert an aspect to its string representation"),
          DefaultValue(null)]
-        public string AspectToStringFormat
-        {
+        public string AspectToStringFormat {
             get { return aspectToStringFormat; }
             set { aspectToStringFormat = value; }
         }
@@ -5905,8 +5661,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("Will this column resize to fill unoccupied horizontal space in the listview?"),
          DefaultValue(false)]
-        public bool FillsFreeSpace
-        {
+        public bool FillsFreeSpace {
             get { return this.FreeSpaceProportion > 0; }
             set {
                 if (value)
@@ -5949,8 +5704,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public int FreeSpaceProportion
-        {
+        public int FreeSpaceProportion {
             get { return freeSpaceProportion; }
             set { freeSpaceProportion = Math.Max(0, value); }
         }
@@ -5962,8 +5716,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public GroupKeyGetterDelegate GroupKeyGetter
-        {
+        public GroupKeyGetterDelegate GroupKeyGetter {
             get { return groupKeyGetter; }
             set { groupKeyGetter = value; }
         }
@@ -5974,8 +5727,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public GroupKeyToTitleConverterDelegate GroupKeyToTitleConverter
-        {
+        public GroupKeyToTitleConverterDelegate GroupKeyToTitleConverter {
             get { return groupKeyToTitleConverter; }
             set { groupKeyToTitleConverter = value; }
         }
@@ -5997,8 +5749,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("The format to use when suffixing item counts to group titles"),
          DefaultValue(null)]
-        public string GroupWithItemCountFormat
-        {
+        public string GroupWithItemCountFormat {
             get { return groupWithItemCountFormat; }
             set { groupWithItemCountFormat = value; }
         }
@@ -6008,8 +5759,7 @@ namespace BrightIdeasSoftware
         /// Return this.GroupWithItemCountFormat or a reasonable default
         /// </summary>
         [Browsable(false)]
-        public string GroupWithItemCountFormatOrDefault
-        {
+        public string GroupWithItemCountFormatOrDefault {
             get {
                 if (String.IsNullOrEmpty(this.GroupWithItemCountFormat))
                     // There is one rare but pathelogically possible case where the ListView can
@@ -6039,8 +5789,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("The format to use when suffixing item counts to group titles"),
          DefaultValue(null)]
-        public string GroupWithItemCountSingularFormat
-        {
+        public string GroupWithItemCountSingularFormat {
             get { return groupWithItemCountSingularFormat; }
             set { groupWithItemCountSingularFormat = value; }
         }
@@ -6050,8 +5799,7 @@ namespace BrightIdeasSoftware
         /// Return this.GroupWithItemCountSingularFormat or a reasonable default
         /// </summary>
         [Browsable(false)]
-        public string GroupWithItemCountSingularFormatOrDefault
-        {
+        public string GroupWithItemCountSingularFormatOrDefault {
             get {
                 if (String.IsNullOrEmpty(this.GroupWithItemCountSingularFormat))
                     // There is one pathelogically rare but still possible case where the ListView can
@@ -6079,8 +5827,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public ImageGetterDelegate ImageGetter
-        {
+        public ImageGetterDelegate ImageGetter {
             get { return imageGetter; }
             set { imageGetter = value; }
         }
@@ -6095,8 +5842,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("Can the value in this column be edited?"),
          DefaultValue(true)]
-        public bool IsEditable
-        {
+        public bool IsEditable {
             get { return isEditable; }
             set { isEditable = value; }
         }
@@ -6106,8 +5852,7 @@ namespace BrightIdeasSoftware
         /// Is this column a fixed width column?
         /// </summary>
         [Browsable(false)]
-        public bool IsFixedWidth
-        {
+        public bool IsFixedWidth {
             get {
                 return (this.MinimumWidth != -1 && this.MaximumWidth != -1 && this.MinimumWidth >= this.MaximumWidth);
             }
@@ -6121,8 +5866,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("Will this column be used when the view is switched to tile view"),
          DefaultValue(false)]
-        public bool IsTileViewColumn
-        {
+        public bool IsTileViewColumn {
             get { return isTileViewColumn; }
             set { isTileViewColumn = value; }
         }
@@ -6135,8 +5879,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("Can this column be seen by the user?"),
          DefaultValue(true)]
-        public bool IsVisible
-        {
+        public bool IsVisible {
             get { return isVisible; }
             set { isVisible = value; }
         }
@@ -6159,8 +5902,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("What is the maximum width to which the user can resize this column?"),
          DefaultValue(-1)]
-        public int MaximumWidth
-        {
+        public int MaximumWidth {
             get { return maxWidth; }
             set {
                 maxWidth = value;
@@ -6177,8 +5919,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("What is the minimum width to which the user can resize this column?"),
          DefaultValue(-1)]
-        public int MinimumWidth
-        {
+        public int MinimumWidth {
             get { return minWidth; }
             set {
                 minWidth = value;
@@ -6194,8 +5935,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
         Description("The renderer will draw this column when the ListView is owner drawn"),
         DefaultValue(null)]
-        public IRenderer Renderer
-        {
+        public IRenderer Renderer {
             get { return renderer; }
             set { renderer = value; }
         }
@@ -6208,8 +5948,7 @@ namespace BrightIdeasSoftware
         /// New code should implement an IRenderer, though this property will be maintained.</remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public RenderDelegate RendererDelegate
-        {
+        public RenderDelegate RendererDelegate {
             get {
                 if (this.Renderer is Version1Renderer)
                     return ((Version1Renderer)this.Renderer).RenderDelegate;
@@ -6232,8 +5971,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("The tooltip to show when the mouse is hovered over the header of this column"),
          DefaultValue((String)null)]
-        public String ToolTipText
-        {
+        public String ToolTipText {
             get { return toolTipText; }
             set { toolTipText = value; }
         }
@@ -6249,8 +5987,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("The name of the property or method that should be called to get the aspect to display in this column"),
          DefaultValue(false)]
-        public bool UseInitialLetterForGroup
-        {
+        public bool UseInitialLetterForGroup {
             get { return useInitialLetterForGroup; }
             set { useInitialLetterForGroup = value; }
         }
@@ -6265,8 +6002,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="value">The group key that is being converted to a title</param>
         /// <returns>string</returns>
-        public string ConvertGroupKeyToTitle(object value)
-        {
+        public string ConvertGroupKeyToTitle(object value) {
             if (this.groupKeyToTitleConverter == null)
                 if (value == null)
                     return "{null}";
@@ -6281,8 +6017,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowObject">The row object that is being displayed</param>
         /// <returns>The checkedness of the object</returns>
-        public CheckState GetCheckState(object rowObject)
-        {
+        public CheckState GetCheckState(object rowObject) {
             if (!this.CheckBoxes)
                 return CheckState.Unchecked;
 
@@ -6302,8 +6037,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowObject">The row object that is being displayed</param>
         /// <returns>The checkedness of the object</returns>
-        public void PutCheckState(object rowObject, CheckState newState)
-        {
+        public void PutCheckState(object rowObject, CheckState newState) {
             if (newState == CheckState.Checked)
                 this.PutValue(rowObject, true);
             else
@@ -6318,8 +6052,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowObject">The row object that is being displayed</param>
         /// <returns>An object, which is the aspect named by AspectName</returns>
-        public object GetAspectByName(object rowObject)
-        {
+        public object GetAspectByName(object rowObject) {
             if (this.aspectMunger == null)
                 this.aspectMunger = new Munger(this.AspectName);
 
@@ -6332,8 +6065,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowObject">The row object that is being displayed</param>
         /// <returns>Group key object</returns>
-        public object GetGroupKey(object rowObject)
-        {
+        public object GetGroupKey(object rowObject) {
             if (this.groupKeyGetter == null) {
                 object key = this.GetValue(rowObject);
                 String keyAsString = key as String;
@@ -6351,8 +6083,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowObject">The row object that is being displayed</param>
         /// <returns>int or string or Image. int or string will be used as index into image list. null or -1 means no image</returns>
-        public Object GetImage(object rowObject)
-        {
+        public Object GetImage(object rowObject) {
             if (this.CheckBoxes)
                 return this.GetCheckStateImage(rowObject);
 
@@ -6370,8 +6101,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowObject"></param>
         /// <returns></returns>
-        public string GetCheckStateImage(Object rowObject)
-        {
+        public string GetCheckStateImage(Object rowObject) {
             CheckState checkState = this.GetCheckState(rowObject);
 
             if (checkState == CheckState.Checked)
@@ -6392,8 +6122,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         /// <param name="rowObject"></param>
         /// <returns></returns>
-        public string GetStringValue(object rowObject)
-        {
+        public string GetStringValue(object rowObject) {
             return this.ValueToString(this.GetValue(rowObject));
         }
 
@@ -6402,12 +6131,11 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowObject">The row object that is being displayed</param>
         /// <returns>An object, which is the aspect to be displayed</returns>
-        public object GetValue(object rowObject)
-        {
-            if (this.aspectGetter == null)
+        public object GetValue(object rowObject) {
+            if (this.AspectGetter == null)
                 return this.GetAspectByName(rowObject);
             else
-                return this.aspectGetter(rowObject);
+                return this.AspectGetter(rowObject);
         }
 
         /// <summary>
@@ -6416,8 +6144,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowObject">The model object to be updated</param>
         /// <param name="newValue">The value to be put into the model</param>
-        public void PutAspectByName(Object rowObject, Object newValue)
-        {
+        public void PutAspectByName(Object rowObject, Object newValue) {
             if (this.aspectMunger == null)
                 this.aspectMunger = new Munger(this.AspectName);
 
@@ -6429,8 +6156,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rowObject">The model object to be updated</param>
         /// <param name="newValue">The value to be put into the model</param>
-        public void PutValue(Object rowObject, Object newValue)
-        {
+        public void PutValue(Object rowObject, Object newValue) {
             if (this.aspectPutter == null)
                 this.PutAspectByName(rowObject, newValue);
             else
@@ -6447,14 +6173,13 @@ namespace BrightIdeasSoftware
         /// </remarks>
         /// <param name="value">The value of the aspect that should be displayed</param>
         /// <returns>A string representation of the aspect</returns>
-        public string ValueToString(object value)
-        {
+        public string ValueToString(object value) {
             // CONSIDER: Should we give aspect-to-string converters a chance to work on a null value?
             if (value == null)
                 return "";
 
-            if (this.aspectToStringConverter != null)
-                return this.aspectToStringConverter(value);
+            if (this.AspectToStringConverter != null)
+                return this.AspectToStringConverter(value);
 
             string fmt = this.AspectToStringFormat;
             if (String.IsNullOrEmpty(fmt))
@@ -6482,8 +6207,7 @@ namespace BrightIdeasSoftware
         ///     new UInt32[] { 20000, 100000 },
         ///     new string[] { "Lowly worker",  "Middle management", "Rarified elevation"});
         /// </example>
-        public void MakeGroupies<T>(T[] values, string[] descriptions)
-        {
+        public void MakeGroupies<T>(T[] values, string[] descriptions) {
             if (values.Length + 1 != descriptions.Length)
                 throw new ArgumentException("descriptions must have one more element than values.");
 
@@ -6529,8 +6253,7 @@ namespace BrightIdeasSoftware
         /// Create a OLVListItem for the given row object
         /// </summary>
         public OLVListItem(object rowObject)
-            : base()
-        {
+            : base() {
             this.rowObject = rowObject;
         }
 
@@ -6538,8 +6261,7 @@ namespace BrightIdeasSoftware
         /// Create a OLVListItem for the given row object, represented by the given string and image
         /// </summary>
         public OLVListItem(object rowObject, string text, Object image)
-            : base(text, -1)
-        {
+            : base(text, -1) {
             this.rowObject = rowObject;
             this.imageSelector = image;
         }
@@ -6547,8 +6269,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// RowObject is the model object that is source of the data for this list item.
         /// </summary>
-        public object RowObject
-        {
+        public object RowObject {
             get { return rowObject; }
             set { rowObject = value; }
         }
@@ -6559,10 +6280,9 @@ namespace BrightIdeasSoftware
         /// this is the same as ListViewItem.Index, but for grouped views, it is different.
         /// </summary>
         [Obsolete("This property is no longer maintained", true)]
-        public int DisplayIndex
-        {
+        public int DisplayIndex {
             get { return 0; }
-            set {  }
+            set { }
         }
 
         /// <summary>
@@ -6570,8 +6290,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks><para>This can be an Image, a string or an int. A string or an int will
         /// be used as an index into the small image list.</para></remarks>
-        public Object ImageSelector
-        {
+        public Object ImageSelector {
             get { return imageSelector; }
             set {
                 imageSelector = value;
@@ -6590,8 +6309,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>.NET's Checked property was not built to handle tri-state checkboxes,
         /// and will return True for both Checked and Indeterminate states.</remarks>
-        public CheckState CheckState
-        {
+        public CheckState CheckState {
             get {
                 switch (this.StateImageIndex) {
                     case 0:
@@ -6640,16 +6358,14 @@ namespace BrightIdeasSoftware
         /// Create a OLVListSubItem
         /// </summary>
         public OLVListSubItem()
-            : base()
-        {
+            : base() {
         }
 
         /// <summary>
         /// Create a OLVListSubItem that shows the given string and image
         /// </summary>
         public OLVListSubItem(string text, Object image)
-            : base()
-        {
+            : base() {
             this.Text = text;
             this.ImageSelector = image;
         }
@@ -6659,8 +6375,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks><para>This can be an Image, a string or an int. A string or an int will
         /// be used as an index into the small image list.</para></remarks>
-        public Object ImageSelector
-        {
+        public Object ImageSelector {
             get { return imageSelector; }
             set { imageSelector = value; }
         }
@@ -6670,8 +6385,7 @@ namespace BrightIdeasSoftware
         /// Return the state of the animatation of the image on this subitem.
         /// Null means there is either no image, or it is not an animation
         /// </summary>
-        internal ImageRenderer.AnimationState AnimationState
-        {
+        internal ImageRenderer.AnimationState AnimationState {
             get { return animationState; }
             set { animationState = value; }
         }
@@ -6688,32 +6402,28 @@ namespace BrightIdeasSoftware
     public class HotItemStyle : System.ComponentModel.Component
     {
         [DefaultValue(null)]
-        public Font Font
-        {
+        public Font Font {
             get { return this.font; }
             set { this.font = value; }
         }
         private Font font;
 
         [DefaultValue(FontStyle.Regular)]
-        public FontStyle FontStyle
-        {
+        public FontStyle FontStyle {
             get { return this.fontStyle; }
             set { this.fontStyle = value; }
         }
         private FontStyle fontStyle;
 
         [DefaultValue(typeof(Color), "")]
-        public Color ForeColor
-        {
+        public Color ForeColor {
             get { return this.foreColor; }
             set { this.foreColor = value; }
         }
         private Color foreColor;
 
         [DefaultValue(typeof(Color), "")]
-        public Color BackColor
-        {
+        public Color BackColor {
             get { return this.backColor; }
             set { this.backColor = value; }
         }
@@ -6765,20 +6475,17 @@ namespace BrightIdeasSoftware
 
         #region Public read-only properties
 
-        public OLVListItem Item
-        {
+        public OLVListItem Item {
             get { return item; }
         }
         private OLVListItem item;
 
-        public ListViewItem.ListViewSubItem SubItem
-        {
+        public ListViewItem.ListViewSubItem SubItem {
             get { return subItem; }
         }
         private ListViewItem.ListViewSubItem subItem;
 
-        public ListViewHitTestLocations Location
-        {
+        public ListViewHitTestLocations Location {
             get { return location; }
         }
         private ListViewHitTestLocations location;
@@ -6857,139 +6564,139 @@ namespace BrightIdeasSoftware
     //    }
     //}
 
-   // public class TransitionRenderer : BaseRenderer
-   // {
-   //     public TransitionRenderer()
-   //     {
-   //     }
+    // public class TransitionRenderer : BaseRenderer
+    // {
+    //     public TransitionRenderer()
+    //     {
+    //     }
 
-   //     internal TransitionState GetTransitionState()
-   //     {
-   //         if (this.ListView == null)
-   //             return null;
-   //         else
-   //             return this.ListView.GetHotItemTransitionState(this.ListItem.Index);
-   //     }
+    //     internal TransitionState GetTransitionState()
+    //     {
+    //         if (this.ListView == null)
+    //             return null;
+    //         else
+    //             return this.ListView.GetHotItemTransitionState(this.ListItem.Index);
+    //     }
 
-   //     //public override bool OptionalRender(Graphics g, Rectangle r)
-   //     //{
-   //     //    TransitionState state = this.GetHotItemTransitionState();
-   //     //    if (state == null || this.IsItemSelected)
-   //     //        return base.OptionalRender(g, r);
+    //     //public override bool OptionalRender(Graphics g, Rectangle r)
+    //     //{
+    //     //    TransitionState state = this.GetHotItemTransitionState();
+    //     //    if (state == null || this.IsItemSelected)
+    //     //        return base.OptionalRender(g, r);
 
-   //     //    if (!state.IsInitialized)
-   //     //        this.InitializeState(g, r, state);
+    //     //    if (!state.IsInitialized)
+    //     //        this.InitializeState(g, r, state);
 
-   //     //    this.DrawBackground(g, r);
-   //     //    this.RenderBitmaps(g, r, state);
+    //     //    this.DrawBackground(g, r);
+    //     //    this.RenderBitmaps(g, r, state);
 
-   //     //    return true;
-   //     //}
+    //     //    return true;
+    //     //}
 
-   //     protected override void DrawBackground(Graphics g, Rectangle r)
-   //     {
-   //         base.DrawBackground(g, r);
+    //     protected override void DrawBackground(Graphics g, Rectangle r)
+    //     {
+    //         base.DrawBackground(g, r);
 
-   //         TransitionState state = this.GetTransitionState();
-   //         if (state == null || this.IsItemSelected)
-   //             return;
+    //         TransitionState state = this.GetTransitionState();
+    //         if (state == null || this.IsItemSelected)
+    //             return;
 
-   //         Color c = Color.Plum;
-   //         g.SmoothingMode = SmoothingMode.AntiAlias;
-   //         const int rounding = 16;
-   //         GraphicsPath path = this.GetRoundedRect(r, rounding);
-   //         //g.FillPath(new SolidBrush(Color.FromArgb((int)(196 * state.Progress), c)), path);
+    //         Color c = Color.Plum;
+    //         g.SmoothingMode = SmoothingMode.AntiAlias;
+    //         const int rounding = 16;
+    //         GraphicsPath path = this.GetRoundedRect(r, rounding);
+    //         //g.FillPath(new SolidBrush(Color.FromArgb((int)(196 * state.Progress), c)), path);
 
-   //         PathGradientBrush pthGrBrush = new PathGradientBrush(path);
-   //         pthGrBrush.CenterColor = Color.FromArgb((int)(255 * state.Progress), c);
-   //         Color[] colors = { Color.FromArgb((int)(96 * state.Progress), c) };
-   //         pthGrBrush.SurroundColors = colors;
-   //         g.FillPath(pthGrBrush, path);
-   //     }
+    //         PathGradientBrush pthGrBrush = new PathGradientBrush(path);
+    //         pthGrBrush.CenterColor = Color.FromArgb((int)(255 * state.Progress), c);
+    //         Color[] colors = { Color.FromArgb((int)(96 * state.Progress), c) };
+    //         pthGrBrush.SurroundColors = colors;
+    //         g.FillPath(pthGrBrush, path);
+    //     }
 
-   //     private GraphicsPath GetRoundedRect(RectangleF rect, float diameter)
-   //     {
-   //         GraphicsPath path = new GraphicsPath();
+    //     private GraphicsPath GetRoundedRect(RectangleF rect, float diameter)
+    //     {
+    //         GraphicsPath path = new GraphicsPath();
 
-   //         RectangleF arc = new RectangleF(rect.X, rect.Y, diameter, diameter);
-   //         path.AddArc(arc, 180, 90);
-   //         arc.X = rect.Right - diameter;
-   //         path.AddArc(arc, 270, 90);
-   //         arc.Y = rect.Bottom - diameter;
-   //         path.AddArc(arc, 0, 90);
-   //         arc.X = rect.Left;
-   //         path.AddArc(arc, 90, 90);
-   //         path.CloseFigure();
+    //         RectangleF arc = new RectangleF(rect.X, rect.Y, diameter, diameter);
+    //         path.AddArc(arc, 180, 90);
+    //         arc.X = rect.Right - diameter;
+    //         path.AddArc(arc, 270, 90);
+    //         arc.Y = rect.Bottom - diameter;
+    //         path.AddArc(arc, 0, 90);
+    //         arc.X = rect.Left;
+    //         path.AddArc(arc, 90, 90);
+    //         path.CloseFigure();
 
-   //         return path;
-   //     }
+    //         return path;
+    //     }
 
-   //     /*
-   //     private void InitializeState(Graphics g, Rectangle r, TransitionState state)
-   //     {
-   //         state.FromBitmap = new Bitmap(r.Width, r.Height, g);
-   //         Graphics bitmapGraphics = Graphics.FromImage(state.FromBitmap);
-   //         System.Diagnostics.Debug.WriteLine("from");
-   //         System.Diagnostics.Debug.WriteLine(this.GetText());
+    //     /*
+    //     private void InitializeState(Graphics g, Rectangle r, TransitionState state)
+    //     {
+    //         state.FromBitmap = new Bitmap(r.Width, r.Height, g);
+    //         Graphics bitmapGraphics = Graphics.FromImage(state.FromBitmap);
+    //         System.Diagnostics.Debug.WriteLine("from");
+    //         System.Diagnostics.Debug.WriteLine(this.GetText());
 
-   //         base.OptionalRender(bitmapGraphics, new Rectangle(0, 0, r.Width, r.Height));
+    //         base.OptionalRender(bitmapGraphics, new Rectangle(0, 0, r.Width, r.Height));
 
-   //         state.ToBitmap = new Bitmap(r.Width, r.Height, g);
-   //         Graphics bitmapGraphics2 = Graphics.FromImage(state.ToBitmap);
-   //         bitmapGraphics2.FillEllipse(Brushes.Gold, new Rectangle(0, 0, r.Width, r.Height));
-   //         this.IsDrawBackground = false;
-   //         System.Diagnostics.Debug.WriteLine("to");
-   //         System.Diagnostics.Debug.WriteLine(this.GetText());
-   //         base.OptionalRender(bitmapGraphics2, new Rectangle(0, 0, r.Width, r.Height));
-   //         this.IsDrawBackground = true;
-   //     }
+    //         state.ToBitmap = new Bitmap(r.Width, r.Height, g);
+    //         Graphics bitmapGraphics2 = Graphics.FromImage(state.ToBitmap);
+    //         bitmapGraphics2.FillEllipse(Brushes.Gold, new Rectangle(0, 0, r.Width, r.Height));
+    //         this.IsDrawBackground = false;
+    //         System.Diagnostics.Debug.WriteLine("to");
+    //         System.Diagnostics.Debug.WriteLine(this.GetText());
+    //         base.OptionalRender(bitmapGraphics2, new Rectangle(0, 0, r.Width, r.Height));
+    //         this.IsDrawBackground = true;
+    //     }
 
-   //     private void RenderBitmaps(Graphics g, Rectangle r, TransitionState state)
-   //     {
-   //         if (state.Progress >= 1.0f)
-   //             g.DrawImage(state.ToBitmap, r.X, r.Y);
-   //         else if (state.Progress <= 0.0f)
-   //             g.DrawImage(state.FromBitmap, r.X, r.Y);
-   //         else
-   //         this.BlendBitmaps(g, r, state.FromBitmap, state.ToBitmap, state.Progress);
-   //     }
+    //     private void RenderBitmaps(Graphics g, Rectangle r, TransitionState state)
+    //     {
+    //         if (state.Progress >= 1.0f)
+    //             g.DrawImage(state.ToBitmap, r.X, r.Y);
+    //         else if (state.Progress <= 0.0f)
+    //             g.DrawImage(state.FromBitmap, r.X, r.Y);
+    //         else
+    //         this.BlendBitmaps(g, r, state.FromBitmap, state.ToBitmap, state.Progress);
+    //     }
 
-   //     private void BlendBitmaps(Graphics g, Rectangle r, Bitmap fromBitmap, Bitmap toBitmap, float transition)
-   //     {
-   //         float[][] colorMatrixElements = {
-   //new float[] {1,  0,  0,  0, 0},
-   //new float[] {0,  1,  0,  0, 0},
-   //new float[] {0,  0,  1,  0, 0},
-   //new float[] {0,  0,  0,  transition, 0},
-   //new float[] {0,  0,  0,  0, 1}};
+    //     private void BlendBitmaps(Graphics g, Rectangle r, Bitmap fromBitmap, Bitmap toBitmap, float transition)
+    //     {
+    //         float[][] colorMatrixElements = {
+    //new float[] {1,  0,  0,  0, 0},
+    //new float[] {0,  1,  0,  0, 0},
+    //new float[] {0,  0,  1,  0, 0},
+    //new float[] {0,  0,  0,  transition, 0},
+    //new float[] {0,  0,  0,  0, 1}};
 
-   //         ColorMatrix colorMatrix = new ColorMatrix(colorMatrixElements);
-   //         ImageAttributes imageAttributes = new ImageAttributes();
-   //         imageAttributes.SetColorMatrix(colorMatrix);
+    //         ColorMatrix colorMatrix = new ColorMatrix(colorMatrixElements);
+    //         ImageAttributes imageAttributes = new ImageAttributes();
+    //         imageAttributes.SetColorMatrix(colorMatrix);
 
-   //         g.DrawImage(
-   //            toBitmap,
-   //            new Rectangle(r.X, r.Y, toBitmap.Size.Width, toBitmap.Size.Height),  // destination rectangle
-   //            0, 0,        // upper-left corner of source rectangle
-   //            toBitmap.Size.Width,       // width of source rectangle
-   //            toBitmap.Size.Height,      // height of source rectangle
-   //            GraphicsUnit.Pixel,
-   //            imageAttributes);
+    //         g.DrawImage(
+    //            toBitmap,
+    //            new Rectangle(r.X, r.Y, toBitmap.Size.Width, toBitmap.Size.Height),  // destination rectangle
+    //            0, 0,        // upper-left corner of source rectangle
+    //            toBitmap.Size.Width,       // width of source rectangle
+    //            toBitmap.Size.Height,      // height of source rectangle
+    //            GraphicsUnit.Pixel,
+    //            imageAttributes);
 
-   //         colorMatrix.Matrix33 = 1.0f - transition;
-   //         imageAttributes.SetColorMatrix(colorMatrix);
+    //         colorMatrix.Matrix33 = 1.0f - transition;
+    //         imageAttributes.SetColorMatrix(colorMatrix);
 
-   //         g.DrawImage(
-   //            fromBitmap,
-   //            new Rectangle(r.X, r.Y, fromBitmap.Size.Width, fromBitmap.Size.Height),  // destination rectangle
-   //            0, 0,        // upper-left corner of source rectangle
-   //            fromBitmap.Size.Width,       // width of source rectangle
-   //            fromBitmap.Size.Height,      // height of source rectangle
-   //            GraphicsUnit.Pixel,
-   //            imageAttributes);
-   //     }
-   //     */
-   // }
+    //         g.DrawImage(
+    //            fromBitmap,
+    //            new Rectangle(r.X, r.Y, fromBitmap.Size.Width, fromBitmap.Size.Height),  // destination rectangle
+    //            0, 0,        // upper-left corner of source rectangle
+    //            fromBitmap.Size.Width,       // width of source rectangle
+    //            fromBitmap.Size.Height,      // height of source rectangle
+    //            GraphicsUnit.Pixel,
+    //            imageAttributes);
+    //     }
+    //     */
+    // }
 
     /// <summary>
     /// A simple-minded implementation of a Dictionary that can handle null as a key.
@@ -7003,10 +6710,8 @@ namespace BrightIdeasSoftware
         private bool hasNullKey;
         private TValue nullValue;
 
-        new public TValue this[TKey key]
-        {
-            get
-            {
+        new public TValue this[TKey key] {
+            get {
                 if (key == null) {
                     if (hasNullKey)
                         return nullValue;
@@ -7015,8 +6720,7 @@ namespace BrightIdeasSoftware
                 } else
                     return base[key];
             }
-            set
-            {
+            set {
                 if (key == null) {
                     this.hasNullKey = true;
                     this.nullValue = value;
@@ -7025,22 +6729,104 @@ namespace BrightIdeasSoftware
             }
         }
 
-        new public bool ContainsKey(TKey key)
-        {
+        new public bool ContainsKey(TKey key) {
             if (key == null)
                 return this.hasNullKey;
             else
                 return base.ContainsKey(key);
         }
 
-        new public IList Keys
-        {
+        new public IList Keys {
             get {
                 ArrayList list = new ArrayList(base.Keys);
                 if (this.hasNullKey)
                     list.Add(null);
                 return list;
             }
+        }
+    }
+    public class OLVDataObject : DataObject
+    {
+        public OLVDataObject(ObjectListView olv) : this(olv, olv.SelectedObjects) {
+
+        }
+
+        public OLVDataObject(ObjectListView olv, IList modelObjects) {
+            this.objectListView = olv;
+            this.modelObjects = modelObjects;
+        }
+
+        public ObjectListView ListView {
+            get { return objectListView; }
+        }
+        private ObjectListView objectListView;
+
+        public IList ModelObjects {
+            get { return modelObjects; }
+        }
+        private IList modelObjects = new ArrayList();
+
+        public void CreateTextFormats() {
+            List<OLVColumn> columns = this.ListView.ColumnsInDisplayOrder;
+
+            // Build text and html versions of the selection
+            StringBuilder sbText = new StringBuilder();
+            StringBuilder sbHtml = new StringBuilder("<table>");
+
+            foreach (object modelObject in this.ModelObjects) {
+                sbHtml.Append("<tr><td>");
+                foreach (OLVColumn col in columns) {
+                    if (col != columns[0]) {
+                        sbText.Append("\t");
+                        sbHtml.Append("</td><td>");
+                    }
+                    string strValue = col.GetStringValue(modelObject);
+                    sbText.Append(strValue);
+                    sbHtml.Append(strValue); //TODO: Should encode the string value
+                }
+                sbText.AppendLine();
+                sbHtml.AppendLine("</td></tr>");
+            }
+            sbHtml.AppendLine("</table>");
+
+            // Put both the text and html versions onto the clipboard
+            this.SetText(sbText.ToString(), TextDataFormat.UnicodeText);
+            this.SetText(ConvertToHtmlFragment(sbHtml.ToString()), TextDataFormat.Html);
+        }
+
+        /// <summary>
+        /// Convert the fragment of HTML into the Clipboards HTML format.
+        /// </summary>
+        /// <remarks>The HTML format is found here http://msdn2.microsoft.com/en-us/library/aa767917.aspx
+        /// </remarks>
+        /// <param name="fragment">The HTML to put onto the clipboard. It must be valid HTML!</param>
+        /// <returns>A string that can be put onto the clipboard and will be recognized as HTML</returns>
+        private string ConvertToHtmlFragment(string fragment) {
+            // Minimal implementation of HTML clipboard format
+            string source = "http://www.codeproject.com/KB/list/ObjectListView.aspx";
+
+            const String MARKER_BLOCK =
+                "Version:1.0\r\n" +
+                "StartHTML:{0,8}\r\n" +
+                "EndHTML:{1,8}\r\n" +
+                "StartFragment:{2,8}\r\n" +
+                "EndFragment:{3,8}\r\n" +
+                "StartSelection:{2,8}\r\n" +
+                "EndSelection:{3,8}\r\n" +
+                "SourceURL:{4}\r\n" +
+                "{5}";
+
+            int prefixLength = String.Format(MARKER_BLOCK, 0, 0, 0, 0, source, "").Length;
+
+            const String DEFAULT_HTML_BODY =
+                "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">" +
+                "<HTML><HEAD></HEAD><BODY><!--StartFragment-->{0}<!--EndFragment--></BODY></HTML>";
+
+            string html = String.Format(DEFAULT_HTML_BODY, fragment);
+            int startFragment = prefixLength + html.IndexOf(fragment);
+            int endFragment = startFragment + fragment.Length;
+
+            return String.Format(MARKER_BLOCK, prefixLength, prefixLength + html.Length, startFragment, endFragment, source, html);
         }
     }
 }
