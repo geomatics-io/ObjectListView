@@ -5,6 +5,8 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-04-06   JPP  - ClearObjects() now works again
+ * v2.1
  * 2009-02-24   JPP  - Removed redundant OnMouseDown() since checkbox
  *                     handling is now handled in the base class
  * 2009-01-07   JPP  - Made all public and protected methods virtual 
@@ -269,10 +271,8 @@ namespace BrightIdeasSoftware
         {
             if (this.InvokeRequired)
                 this.Invoke(new MethodInvoker(this.ClearObjects));
-            else {
-                this.ClearCachedInfo();
-                this.SetVirtualListSize(0);
-            }
+            else 
+                this.SetObjects(new ArrayList());
         }
 
         /// <summary>
