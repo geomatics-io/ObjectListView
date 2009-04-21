@@ -45,7 +45,13 @@ namespace ObjectListViewDemo
 		{
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.command1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.command2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.command3ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.appearOnTheColumnHeadersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
+            this.imageList2 = new System.Windows.Forms.ImageList(this.components);
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.checkBox18 = new System.Windows.Forms.CheckBox();
@@ -67,11 +73,6 @@ namespace ObjectListViewDemo
             this.columnHeader15 = new BrightIdeasSoftware.OLVColumn();
             this.columnHeader16 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn34 = new BrightIdeasSoftware.OLVColumn();
-            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.command1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.command2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.command3ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.appearOnTheColumnHeadersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.hotItemStyle1 = new BrightIdeasSoftware.HotItemStyle();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.button16 = new System.Windows.Forms.Button();
@@ -98,7 +99,6 @@ namespace ObjectListViewDemo
             this.daysSinceBirthColumn = new BrightIdeasSoftware.OLVColumn();
             this.olvJokeColumn = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn41 = new BrightIdeasSoftware.OLVColumn();
-            this.imageList2 = new System.Windows.Forms.ImageList(this.components);
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.label22 = new System.Windows.Forms.Label();
@@ -233,6 +233,39 @@ namespace ObjectListViewDemo
             this.treeColumnSize = new BrightIdeasSoftware.OLVColumn();
             this.treeColumnFileType = new BrightIdeasSoftware.OLVColumn();
             this.treeColumnAttributes = new BrightIdeasSoftware.OLVColumn();
+            this.tabPage8 = new System.Windows.Forms.TabPage();
+            this.checkBox22 = new System.Windows.Forms.CheckBox();
+            this.checkBox21 = new System.Windows.Forms.CheckBox();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.label34 = new System.Windows.Forms.Label();
+            this.label35 = new System.Windows.Forms.Label();
+            this.olvGeeks = new BrightIdeasSoftware.ObjectListView();
+            this.olvColumn43 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn44 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn45 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn46 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn47 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn48 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn49 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn50 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn51 = new BrightIdeasSoftware.OLVColumn();
+            this.olvFroods = new BrightIdeasSoftware.ObjectListView();
+            this.olvColumn52 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn53 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn54 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn55 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn56 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn57 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn58 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn59 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn60 = new BrightIdeasSoftware.OLVColumn();
+            this.label33 = new System.Windows.Forms.Label();
+            this.comboBox13 = new System.Windows.Forms.ComboBox();
+            this.checkBox20 = new System.Windows.Forms.CheckBox();
+            this.label31 = new System.Windows.Forms.Label();
+            this.comboBox12 = new System.Windows.Forms.ComboBox();
+            this.label30 = new System.Windows.Forms.Label();
+            this.checkBox19 = new System.Windows.Forms.CheckBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.button20 = new System.Windows.Forms.Button();
@@ -248,6 +281,13 @@ namespace ObjectListViewDemo
             this.checkBox16 = new System.Windows.Forms.CheckBox();
             this.checkBox17 = new System.Windows.Forms.CheckBox();
             this.label29 = new System.Windows.Forms.Label();
+            this.objectListView1 = new BrightIdeasSoftware.ObjectListView();
+            this.olvColumn35 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn36 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn37 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn38 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn39 = new BrightIdeasSoftware.OLVColumn();
+            this.olvColumn40 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn21 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn22 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn23 = new BrightIdeasSoftware.OLVColumn();
@@ -262,18 +302,11 @@ namespace ObjectListViewDemo
             this.olvColumn6 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn11 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn16 = new BrightIdeasSoftware.OLVColumn();
-            this.objectListView1 = new BrightIdeasSoftware.ObjectListView();
-            this.olvColumn35 = new BrightIdeasSoftware.OLVColumn();
-            this.olvColumn36 = new BrightIdeasSoftware.OLVColumn();
-            this.olvColumn37 = new BrightIdeasSoftware.OLVColumn();
-            this.olvColumn38 = new BrightIdeasSoftware.OLVColumn();
-            this.olvColumn39 = new BrightIdeasSoftware.OLVColumn();
-            this.olvColumn40 = new BrightIdeasSoftware.OLVColumn();
             this.blockFormat1 = new BrightIdeasSoftware.BlockFormat();
+            this.contextMenuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.listViewSimple)).BeginInit();
-            this.contextMenuStrip1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.listViewComplex)).BeginInit();
             this.tabPage3.SuspendLayout();
@@ -296,9 +329,47 @@ namespace ObjectListViewDemo
             ((System.ComponentModel.ISupportInitialize)(this.olvFastList)).BeginInit();
             this.tabPage9.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.treeListView)).BeginInit();
+            this.tabPage8.SuspendLayout();
+            this.tableLayoutPanel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.olvGeeks)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.olvFroods)).BeginInit();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.objectListView1)).BeginInit();
             this.SuspendLayout();
+            // 
+            // contextMenuStrip1
+            // 
+            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.command1ToolStripMenuItem,
+            this.command2ToolStripMenuItem,
+            this.command3ToolStripMenuItem,
+            this.appearOnTheColumnHeadersToolStripMenuItem});
+            this.contextMenuStrip1.Name = "contextMenuStrip1";
+            this.contextMenuStrip1.Size = new System.Drawing.Size(270, 92);
+            // 
+            // command1ToolStripMenuItem
+            // 
+            this.command1ToolStripMenuItem.Name = "command1ToolStripMenuItem";
+            this.command1ToolStripMenuItem.Size = new System.Drawing.Size(269, 22);
+            this.command1ToolStripMenuItem.Text = "Dummy commands...";
+            // 
+            // command2ToolStripMenuItem
+            // 
+            this.command2ToolStripMenuItem.Name = "command2ToolStripMenuItem";
+            this.command2ToolStripMenuItem.Size = new System.Drawing.Size(269, 22);
+            this.command2ToolStripMenuItem.Text = "...to test that a context menu...";
+            // 
+            // command3ToolStripMenuItem
+            // 
+            this.command3ToolStripMenuItem.Name = "command3ToolStripMenuItem";
+            this.command3ToolStripMenuItem.Size = new System.Drawing.Size(269, 22);
+            this.command3ToolStripMenuItem.Text = "...appears here and a different one...";
+            // 
+            // appearOnTheColumnHeadersToolStripMenuItem
+            // 
+            this.appearOnTheColumnHeadersToolStripMenuItem.Name = "appearOnTheColumnHeadersToolStripMenuItem";
+            this.appearOnTheColumnHeadersToolStripMenuItem.Size = new System.Drawing.Size(269, 22);
+            this.appearOnTheColumnHeadersToolStripMenuItem.Text = "...appear on the column headers.";
             // 
             // imageList1
             // 
@@ -323,6 +394,29 @@ namespace ObjectListViewDemo
             this.imageList1.Images.SetKeyName(16, "hidden");
             this.imageList1.Images.SetKeyName(17, "temporary");
             // 
+            // imageList2
+            // 
+            this.imageList2.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList2.ImageStream")));
+            this.imageList2.TransparentColor = System.Drawing.Color.Transparent;
+            this.imageList2.Images.SetKeyName(0, "user");
+            this.imageList2.Images.SetKeyName(1, "compass");
+            this.imageList2.Images.SetKeyName(2, "down");
+            this.imageList2.Images.SetKeyName(3, "find");
+            this.imageList2.Images.SetKeyName(4, "folder");
+            this.imageList2.Images.SetKeyName(5, "movie");
+            this.imageList2.Images.SetKeyName(6, "music");
+            this.imageList2.Images.SetKeyName(7, "no");
+            this.imageList2.Images.SetKeyName(8, "readonly");
+            this.imageList2.Images.SetKeyName(9, "public");
+            this.imageList2.Images.SetKeyName(10, "recycle");
+            this.imageList2.Images.SetKeyName(11, "spanner");
+            this.imageList2.Images.SetKeyName(12, "star");
+            this.imageList2.Images.SetKeyName(13, "tick");
+            this.imageList2.Images.SetKeyName(14, "archive");
+            this.imageList2.Images.SetKeyName(15, "system");
+            this.imageList2.Images.SetKeyName(16, "hidden");
+            this.imageList2.Images.SetKeyName(17, "temporary");
+            // 
             // tabControl1
             // 
             this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
@@ -336,6 +430,7 @@ namespace ObjectListViewDemo
             this.tabControl1.Controls.Add(this.tabPage6);
             this.tabControl1.Controls.Add(this.tabPage7);
             this.tabControl1.Controls.Add(this.tabPage9);
+            this.tabControl1.Controls.Add(this.tabPage8);
             this.tabControl1.Location = new System.Drawing.Point(13, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -502,6 +597,7 @@ namespace ObjectListViewDemo
             this.listViewSimple.AllColumns.Add(this.columnHeader15);
             this.listViewSimple.AllColumns.Add(this.columnHeader16);
             this.listViewSimple.AllColumns.Add(this.olvColumn34);
+            this.listViewSimple.AllowDrop = true;
             this.listViewSimple.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -517,11 +613,12 @@ namespace ObjectListViewDemo
             this.olvColumn34});
             this.listViewSimple.ContextMenuStrip = this.contextMenuStrip1;
             this.listViewSimple.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.listViewSimple.FullRowSelect = true;
             this.listViewSimple.HideSelection = false;
             this.listViewSimple.HotItemStyle = this.hotItemStyle1;
-            this.listViewSimple.ItemRenderer = null;
             this.listViewSimple.Location = new System.Drawing.Point(6, 55);
             this.listViewSimple.Name = "listViewSimple";
+            this.listViewSimple.OverlayImage.Image = global::ObjectListViewDemo.Resource1.limeleaf;
             this.listViewSimple.ShowGroups = false;
             this.listViewSimple.ShowImagesOnSubItems = true;
             this.listViewSimple.Size = new System.Drawing.Size(774, 394);
@@ -531,9 +628,7 @@ namespace ObjectListViewDemo
             this.listViewSimple.UseCompatibleStateImageBehavior = false;
             this.listViewSimple.UseHotItem = true;
             this.listViewSimple.View = System.Windows.Forms.View.Details;
-            this.listViewSimple.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.listViewSimple_ItemCheck);
             this.listViewSimple.SelectedIndexChanged += new System.EventHandler(this.ListViewSelectedIndexChanged);
-            this.listViewSimple.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.listViewSimple_ItemChecked);
             // 
             // columnHeader11
             // 
@@ -592,40 +687,6 @@ namespace ObjectListViewDemo
             this.olvColumn34.ToolTipText = "This is the tool tip for the Comments column. This is configured through the Tool" +
                 "TipText property.";
             this.olvColumn34.UseInitialLetterForGroup = true;
-            // 
-            // contextMenuStrip1
-            // 
-            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.command1ToolStripMenuItem,
-            this.command2ToolStripMenuItem,
-            this.command3ToolStripMenuItem,
-            this.appearOnTheColumnHeadersToolStripMenuItem});
-            this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(270, 92);
-            // 
-            // command1ToolStripMenuItem
-            // 
-            this.command1ToolStripMenuItem.Name = "command1ToolStripMenuItem";
-            this.command1ToolStripMenuItem.Size = new System.Drawing.Size(269, 22);
-            this.command1ToolStripMenuItem.Text = "Dummy commands...";
-            // 
-            // command2ToolStripMenuItem
-            // 
-            this.command2ToolStripMenuItem.Name = "command2ToolStripMenuItem";
-            this.command2ToolStripMenuItem.Size = new System.Drawing.Size(269, 22);
-            this.command2ToolStripMenuItem.Text = "...to test that a context menu...";
-            // 
-            // command3ToolStripMenuItem
-            // 
-            this.command3ToolStripMenuItem.Name = "command3ToolStripMenuItem";
-            this.command3ToolStripMenuItem.Size = new System.Drawing.Size(269, 22);
-            this.command3ToolStripMenuItem.Text = "...appears here and a different one...";
-            // 
-            // appearOnTheColumnHeadersToolStripMenuItem
-            // 
-            this.appearOnTheColumnHeadersToolStripMenuItem.Name = "appearOnTheColumnHeadersToolStripMenuItem";
-            this.appearOnTheColumnHeadersToolStripMenuItem.Size = new System.Drawing.Size(269, 22);
-            this.appearOnTheColumnHeadersToolStripMenuItem.Text = "...appear on the column headers.";
             // 
             // hotItemStyle1
             // 
@@ -812,6 +873,7 @@ namespace ObjectListViewDemo
             this.listViewComplex.AllColumns.Add(this.olvJokeColumn);
             this.listViewComplex.AllColumns.Add(this.olvColumn41);
             this.listViewComplex.AllowColumnReorder = true;
+            this.listViewComplex.AllowDrop = true;
             this.listViewComplex.AlternateRowBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
             this.listViewComplex.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
@@ -829,15 +891,18 @@ namespace ObjectListViewDemo
             this.daysSinceBirthColumn,
             this.olvJokeColumn,
             this.olvColumn41});
+            this.listViewComplex.EmptyListMsg = "This list is empty. Press \"Add\" to create some items";
             this.listViewComplex.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.listViewComplex.FullRowSelect = true;
             this.listViewComplex.GroupWithItemCountFormat = "{0} ({1} people)";
             this.listViewComplex.GroupWithItemCountSingularFormat = "{0} ({1} person)";
             this.listViewComplex.HideSelection = false;
-            this.listViewComplex.ItemRenderer = null;
             this.listViewComplex.LargeImageList = this.imageList2;
             this.listViewComplex.Location = new System.Drawing.Point(6, 57);
             this.listViewComplex.Name = "listViewComplex";
+            this.listViewComplex.OverlayImage.Image = global::ObjectListViewDemo.Resource1.limeleaf;
+            this.listViewComplex.OverlayText.Alignment = System.Drawing.ContentAlignment.BottomLeft;
+            this.listViewComplex.OverlayText.Text = "TRIAL VERSION";
             this.listViewComplex.OwnerDraw = true;
             this.listViewComplex.ShowGroups = false;
             this.listViewComplex.ShowImagesOnSubItems = true;
@@ -942,29 +1007,6 @@ namespace ObjectListViewDemo
             this.olvColumn41.AspectName = "MaritalStatus";
             this.olvColumn41.Text = "Married?";
             this.olvColumn41.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            // 
-            // imageList2
-            // 
-            this.imageList2.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList2.ImageStream")));
-            this.imageList2.TransparentColor = System.Drawing.Color.Transparent;
-            this.imageList2.Images.SetKeyName(0, "user");
-            this.imageList2.Images.SetKeyName(1, "compass");
-            this.imageList2.Images.SetKeyName(2, "down");
-            this.imageList2.Images.SetKeyName(3, "find");
-            this.imageList2.Images.SetKeyName(4, "folder");
-            this.imageList2.Images.SetKeyName(5, "movie");
-            this.imageList2.Images.SetKeyName(6, "music");
-            this.imageList2.Images.SetKeyName(7, "no");
-            this.imageList2.Images.SetKeyName(8, "readonly");
-            this.imageList2.Images.SetKeyName(9, "public");
-            this.imageList2.Images.SetKeyName(10, "recycle");
-            this.imageList2.Images.SetKeyName(11, "spanner");
-            this.imageList2.Images.SetKeyName(12, "star");
-            this.imageList2.Images.SetKeyName(13, "tick");
-            this.imageList2.Images.SetKeyName(14, "archive");
-            this.imageList2.Images.SetKeyName(15, "system");
-            this.imageList2.Images.SetKeyName(16, "hidden");
-            this.imageList2.Images.SetKeyName(17, "temporary");
             // 
             // tabPage3
             // 
@@ -1125,6 +1167,7 @@ namespace ObjectListViewDemo
             this.listViewDataSet.AllColumns.Add(this.olvColumn42);
             this.listViewDataSet.AllColumns.Add(this.olvColumnGif);
             this.listViewDataSet.AllowColumnReorder = true;
+            this.listViewDataSet.AllowDrop = true;
             this.listViewDataSet.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -1146,7 +1189,6 @@ namespace ObjectListViewDemo
             this.listViewDataSet.HideSelection = false;
             this.listViewDataSet.HighlightBackgroundColor = System.Drawing.Color.Crimson;
             this.listViewDataSet.HighlightForegroundColor = System.Drawing.Color.DarkGreen;
-            this.listViewDataSet.ItemRenderer = null;
             this.listViewDataSet.LargeImageList = this.imageList2;
             this.listViewDataSet.Location = new System.Drawing.Point(6, 19);
             this.listViewDataSet.Name = "listViewDataSet";
@@ -1428,6 +1470,7 @@ namespace ObjectListViewDemo
             this.listViewVirtual.AllColumns.Add(this.olvColumn9);
             this.listViewVirtual.AllColumns.Add(this.olvColumn10);
             this.listViewVirtual.AllowColumnReorder = true;
+            this.listViewVirtual.AllowDrop = true;
             this.listViewVirtual.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -1442,13 +1485,12 @@ namespace ObjectListViewDemo
             this.olvColumn10});
             this.listViewVirtual.EmptyListMsg = "Will this work?";
             this.listViewVirtual.EmptyListMsgFont = new System.Drawing.Font("Comic Sans MS", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.listViewVirtual.FullRowSelect = true;
             this.listViewVirtual.GridLines = true;
             this.listViewVirtual.HideSelection = false;
-            this.listViewVirtual.ItemRenderer = null;
             this.listViewVirtual.LargeImageList = this.imageList2;
             this.listViewVirtual.Location = new System.Drawing.Point(6, 48);
             this.listViewVirtual.Name = "listViewVirtual";
+            this.listViewVirtual.OverlayImage.Image = global::ObjectListViewDemo.Resource1.redbull;
             this.listViewVirtual.OwnerDraw = true;
             this.listViewVirtual.ShowGroups = false;
             this.listViewVirtual.ShowImagesOnSubItems = true;
@@ -1696,6 +1738,7 @@ namespace ObjectListViewDemo
             this.listViewFiles.AllColumns.Add(this.olvColumnAttributes);
             this.listViewFiles.AllColumns.Add(this.treeColumnFileExtension);
             this.listViewFiles.AllowColumnReorder = true;
+            this.listViewFiles.AllowDrop = true;
             this.listViewFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -1709,7 +1752,6 @@ namespace ObjectListViewDemo
             this.listViewFiles.EmptyListMsg = "This folder is completely empty!";
             this.listViewFiles.EmptyListMsgFont = new System.Drawing.Font("Comic Sans MS", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.listViewFiles.HideSelection = false;
-            this.listViewFiles.ItemRenderer = null;
             this.listViewFiles.LargeImageList = this.imageList2;
             this.listViewFiles.Location = new System.Drawing.Point(6, 83);
             this.listViewFiles.Name = "listViewFiles";
@@ -2362,6 +2404,7 @@ namespace ObjectListViewDemo
             this.olvFastList.AllColumns.Add(this.olvColumn32);
             this.olvFastList.AllColumns.Add(this.olvColumn33);
             this.olvFastList.AllowColumnReorder = true;
+            this.olvFastList.AllowDrop = true;
             this.olvFastList.AlternateRowBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
             this.olvFastList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
@@ -2382,7 +2425,6 @@ namespace ObjectListViewDemo
             this.olvFastList.FullRowSelect = true;
             this.olvFastList.GridLines = true;
             this.olvFastList.HideSelection = false;
-            this.olvFastList.ItemRenderer = null;
             this.olvFastList.LargeImageList = this.imageList2;
             this.olvFastList.Location = new System.Drawing.Point(6, 47);
             this.olvFastList.Name = "olvFastList";
@@ -2549,6 +2591,7 @@ namespace ObjectListViewDemo
             this.treeListView.AllColumns.Add(this.treeColumnAttributes);
             this.treeListView.AllColumns.Add(this.treeColumnFileExtension);
             this.treeListView.AllowColumnReorder = true;
+            this.treeListView.AllowDrop = true;
             this.treeListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -2563,7 +2606,6 @@ namespace ObjectListViewDemo
             this.treeListView.EmptyListMsg = "This folder is completely empty!";
             this.treeListView.EmptyListMsgFont = new System.Drawing.Font("Comic Sans MS", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.treeListView.HideSelection = false;
-            this.treeListView.ItemRenderer = null;
             this.treeListView.Location = new System.Drawing.Point(6, 55);
             this.treeListView.Name = "treeListView";
             this.treeListView.OwnerDraw = true;
@@ -2622,6 +2664,427 @@ namespace ObjectListViewDemo
             this.treeColumnAttributes.IsEditable = false;
             this.treeColumnAttributes.MinimumWidth = 20;
             this.treeColumnAttributes.Text = "Attributes";
+            // 
+            // tabPage8
+            // 
+            this.tabPage8.Controls.Add(this.checkBox22);
+            this.tabPage8.Controls.Add(this.checkBox21);
+            this.tabPage8.Controls.Add(this.tableLayoutPanel1);
+            this.tabPage8.Controls.Add(this.label33);
+            this.tabPage8.Controls.Add(this.comboBox13);
+            this.tabPage8.Controls.Add(this.checkBox20);
+            this.tabPage8.Controls.Add(this.label31);
+            this.tabPage8.Controls.Add(this.comboBox12);
+            this.tabPage8.Controls.Add(this.label30);
+            this.tabPage8.Controls.Add(this.checkBox19);
+            this.tabPage8.Location = new System.Drawing.Point(4, 22);
+            this.tabPage8.Name = "tabPage8";
+            this.tabPage8.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage8.Size = new System.Drawing.Size(786, 485);
+            this.tabPage8.TabIndex = 9;
+            this.tabPage8.Text = "Drag and drop";
+            this.tabPage8.UseVisualStyleBackColor = true;
+            // 
+            // checkBox22
+            // 
+            this.checkBox22.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkBox22.Location = new System.Drawing.Point(557, 456);
+            this.checkBox22.Name = "checkBox22";
+            this.checkBox22.Size = new System.Drawing.Size(86, 21);
+            this.checkBox22.TabIndex = 21;
+            this.checkBox22.Text = "Owner &Draw";
+            this.checkBox22.UseVisualStyleBackColor = true;
+            this.checkBox22.CheckedChanged += new System.EventHandler(this.checkBox22_CheckedChanged);
+            // 
+            // checkBox21
+            // 
+            this.checkBox21.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.checkBox21.Location = new System.Drawing.Point(104, 456);
+            this.checkBox21.Name = "checkBox21";
+            this.checkBox21.Size = new System.Drawing.Size(86, 21);
+            this.checkBox21.TabIndex = 20;
+            this.checkBox21.Text = "Owner &Draw";
+            this.checkBox21.UseVisualStyleBackColor = true;
+            this.checkBox21.CheckedChanged += new System.EventHandler(this.checkBox21_CheckedChanged);
+            // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.tableLayoutPanel1.ColumnCount = 2;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.Controls.Add(this.label34, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.label35, 1, 0);
+            this.tableLayoutPanel1.Controls.Add(this.olvGeeks, 0, 1);
+            this.tableLayoutPanel1.Controls.Add(this.olvFroods, 1, 1);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(6, 58);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 2;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(774, 392);
+            this.tableLayoutPanel1.TabIndex = 19;
+            // 
+            // label34
+            // 
+            this.label34.AutoSize = true;
+            this.label34.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label34.ForeColor = System.Drawing.Color.RoyalBlue;
+            this.label34.Location = new System.Drawing.Point(3, 3);
+            this.label34.Margin = new System.Windows.Forms.Padding(3);
+            this.label34.Name = "label34";
+            this.label34.Size = new System.Drawing.Size(119, 14);
+            this.label34.TabIndex = 17;
+            this.label34.Text = "Geeks and Tweebs";
+            // 
+            // label35
+            // 
+            this.label35.AutoSize = true;
+            this.label35.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label35.ForeColor = System.Drawing.Color.RoyalBlue;
+            this.label35.Location = new System.Drawing.Point(390, 3);
+            this.label35.Margin = new System.Windows.Forms.Padding(3);
+            this.label35.Name = "label35";
+            this.label35.Size = new System.Drawing.Size(78, 14);
+            this.label35.TabIndex = 18;
+            this.label35.Text = "Cool froods";
+            // 
+            // olvGeeks
+            // 
+            this.olvGeeks.AllColumns.Add(this.olvColumn43);
+            this.olvGeeks.AllColumns.Add(this.olvColumn44);
+            this.olvGeeks.AllColumns.Add(this.olvColumn45);
+            this.olvGeeks.AllColumns.Add(this.yearOfBirthColumn);
+            this.olvGeeks.AllColumns.Add(this.olvColumn46);
+            this.olvGeeks.AllColumns.Add(this.olvColumn47);
+            this.olvGeeks.AllColumns.Add(this.olvColumn48);
+            this.olvGeeks.AllColumns.Add(this.olvColumn49);
+            this.olvGeeks.AllColumns.Add(this.olvColumn50);
+            this.olvGeeks.AllColumns.Add(this.olvColumn51);
+            this.olvGeeks.AllowColumnReorder = true;
+            this.olvGeeks.AllowDrop = true;
+            this.olvGeeks.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.olvGeeks.CheckedAspectName = "";
+            this.olvGeeks.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.olvColumn43,
+            this.olvColumn44,
+            this.olvColumn45,
+            this.olvColumn46,
+            this.olvColumn47,
+            this.olvColumn48,
+            this.olvColumn49,
+            this.olvColumn50,
+            this.olvColumn51});
+            this.olvGeeks.EmptyListMsg = "Drag some cool froods here";
+            this.olvGeeks.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.olvGeeks.FullRowSelect = true;
+            this.olvGeeks.GroupWithItemCountFormat = "{0} ({1} people)";
+            this.olvGeeks.GroupWithItemCountSingularFormat = "{0} ({1} person)";
+            this.olvGeeks.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.olvGeeks.HideSelection = false;
+            this.olvGeeks.LargeImageList = this.imageList2;
+            this.olvGeeks.Location = new System.Drawing.Point(3, 23);
+            this.olvGeeks.Margin = new System.Windows.Forms.Padding(3, 3, 6, 3);
+            this.olvGeeks.Name = "olvGeeks";
+            this.olvGeeks.OverlayImage.Image = global::ObjectListViewDemo.Resource1.redbull;
+            this.olvGeeks.OverlayText.Alignment = System.Drawing.ContentAlignment.BottomLeft;
+            this.olvGeeks.OverlayText.Text = "";
+            this.olvGeeks.ShowGroups = false;
+            this.olvGeeks.ShowImagesOnSubItems = true;
+            this.olvGeeks.ShowItemToolTips = true;
+            this.olvGeeks.Size = new System.Drawing.Size(378, 366);
+            this.olvGeeks.SmallImageList = this.imageList1;
+            this.olvGeeks.TabIndex = 8;
+            this.olvGeeks.UseAlternatingBackColors = true;
+            this.olvGeeks.UseCompatibleStateImageBehavior = false;
+            this.olvGeeks.View = System.Windows.Forms.View.Details;
+            // 
+            // olvColumn43
+            // 
+            this.olvColumn43.AspectName = "Name";
+            this.olvColumn43.Text = "Person";
+            this.olvColumn43.UseInitialLetterForGroup = true;
+            this.olvColumn43.Width = 114;
+            // 
+            // olvColumn44
+            // 
+            this.olvColumn44.AspectName = "Occupation";
+            this.olvColumn44.IsTileViewColumn = true;
+            this.olvColumn44.Text = "Occupation";
+            this.olvColumn44.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.olvColumn44.Width = 92;
+            // 
+            // olvColumn45
+            // 
+            this.olvColumn45.AspectName = "CulinaryRating";
+            this.olvColumn45.GroupWithItemCountFormat = "{0} ({1} candidates)";
+            this.olvColumn45.GroupWithItemCountSingularFormat = "{0} (only {1} candidate)";
+            this.olvColumn45.Renderer = this.cookingSkillRenderer;
+            this.olvColumn45.Text = "Cooking skill";
+            this.olvColumn45.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.olvColumn45.Width = 75;
+            // 
+            // olvColumn46
+            // 
+            this.olvColumn46.AspectName = "BirthDate";
+            this.olvColumn46.AspectToStringFormat = "{0:D}";
+            this.olvColumn46.GroupWithItemCountFormat = "{0} has {1} birthdays";
+            this.olvColumn46.GroupWithItemCountSingularFormat = "{0} has only {1} birthday";
+            this.olvColumn46.IsTileViewColumn = true;
+            this.olvColumn46.Text = "Birthday";
+            this.olvColumn46.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.olvColumn46.Width = 111;
+            // 
+            // olvColumn47
+            // 
+            this.olvColumn47.AspectName = "GetRate";
+            this.olvColumn47.AspectToStringFormat = "{0:C}";
+            this.olvColumn47.IsTileViewColumn = true;
+            this.olvColumn47.Text = "Hourly Rate";
+            this.olvColumn47.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.olvColumn47.Width = 71;
+            // 
+            // olvColumn48
+            // 
+            this.olvColumn48.IsEditable = false;
+            this.olvColumn48.Text = "Salary";
+            this.olvColumn48.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.olvColumn48.Width = 55;
+            // 
+            // olvColumn49
+            // 
+            this.olvColumn49.IsEditable = false;
+            this.olvColumn49.Text = "Days Since Birth";
+            this.olvColumn49.Width = 81;
+            // 
+            // olvColumn50
+            // 
+            this.olvColumn50.AspectName = "CanTellJokes";
+            this.olvColumn50.CheckBoxes = true;
+            this.olvColumn50.Text = "Tells Jokes?";
+            this.olvColumn50.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.olvColumn50.Width = 74;
+            // 
+            // olvColumn51
+            // 
+            this.olvColumn51.AspectName = "MaritalStatus";
+            this.olvColumn51.Text = "Married?";
+            this.olvColumn51.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // olvFroods
+            // 
+            this.olvFroods.AllColumns.Add(this.olvColumn52);
+            this.olvFroods.AllColumns.Add(this.olvColumn53);
+            this.olvFroods.AllColumns.Add(this.olvColumn54);
+            this.olvFroods.AllColumns.Add(this.yearOfBirthColumn);
+            this.olvFroods.AllColumns.Add(this.olvColumn55);
+            this.olvFroods.AllColumns.Add(this.olvColumn56);
+            this.olvFroods.AllColumns.Add(this.olvColumn57);
+            this.olvFroods.AllColumns.Add(this.olvColumn58);
+            this.olvFroods.AllColumns.Add(this.olvColumn59);
+            this.olvFroods.AllColumns.Add(this.olvColumn60);
+            this.olvFroods.AllowColumnReorder = true;
+            this.olvFroods.AllowDrop = true;
+            this.olvFroods.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.olvFroods.CheckedAspectName = "";
+            this.olvFroods.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.olvColumn52,
+            this.olvColumn53,
+            this.olvColumn54,
+            this.olvColumn55,
+            this.olvColumn56,
+            this.olvColumn57,
+            this.olvColumn58,
+            this.olvColumn59,
+            this.olvColumn60});
+            this.olvFroods.EmptyListMsg = "Drag some geeks here";
+            this.olvFroods.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.olvFroods.FullRowSelect = true;
+            this.olvFroods.GroupWithItemCountFormat = "{0} ({1} people)";
+            this.olvFroods.GroupWithItemCountSingularFormat = "{0} ({1} person)";
+            this.olvFroods.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.olvFroods.HideSelection = false;
+            this.olvFroods.LargeImageList = this.imageList2;
+            this.olvFroods.Location = new System.Drawing.Point(393, 23);
+            this.olvFroods.Margin = new System.Windows.Forms.Padding(6, 3, 3, 3);
+            this.olvFroods.Name = "olvFroods";
+            this.olvFroods.OverlayImage.Image = global::ObjectListViewDemo.Resource1.redback1;
+            this.olvFroods.OverlayText.Alignment = System.Drawing.ContentAlignment.BottomLeft;
+            this.olvFroods.OverlayText.Text = "";
+            this.olvFroods.ShowGroups = false;
+            this.olvFroods.ShowImagesOnSubItems = true;
+            this.olvFroods.ShowItemToolTips = true;
+            this.olvFroods.Size = new System.Drawing.Size(378, 366);
+            this.olvFroods.SmallImageList = this.imageList1;
+            this.olvFroods.TabIndex = 13;
+            this.olvFroods.UseAlternatingBackColors = true;
+            this.olvFroods.UseCompatibleStateImageBehavior = false;
+            this.olvFroods.View = System.Windows.Forms.View.Details;
+            // 
+            // olvColumn52
+            // 
+            this.olvColumn52.AspectName = "Name";
+            this.olvColumn52.Text = "Person";
+            this.olvColumn52.UseInitialLetterForGroup = true;
+            this.olvColumn52.Width = 114;
+            // 
+            // olvColumn53
+            // 
+            this.olvColumn53.AspectName = "Occupation";
+            this.olvColumn53.IsTileViewColumn = true;
+            this.olvColumn53.Text = "Occupation";
+            this.olvColumn53.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.olvColumn53.Width = 92;
+            // 
+            // olvColumn54
+            // 
+            this.olvColumn54.AspectName = "CulinaryRating";
+            this.olvColumn54.GroupWithItemCountFormat = "{0} ({1} candidates)";
+            this.olvColumn54.GroupWithItemCountSingularFormat = "{0} (only {1} candidate)";
+            this.olvColumn54.Renderer = this.cookingSkillRenderer;
+            this.olvColumn54.Text = "Cooking skill";
+            this.olvColumn54.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.olvColumn54.Width = 75;
+            // 
+            // olvColumn55
+            // 
+            this.olvColumn55.AspectName = "BirthDate";
+            this.olvColumn55.AspectToStringFormat = "{0:D}";
+            this.olvColumn55.GroupWithItemCountFormat = "{0} has {1} birthdays";
+            this.olvColumn55.GroupWithItemCountSingularFormat = "{0} has only {1} birthday";
+            this.olvColumn55.IsTileViewColumn = true;
+            this.olvColumn55.Text = "Birthday";
+            this.olvColumn55.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.olvColumn55.Width = 111;
+            // 
+            // olvColumn56
+            // 
+            this.olvColumn56.AspectName = "GetRate";
+            this.olvColumn56.AspectToStringFormat = "{0:C}";
+            this.olvColumn56.IsTileViewColumn = true;
+            this.olvColumn56.Text = "Hourly Rate";
+            this.olvColumn56.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.olvColumn56.Width = 71;
+            // 
+            // olvColumn57
+            // 
+            this.olvColumn57.IsEditable = false;
+            this.olvColumn57.Text = "Salary";
+            this.olvColumn57.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.olvColumn57.Width = 55;
+            // 
+            // olvColumn58
+            // 
+            this.olvColumn58.IsEditable = false;
+            this.olvColumn58.Text = "Days Since Birth";
+            this.olvColumn58.Width = 81;
+            // 
+            // olvColumn59
+            // 
+            this.olvColumn59.AspectName = "CanTellJokes";
+            this.olvColumn59.CheckBoxes = true;
+            this.olvColumn59.Text = "Tells Jokes?";
+            this.olvColumn59.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.olvColumn59.Width = 74;
+            // 
+            // olvColumn60
+            // 
+            this.olvColumn60.AspectName = "MaritalStatus";
+            this.olvColumn60.Text = "Married?";
+            this.olvColumn60.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label33
+            // 
+            this.label33.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label33.AutoSize = true;
+            this.label33.Location = new System.Drawing.Point(649, 459);
+            this.label33.Name = "label33";
+            this.label33.Size = new System.Drawing.Size(33, 13);
+            this.label33.TabIndex = 16;
+            this.label33.Text = "View:";
+            // 
+            // comboBox13
+            // 
+            this.comboBox13.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.comboBox13.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox13.FormattingEnabled = true;
+            this.comboBox13.Items.AddRange(new object[] {
+            "Small Icon",
+            "Large Icon",
+            "List",
+            "Tile",
+            "Details"});
+            this.comboBox13.Location = new System.Drawing.Point(688, 456);
+            this.comboBox13.Name = "comboBox13";
+            this.comboBox13.Size = new System.Drawing.Size(89, 21);
+            this.comboBox13.TabIndex = 15;
+            this.comboBox13.SelectedIndexChanged += new System.EventHandler(this.comboBox13_SelectedIndexChanged);
+            // 
+            // checkBox20
+            // 
+            this.checkBox20.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkBox20.Location = new System.Drawing.Point(459, 456);
+            this.checkBox20.Name = "checkBox20";
+            this.checkBox20.Size = new System.Drawing.Size(92, 21);
+            this.checkBox20.TabIndex = 14;
+            this.checkBox20.Text = "Show &Groups";
+            this.checkBox20.UseVisualStyleBackColor = true;
+            // 
+            // label31
+            // 
+            this.label31.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label31.AutoSize = true;
+            this.label31.Location = new System.Drawing.Point(193, 459);
+            this.label31.Name = "label31";
+            this.label31.Size = new System.Drawing.Size(33, 13);
+            this.label31.TabIndex = 12;
+            this.label31.Text = "View:";
+            // 
+            // comboBox12
+            // 
+            this.comboBox12.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.comboBox12.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox12.FormattingEnabled = true;
+            this.comboBox12.Items.AddRange(new object[] {
+            "Small Icon",
+            "Large Icon",
+            "List",
+            "Tile",
+            "Details"});
+            this.comboBox12.Location = new System.Drawing.Point(232, 456);
+            this.comboBox12.Name = "comboBox12";
+            this.comboBox12.Size = new System.Drawing.Size(97, 21);
+            this.comboBox12.TabIndex = 11;
+            this.comboBox12.SelectedIndexChanged += new System.EventHandler(this.comboBox12_SelectedIndexChanged);
+            // 
+            // label30
+            // 
+            this.label30.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.label30.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
+            this.label30.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.label30.Location = new System.Drawing.Point(6, 7);
+            this.label30.Name = "label30";
+            this.label30.Size = new System.Drawing.Size(774, 48);
+            this.label30.TabIndex = 10;
+            this.label30.Text = resources.GetString("label30.Text");
+            // 
+            // checkBox19
+            // 
+            this.checkBox19.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.checkBox19.Location = new System.Drawing.Point(6, 456);
+            this.checkBox19.Name = "checkBox19";
+            this.checkBox19.Size = new System.Drawing.Size(92, 21);
+            this.checkBox19.TabIndex = 9;
+            this.checkBox19.Text = "Show &Groups";
+            this.checkBox19.UseVisualStyleBackColor = true;
+            this.checkBox19.CheckedChanged += new System.EventHandler(this.checkBox19_CheckedChanged);
             // 
             // statusStrip1
             // 
@@ -2775,6 +3238,87 @@ namespace ObjectListViewDemo
             this.label29.TabIndex = 6;
             this.label29.Text = resources.GetString("label29.Text");
             // 
+            // objectListView1
+            // 
+            this.objectListView1.AllColumns.Add(this.olvColumn35);
+            this.objectListView1.AllColumns.Add(this.olvColumn36);
+            this.objectListView1.AllColumns.Add(this.olvColumn37);
+            this.objectListView1.AllColumns.Add(this.olvColumn38);
+            this.objectListView1.AllColumns.Add(this.olvColumn39);
+            this.objectListView1.AllColumns.Add(this.olvColumn40);
+            this.objectListView1.AllColumns.Add(this.treeColumnFileExtension);
+            this.objectListView1.AllowColumnReorder = true;
+            this.objectListView1.AllowDrop = true;
+            this.objectListView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.objectListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.olvColumn35,
+            this.olvColumn36,
+            this.olvColumn37,
+            this.olvColumn38,
+            this.olvColumn39,
+            this.olvColumn40});
+            this.objectListView1.EmptyListMsg = "This folder is completely empty!";
+            this.objectListView1.EmptyListMsgFont = new System.Drawing.Font("Comic Sans MS", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.objectListView1.HideSelection = false;
+            this.objectListView1.LargeImageList = this.imageList2;
+            this.objectListView1.Location = new System.Drawing.Point(6, 83);
+            this.objectListView1.Name = "objectListView1";
+            this.objectListView1.OwnerDraw = true;
+            this.objectListView1.ShowGroups = false;
+            this.objectListView1.Size = new System.Drawing.Size(774, 367);
+            this.objectListView1.SmallImageList = this.imageList1;
+            this.objectListView1.TabIndex = 13;
+            this.objectListView1.UseCompatibleStateImageBehavior = false;
+            this.objectListView1.UseHotItem = true;
+            this.objectListView1.View = System.Windows.Forms.View.Details;
+            // 
+            // olvColumn35
+            // 
+            this.olvColumn35.AspectName = "Name";
+            this.olvColumn35.IsTileViewColumn = true;
+            this.olvColumn35.Text = "Name";
+            this.olvColumn35.UseInitialLetterForGroup = true;
+            this.olvColumn35.Width = 180;
+            // 
+            // olvColumn36
+            // 
+            this.olvColumn36.AspectName = "CreationTime";
+            this.olvColumn36.DisplayIndex = 4;
+            this.olvColumn36.Text = "Created";
+            this.olvColumn36.Width = 131;
+            // 
+            // olvColumn37
+            // 
+            this.olvColumn37.AspectName = "LastWriteTime";
+            this.olvColumn37.DisplayIndex = 1;
+            this.olvColumn37.IsTileViewColumn = true;
+            this.olvColumn37.Text = "Modified";
+            this.olvColumn37.Width = 145;
+            // 
+            // olvColumn38
+            // 
+            this.olvColumn38.AspectName = "Extension";
+            this.olvColumn38.DisplayIndex = 2;
+            this.olvColumn38.Text = "Size";
+            this.olvColumn38.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.olvColumn38.Width = 80;
+            // 
+            // olvColumn39
+            // 
+            this.olvColumn39.DisplayIndex = 3;
+            this.olvColumn39.IsTileViewColumn = true;
+            this.olvColumn39.Text = "File Type";
+            this.olvColumn39.Width = 148;
+            // 
+            // olvColumn40
+            // 
+            this.olvColumn40.FillsFreeSpace = true;
+            this.olvColumn40.IsEditable = false;
+            this.olvColumn40.MinimumWidth = 20;
+            this.olvColumn40.Text = "Attributes";
+            // 
             // olvColumn21
             // 
             this.olvColumn21.AspectName = "StartTime";
@@ -2854,87 +3398,6 @@ namespace ObjectListViewDemo
             this.olvColumn16.IsVisible = false;
             this.olvColumn16.Text = "Five";
             // 
-            // objectListView1
-            // 
-            this.objectListView1.AllColumns.Add(this.olvColumn35);
-            this.objectListView1.AllColumns.Add(this.olvColumn36);
-            this.objectListView1.AllColumns.Add(this.olvColumn37);
-            this.objectListView1.AllColumns.Add(this.olvColumn38);
-            this.objectListView1.AllColumns.Add(this.olvColumn39);
-            this.objectListView1.AllColumns.Add(this.olvColumn40);
-            this.objectListView1.AllColumns.Add(this.treeColumnFileExtension);
-            this.objectListView1.AllowColumnReorder = true;
-            this.objectListView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.objectListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.olvColumn35,
-            this.olvColumn36,
-            this.olvColumn37,
-            this.olvColumn38,
-            this.olvColumn39,
-            this.olvColumn40});
-            this.objectListView1.EmptyListMsg = "This folder is completely empty!";
-            this.objectListView1.EmptyListMsgFont = new System.Drawing.Font("Comic Sans MS", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.objectListView1.HideSelection = false;
-            this.objectListView1.ItemRenderer = null;
-            this.objectListView1.LargeImageList = this.imageList2;
-            this.objectListView1.Location = new System.Drawing.Point(6, 83);
-            this.objectListView1.Name = "objectListView1";
-            this.objectListView1.OwnerDraw = true;
-            this.objectListView1.ShowGroups = false;
-            this.objectListView1.Size = new System.Drawing.Size(774, 367);
-            this.objectListView1.SmallImageList = this.imageList1;
-            this.objectListView1.TabIndex = 13;
-            this.objectListView1.UseCompatibleStateImageBehavior = false;
-            this.objectListView1.UseHotItem = true;
-            this.objectListView1.View = System.Windows.Forms.View.Details;
-            // 
-            // olvColumn35
-            // 
-            this.olvColumn35.AspectName = "Name";
-            this.olvColumn35.IsTileViewColumn = true;
-            this.olvColumn35.Text = "Name";
-            this.olvColumn35.UseInitialLetterForGroup = true;
-            this.olvColumn35.Width = 180;
-            // 
-            // olvColumn36
-            // 
-            this.olvColumn36.AspectName = "CreationTime";
-            this.olvColumn36.DisplayIndex = 4;
-            this.olvColumn36.Text = "Created";
-            this.olvColumn36.Width = 131;
-            // 
-            // olvColumn37
-            // 
-            this.olvColumn37.AspectName = "LastWriteTime";
-            this.olvColumn37.DisplayIndex = 1;
-            this.olvColumn37.IsTileViewColumn = true;
-            this.olvColumn37.Text = "Modified";
-            this.olvColumn37.Width = 145;
-            // 
-            // olvColumn38
-            // 
-            this.olvColumn38.AspectName = "Extension";
-            this.olvColumn38.DisplayIndex = 2;
-            this.olvColumn38.Text = "Size";
-            this.olvColumn38.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.olvColumn38.Width = 80;
-            // 
-            // olvColumn39
-            // 
-            this.olvColumn39.DisplayIndex = 3;
-            this.olvColumn39.IsTileViewColumn = true;
-            this.olvColumn39.Text = "File Type";
-            this.olvColumn39.Width = 148;
-            // 
-            // olvColumn40
-            // 
-            this.olvColumn40.FillsFreeSpace = true;
-            this.olvColumn40.IsEditable = false;
-            this.olvColumn40.MinimumWidth = 20;
-            this.olvColumn40.Text = "Attributes";
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2945,11 +3408,11 @@ namespace ObjectListViewDemo
             this.Name = "MainForm";
             this.Text = "ObjectListView Demo";
             this.Load += new System.EventHandler(this.MainForm_Load);
+            this.contextMenuStrip1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.listViewSimple)).EndInit();
-            this.contextMenuStrip1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.listViewComplex)).EndInit();
@@ -2979,6 +3442,12 @@ namespace ObjectListViewDemo
             ((System.ComponentModel.ISupportInitialize)(this.olvFastList)).EndInit();
             this.tabPage9.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.treeListView)).EndInit();
+            this.tabPage8.ResumeLayout(false);
+            this.tabPage8.PerformLayout();
+            this.tableLayoutPanel1.ResumeLayout(false);
+            this.tableLayoutPanel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.olvGeeks)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.olvFroods)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.objectListView1)).EndInit();
@@ -3211,6 +3680,39 @@ namespace ObjectListViewDemo
         private MultiImageRenderer salaryRenderer;
         private OLVColumn olvColumn42;
         private MultiImageRenderer cookingSkillRenderer;
+        private TabPage tabPage8;
+        private Label label34;
+        private Label label33;
+        private ComboBox comboBox13;
+        private CheckBox checkBox20;
+        private ObjectListView olvFroods;
+        private OLVColumn olvColumn52;
+        private OLVColumn olvColumn53;
+        private OLVColumn olvColumn54;
+        private OLVColumn olvColumn55;
+        private OLVColumn olvColumn56;
+        private OLVColumn olvColumn57;
+        private OLVColumn olvColumn58;
+        private OLVColumn olvColumn59;
+        private OLVColumn olvColumn60;
+        private Label label31;
+        private ComboBox comboBox12;
+        private Label label30;
+        private CheckBox checkBox19;
+        private ObjectListView olvGeeks;
+        private OLVColumn olvColumn43;
+        private OLVColumn olvColumn44;
+        private OLVColumn olvColumn45;
+        private OLVColumn olvColumn46;
+        private OLVColumn olvColumn47;
+        private OLVColumn olvColumn48;
+        private OLVColumn olvColumn49;
+        private OLVColumn olvColumn50;
+        private OLVColumn olvColumn51;
+        private Label label35;
+        private TableLayoutPanel tableLayoutPanel1;
+        private CheckBox checkBox22;
+        private CheckBox checkBox21;
 
 	}
 }
