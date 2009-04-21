@@ -89,6 +89,7 @@ namespace ObjectListViewDemo
             InitializeTreeListExample();
             InitializeListPrinting();
             InitializeFastListExample(list);
+            InitializeDragDropExample(list);
 #if MONO
             // As of 2008-03-23, grid lines on virtual lists on Windows Mono crashes the program
             this.listViewVirtual.GridLines = false;
@@ -216,7 +217,41 @@ namespace ObjectListViewDemo
             listViewComplex.SetObjects(list);
 
             this.listViewComplex.ItemRenderer = new BusinessCardRenderer();
-		}
+
+            // Drag and drop support
+            this.listViewComplex.DragSource = new SimpleDataSource();
+            SimpleDropSink dropSink = new SimpleDropSink();
+            this.listViewComplex.DropSink = dropSink;
+            dropSink.CanDropOnItem = true;
+
+            dropSink.ModelCanDrop += new EventHandler<ModelDropEventArgs>(delegate(object sender, ModelDropEventArgs e) {
+                Person person = e.TargetModel as Person;
+                if (person == null) {
+                    e.Effect = DragDropEffects.None;
+                } else {
+                    if (person.MaritalStatus == MaritalStatus.Married) {
+                        e.Effect = DragDropEffects.None;
+                        e.InfoMessage = "Can't drop on someone who is already married";
+                    } else {
+                        e.Effect = DragDropEffects.Move;
+                    }
+                }
+            });
+
+            dropSink.ModelDropped += new EventHandler<ModelDropEventArgs>(delegate(object sender, ModelDropEventArgs e) {
+                if (e.TargetModel == null)
+                    return;
+
+                // Change the dropped people plus the target person to be married
+                ((Person)e.TargetModel).MaritalStatus = MaritalStatus.Married;
+                foreach (Person p in e.DragModels)
+                    p.MaritalStatus = MaritalStatus.Married;
+
+                // Force them to refresh
+                e.ListView.RefreshObject(e.TargetModel);
+                e.ListView.RefreshObjects(e.DragModels);
+            });
+        }
 
         /// <summary>
         /// Hackish renderer that draw a fancy version of a person for a Tile view.
@@ -346,20 +381,18 @@ namespace ObjectListViewDemo
 		{
 			this.olvColumn1.ImageGetter  = delegate (object row) { return "user"; };
 
+            // Long values in the first column will wrap
+            BaseRenderer renderer = new BaseRenderer();
+            renderer.CanWrap = true;
+            this.listViewDataSet.GetColumn(0).Renderer = renderer;
+
             this.salaryColumn.MakeGroupies(
                 new UInt32[] { 20000, 100000 },
                 new string[] { "Lowly worker", "Middle management", "Rarified elevation" });
-            //this.salaryColumn.Renderer = new MultiImageRenderer(Resource1.tick16, 5, 10000, 500000);
 
             this.heightColumn.MakeGroupies(
                 new Double[] { 1.50, 1.70, 1.85 },
                 new string[] { "Shortie",  "Normal", "Tall", "Really tall" });
-            //this.heightColumn.Renderer = new BarRenderer(0, 2);
-
-            //this.olvColumnGif.Renderer = new ImageRenderer(true);
-
-            this.comboBox3.SelectedIndex = 4;
-            this.comboBox7.SelectedIndex = 0;
 
             this.listViewDataSet.RowFormatter = delegate(OLVListItem olvi) {
                 string[] colorNames = new string[] { "red", "green", "blue", "yellow" };
@@ -392,12 +425,9 @@ namespace ObjectListViewDemo
                 }
             };
 
+            this.comboBox3.SelectedIndex = 4;
+            this.comboBox7.SelectedIndex = 0;
             this.rowHeightUpDown.Value = 32;
-
-            // Long values in the first column will wrap
-            BaseRenderer renderer = new BaseRenderer();
-            renderer.CanWrap = true;
-            this.listViewDataSet.GetColumn(0).Renderer = renderer;
 
             LoadXmlIntoList();
 		}
@@ -487,7 +517,6 @@ namespace ObjectListViewDemo
 					return 2; // music
 			};
 			this.olvColumn5.ImageGetter  = delegate (object row) { return "user"; }; // user icon
-            this.olvColumn5.Renderer = new BaseRenderer();
 
             this.olvColumn7.Renderer = new MultiImageRenderer("star", 5, 0, 50);
 
@@ -751,9 +780,14 @@ namespace ObjectListViewDemo
 
         #region Form event handlers
 
-        private void MainForm_Load(object sender, EventArgs e)
-        {
+        private void MainForm_Load(object sender, EventArgs e) {
+            //this.BeginInvoke(new MethodInvoker(delegate() {
+            //    this.testForm = new Form1();
+            //    this.testForm.Attach(this.listViewSimple);
+            //    this.testForm.Show(this.listViewSimple.TopLevelControl);
+            //}));
         }
+        //Form1 testForm;
 
         #endregion
 
@@ -1389,7 +1423,6 @@ namespace ObjectListViewDemo
                 else
                     return -1; // no image
             };
-            this.olvColumn28.Renderer = new BaseRenderer();
 
             this.olvColumn29.AspectGetter = delegate(object x) { return ((Person)x).GetRate(); };
             this.olvColumn29.AspectPutter = delegate(object x, object newValue) { ((Person)x).SetRate((double)newValue); };
@@ -1414,6 +1447,24 @@ namespace ObjectListViewDemo
             comboBox10.SelectedIndex = 4;
 
             this.olvFastList.SetObjects(list);
+        }
+
+        private void InitializeDragDropExample(List<Person> list) {
+            this.olvGeeks.DragSource = new SimpleDataSource();
+            this.olvGeeks.DropSink = new RearrangingDropSink(true);
+            this.olvFroods.DragSource = new SimpleDataSource();
+            this.olvFroods.DropSink = new RearrangingDropSink(true);
+
+            this.olvGeeks.GetColumn(0).ImageGetter = delegate(object x) { return "user"; };
+            this.olvFroods.GetColumn(0).ImageGetter = delegate(object x) { return "user"; };
+
+            this.olvGeeks.GetColumn(2).Renderer = new MultiImageRenderer(Resource1.star16, 5, 0, 40);
+            this.olvFroods.GetColumn(2).Renderer = new MultiImageRenderer(Resource1.star16, 5, 0, 40);
+
+            this.comboBox12.SelectedIndex = 4;
+            this.comboBox13.SelectedIndex = 4;
+
+            this.olvGeeks.SetObjects(list);
         }
 
         private void button14_Click(object sender, EventArgs e)
@@ -1656,6 +1707,26 @@ namespace ObjectListViewDemo
 
         private void olvFastList_ItemCheck(object sender, ItemCheckEventArgs e) {
             System.Diagnostics.Debug.WriteLine("fast check");
+        }
+
+        private void checkBox19_CheckedChanged(object sender, EventArgs e) {
+            ShowGroupsChecked(this.olvGeeks, (CheckBox)sender);
+        }
+
+        private void comboBox12_SelectedIndexChanged(object sender, EventArgs e) {
+            this.ChangeView(this.olvGeeks, (ComboBox)sender);
+        }
+
+        private void comboBox13_SelectedIndexChanged(object sender, EventArgs e) {
+            this.ChangeView(this.olvFroods, (ComboBox)sender);
+        }
+
+        private void checkBox21_CheckedChanged(object sender, EventArgs e) {
+            this.ChangeOwnerDrawn(this.olvGeeks, (CheckBox)sender);
+        }
+
+        private void checkBox22_CheckedChanged(object sender, EventArgs e) {
+            this.ChangeOwnerDrawn(this.olvFroods, (CheckBox)sender);
         }
     }
         
