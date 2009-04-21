@@ -5,6 +5,10 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2009-04-20  JPP  - Fixed bug where calling Expand() on an already expanded branch confused
+ *                    the display of the children (SF#2499313)
+ * 2009-03-06  JPP  - Calculate edit rectangle on column 0 more accurately
+ * v2.1
  * 2009-02-24  JPP  - All commands now work when the list is empty (SF #2631054)
  *                  - TreeListViews can now be printed with ListViewPrinter
  * 2009-01-27  JPP  - Changed to use new Renderer and HitTest scheme
@@ -622,13 +626,16 @@ namespace BrightIdeasSoftware
             /// <summary>
             /// Expand the subtree underneath the given model object
             /// </summary>
-            /// <param name="model">The model to be expanded. If the model isn't in the tree,
-            /// or if it cannot be expanded, the command does nothing.</param>
+            /// <param name="model">The model to be expanded.</param> 
             /// <returns>The index of the model in flat list version of the tree</returns>
+            /// <remarks>
+            /// If the model isn't in the tree,
+            /// if it cannot be expanded or if it is already expanded, the command does nothing.
+            /// </remarks>
             public virtual int Expand(Object model)
             {
                 Branch br = this.GetBranch(model);
-                if (br == null || !br.CanExpand)
+                if (br == null || !br.CanExpand || br.IsExpanded)
                     return -1;
 
                 int idx = this.GetObjectIndex(model);
@@ -1310,6 +1317,11 @@ namespace BrightIdeasSoftware
                 r.X += indent;
                 r.Width -= indent;
                 this.StandardHitTest(g, hti, r, x, y);
+            }
+
+            protected override Rectangle HandleGetEditRectangle(Graphics g, Rectangle cellBounds, 
+                OLVListItem item, int subItemIndex) {
+                return this.StandardGetEditRectangle(g, cellBounds);
             }
         }
     }
