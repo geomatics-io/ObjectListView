@@ -5,6 +5,12 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-04-21   JPP  - Fixed off-by-1 error when calculating text widths. This caused
+ *                     middle and right aligned columns to always wrap one character
+ *                     when printed using ListViewPrinter (SF#2776634).
+ * 2009-04-11   JPP  - Correctly renderer checkboxes when RowHeight is non-standard
+ * 2009-04-06   JPP  - Allow for item indent when calculating edit rectangle
+ * v2.1
  * 2009-02-24   JPP  - Work properly with ListViewPrinter again
  * 2009-01-26   JPP  - AUSTRALIA DAY (why aren't I on holidays!)
  *                   - Major overhaul of renderers. Now uses IRenderer interface.
@@ -571,7 +577,7 @@ namespace BrightIdeasSoftware
             } else {
                 StringFormat fmt = new StringFormat();
                 fmt.Trimming = StringTrimming.EllipsisCharacter;
-                return (int)g.MeasureString(txt, font, int.MaxValue, fmt).Width;
+                return 1 + (int)g.MeasureString(txt, font, int.MaxValue, fmt).Width;
             }
         }
 
@@ -958,15 +964,21 @@ namespace BrightIdeasSoftware
             int width = this.CalculateCheckBoxWidth(g);
             width += this.CalculateImageWidth(g, this.GetImageSelector());
 
+            if (this.ListItem.IndentCount > 0) {
+                int indentWidth = 16;
+                if (this.ListView.SmallImageList != null)
+                    indentWidth = this.ListView.SmallImageList.ImageSize.Width;
+                width += (indentWidth * this.ListItem.IndentCount);
+            }
+
             // If there wasn't either a check box or an image, just use the whole cell
             if (width == 0)
                 return cellBounds;
 
-            // Take the check box and the image out of the rectangle
+            // Take the check box and the image out of the rectangle, but ensure that
+            // there is minimum width to the editor
             r.X += width;
-            r.Width -= width;
-
-            //TODO: Ensure minimum width
+            r.Width = Math.Max(r.Width - width, 40); 
 
             return r;
         }
@@ -1072,7 +1084,7 @@ namespace BrightIdeasSoftware
             }
 
             // The odd constants are to match checkbox placement in native mode (on XP at least)
-            CheckBoxRenderer.DrawCheckBox(g, new Point(r.X + 3, r.Y + 2), boxState);
+            CheckBoxRenderer.DrawCheckBox(g, new Point(r.X + 3, r.Y + (r.Height / 2) - 6), boxState);
             return CheckBoxRenderer.GetGlyphSize(g, boxState).Width + 6;
         }
 
@@ -1467,7 +1479,8 @@ namespace BrightIdeasSoftware
             // We don't use this because the checkbox images were drawn into the small image list
             //Size checkBoxSize = CheckBoxRenderer.GetGlyphSize(g, CheckBoxState.CheckedNormal);
             Size checkBoxSize = this.ListView.SmallImageList.ImageSize;
-            return this.AlignRectangle(cellBounds, new Rectangle(new Point(0, 0), checkBoxSize));
+            return this.AlignRectangle(cellBounds, 
+                new Rectangle(0, 0, this.ListView.SmallImageList.ImageSize.Width, cellBounds.Height));
         }
     }
         
