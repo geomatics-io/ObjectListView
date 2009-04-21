@@ -113,6 +113,18 @@ namespace BrightIdeasSoftware
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        public struct LVBKIMAGE
+        {
+            public int ulFlags;
+            public IntPtr hBmp;
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string pszImage;
+            public int cchImageMax;
+            public int xOffset;
+            public int yOffset;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public struct LVCOLUMN
         {
             public int mask;
@@ -181,6 +193,18 @@ namespace BrightIdeasSoftware
         }
 
         [StructLayout(LayoutKind.Sequential)]
+        public struct NMCUSTOMDRAW
+        {
+            public NativeMethods.NMHDR nmcd;
+            public int dwDrawStage;
+            public IntPtr hdc;
+            public NativeMethods.RECT rc;
+            public IntPtr dwItemSpec;
+            public int uItemState;
+            public IntPtr lItemlParam;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
         public struct NMHEADER
         {
             public NMHDR nhdr;
@@ -199,6 +223,23 @@ namespace BrightIdeasSoftware
             public int uOldState;
             public int uChanged;
             public IntPtr lParam;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct NMLVCUSTOMDRAW
+        {
+            public NativeMethods.NMCUSTOMDRAW nmcd;
+            public int clrText;
+            public int clrTextBk;
+            public int iSubItem;
+            public int dwItemType;
+            public int clrFace;
+            public int iIconEffect;
+            public int iIconPhase;
+            public int iPartId;
+            public int iStateId;
+            public NativeMethods.RECT rcText;
+            public uint uAlign;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -279,8 +320,13 @@ namespace BrightIdeasSoftware
         public static extern IntPtr SendMessageHDHITTESTINFO(IntPtr hWnd, int Msg, IntPtr wParam, [In, Out] HDHITTESTINFO lParam);
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessageTOOLINFO(IntPtr hWnd, int Msg, int wParam, NativeMethods.TOOLINFO lParam);
+        [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessageLVBKIMAGE(IntPtr hWnd, int Msg, int wParam, ref NativeMethods.LVBKIMAGE lParam);
 
         // Entry points used by this code
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        public static extern bool GetClientRect(IntPtr hWnd, ref Rectangle r);
+
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         public static extern bool GetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO si);
 
@@ -295,6 +341,56 @@ namespace BrightIdeasSoftware
 
         [DllImport("user32.dll", EntryPoint = "ValidateRect", CharSet = CharSet.Auto)]
         private static extern IntPtr ValidatedRectInternal(IntPtr hWnd, ref Rectangle r);
+
+        /// <summary>
+        /// Put an image under the ListView.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The ListView must have its handle created before calling this.
+        /// </para>
+        /// <para>
+        /// This doesn't work very well.
+        /// </para>
+        /// </remarks>
+        /// <param name="lv"></param>
+        /// <param name="image"></param>
+        /// <returns></returns>
+        public static bool SetBackgroundImage(ListView lv, Image image) {
+            const int LVBKIF_SOURCE_NONE = 0x00000000;
+            //const int LVBKIF_SOURCE_HBITMAP = 0x00000001;
+            //const int LVBKIF_SOURCE_URL = 0x00000002;
+            //const int LVBKIF_SOURCE_MASK = 0x00000003;
+            //const int LVBKIF_STYLE_NORMAL = 0x00000000;
+            //const int LVBKIF_STYLE_TILE = 0x00000010;
+            //const int LVBKIF_STYLE_MASK = 0x00000010;
+            //const int LVBKIF_FLAG_TILEOFFSET = 0x00000100;
+            const int LVBKIF_TYPE_WATERMARK = 0x10000000;
+            //const int LVBKIF_FLAG_ALPHABLEND = 0x20000000;
+
+            const int LVM_SETBKIMAGE = 0x108A;
+
+            LVBKIMAGE lvbkimage = new LVBKIMAGE();
+            Bitmap bm = image as Bitmap;
+            if (bm == null)
+                lvbkimage.ulFlags = LVBKIF_SOURCE_NONE;
+            else {
+                lvbkimage.hBmp = bm.GetHbitmap();
+                lvbkimage.ulFlags = LVBKIF_TYPE_WATERMARK;
+
+                //lvbkimage.xOffset = 90;
+                //lvbkimage.yOffset = 90;
+
+                //string backgroundImageFileName = @"c:\temp\t2.bmp";
+                //lvbkimage.pszImage = backgroundImageFileName;
+                //lvbkimage.cchImageMax = backgroundImageFileName.Length + 1;
+                //lvbkimage.ulFlags = LVBKIF_SOURCE_URL | LVBKIF_STYLE_TILE;
+            }
+
+            Application.OleRequired();
+            IntPtr result = NativeMethods.SendMessageLVBKIMAGE(lv.Handle, LVM_SETBKIMAGE, 0, ref lvbkimage);
+            return (result != IntPtr.Zero);
+        }
 
         public static bool DrawImageList(Graphics g, ImageList il, int index, int x, int y, bool isSelected)
         {
