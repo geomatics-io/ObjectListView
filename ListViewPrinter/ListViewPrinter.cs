@@ -1186,7 +1186,7 @@ namespace BrightIdeasSoftware
         {
             float height = base.CalculateRowHeight(g, lv, n);
             if (lv is ObjectListView)
-                height = Math.Max(height, ((ObjectListView)lv).RowHeight);
+                height = Math.Max(height, ((ObjectListView)lv).RowHeightEffective);
             return height;
         }
 
