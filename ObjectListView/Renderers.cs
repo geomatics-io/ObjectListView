@@ -1905,7 +1905,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Should this bar be drawn in the system style?
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("Should this bar be drawn in the system style?"),
          DefaultValue(true)]
         public bool UseStandardBar
@@ -1918,7 +1918,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// How many pixels in from our cell border will this bar be drawn
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("How many pixels in from our cell border will this bar be drawn"),
          DefaultValue(2)]
         public int Padding
@@ -1932,7 +1932,7 @@ namespace BrightIdeasSoftware
         /// What color will be used to fill the interior of the control before the 
         /// progress bar is drawn?
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("The color of the interior of the bar"),
          DefaultValue(typeof(Color), "AliceBlue")]
         public Color BackgroundColor
@@ -1945,7 +1945,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// What color should the frame of the progress bar be?
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("What color should the frame of the progress bar be"),
          DefaultValue(typeof(Color), "Black")]
         public Color FrameColor
@@ -1958,7 +1958,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// How many pixels wide should the frame of the progress bar be?
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("How many pixels wide should the frame of the progress bar be"),
          DefaultValue(1.0f)]
         public float FrameWidth
@@ -1972,7 +1972,7 @@ namespace BrightIdeasSoftware
         /// What color should the 'filled in' part of the progress bar be?
         /// </summary>
         /// <remarks>This is only used if GradientStartColor is Color.Empty</remarks>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("What color should the 'filled in' part of the progress bar be"),
          DefaultValue(typeof(Color), "BlueViolet")]
         public Color FillColor
@@ -1985,7 +1985,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Use a gradient to fill the progress bar starting with this color
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("Use a gradient to fill the progress bar starting with this color"),
          DefaultValue(typeof(Color), "CornflowerBlue")]
         public Color GradientStartColor
@@ -2000,7 +2000,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Use a gradient to fill the progress bar ending with this color
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("Use a gradient to fill the progress bar ending with this color"),
          DefaultValue(typeof(Color), "DarkBlue")]
         public Color GradientEndColor

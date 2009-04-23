@@ -69,7 +69,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Get or set where within the content rectangle of the listview this overlay should be drawn
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("Where within the content rectangle of the listview the overlay will be drawn"),
          DefaultValue(System.Drawing.ContentAlignment.BottomRight),
          NotifyParentProperty(true),
@@ -84,7 +84,7 @@ namespace BrightIdeasSoftware
         /// Gets or sets the number of pixels that this overlay will be inset of the edge of the 
         /// ListViews content rectangle
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("The number of pixels that the overlay will be inset of the edge of the ListViews content rectangle"),
          DefaultValue(20),
          NotifyParentProperty(true)]
@@ -98,7 +98,7 @@ namespace BrightIdeasSoftware
         /// Gets or sets the transparency of this overlays. 
         /// 0 is completely transparent, 255 is completely opaque.
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("How transparent should the overlay be? 0 is opaque, 255 is completely transparent"),
          DefaultValue(128),
          NotifyParentProperty(true)]
@@ -196,7 +196,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the image that will be drawn over the top of the ListView
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("The image that will be drawn over the top of the ListView"),
          DefaultValue(null),
          NotifyParentProperty(true)]
@@ -259,7 +259,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the font that will be used to draw the text over the top of the ListView
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("The font that will be used to draw the text"),
          DefaultValue(null),
          NotifyParentProperty(true)]
@@ -282,7 +282,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the image that will be drawn over the top of the ListView
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("The image that will be drawn over the top of the ListView"),
          DefaultValue(typeof(Color), "DarkGray"),
          NotifyParentProperty(true)]
@@ -305,7 +305,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the image that will be drawn over the top of the ListView
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("The text that will be drawn over the top of the ListView"),
          DefaultValue(null),
          NotifyParentProperty(true),
