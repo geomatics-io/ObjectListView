@@ -150,6 +150,34 @@ namespace BrightIdeasSoftware
             public int vkDirection;
         }
 
+        public enum GroupState
+        {
+            COLLAPSIBLE = 8,
+            COLLAPSED = 1,
+            EXPANDED = 0
+        }
+
+        [StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        public struct LVGROUP
+        {
+            public int cbSize;
+            public int mask;
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string pszHeader;
+            public int cchHeader;
+
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string pszFooter;
+            public int cchFooter;
+
+            public int iGroupId;
+
+            public int stateMask;
+
+            public int state;
+            public int uAlign;
+        }
+
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public struct LVHITTESTINFO
         {
