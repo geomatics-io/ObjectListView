@@ -45,7 +45,7 @@ namespace BrightIdeasSoftware
         void EndDrag(Object dragObject, DragDropEffects effect);
     }
 
-    public class AbstractDataSource : IDragSource
+    public class AbstractDragSource : IDragSource
     {
         #region IDragSource Members
 
@@ -63,14 +63,14 @@ namespace BrightIdeasSoftware
         #endregion
     }
 
-    public class SimpleDataSource : IDragSource
+    public class SimpleDragSource : IDragSource
     {
         #region Constructors
 
-        public SimpleDataSource() {
+        public SimpleDragSource() {
         }
 
-        public SimpleDataSource(bool refreshAfterDrop) {
+        public SimpleDragSource(bool refreshAfterDrop) {
             this.RefreshAfterDrop = refreshAfterDrop;
         }
 
