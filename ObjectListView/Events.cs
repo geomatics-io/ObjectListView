@@ -5,6 +5,8 @@
  * Date: 17/10/2008 9:15 PM
  *
  * Change log:
+ * 2009-04-23   JPP  - Added drag drop events
+ * v2.1
  * 2009-01-18   JPP  - Moved SelectionChanged event to this file
  * v2.0
  * 2008-12-06   JPP  - Added searching events
@@ -84,6 +86,17 @@ namespace BrightIdeasSoftware
         public event EventHandler<BeforeSortingEventArgs> BeforeSorting;
 
         /// <summary>
+        /// This event is triggered when the user moves a drag over an ObjectListView that
+        /// has a SimpleDropSink installed as the drop handler.
+        /// </summary>
+        /// <remarks>
+        /// Handlers for this event should set the Effect argument and optionally the
+        /// InfoMsg property.
+        /// </remarks>
+        [Category("Behavior - ObjectListView")]
+        public event EventHandler<DropEventArgs> CanDrop;
+
+        /// <summary>
         /// Triggered when a cell is about to finish being edited.
         /// </summary>
         /// <remarks>If Cancel is already true, the user is cancelling the edit operation.
@@ -116,6 +129,13 @@ namespace BrightIdeasSoftware
         public event ColumnRightClickEventHandler ColumnRightClick;
 
         /// <summary>
+        /// This event is triggered when the user releases a drag over an ObjectListView that
+        /// has a SimpleDropSink installed as the drop handler.
+        /// </summary>
+        [Category("Behavior - ObjectListView")]
+        public event EventHandler<DropEventArgs> Dropped;
+
+        /// <summary>
         /// Some new objects are about to be added to an ObjectListView.
         /// </summary>
         [Category("Behavior - ObjectListView")]
@@ -143,6 +163,26 @@ namespace BrightIdeasSoftware
         public event EventHandler<ItemsRemovingEventArgs> ItemsRemoving;
 
         /// <summary>
+        /// This event is triggered when the user moves a drag over an ObjectListView that
+        /// has a SimpleDropSink installed as the drop handler, and when the source control
+        /// for the drag was an ObjectListView.
+        /// </summary>
+        /// <remarks>
+        /// Handlers for this event should set the Effect argument and optionally the
+        /// InfoMsg property.
+        /// </remarks>
+        [Category("Behavior - ObjectListView")]
+        public event EventHandler<ModelDropEventArgs> ModelCanDrop;
+
+        /// <summary>
+        /// This event is triggered when the user releases a drag over an ObjectListView that
+        /// has a SimpleDropSink installed as the drop handler and when the source control
+        /// for the drag was an ObjectListView.
+        /// </summary>
+        [Category("Behavior - ObjectListView")]
+        public event EventHandler<ModelDropEventArgs> ModelDropped;
+
+        /// <summary>
         /// This event is triggered once per user action that changes the selection state
         /// of one or more rows.
         /// </summary>
@@ -151,7 +191,7 @@ namespace BrightIdeasSoftware
         public event EventHandler SelectionChanged;
 
         #endregion
-
+        
         //-----------------------------------------------------------------------------------
         #region OnEvents
 
@@ -179,10 +219,20 @@ namespace BrightIdeasSoftware
                 this.BeforeSorting(this, e);
         }
 
+        protected virtual void OnCanDrop(DropEventArgs args) {
+            if (this.CanDrop != null)
+                this.CanDrop(this, args);
+        }
+
         protected virtual void OnColumnRightClick(ColumnClickEventArgs e)
         {
             if (this.ColumnRightClick != null)
                 this.ColumnRightClick(this, e);
+        }
+
+        protected virtual void OnDropped(DropEventArgs args) {
+            if (this.Dropped != null)
+                this.Dropped(this, args);
         }
 
         protected virtual void OnItemsAdding(ItemsAddingEventArgs e)
@@ -207,6 +257,16 @@ namespace BrightIdeasSoftware
         {
             if (this.ItemsRemoving != null)
                 this.ItemsRemoving(this, e);
+        }
+
+        protected virtual void OnModelCanDrop(ModelDropEventArgs args) {
+            if (this.ModelCanDrop != null)
+                this.ModelCanDrop(this, args);
+        }
+
+        protected virtual void OnModelDropped(ModelDropEventArgs args) {
+            if (this.ModelDropped != null)
+                this.ModelDropped(this, args);
         }
 
         protected virtual void OnSelectionChanged(EventArgs e)
