@@ -212,14 +212,11 @@ namespace ObjectListViewDemo
                     return null;
             };
 
-            comboBox1.SelectedIndex = 4;
-            comboBox5.SelectedIndex = 0;
-            listViewComplex.SetObjects(list);
-
+            // Install a custom renderer that draws the Tile view in a special way
             this.listViewComplex.ItemRenderer = new BusinessCardRenderer();
 
             // Drag and drop support
-            this.listViewComplex.DragSource = new SimpleDataSource();
+            this.listViewComplex.DragSource = new SimpleDragSource();
             SimpleDropSink dropSink = new SimpleDropSink();
             this.listViewComplex.DropSink = dropSink;
             dropSink.CanDropOnItem = true;
@@ -251,6 +248,10 @@ namespace ObjectListViewDemo
                 e.ListView.RefreshObject(e.TargetModel);
                 e.ListView.RefreshObjects(e.DragModels);
             });
+
+            comboBox1.SelectedIndex = 4;
+            comboBox5.SelectedIndex = 0;
+            listViewComplex.SetObjects(list);
         }
 
         /// <summary>
@@ -299,15 +300,16 @@ namespace ObjectListViewDemo
                 photoRect.Inflate(-spacing, -spacing);
                 Person person = rowObject as Person;
                 if (person != null) {
-                    try {
-                        photoRect.Width = 75;
-                        Image photo = Image.FromFile(String.Format(@".\Photos\{0}.png", person.Photo));
+                    photoRect.Width = 75;
+                    string photoFile = String.Format(@".\Photos\{0}.png", person.Photo);
+                    if (File.Exists(photoFile)) {
+                        Image photo = Image.FromFile(photoFile);
                         if (photo.Width > photoRect.Width)
                             photoRect.Height = (int)(photo.Height * ((float)photoRect.Width / photo.Width));
                         else
                             photoRect.Height = photo.Height;
                         g.DrawImage(photo, photoRect);
-                    } catch (FileNotFoundException) {
+                    } else {
                         g.DrawRectangle(Pens.DarkGray, photoRect);
                     }
                 }
@@ -1450,9 +1452,9 @@ namespace ObjectListViewDemo
         }
 
         private void InitializeDragDropExample(List<Person> list) {
-            this.olvGeeks.DragSource = new SimpleDataSource();
+            this.olvGeeks.DragSource = new SimpleDragSource();
             this.olvGeeks.DropSink = new RearrangingDropSink(true);
-            this.olvFroods.DragSource = new SimpleDataSource();
+            this.olvFroods.DragSource = new SimpleDragSource();
             this.olvFroods.DropSink = new RearrangingDropSink(true);
 
             this.olvGeeks.GetColumn(0).ImageGetter = delegate(object x) { return "user"; };
@@ -1727,6 +1729,15 @@ namespace ObjectListViewDemo
 
         private void checkBox22_CheckedChanged(object sender, EventArgs e) {
             this.ChangeOwnerDrawn(this.olvFroods, (CheckBox)sender);
+        }
+
+        private void listViewSimple_ModelCanDrop(object sender, ModelDropEventArgs e) {
+            System.Diagnostics.Debug.WriteLine("listViewSimple_ModelCanDrop");
+        }
+
+        private void listViewSimple_ModelDropped(object sender, ModelDropEventArgs e) {
+            System.Diagnostics.Debug.WriteLine("listViewSimple_ModelDropped");
+
         }
     }
         
