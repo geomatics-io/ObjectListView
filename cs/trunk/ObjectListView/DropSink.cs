@@ -613,14 +613,6 @@ namespace BrightIdeasSoftware
                 this.ModelCanDrop(this, args);
         }
 
-        protected bool HasModelCanDropHandlers {
-            get { return this.ModelCanDrop != null; }
-        }
-
-        protected bool HasModelDroppedHandlers {
-            get { return this.ModelDropped != null; }
-        }
-
         protected virtual void OnModelDropped(ModelDropEventArgs args) {
             if (this.ModelDropped != null)
                 this.ModelDropped(this, args);
@@ -763,6 +755,11 @@ namespace BrightIdeasSoftware
             Rectangle r = this.ListView.ContentRectangle;
             int rowHeight = this.ListView.RowHeightEffective;
             int close = rowHeight;
+
+            // In Tile view, using the whole row height is too much
+            if (this.ListView.View == View.Tile)
+                close /= 2;
+
             if (pt.Y <= (r.Top + close)) {
                 // Scroll faster if the mouse is closer to the top
                 this.timer.Interval = ((pt.Y <= (r.Top + close / 2)) ? 100 : 350);
@@ -777,6 +774,20 @@ namespace BrightIdeasSoftware
                     this.timer.Stop();
                 }
             }
+
+            // On Vista, we have to hide overlays during autoscrolling
+            // otherwise they flicker.
+            //if (this.ListView.HasOverlays) {
+            //    if (this.timer.Enabled) {
+            //        this.ListView.ShouldDrawOverlays = false;
+            //        this.ListView.Invalidate();
+            //    } else {
+            //        if (!this.ListView.ShouldDrawOverlays) {
+            //            this.ListView.ShouldDrawOverlays = true;
+            //            this.ListView.Invalidate();
+            //        }
+            //    }
+            //}
         }
 
         #endregion
@@ -912,6 +923,13 @@ namespace BrightIdeasSoftware
     /// This class can only be used on plain ObjectListViews and FastObjectListViews.
     /// </para>
     /// <para>
+    /// This class works when the OLV is sorted or grouped, but it is up to the programmer
+    /// to decide what rearranging such lists "means". Example: if the control is grouping
+    /// students by academic grade, and the user drags a "Fail" grade student into the "A+"
+    /// group, it is the responsibility of the programmer to makes the appropriate changes
+    /// to the model and redraw/rebuild the control so that the users action makes sense.
+    /// </para>
+    /// <para>
     /// Users of this class should listen for the CanDrop event to decide
     /// if models from another OLV can be moved to OLV under this sink.
     /// </para>
@@ -936,9 +954,6 @@ namespace BrightIdeasSoftware
         private bool acceptExternal = false;
 
         protected override void OnModelCanDrop(ModelDropEventArgs args) {
-            if (this.HasModelCanDropHandlers) {
-                base.OnModelCanDrop(args);
-            } else {
                 if (!this.AcceptExternal && args.SourceListView != this.ListView) {
                     args.Effect = DragDropEffects.None;
                     args.InfoMessage = "This list doesn't accept drops from other lists";
@@ -950,16 +965,10 @@ namespace BrightIdeasSoftware
                         args.Effect = DragDropEffects.Move;
                     }
                 }
-            }
         }
 
         protected override void OnModelDropped(ModelDropEventArgs args) {
-            // If an event handler has been set up, use that.
-            if (this.HasModelDroppedHandlers) {
-                base.OnModelDropped(args);
-            } else {
-                this.RearrangeModels(args);
-            }
+            this.RearrangeModels(args);
         }
 
         public virtual void RearrangeModels(ModelDropEventArgs args) {
