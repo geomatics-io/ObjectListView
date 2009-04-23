@@ -5,6 +5,10 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2009-04-23  JPP  - Fixed various bugs under Vista.
+ *                  - Made groups collapsible - Vista only. Thanks to Crustyapplesniffer.
+ *                  - Forward events from DropSink to the control itself. This allows handlers to be defined
+ *                    within the IDE for drop events
  * 2009-04-16  JPP  - Made several properties localizable.
  * 2009-04-11  JPP  - Correctly renderer checkboxes when RowHeight is non-standard
  * 2009-04-11  JPP  - Implemented overlay architecture, based on CustomDraw scheme.
@@ -402,7 +406,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// If every second row has a background different to the control, what color should it be?
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("If using alternate colors, what foregroundColor should alterate rows be?"),
          DefaultValue(typeof(Color), "")]
         public Color AlternateRowBackColor {
@@ -655,6 +659,9 @@ namespace BrightIdeasSoftware
         }
         private IRenderer defaultRenderer = new BaseRenderer();
 
+        /// <summary>
+        /// Gets or sets the object that controls how drags start from this control
+        /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public IDragSource DragSource {
@@ -663,18 +670,54 @@ namespace BrightIdeasSoftware
         }
         private IDragSource dragSource;
 
+        /// <summary>
+        /// Gets or sets the object that controls how drops are accepted and processed
+        /// by this ListView.
+        /// </summary>
+        /// <remarks>
+        /// If the given sink is an instance of SimpleDropSink, then events from the drop sink
+        /// will be automatically forwarded to the ObjectListView (which means that handlers
+        /// for those event can be configured within the IDE).
+        /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public IDropSink DropSink {
             get { return this.dropSink; }
             set {
+                if (this.dropSink == value)
+                    return;
+
+                // Stop listening for events on the old sink
+                SimpleDropSink oldSink = this.dropSink as SimpleDropSink;
+                if (oldSink != null) {
+                    oldSink.CanDrop -= new EventHandler<DropEventArgs>(dropSink_CanDrop);
+                    oldSink.Dropped -= new EventHandler<DropEventArgs>(dropSink_Dropped);
+                    oldSink.ModelCanDrop -= new EventHandler<ModelDropEventArgs>(dropSink_ModelCanDrop);
+                    oldSink.ModelDropped -= new EventHandler<ModelDropEventArgs>(dropSink_ModelDropped);
+                }
+
                 this.dropSink = value;
                 this.AllowDrop = (value != null);
                 if (this.dropSink != null)
                     this.dropSink.ListView = this;
+
+                // Start listening for events on the new sink
+                SimpleDropSink newSink = value as SimpleDropSink;
+                if (newSink != null) {
+                    newSink.CanDrop += new EventHandler<DropEventArgs>(dropSink_CanDrop);
+                    newSink.Dropped += new EventHandler<DropEventArgs>(dropSink_Dropped);
+                    newSink.ModelCanDrop += new EventHandler<ModelDropEventArgs>(dropSink_ModelCanDrop);
+                    newSink.ModelDropped += new EventHandler<ModelDropEventArgs>(dropSink_ModelDropped);
+                }
             }
         }
         private IDropSink dropSink;
+
+        // Forward events from the drop sink to the control itself
+        void dropSink_CanDrop(object sender, DropEventArgs e) { this.OnCanDrop( e); }
+        void dropSink_Dropped(object sender, DropEventArgs e) { this.OnDropped(e); }
+        void dropSink_ModelCanDrop(object sender, ModelDropEventArgs e) { this.OnModelCanDrop(e); }
+        void dropSink_ModelDropped(object sender, ModelDropEventArgs e) { this.OnModelDropped(e); }
 
         /// <summary>
         /// This registry decides what control should be used to edit what cells, based
@@ -687,7 +730,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// If there are no items in this list view, what m should be drawn onto the control?
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("When the list has no items, show this m in the control"),
          DefaultValue(null),
          Localizable(true)]
@@ -705,7 +748,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// What font should the 'list empty' m be drawn in?
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
         Description("What font should the 'list empty' m be drawn in?"),
         DefaultValue(null)]
         public virtual Font EmptyListMsgFont {
@@ -820,6 +863,22 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets or sets whether or now the groups in this ObjectListView should be collapsible.
+        /// </summary>
+        /// <remarks>
+        /// This feature only works under Vista and later.
+        /// </remarks>
+        [Browsable(true),
+         Category("Appearance - ObjectListView"),
+         Description("Should the groups in this control be collapsible (Vista only)."),
+         DefaultValue(true)]
+        public bool HasCollapsibleGroups {
+            get { return hasCollapsibleGroup; }
+            set { hasCollapsibleGroup = value; }
+        }
+        private bool hasCollapsibleGroup = true;
+
+        /// <summary>
         /// Does this listview have a m that should be drawn when the list is empty?
         /// </summary>
         [Browsable(false)]
@@ -854,7 +913,7 @@ namespace BrightIdeasSoftware
         /// What sort of formatting should be applied to the row under the cursor?
         /// </summary>
         /// <remarks>This only takes effect when UseHotItem is true.</remarks>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("How should the row under the cursor be highlighted"),
          DefaultValue(null)]
         public virtual HotItemStyle HotItemStyle {
@@ -869,7 +928,7 @@ namespace BrightIdeasSoftware
         /// <remarks>Windows does not give the option of changing the selection background.
         /// So the control has to be owner drawn to see the result of this setting.
         /// Setting UseCustomSelectionColors = true will do this for you.</remarks>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("The background foregroundColor of selected rows when the control is owner drawn"),
          DefaultValue(typeof(Color), "")]
         public virtual Color HighlightBackgroundColor {
@@ -897,7 +956,7 @@ namespace BrightIdeasSoftware
         /// <remarks>Windows does not give the option of changing the selection foreground (text color).
         /// So the control has to be owner drawn to see the result of this setting.
         /// Setting UseCustomSelectionColors = true will do this for you.</remarks>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("The foreground foregroundColor of selected rows when the control is owner drawn"),
          DefaultValue(typeof(Color), "")]
         public virtual Color HighlightForegroundColor {
@@ -942,10 +1001,53 @@ namespace BrightIdeasSoftware
         private bool isSearchOnSortColumn = true;
 
         /// <summary>
+        /// Gets or sets if this control will use a SimpleDropSink to receive drops
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Setting this replaces any previous DropSink.
+        /// </para>
+        /// <para>
+        /// After setting this to true, the SimpleDropSink will still need to be configured
+        /// to say when it can accept drops and what should happen when something is dropped.
+        /// The need to do these things makes this property mostly useless :(
+        /// </para>
+        /// </remarks>
+        [Category("Behavior - ObjectListView"),
+        Description("Should this control will use a SimpleDropSink to receive drops."),
+        DefaultValue(false)]
+        public virtual bool IsSimpleDropSink {
+            get { return this.DropSink != null; }
+            set {
+                if (value)
+                    this.DropSink = new SimpleDropSink();
+                else
+                    this.DropSink = null;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets if this control will use a SimpleDragSource to initiate drags
+        /// </summary>
+        /// <remarks>Setting this replaces any previous DragSource</remarks>
+        [Category("Behavior - ObjectListView"),
+        Description("Should this control use a SimpleDragSource to initiate drags out from this control"),
+        DefaultValue(false)]
+        public virtual bool IsSimpleDragSource {
+            get { return this.DragSource != null; }
+            set {
+                if (value)
+                    this.DragSource = new SimpleDragSource();
+                else
+                    this.DragSource = null;
+            }
+        }
+
+        /// <summary>
         /// This renderer draws the items when in the list is in non-details view.
         /// In details view, the renderers for the individuals columns are responsible.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("Appearance - ObjectListView"),
         Description("The owner drawn renderer that draws items when the list is in non-Details view."),
         DefaultValue(null)]
         public IRenderer ItemRenderer {
@@ -1019,7 +1121,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the image that will be drawn over the top of the ListView
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("The image that will be drawn over the top of the ListView"),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Content),
          RefreshProperties(RefreshProperties.Repaint)]
@@ -1031,7 +1133,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the text that will be drawn over the top of the ListView
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("The text that will be drawn over the top of the ListView"),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         public TextOverlay OverlayText {
@@ -1062,7 +1164,7 @@ namespace BrightIdeasSoftware
         /// <para><bold>This feature is experiemental!</bold> Strange things may happen to your program,
         /// your spouse or your pet if you use it.</para>
         /// </remarks>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("Specify the height of each row in pixels. -1 indicates default height"),
          DefaultValue(-1)]
         public virtual int RowHeight {
@@ -1250,7 +1352,7 @@ namespace BrightIdeasSoftware
         /// as soon as you give a ListView a SmallImageList, the text of column 0 is bumped 16
         /// pixels to the right, even if you never used an image.
         /// </remarks>
-        [Category("Behavior - ObjectListView"),
+        [Category("Appearance - ObjectListView"),
          Description("Should the list view show sort indicators in the column headers?"),
          DefaultValue(true)]
         public virtual bool ShowSortIndicators {
@@ -1265,7 +1367,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// <para>Virtual lists have to be owner drawn in order to show images on subitems?</para>
         /// </remarks>
-        [Category("Behavior - ObjectListView"),
+        [Category("Appearance - ObjectListView"),
          Description("Should the list view show images on subitems?"),
          DefaultValue(false)]
         public virtual bool ShowImagesOnSubItems {
@@ -1341,7 +1443,7 @@ namespace BrightIdeasSoftware
         /// alternate between checked and unchecked. CheckStateGetter can still return Indeterminate when this
         /// setting is false.
         /// </remarks>
-        [Category("Behavior - ObjectListView"),
+        [Category("Appearance - ObjectListView"),
          Description("Should the primary column have a checkbox that behaves as a tri-state checkbox?"),
          DefaultValue(false)]
         public virtual bool TriStateCheckBoxes {
@@ -1430,7 +1532,7 @@ namespace BrightIdeasSoftware
         /// <remarks><para>The color of the alternate rows is given by AlternateRowBackColor.</para>
         /// <para>There is a "feature" in .NET for listviews in non-full-row-select mode, where
         /// selected rows are not drawn with their correct background color.</para></remarks>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("Should the list view use a different backcolor to alternate rows?"),
          DefaultValue(false)]
         public virtual bool UseAlternatingBackColors {
@@ -1445,7 +1547,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// When this is enabled, the control becomes owner drawn.
         /// </remarks>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("Should the selected row be drawn with non-standard foreground and background colors?"),
          DefaultValue(false)]
         public bool UseCustomSelectionColors {
@@ -1462,7 +1564,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Should the item under the cursor be formatted in a special way?
         /// </summary>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("Should HotTracking be used? Hot tracking applies special formatting to the row under the cursor"),
          DefaultValue(false)]
         public bool UseHotItem {
@@ -2308,15 +2410,20 @@ namespace BrightIdeasSoftware
         internal void LowLevelScroll(int dx, int dy) {
             // We have to hide any overlays during scrolling since
             // we don't want them to scroll too.
-            if (this.HasOverlays) {
-                this.ShouldDrawOverlays = false;
-                this.Invalidate();
+
+            // I don't think we need to do anything special here
+            // since it is handled in the LVM_*SCROLL msgs
+            // JPP 23/4/20009
+
+            //if (this.HasOverlays) {
+            //    this.ShouldDrawOverlays = false;
+            //    this.Invalidate();
+            //    NativeMethods.Scroll(this, dx, dy);
+            //    this.ShouldDrawOverlays = true;
+            //    this.Invalidate();
+            //} else {
                 NativeMethods.Scroll(this, dx, dy);
-                this.ShouldDrawOverlays = true;
-                this.Invalidate();
-            } else {
-                NativeMethods.Scroll(this, dx, dy);
-            }
+            //}
         }
 
         /// <summary>
@@ -2660,6 +2767,15 @@ namespace BrightIdeasSoftware
             this.OnSelectionChanged(new EventArgs());
         }
 
+        protected virtual void Application_Idle2(object sender, EventArgs e) {
+            // Remove the handler before triggering the event
+            Application.Idle -= new EventHandler(Application_Idle2);
+            this.hasIdleHandler2 = false;
+
+            this.ShouldDrawOverlays = true;
+            this.Invalidate();
+        }
+
         /// <summary>
         /// Event handler for the column click event
         /// </summary>
@@ -2749,6 +2865,24 @@ namespace BrightIdeasSoftware
                     if (!this.HandleContextMenu(ref m))
                         base.WndProc(ref m);
                     break;
+                case 0x1000 + 145: // LVM_INSERTGROUP     = LVM_FIRST + 145;
+                    // Add the collapsible feature id needed
+                    if (ObjectListView.IsVista && this.HasCollapsibleGroups) {
+                        NativeMethods.LVGROUP group = (NativeMethods.LVGROUP)Marshal.PtrToStructure(m.LParam, typeof(NativeMethods.LVGROUP));
+                        group.state = (int)NativeMethods.GroupState.COLLAPSIBLE; // LVGS_COLLAPSIBLE 
+                        group.mask = group.mask ^ 4; // LVGF_STATE 
+                        Marshal.StructureToPtr(group, m.LParam, true);
+                    }
+                    base.WndProc(ref m);
+                    break;
+
+                case 0x202:  /*WM_LBUTTONUP*/
+                    if (ObjectListView.IsVista && this.HasCollapsibleGroups) {
+                        base.DefWndProc(ref m);
+                    }
+                    base.WndProc(ref m);
+                    break;
+
                 // This doesn't seem to be called when i expected
                 //case 0x1053: // LVM_FINDITEM = (LVM_FIRST + 83)
                 //    if (!this.HandleFindItem(ref m))
@@ -2759,6 +2893,15 @@ namespace BrightIdeasSoftware
                     break;
             }
         }
+
+        static public bool IsVista {
+            get {
+                if (!ObjectListView.isVista.HasValue)
+                    ObjectListView.isVista = Environment.OSVersion.Version.Major >= 6;
+                return ObjectListView.isVista.Value;
+            }
+        }
+        static private bool? isVista;
 
         /// <summary>
         /// Handle the search for item m if possible.
@@ -2904,7 +3047,12 @@ namespace BrightIdeasSoftware
             switch (lParam->nmcd.dwDrawStage) {
                 case CDDS_PREPAINT:
                     //System.Diagnostics.Debug.WriteLine("CDDS_PREPAINT");
-                    this.isAfterItemPaint = false;
+
+                    // If there are any items, we have to wait until at least one has been painted 
+                    // before we draw the overlays. If there aren't any items, there will never be any
+                    // item paint events, so we can draw the overlays whenever
+                    this.isAfterItemPaint = (this.GetItemCount() == 0);
+                    this.prePaintLevel++;
                     base.WndProc(ref m);
                     // Make sure that we get postpaint notifications
                     m.Result = (IntPtr)((int)m.Result | CDRF_NOTIFYPOSTPAINT | CDRF_NOTIFYPOSTERASE);
@@ -2912,11 +3060,15 @@ namespace BrightIdeasSoftware
 
                 case CDDS_POSTPAINT:
                     //System.Diagnostics.Debug.WriteLine("CDDS_POSTPAINT");
+                    this.prePaintLevel--;
 
-                    // When in group view, the control send a whole heap of PREPAINT/POSTPAINT
-                    // messages (1 per group header?) before drawing any items.
-                    // We have to wait until after the first item paint before we draw overlays
-                    if (this.isAfterItemPaint) {
+                    // When in group view, we have two problems. On XP, the control sends 
+                    // a whole heap of PREPAINT/POSTPAINT messages before drawing any items.
+                    // We have to wait until after the first item paint before we draw overlays.
+                    // On Vista, we have a different problem. On Vista, the control nests calls
+                    // to PREPAINT and POSTPAINT. We only want to draw overlays on the outermost
+                    // POSTPAINT.
+                    if (this.prePaintLevel == 0 && this.isAfterItemPaint) {
                         this.shouldDoCustomDrawing = false;
 
                         // Draw our overlays after everything has been drawn
@@ -2929,7 +3081,7 @@ namespace BrightIdeasSoftware
                 case CDDS_ITEMPREPAINT:
                     //System.Diagnostics.Debug.WriteLine("CDDS_ITEMPREPAINT");
 
-                    // When in group view, the control send a whole heap of PREPAINT/POSTPAINT
+                    // When in group view on XP, the control send a whole heap of PREPAINT/POSTPAINT
                     // messages before drawing any items.
                     // We have to wait until after the first item paint before we draw overlays
                     this.isAfterItemPaint = true;
@@ -3210,8 +3362,15 @@ namespace BrightIdeasSoftware
                 case LVN_ENDSCROLL:
                     //System.Diagnostics.Debug.WriteLine("LVN_ENDSCROLL");
                     if (this.HasOverlays) {
-                        this.ShouldDrawOverlays = true;
-                        this.Invalidate();
+                        if (ObjectListView.IsVista) {
+                            if (!this.hasIdleHandler2) {
+                                this.hasIdleHandler2 = true;
+                                Application.Idle += new EventHandler(Application_Idle2);
+                            }
+                        } else {
+                            this.ShouldDrawOverlays = true;
+                            this.Invalidate();
+                        }
                     }
                     break;
 
@@ -3257,6 +3416,7 @@ namespace BrightIdeasSoftware
 
             return isMsgHandled;
         }
+        private bool hasIdleHandler2;
 
         private CheckState CalculateState(int state) {
             switch ((state & 0xf000) >> 12) {
@@ -3414,6 +3574,7 @@ namespace BrightIdeasSoftware
             // once per paint event. We use these bools to insure this.
             this.isInWmPaintEvent = true;
             this.shouldDoCustomDrawing = true;
+            this.prePaintLevel = 0;
 
             this.HandlePrePaint();
             base.WndProc(ref m);
@@ -3422,6 +3583,7 @@ namespace BrightIdeasSoftware
             //System.Diagnostics.Debug.WriteLine("< WMPAINT");
             return true;
         }
+        private int prePaintLevel;
 
         /// <summary>
         /// Perform any steps needed before painting the control
@@ -5881,7 +6043,12 @@ namespace BrightIdeasSoftware
             }
         }
 
-        private void DrawEmptyListMsg(Graphics g, Rectangle r) {
+        /// <summary>
+        /// Draw our empty list message
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        protected virtual void DrawEmptyListMsg(Graphics g, Rectangle r) {
             StringFormat sf = new StringFormat();
             sf.Alignment = StringAlignment.Center;
             sf.LineAlignment = StringAlignment.Center;
