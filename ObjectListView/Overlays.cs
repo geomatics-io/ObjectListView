@@ -42,7 +42,14 @@ namespace BrightIdeasSoftware
     /// </summary>
     public interface IOverlay
     {
-        void Draw(ObjectListView olv, Graphics g, Rectangle r);
+        /// <summary>
+        /// Draw this overlay
+        /// </summary>
+        /// <param name="olv"></param>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="transparency"></param>
+        void Draw(ObjectListView olv, Graphics g, Rectangle r, int transparency);
     }
 
     /// <summary>
@@ -52,7 +59,13 @@ namespace BrightIdeasSoftware
     {
         #region IOverlay Members
 
-        public virtual void Draw(ObjectListView olv, Graphics g, Rectangle r) {
+        /// <summary>
+        /// Draw this overlay
+        /// </summary>
+        /// <param name="olv"></param>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        public virtual void Draw(ObjectListView olv, Graphics g, Rectangle r, int transparency) {
         }
 
         #endregion
@@ -93,20 +106,6 @@ namespace BrightIdeasSoftware
             set { this.inset = Math.Max(0, value); }
         }
         private int inset = 20;
-
-        /// <summary>
-        /// Gets or sets the transparency of this overlays. 
-        /// 0 is completely transparent, 255 is completely opaque.
-        /// </summary>
-        [Category("Appearance - ObjectListView"),
-         Description("How transparent should the overlay be? 0 is opaque, 255 is completely transparent"),
-         DefaultValue(128),
-         NotifyParentProperty(true)]
-        public int Transparency {
-            get { return this.transparency; }
-            set { this.transparency = Math.Min(255, Math.Max(0, value)); }
-        }
-        private int transparency = 128;
 
         #endregion
 
@@ -216,12 +215,13 @@ namespace BrightIdeasSoftware
         /// <param name="olv">The ObjectListView being decorated</param>
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The bounds of the rendering</param>
-        public override void Draw(ObjectListView olv, Graphics g, Rectangle r) {
+        /// <param name="transparency">How transparent is the overlay?</param>
+        public override void Draw(ObjectListView olv, Graphics g, Rectangle r, int transparency) {
             if (this.Image == null)
                 return;
 
             Point pt = this.CalculateAlignedLocation(r, this.Image.Size);
-            this.DrawTransparentBitmap(g, pt, this.Image, this.Transparency);
+            this.DrawTransparentBitmap(g, pt, this.Image, transparency);
         }
 
         private void DrawTransparentBitmap(Graphics g, Point pt, Image image, int transparency) {
@@ -280,10 +280,10 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Gets or sets the image that will be drawn over the top of the ListView
+        /// Gets or sets the color of the text
         /// </summary>
         [Category("Appearance - ObjectListView"),
-         Description("The image that will be drawn over the top of the ListView"),
+         Description("The color of the text"),
          DefaultValue(typeof(Color), "DarkGray"),
          NotifyParentProperty(true)]
         public Color TextColor {
@@ -298,12 +298,12 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public Brush TextBrush {
             get {
-                return new SolidBrush(Color.FromArgb(this.Transparency, this.TextColor));
+                return new SolidBrush(Color.FromArgb(this.transparency, this.TextColor));
             }
         }
 
         /// <summary>
-        /// Gets or sets the image that will be drawn over the top of the ListView
+        /// Gets or sets the text that will be drawn over the top of the ListView
         /// </summary>
         [Category("Appearance - ObjectListView"),
          Description("The text that will be drawn over the top of the ListView"),
@@ -317,15 +317,93 @@ namespace BrightIdeasSoftware
         private string text;
 
         /// <summary>
+        /// Gets or sets the background color of the billboard
+        /// </summary>
+        public Color BackColor {
+            get { return this.backColor; }
+            set { this.backColor = value; }
+        }
+        private Color backColor = Color.Empty;
+
+        /// <summary>
+        /// Does this overlay have a border?
+        /// </summary>
+        [Browsable(false)]
+        public bool HasBackground {
+            get {
+                return this.BackColor != Color.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the color of the border around the billboard.
+        /// Set this to Color.Empty to remove the border
+        /// </summary>
+        public Color BorderColor {
+            get { return this.borderColor; }
+            set { this.borderColor = value; }
+        }
+        private Color borderColor = Color.Empty;
+
+        /// <summary>
+        /// Gets or sets the width of the border around the billboard
+        /// </summary>
+        public float BorderWidth {
+            get { return this.borderWidth; }
+            set { this.borderWidth = value; }
+        }
+        private float borderWidth;
+
+        /// <summary>
+        /// Gets the brush that will be used to paint the text
+        /// </summary>
+        [Browsable(false)]
+        public Pen BorderPen {
+            get {
+                return new Pen(Color.FromArgb(this.transparency, this.BorderColor), this.BorderWidth);
+            }
+        }
+
+        /// <summary>
+        /// Does this overlay have a border?
+        /// </summary>
+        [Browsable(false)]
+        public bool HasBorder {
+            get {
+                return this.BorderColor != Color.Empty && this.BorderWidth > 0;
+            }
+        }
+
+        /// <summary>
+        /// Gets the brush that will be used to paint the text
+        /// </summary>
+        [Browsable(false)]
+        public Brush BackgroundBrush {
+            get {
+                return new SolidBrush(Color.FromArgb(this.transparency, this.BackColor));
+            }
+        }
+
+        /// <summary>
         /// Draw this overlay
         /// </summary>
         /// <param name="olv">The ObjectListView being decorated</param>
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The bounds of the rendering</param>
-        public override void Draw(ObjectListView olv, Graphics g, Rectangle r) {
+        public override void Draw(ObjectListView olv, Graphics g, Rectangle r, int transparency) {
             if (String.IsNullOrEmpty(this.Text))
                 return;
 
+            this.transparency = transparency;
+
+            if (this.HasBackground || this.HasBorder) {
+                this.DrawBorderedText(g, r);
+            } else {
+                this.DrawSimpleText(g, r);
+            }
+        }
+
+        private void DrawSimpleText(Graphics g, Rectangle r) {
             StringFormat sf = new StringFormat();
             sf.Trimming = StringTrimming.EllipsisCharacter;
             switch (this.Alignment) {
@@ -371,6 +449,33 @@ namespace BrightIdeasSoftware
             r2.Inflate(-this.Inset, -this.Inset);
             g.DrawString(this.Text, this.FontOrDefault, this.TextBrush, r2, sf);
         }
+
+        private void DrawBorderedText(Graphics g, Rectangle r) {
+            Rectangle insetRect = r;
+            insetRect.Inflate(-this.Inset, -this.Inset);
+            StringFormat sf = new StringFormat();
+            sf.Alignment = StringAlignment.Center;
+            sf.LineAlignment = StringAlignment.Center;
+            sf.Trimming = StringTrimming.EllipsisCharacter;
+            SizeF sizeF = g.MeasureString(this.Text, this.FontOrDefault, insetRect.Width, sf);
+            Size size = new Size(1 + (int)sizeF.Width, 1 + (int)sizeF.Height);
+            Point location = this.CalculateAlignedLocation(r, size);
+            Rectangle r2 = new Rectangle(location, size);
+
+
+            if (this.HasBackground) {
+                g.FillRectangle(this.BackgroundBrush, r2);
+            }
+
+            g.DrawString(this.Text, this.FontOrDefault, this.TextBrush, r2, sf);
+
+            if (this.HasBorder) {
+                r2.Inflate((int)this.BorderWidth / 2, (int)this.BorderWidth / 2);
+                g.DrawRectangle(this.BorderPen, r2);
+            }
+        }
+
+        protected int transparency;
     }
 
     /// <summary>
@@ -384,7 +489,6 @@ namespace BrightIdeasSoftware
             this.TextColor = Color.Black;
             this.BorderWidth = 2.0f;
             this.BorderColor = Color.Empty;
-            this.Transparency = 255;
             this.Font = new Font("Tahoma", 10);
         }
 
@@ -398,66 +502,16 @@ namespace BrightIdeasSoftware
         private Point location;
 
         /// <summary>
-        /// Gets or sets the background color of the billboard
-        /// </summary>
-        public Color BackColor {
-            get { return this.backColor; }
-            set { this.backColor = value; }
-        }
-        private Color backColor;
-
-        /// <summary>
-        /// Gets or sets the color of the border around the billboard.
-        /// Set this to Color.Empty to remove the border
-        /// </summary>
-        public Color BorderColor {
-            get { return this.borderColor; }
-            set { this.borderColor = value; }
-        }
-        private Color borderColor;
-
-        /// <summary>
-        /// Gets or sets the width of the border around the billboard
-        /// </summary>
-        public float BorderWidth {
-            get { return this.borderWidth; }
-            set { this.borderWidth = value; }
-        }
-        private float borderWidth;
-
-        /// <summary>
-        /// Gets the brush that will be used to paint the text
-        /// </summary>
-        [Browsable(false)]
-        public Pen BorderPen {
-            get {
-                return new Pen(Color.FromArgb(this.Transparency, this.BorderColor), this.BorderWidth);
-            }
-        }
-        [Browsable(false)]
-        public bool HasBorder {
-            get {
-                return this.BorderColor != Color.Empty && this.BorderWidth > 0;
-            }
-        }
-
-        /// <summary>
-        /// Gets the brush that will be used to paint the text
-        /// </summary>
-        [Browsable(false)]
-        public Brush BackgroundBrush {
-            get {
-                return new SolidBrush(Color.FromArgb(this.Transparency, this.BackColor));
-            }
-        }
-
-        /// <summary>
         /// Draw this overlay
         /// </summary>
         /// <param name="olv">The ObjectListView being decorated</param>
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The bounds of the rendering</param>
-        public override void Draw(ObjectListView olv, Graphics g, Rectangle r) {
+        public override void Draw(ObjectListView olv, Graphics g, Rectangle r, int transparency) {
+            if (String.IsNullOrEmpty(this.Text))
+                return;
+
+            this.transparency = transparency;
             g.SmoothingMode = SmoothingMode.HighQuality;
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             int maximumWidth = Math.Max(200, olv.Width);
