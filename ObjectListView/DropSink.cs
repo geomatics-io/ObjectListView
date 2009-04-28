@@ -273,10 +273,12 @@ namespace BrightIdeasSoftware
 
         /// <summary>
         /// Gets the billboard overlay that will be used to display feedback
-        /// messages during a drag operation.
+        /// messages during a drag operation. Set this to null to stop the
+        /// feedback.
         /// </summary>
         public BillboardOverylay Billboard {
             get { return this.billboard; }
+            set { this.billboard = value; }
         }
         private BillboardOverylay billboard;
 
@@ -454,12 +456,38 @@ namespace BrightIdeasSoftware
 
         #region Events
 
-        public event EventHandler<DropEventArgs> CanDrop;
-        public event EventHandler<DropEventArgs> Dropped;
+        /// <summary>
+        /// Triggered when the sink needs to know if a drop can occur.
+        /// </summary>
+        /// <remarks>
+        /// Handlers should set Effect to indicate what is possible.
+        /// Handlers can change any of the DropTarget* setttings to change
+        /// the target of the drop.
+        /// </remarks>
+        public event EventHandler<OlvDropEventArgs> CanDrop;
 
+        /// <summary>
+        /// Triggered when the drop is made.
+        /// </summary>
+        public event EventHandler<OlvDropEventArgs> Dropped;
+
+        /// <summary>
+        /// Triggered when the sink needs to know if a drop can occur
+        /// AND the source is an ObjectListView
+        /// </summary>
+        /// <remarks>
+        /// Handlers should set Effect to indicate what is possible.
+        /// Handlers can change any of the DropTarget* setttings to change
+        /// the target of the drop.
+        /// </remarks>
         public event EventHandler<ModelDropEventArgs> ModelCanDrop;
+
+        /// <summary>
+        /// Triggered when the drop is made.
+        /// AND the source is an ObjectListView
+        /// </summary>
         public event EventHandler<ModelDropEventArgs> ModelDropped;
-        
+
         #endregion
 
         #region DropSink Interface
@@ -468,7 +496,7 @@ namespace BrightIdeasSoftware
             //System.Diagnostics.Debug.WriteLine("Cleanup");
             this.DropTargetLocation = DropTargetLocation.None;
             this.ListView.FullRowSelect = this.originalFullRowSelect;
-            this.ListView.RemoveOverlay(this.billboard);
+            this.Billboard.Text = null;
         }
 
         /// <summary>
@@ -497,6 +525,10 @@ namespace BrightIdeasSoftware
                 case DropTargetLocation.BelowItem:
                     this.DrawFeedbackBelowItemTarget(g, bounds);
                     break;
+            }
+
+            if (this.Billboard != null) {
+                this.Billboard.Draw(this.ListView, g, bounds, 255);
             }
         }
 
@@ -533,6 +565,17 @@ namespace BrightIdeasSoftware
             this.originalFullRowSelect = this.ListView.FullRowSelect;
             this.ListView.FullRowSelect = false;
 
+            // Setup our drop event args block
+            this.dropEventArgs = new ModelDropEventArgs();
+            this.dropEventArgs.DropSink = this;
+            this.dropEventArgs.ListView = this.ListView;
+            this.dropEventArgs.DataObject = args.Data;
+            OLVDataObject olvData = args.Data as OLVDataObject;
+            if (olvData != null) {
+                this.dropEventArgs.SourceListView = olvData.ListView;
+                this.dropEventArgs.SourceModels = olvData.ModelObjects;
+            }
+
             this.Over(args);
         }
 
@@ -544,7 +587,6 @@ namespace BrightIdeasSoftware
             //System.Diagnostics.Debug.WriteLine("Over");
             this.KeyState = args.KeyState;
             Point pt = this.ListView.PointToClient(new Point(args.X, args.Y));
-            this.CalculateDropTarget(pt);
             args.Effect = this.CalculateDropAction(args, pt);
             this.CheckScrolling(pt);
         }
@@ -553,57 +595,45 @@ namespace BrightIdeasSoftware
         
         #region Events
 
-        protected virtual void TriggerCanDropEvent(DragEventArgs args, Point pt) {
-            OLVDataObject olvData = args.Data as OLVDataObject;
-            if (olvData == null) {
-                this.dropEventArgs = new ModelDropEventArgs(args.Data, this, pt, null, null, null);
-            } else {
-                object target = this.ListView.GetModelObject(this.DropTargetIndex);
-                this.dropEventArgs = new ModelDropEventArgs(args.Data, this, pt,
-                    olvData.ModelObjects, target, olvData.ListView);
-                this.OnModelCanDrop(this.dropEventArgs);
-            }
-            this.OnCanDrop(this.dropEventArgs);
-            this.HandleInfoMsg(pt);
+        protected virtual void TriggerCanDropEvent(Point pt) {
+            // If the source is an ObjectListView, trigger the ModelCanDrop event
         }
-        private ModelDropEventArgs dropEventArgs;
 
         /// <summary>
-        /// Show any info msg that the CanDrop event handler may have given
+        /// Update the state of our sink to reflect the information that 
+        /// may have been written into the drop event args.
         /// </summary>
-        /// <param name="pt">Current mouse location</param>
-        protected virtual void HandleInfoMsg(Point pt) {
-            if (this.billboard == null)
-                return;
+        /// <param name="args"></param>
+        protected virtual void UpdateAfterCanDropEvent(OlvDropEventArgs args) {
+            this.DropTargetIndex = args.DropTargetIndex;
+            this.DropTargetLocation = args.DropTargetLocation;
+            this.DropTargetSubItemIndex = args.DropTargetSubItemIndex;
 
-            if (String.IsNullOrEmpty(this.dropEventArgs.InfoMessage)) {
-                if (this.ListView.HasOverlay(this.billboard))
-                    this.ListView.RemoveOverlay(this.billboard);
-            } else {
-                this.billboard.Text = this.dropEventArgs.InfoMessage;
+            if (this.Billboard != null) {
+                Point pt = args.MouseLocation;
                 pt.Offset(5, 5);
-                this.billboard.Location = pt;
-                if (this.ListView.HasOverlay(this.billboard))
+                if (this.Billboard.Text != this.dropEventArgs.InfoMessage || this.Billboard.Location != pt) {
+                    this.Billboard.Text = this.dropEventArgs.InfoMessage;
+                    this.Billboard.Location = pt;
                     this.ListView.Invalidate();
-                else
-                    this.ListView.AddOverlay(this.billboard);
+                }
             }
         }
 
         protected virtual void TriggerDroppedEvent(DragEventArgs args) {
-            OLVDataObject olvData = args.Data as OLVDataObject;
-            if (olvData != null) {
+            // If the source is an ObjectListView, trigger the ModelDropped event
+            if (this.dropEventArgs.SourceListView != null) {
                 this.OnModelDropped(this.dropEventArgs);
             }
             this.OnDropped(this.dropEventArgs);
         }
 
-        protected virtual void OnCanDrop(DropEventArgs args) {
+        protected virtual void OnCanDrop(OlvDropEventArgs args) {
             if (this.CanDrop != null)
                 this.CanDrop(this, args);
         }
 
-        protected virtual void OnDropped(DropEventArgs args) {
+        protected virtual void OnDropped(OlvDropEventArgs args) {
             if (this.Dropped != null)
                 this.Dropped(this, args);
         }
@@ -657,9 +687,9 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// When the mouse is at the given point, what should the target of the drop be?
         /// </summary>
-        /// <remarks>This method should update DropTargetLocation and DropTargetIndex</remarks>
+        /// <remarks>This method should update the DropTarget* members of the given arg block</remarks>
         /// <param name="pt">The mouse point, in client co-ordinates</param>
-        protected virtual void CalculateDropTarget(Point pt) {
+        protected virtual void CalculateDropTarget(OlvDropEventArgs args, Point pt) {
             const int SMALL_VALUE = 3;
             DropTargetLocation location = DropTargetLocation.None;
             int targetIndex = -1;
@@ -706,25 +736,32 @@ namespace BrightIdeasSoftware
                 }
             }
 
-            this.DropTargetLocation = location;
-            this.DropTargetIndex = targetIndex;
-            this.DropTargetSubItemIndex = targetSubIndex;
+            args.DropTargetLocation = location;
+            args.DropTargetIndex = targetIndex;
+            args.DropTargetSubItemIndex = targetSubIndex;
         }
 
         /// <summary>
-        /// Can the given drag object be released?
+        /// What sort of action is possible when the mouse is at the given point?
         /// </summary>
         /// <remarks>
-        /// <para>
-        /// Subclasses should examine DropTargetLocation and DropTargetIndex to see if the given
-        /// data object can be dropped
-        /// </para>
         /// </remarks>
         /// <param name="args"></param>
         /// <param name="pt"></param>
         /// <returns></returns>
         public virtual DragDropEffects CalculateDropAction(DragEventArgs args, Point pt) {
-            this.TriggerCanDropEvent(args, pt);
+            this.CalculateDropTarget(this.dropEventArgs, pt);
+
+            this.dropEventArgs.MouseLocation = pt;
+            this.dropEventArgs.InfoMessage = null;
+            if (this.dropEventArgs.SourceListView != null) {
+                this.dropEventArgs.TargetModel = this.ListView.GetModelObject(this.DropTargetIndex);
+                this.OnModelCanDrop(this.dropEventArgs);
+            }
+            this.OnCanDrop(this.dropEventArgs);
+
+            this.UpdateAfterCanDropEvent(this.dropEventArgs);
+
             return this.dropEventArgs.Effect;
         }
 
@@ -774,20 +811,6 @@ namespace BrightIdeasSoftware
                     this.timer.Stop();
                 }
             }
-
-            // On Vista, we have to hide overlays during autoscrolling
-            // otherwise they flicker.
-            //if (this.ListView.HasOverlays) {
-            //    if (this.timer.Enabled) {
-            //        this.ListView.ShouldDrawOverlays = false;
-            //        this.ListView.Invalidate();
-            //    } else {
-            //        if (!this.ListView.ShouldDrawOverlays) {
-            //            this.ListView.ShouldDrawOverlays = true;
-            //            this.ListView.Invalidate();
-            //        }
-            //    }
-            //}
         }
 
         #endregion
@@ -864,7 +887,7 @@ namespace BrightIdeasSoftware
         }
 
         protected virtual void DrawBetweenLine(Graphics g, int x1, int y1, int x2, int y2) {
-            using (Pen p = new Pen(this.FeedbackColor, 3.0f)) {
+            using (Brush b = new SolidBrush(this.FeedbackColor)) {
                 int x = x1;
                 int y = y1;
                 using (GraphicsPath gp = new GraphicsPath()) {
@@ -882,7 +905,7 @@ namespace BrightIdeasSoftware
                         x + 3, y + 2,
                         x, y + 6);
                     gp.CloseFigure();
-                    g.FillPath(new SolidBrush(p.Color), gp);
+                    g.FillPath(b, gp);
                 }
                 x = x2;
                 y = y2;
@@ -901,8 +924,10 @@ namespace BrightIdeasSoftware
                         x - 3, y + 2,
                         x, y + 7);
                     gp.CloseFigure();
-                    g.FillPath(new SolidBrush(p.Color), gp);
+                    g.FillPath(b, gp);
                 }
+            }
+            using (Pen p = new Pen(this.FeedbackColor, 3.0f)) {
                 g.DrawLine(p, x1, y1, x2, y2);
             }
         }
@@ -912,6 +937,7 @@ namespace BrightIdeasSoftware
         private Timer timer;
         private int scrollAmount;
         private bool originalFullRowSelect;
+        private ModelDropEventArgs dropEventArgs;
     }
 
     /// <summary>
@@ -947,6 +973,9 @@ namespace BrightIdeasSoftware
             this.AcceptExternal = acceptDropsFromOtherLists;
         }
 
+        /// <summary>
+        /// Gets or sets whether this sink allows model objects to be dragged from other lists
+        /// </summary>
         public bool AcceptExternal {
             get { return this.acceptExternal; }
             set { this.acceptExternal = value; }
@@ -954,17 +983,20 @@ namespace BrightIdeasSoftware
         private bool acceptExternal = false;
 
         protected override void OnModelCanDrop(ModelDropEventArgs args) {
-                if (!this.AcceptExternal && args.SourceListView != this.ListView) {
-                    args.Effect = DragDropEffects.None;
-                    args.InfoMessage = "This list doesn't accept drops from other lists";
-                } else {
-                    if (args.DropTargetLocation == DropTargetLocation.Background &&
-                        args.SourceListView == this.ListView) {
-                        args.Effect = DragDropEffects.None;
-                    } else {
-                        args.Effect = DragDropEffects.Move;
-                    }
-                }
+            args.Effect = DragDropEffects.Move;
+
+            // Don't allow drops from other list, if that's what's configured
+            if (!this.AcceptExternal && args.SourceListView != this.ListView) {
+                args.Effect = DragDropEffects.None;
+                args.DropTargetLocation = DropTargetLocation.None;
+                args.InfoMessage = "This list doesn't accept drops from other lists";
+            }
+
+            // If we are rearranging a list, don't allow drops on the background
+            if (args.DropTargetLocation == DropTargetLocation.Background && args.SourceListView == this.ListView) {
+                args.Effect = DragDropEffects.None;
+                args.DropTargetLocation = DropTargetLocation.None;
+            }
         }
 
         protected override void OnModelDropped(ModelDropEventArgs args) {
@@ -972,22 +1004,22 @@ namespace BrightIdeasSoftware
         }
 
         public virtual void RearrangeModels(ModelDropEventArgs args) {
-            switch (this.DropTargetLocation) {
+            switch (args.DropTargetLocation) {
                 case DropTargetLocation.AboveItem:
-                    this.ListView.MoveObjects(args.DropTargetIndex, args.DragModels);
+                    this.ListView.MoveObjects(args.DropTargetIndex, args.SourceModels);
                     break;
                 case DropTargetLocation.BelowItem:
-                    this.ListView.MoveObjects(args.DropTargetIndex + 1, args.DragModels);
+                    this.ListView.MoveObjects(args.DropTargetIndex + 1, args.SourceModels);
                     break;
                 case DropTargetLocation.Background:
-                    this.ListView.AddObjects(args.DragModels);
+                    this.ListView.AddObjects(args.SourceModels);
                     break;
                 default:
                     return;
             }
 
             if (args.SourceListView != this.ListView) {
-                args.SourceListView.RemoveObjects(args.DragModels);
+                args.SourceListView.RemoveObjects(args.SourceModels);
             }
         }
     }
@@ -996,12 +1028,9 @@ namespace BrightIdeasSoftware
     /// When a drop sink needs to know if something can be dropped, or
     /// to notify that a drop has occured, it uses an instance of this class.
     /// </summary>
-    public class DropEventArgs : EventArgs
+    public class OlvDropEventArgs : EventArgs
     {
-        public DropEventArgs(object dataObject, SimpleDropSink dropSink, Point location) {
-            this.dataObject = dataObject;
-            this.dropSink = dropSink;
-            this.location = location;
+        public OlvDropEventArgs() {
         }
 
         #region Data Properties
@@ -1011,6 +1040,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         public object DataObject {
             get { return this.dataObject; }
+            internal set { this.dataObject = value; }
         }
         private object dataObject;
 
@@ -1019,8 +1049,51 @@ namespace BrightIdeasSoftware
         /// </summary>
         public SimpleDropSink DropSink {
             get { return this.dropSink; }
+            internal set { this.dropSink = value; }
         }
         private SimpleDropSink dropSink;
+
+        /// <summary>
+        /// Get or set the index of the item that is the target of the drop
+        /// </summary>
+        public int DropTargetIndex {
+            get { return dropTargetIndex; }
+            set { this.dropTargetIndex = value; }
+        }
+        private int dropTargetIndex = -1;
+
+        /// <summary>
+        /// Get or set the location of the target of the drop
+        /// </summary>
+        public DropTargetLocation DropTargetLocation {
+            get { return dropTargetLocation; }
+            set { this.dropTargetLocation = value; }
+        }
+        private DropTargetLocation dropTargetLocation;
+
+        /// <summary>
+        /// Get or set the index of the subitem that is the target of the drop
+        /// </summary>
+        public int DropTargetSubItemIndex {
+            get { return dropTargetSubItemIndex; }
+            set { this.dropTargetSubItemIndex = value; }
+        }
+        private int dropTargetSubItemIndex = -1;
+
+        /// <summary>
+        /// Get the item that is the target of the drop
+        /// </summary>
+        public OLVListItem DropTargetItem {
+            get {
+                return this.ListView.GetItem(this.DropTargetIndex);
+            }
+            set {
+                if (value == null)
+                    this.DropTargetIndex = -1;
+                else
+                    this.DropTargetIndex = value.Index;
+            }
+        }
 
         /// <summary>
         /// Get or set the drag effect that should be used for this operation
@@ -1030,15 +1103,6 @@ namespace BrightIdeasSoftware
             set { this.effect = value; }
         }
         private DragDropEffects effect;
-
-        /// <summary>
-        /// Get the location of the mouse (in target ListView co-ords)
-        /// </summary>
-        public Point Location {
-            get { return this.location; }
-            internal set { this.location = value; }
-        }
-        private Point location;
 
         /// <summary>
         /// Get or set the feedback message for this operation
@@ -1053,46 +1117,23 @@ namespace BrightIdeasSoftware
         }
         private string infoMessage;
 
-        #endregion
-
-        #region Convenience Properties
-
         /// <summary>
         /// Get the ObjectListView that is being dropped on
         /// </summary>
         public ObjectListView ListView {
-            get { return this.dropSink.ListView; }
+            get { return this.listView; }
+            internal set { this.listView = value; }
         }
+        private ObjectListView listView;
 
         /// <summary>
-        /// Get the index of the item that is the target of the drop
+        /// Get the location of the mouse (in target ListView co-ords)
         /// </summary>
-        public int DropTargetIndex {
-            get { return this.dropSink.DropTargetIndex; }
+        public Point MouseLocation {
+            get { return this.mouseLocation; }
+            internal set { this.mouseLocation = value; }
         }
-
-        /// <summary>
-        /// Get the item that is the target of the drop
-        /// </summary>
-        public OLVListItem DropTargetItem {
-            get {
-                return this.ListView.GetItem(this.DropTargetIndex);
-            }
-        }
-
-        /// <summary>
-        /// Get the location of the target of the drop
-        /// </summary>
-        public DropTargetLocation DropTargetLocation {
-            get { return this.dropSink.DropTargetLocation; }
-        }
-
-        /// <summary>
-        /// Get the index of the subitem that is the target of the drop
-        /// </summary>
-        public int DropTargetSubItemIndex {
-            get { return this.dropSink.DropTargetSubItemIndex; }
-        }
+        private Point mouseLocation;
 
         #endregion
     }
@@ -1100,22 +1141,18 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// These events are triggered when the drag source is an ObjectListView.
     /// </summary>
-    public class ModelDropEventArgs : DropEventArgs
+    public class ModelDropEventArgs : OlvDropEventArgs
     {
-        public ModelDropEventArgs(object dataObject, SimpleDropSink dropSink, Point location,
-            IList dragObjects, object targetModel, ObjectListView sourceListView)
-            : base(dataObject, dropSink, location)
+        public ModelDropEventArgs()
         {
-            this.dragModels = dragObjects;
-            this.targetModel = targetModel;
-            this.sourceListView = sourceListView;
         }
 
         /// <summary>
         /// Gets the model objects that are being dragged.
         /// </summary>
-        public IList DragModels {
+        public IList SourceModels {
             get { return this.dragModels; }
+            internal set { this.dragModels = value; }
         }
         private IList dragModels;
 
@@ -1124,6 +1161,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         public ObjectListView SourceListView {
             get { return this.sourceListView; }
+            internal set { this.sourceListView = value; }
         }
         private ObjectListView sourceListView;
 
@@ -1133,6 +1171,7 @@ namespace BrightIdeasSoftware
         /// <remarks>This is only value for TargetLocation == Item</remarks>
         public object TargetModel {
             get { return this.targetModel; }
+            internal set { this.targetModel = value; }
         }
         private object targetModel;
     }
