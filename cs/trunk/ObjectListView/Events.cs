@@ -94,7 +94,7 @@ namespace BrightIdeasSoftware
         /// InfoMsg property.
         /// </remarks>
         [Category("Behavior - ObjectListView")]
-        public event EventHandler<DropEventArgs> CanDrop;
+        public event EventHandler<OlvDropEventArgs> CanDrop;
 
         /// <summary>
         /// Triggered when a cell is about to finish being edited.
@@ -133,7 +133,7 @@ namespace BrightIdeasSoftware
         /// has a SimpleDropSink installed as the drop handler.
         /// </summary>
         [Category("Behavior - ObjectListView")]
-        public event EventHandler<DropEventArgs> Dropped;
+        public event EventHandler<OlvDropEventArgs> Dropped;
 
         /// <summary>
         /// Some new objects are about to be added to an ObjectListView.
@@ -219,7 +219,7 @@ namespace BrightIdeasSoftware
                 this.BeforeSorting(this, e);
         }
 
-        protected virtual void OnCanDrop(DropEventArgs args) {
+        protected virtual void OnCanDrop(OlvDropEventArgs args) {
             if (this.CanDrop != null)
                 this.CanDrop(this, args);
         }
@@ -230,7 +230,7 @@ namespace BrightIdeasSoftware
                 this.ColumnRightClick(this, e);
         }
 
-        protected virtual void OnDropped(DropEventArgs args) {
+        protected virtual void OnDropped(OlvDropEventArgs args) {
             if (this.Dropped != null)
                 this.Dropped(this, args);
         }

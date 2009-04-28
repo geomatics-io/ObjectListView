@@ -10,6 +10,8 @@ namespace BrightIdeasSoftware
     /// </summary>
     internal class NativeMethods
     {
+        #region Constants
+
         private const int LVM_FIRST = 0x1000;
         private const int LVM_SCROLL = LVM_FIRST + 20;
         private const int LVM_GETHEADER = LVM_FIRST + 31;
@@ -85,6 +87,10 @@ namespace BrightIdeasSoftware
         private const int ILD_IMAGE = 0x00000020;
         private const int ILD_BLEND25 = 0x00000002;
         private const int ILD_BLEND50 = 0x00000004;
+        
+        #endregion
+
+        #region Structures
 
         [StructLayout(LayoutKind.Sequential)]
         public struct HDITEM
@@ -209,9 +215,6 @@ namespace BrightIdeasSoftware
             public IntPtr puColumns;
         };
 
-        /// <summary>
-        /// Notify m header structure.
-        /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct NMHDR
         {
@@ -335,6 +338,10 @@ namespace BrightIdeasSoftware
             public int flags;
         }
 
+        #endregion
+
+        #region Entry points
+
         // Various flavours of SendMessage: plain vanilla, and passing references to various structures
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
@@ -351,7 +358,6 @@ namespace BrightIdeasSoftware
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessageLVBKIMAGE(IntPtr hWnd, int Msg, int wParam, ref NativeMethods.LVBKIMAGE lParam);
 
-        // Entry points used by this code
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         public static extern bool GetClientRect(IntPtr hWnd, ref Rectangle r);
 
@@ -367,8 +373,17 @@ namespace BrightIdeasSoftware
         //[DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         //public static extern bool SetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO si, bool fRedraw);
 
+        [DllImport("user32.dll")]
+        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
+            int X, int Y, int cx, int cy, uint uFlags);
+
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
         [DllImport("user32.dll", EntryPoint = "ValidateRect", CharSet = CharSet.Auto)]
         private static extern IntPtr ValidatedRectInternal(IntPtr hWnd, ref Rectangle r);
+
+        #endregion
 
         /// <summary>
         /// Put an image under the ListView.
@@ -630,6 +645,32 @@ namespace BrightIdeasSoftware
                 return si.nPos;
             else
                 return -1;
+        }
+
+        /// <summary>
+        /// Change the z-order to the window 'after' so it appear directly on top of 'before'
+        /// </summary>
+        /// <param name="before"></param>
+        /// <param name="after"></param>
+        /// <returns></returns>
+        public static bool ChangeZOrder(Control before, Control after) {
+            const int SWP_NOSIZE = 1;
+            const int SWP_NOMOVE = 2;
+            //const int SWP_NOZORDER = 4;
+            const int SWP_NOREDRAW = 8;
+            const int SWP_NOACTIVATE = 16;
+
+            const int zOrderOnly = SWP_NOSIZE | SWP_NOMOVE | SWP_NOREDRAW | SWP_NOACTIVATE;
+            return NativeMethods.SetWindowPos(after.Handle, before.Handle, 0, 0, 0, 0, zOrderOnly);
+        }
+
+        /// <summary>
+        /// Show the given window without activating it
+        /// </summary>
+        /// <param name="win">The window to show</param>
+        static public void ShowWithoutActivate(IWin32Window win) {
+            const int SW_SHOWNA = 8;
+            NativeMethods.ShowWindow(win.Handle, SW_SHOWNA);
         }
     }
 }

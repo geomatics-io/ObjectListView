@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2009-04-28  JPP  - Fixed bug where DoubleClick events were not triggered when CheckBoxes was true
  * 2009-04-23  JPP  - Fixed various bugs under Vista.
  *                  - Made groups collapsible - Vista only. Thanks to Crustyapplesniffer.
  *                  - Forward events from DropSink to the control itself. This allows handlers to be defined
@@ -370,8 +371,8 @@ namespace BrightIdeasSoftware
             this.Overlays.Add(this.imageOverlay);
             this.textOverlay = new TextOverlay();
             this.Overlays.Add(this.textOverlay);
-        }
 
+        }
 
         #region Public properties
 
@@ -625,7 +626,7 @@ namespace BrightIdeasSoftware
         /// Get the area of the control that shows the list, minus any header control
         /// </summary>
         [Browsable(false)]
-        public Rectangle ContentRectangle {
+        public Rectangle  ContentRectangle {
             get {
                 Rectangle r = this.ClientRectangle;
 
@@ -690,8 +691,8 @@ namespace BrightIdeasSoftware
                 // Stop listening for events on the old sink
                 SimpleDropSink oldSink = this.dropSink as SimpleDropSink;
                 if (oldSink != null) {
-                    oldSink.CanDrop -= new EventHandler<DropEventArgs>(dropSink_CanDrop);
-                    oldSink.Dropped -= new EventHandler<DropEventArgs>(dropSink_Dropped);
+                    oldSink.CanDrop -= new EventHandler<OlvDropEventArgs>(dropSink_CanDrop);
+                    oldSink.Dropped -= new EventHandler<OlvDropEventArgs>(dropSink_Dropped);
                     oldSink.ModelCanDrop -= new EventHandler<ModelDropEventArgs>(dropSink_ModelCanDrop);
                     oldSink.ModelDropped -= new EventHandler<ModelDropEventArgs>(dropSink_ModelDropped);
                 }
@@ -704,8 +705,8 @@ namespace BrightIdeasSoftware
                 // Start listening for events on the new sink
                 SimpleDropSink newSink = value as SimpleDropSink;
                 if (newSink != null) {
-                    newSink.CanDrop += new EventHandler<DropEventArgs>(dropSink_CanDrop);
-                    newSink.Dropped += new EventHandler<DropEventArgs>(dropSink_Dropped);
+                    newSink.CanDrop += new EventHandler<OlvDropEventArgs>(dropSink_CanDrop);
+                    newSink.Dropped += new EventHandler<OlvDropEventArgs>(dropSink_Dropped);
                     newSink.ModelCanDrop += new EventHandler<ModelDropEventArgs>(dropSink_ModelCanDrop);
                     newSink.ModelDropped += new EventHandler<ModelDropEventArgs>(dropSink_ModelDropped);
                 }
@@ -714,8 +715,8 @@ namespace BrightIdeasSoftware
         private IDropSink dropSink;
 
         // Forward events from the drop sink to the control itself
-        void dropSink_CanDrop(object sender, DropEventArgs e) { this.OnCanDrop( e); }
-        void dropSink_Dropped(object sender, DropEventArgs e) { this.OnDropped(e); }
+        void dropSink_CanDrop(object sender, OlvDropEventArgs e) { this.OnCanDrop( e); }
+        void dropSink_Dropped(object sender, OlvDropEventArgs e) { this.OnDropped(e); }
         void dropSink_ModelCanDrop(object sender, ModelDropEventArgs e) { this.OnModelCanDrop(e); }
         void dropSink_ModelDropped(object sender, ModelDropEventArgs e) { this.OnModelDropped(e); }
 
@@ -1129,6 +1130,22 @@ namespace BrightIdeasSoftware
             get { return this.imageOverlay; }
             set { this.imageOverlay = value; }
         }
+
+        /// <summary>
+        /// Gets or sets the transparency of all the overlays. 
+        /// 0 is completely transparent, 255 is completely opaque.
+        /// </summary>
+        /// <remarks>
+        /// This is the default value, but individual overlays can ignore it if they wish.
+        /// </remarks>
+        [Category("Appearance - ObjectListView"),
+         Description("How transparent should overlays be? 0 is opaque, 255 is completely transparent"),
+         DefaultValue(128)]
+        public int OverlayTransparency {
+            get { return this.overlayTransparency; }
+            set { this.overlayTransparency = Math.Min(255, Math.Max(0, value)); }
+        }
+        private int overlayTransparency = 128;
 
         /// <summary>
         /// Gets or sets the text that will be drawn over the top of the ListView
@@ -1890,10 +1907,16 @@ namespace BrightIdeasSoftware
             }
             indicesToRemove.Sort();
             indicesToRemove.Reverse();
-            foreach (int i in indicesToRemove) {
-                this.Items.RemoveAt(i);
+            try {
+                this.BeginUpdate();
+                foreach (int i in indicesToRemove) {
+                    this.Items.RemoveAt(i);
+                }
+                this.InsertObjects(index, modelObjects);
             }
-            this.InsertObjects(index, modelObjects);
+            finally {
+                this.EndUpdate();
+            }
         }
 
         public virtual void InsertObjects(int index, ICollection modelObjects) {
@@ -2768,12 +2791,15 @@ namespace BrightIdeasSoftware
         }
 
         protected virtual void Application_Idle2(object sender, EventArgs e) {
+            if (Environment.TickCount - this.lastSwitchToGlass < 200)
+                return;
+
             // Remove the handler before triggering the event
             Application.Idle -= new EventHandler(Application_Idle2);
-            this.hasIdleHandler2 = false;
+            this.usingGlassPanel = false;
 
-            this.ShouldDrawOverlays = true;
-            this.Invalidate();
+            this.Refresh();
+            this.glassPanel.HideGlass();
         }
 
         /// <summary>
@@ -2841,6 +2867,7 @@ namespace BrightIdeasSoftware
                         base.WndProc(ref m);
                     }
                     break;
+
                 case 0x0201: // WM_LBUTTONDOWN
                     if (this.PossibleFinishCellEditing() && !this.HandleLButtonDown(ref m))
                         base.WndProc(ref m);
@@ -2855,6 +2882,10 @@ namespace BrightIdeasSoftware
                     break;
                 case 0x114: // WM_HSCROLL:
                 case 0x115: // WM_VSCROLL:
+                    if (this.PossibleFinishCellEditing()) {
+                        base.WndProc(ref m);
+                    }
+                    break;
                 case 0x20A: // WM_MOUSEWHEEL:
                 case 0x20E: // WM_MOUSEHWHEEL:
                     if (this.PossibleFinishCellEditing()) {
@@ -2882,6 +2913,11 @@ namespace BrightIdeasSoftware
                     }
                     base.WndProc(ref m);
                     break;
+
+                //case 0x1000 + 20:
+                //    System.Diagnostics.Debug.WriteLine("LVM_SCROLL");
+                //    base.WndProc(ref m);
+                //    break;
 
                 // This doesn't seem to be called when i expected
                 //case 0x1053: // LVM_FINDITEM = (LVM_FIRST + 83)
@@ -3068,12 +3104,12 @@ namespace BrightIdeasSoftware
                     // On Vista, we have a different problem. On Vista, the control nests calls
                     // to PREPAINT and POSTPAINT. We only want to draw overlays on the outermost
                     // POSTPAINT.
-                    if (this.prePaintLevel == 0 && this.isAfterItemPaint) {
+                    if (this.prePaintLevel == 0 && (this.isMarqueSelecting || this.isAfterItemPaint)) {
                         this.shouldDoCustomDrawing = false;
 
                         // Draw our overlays after everything has been drawn
                         using (Graphics g = Graphics.FromHdc(lParam->nmcd.hdc)) {
-                            this.DrawAllOverlays(g);
+                            this.DrawAllDecorations(g);
                         }
                     }
                     break;
@@ -3225,15 +3261,15 @@ namespace BrightIdeasSoftware
             if (!this.HasOverlays)
                 return false;
 
-            // Remember the scroll position so we can decide if the listview has scrolled in the 
-            // handling of the event.
+            //// Remember the scroll position so we can decide if the listview has scrolled in the 
+            //// handling of the event.
             int scrollPositionH = NativeMethods.GetScrollPosition(this.Handle, true);
             int scrollPositionV = NativeMethods.GetScrollPosition(this.Handle, false);
 
             base.WndProc(ref m);
 
-            // If the keydown processing changed the scroll position, the overlays will probably
-            // be corrupt, so force them to be redrawn
+            //// If the keydown processing changed the scroll position, the overlays will probably
+            //// be corrupt, so force them to be redrawn
             if (scrollPositionH != NativeMethods.GetScrollPosition(this.Handle, true) ||
                 scrollPositionV != NativeMethods.GetScrollPosition(this.Handle, false)) {
                 this.Invalidate();
@@ -3326,11 +3362,14 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the m has been handled</returns>
-        unsafe protected bool HandleReflectNotify(ref Message m) {
-            const int WM_NMDBLCLICK = -3;
-            const int WM_NMCUSTOMDRAW = -12;
+        unsafe protected virtual bool HandleReflectNotify(ref Message m) {
+            const int NM_DBLCLK = -3;
+            const int NM_RDBLCLK = -6;
+            const int NM_CUSTOMDRAW = -12;
+            const int NM_RELEASEDCAPTURE = -16;
             const int LVN_ITEMCHANGED = -101;
             const int LVN_ITEMCHANGING = -100;
+            const int LVN_MARQUEBEGIN = -156;
             const int LVN_BEGINSCROLL = -180;
             const int LVN_ENDSCROLL = -181;
             const int LVIF_STATE = 8;
@@ -3348,41 +3387,46 @@ namespace BrightIdeasSoftware
                     // When the listview scrolls, it does a bitblt of the current window and then
                     // redraws the revealed section. This works fine for almost everything except our
                     // overlays which shouldn't scroll - they should remain fixed in place. So before
-                    // scrolling, we hide the overlays and after scrolling, we put them back again.
-                    // This sometimes causes a flicker, but that is much better than the overlays
-                    // scrolling off the screen and never reappearing.
-                    // JPP 2009/04/14
-
+                    // scrolling, we have to switch to a glass panel strategy. The glass panel is 
+                    // positioned over the listview and the overlays are drawn into that panel, rather
+                    // than into the listview itself. The listview can then scroll without moving
+                    // the overlays.
                     if (this.HasOverlays) {
-                        this.ShouldDrawOverlays = false;
-                        this.Invalidate();
+                        this.TemporarilySwitchToGlassPanel();
                     }
                     break;
 
                 case LVN_ENDSCROLL:
                     //System.Diagnostics.Debug.WriteLine("LVN_ENDSCROLL");
-                    if (this.HasOverlays) {
-                        if (ObjectListView.IsVista) {
-                            if (!this.hasIdleHandler2) {
-                                this.hasIdleHandler2 = true;
-                                Application.Idle += new EventHandler(Application_Idle2);
-                            }
-                        } else {
-                            this.ShouldDrawOverlays = true;
-                            this.Invalidate();
-                        }
-                    }
                     break;
 
-                case WM_NMCUSTOMDRAW:
+                case LVN_MARQUEBEGIN:
+                    //System.Diagnostics.Debug.WriteLine("LVN_MARQUEBEGIN"); 
+                    this.isMarqueSelecting = true;
+                    break;
+
+                case NM_RELEASEDCAPTURE:
+                    //System.Diagnostics.Debug.WriteLine("NM_RELEASEDCAPTURE"); 
+                    this.isMarqueSelecting = false;
+                    this.Invalidate();
+                    break;
+
+                case NM_CUSTOMDRAW:
+                    //System.Diagnostics.Debug.WriteLine("NM_CUSTOMDRAW");
                     isMsgHandled = this.HandleCustomDraw(ref m);
                     break;
 
-                case WM_NMDBLCLICK:
+                case NM_DBLCLK:
                     // The default behavior of a .NET ListView with checkboxes is to toggle the checkbox on 
                     // double-click. That's just silly, if you ask me :)
-                    if (this.CheckBoxes)
-                        isMsgHandled = true;
+                    if (this.CheckBoxes) {
+                        // How do we make ListView not do that silliness? We could just ignore the message
+                        // but the last part of the base code sets up state information, and without that
+                        // state, the ListView doesn't trigger MouseDoubleClick events. So we fake a 
+                        // right button double click event, which sets up the same state, but without
+                        // toggling the checkbox.
+                        nmhdr->code = NM_RDBLCLK;
+                    }
                     break;
 
                 case LVN_ITEMCHANGED:
@@ -3416,7 +3460,25 @@ namespace BrightIdeasSoftware
 
             return isMsgHandled;
         }
-        private bool hasIdleHandler2;
+
+        private void TemporarilySwitchToGlassPanel() {
+            this.lastSwitchToGlass = Environment.TickCount;
+            if (this.usingGlassPanel)
+                return;
+            this.usingGlassPanel = true;
+            Application.Idle += new EventHandler(Application_Idle2);
+
+            if (this.glassPanel == null) {
+                this.glassPanel = new GlassPanelForm();
+                this.glassPanel.Bind(this);
+            }
+            this.glassPanel.Opacity = this.OverlayTransparency / 255.0f;
+            this.glassPanel.ShowGlass();
+            this.Refresh();
+        }
+        private bool usingGlassPanel;
+        private GlassPanelForm glassPanel;
+        private int lastSwitchToGlass;
 
         private CheckState CalculateState(int state) {
             switch ((state & 0xf000) >> 12) {
@@ -3776,8 +3838,9 @@ namespace BrightIdeasSoftware
         protected virtual void HandleLayout(object sender, LayoutEventArgs e) {
             // We have to delay executing the recalculation of the columns, since virtual lists
             // get terribly confused if we resize the column widths during this event.
-            if (this.Created)
+            if (this.Created) {
                 this.BeginInvoke(new MethodInvoker(this.ResizeFreeSpaceFillingColumns));
+            }
         }
 
         /// <summary>
@@ -6019,13 +6082,10 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Draw all the overlay decorations
+        /// Draw all the decorations
         /// </summary>
         /// <param name="g">A Graphics</param>
-        protected void DrawAllOverlays(Graphics g) {
-            if (!this.ShouldDrawOverlays)
-                return;
-
+        internal void DrawAllDecorations(Graphics g) {
             Rectangle contentRectangle = this.ContentRectangle;
 
             if (this.HasEmptyListMsg && this.GetItemCount() == 0) {
@@ -6037,9 +6097,27 @@ namespace BrightIdeasSoftware
                 this.DropSink.DrawFeedback(g, contentRectangle);
             }
 
-            // If we have overlays, draw them now
+            // When there is a glass panel, that will handle the overlays.
+            // Otherwise, we draw them now
+            if (!this.usingGlassPanel) {
+                //System.Diagnostics.Debug.WriteLine("REAL DrawAllDecorations");
+                foreach (IOverlay overlay in this.Overlays) {
+                    overlay.Draw(this, g, contentRectangle, this.OverlayTransparency);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Draw the overlays
+        /// </summary>
+        /// <param name="g"></param>
+        internal void DrawBackgroundOverlays(Graphics g) {
+            Rectangle contentRectangle = this.ContentRectangle;
+
+            // This method is called from the glass panel, which handles
+            // transparency itself
             foreach (IOverlay overlay in this.Overlays) {
-                overlay.Draw(this, g, contentRectangle);
+                overlay.Draw(this, g, contentRectangle, 255);
             }
         }
 
@@ -6154,13 +6232,7 @@ namespace BrightIdeasSoftware
         private bool shouldDoCustomDrawing; // should the list do its custom drawing?
         private ImageOverlay imageOverlay; // the image overlay that is controlled by IDE settings
         private TextOverlay textOverlay; // the text overlay that is controlled by IDE settings
-
-        /// <summary>
-        /// Should overlays be drawn?
-        /// </summary>
-        internal bool ShouldDrawOverlays = true;
-
-        //private Timer tickler; // use to fade animations
+        private bool isMarqueSelecting; // Is a margque selection in progress?
 
         #endregion
     }
