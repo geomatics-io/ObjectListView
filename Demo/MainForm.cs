@@ -76,10 +76,10 @@ namespace ObjectListViewDemo
 
             // Change this value to see the performance on bigger lists.
             // Each list builds about 1000 rows per second.
-            //while (list.Count < 200) {
-            //    foreach (Person p in masterList)
-            //        list.Add(new Person(p));
-            //}
+            while (list.Count < 200) {
+                foreach (Person p in masterList)
+                    list.Add(new Person(p));
+            }
 
 			InitializeSimpleExample(list);
 			InitializeComplexExample(list);
@@ -131,6 +131,10 @@ namespace ObjectListViewDemo
 
 		void InitializeComplexExample(List<Person> list)
 		{
+            this.listViewComplex.OverlayText.BackColor = Color.LightBlue;
+            this.listViewComplex.OverlayText.BorderWidth = 3.0f;
+            this.listViewComplex.OverlayText.BorderColor = Color.Black;
+
             // The following line makes getting aspect about 10x faster. Since getting the aspect is
             // the slowest part of building the ListView, it is worthwhile BUT NOT NECESSARY to do.
             TypedObjectListView<Person> tlist = new TypedObjectListView<Person>(this.listViewComplex);
@@ -220,6 +224,7 @@ namespace ObjectListViewDemo
             SimpleDropSink dropSink = new SimpleDropSink();
             this.listViewComplex.DropSink = dropSink;
             dropSink.CanDropOnItem = true;
+            dropSink.FeedbackColor = Color.IndianRed; // just to be different
 
             dropSink.ModelCanDrop += new EventHandler<ModelDropEventArgs>(delegate(object sender, ModelDropEventArgs e) {
                 Person person = e.TargetModel as Person;
@@ -241,12 +246,12 @@ namespace ObjectListViewDemo
 
                 // Change the dropped people plus the target person to be married
                 ((Person)e.TargetModel).MaritalStatus = MaritalStatus.Married;
-                foreach (Person p in e.DragModels)
+                foreach (Person p in e.SourceModels)
                     p.MaritalStatus = MaritalStatus.Married;
 
                 // Force them to refresh
                 e.ListView.RefreshObject(e.TargetModel);
-                e.ListView.RefreshObjects(e.DragModels);
+                e.ListView.RefreshObjects(e.SourceModels);
             });
 
             comboBox1.SelectedIndex = 4;
@@ -525,6 +530,7 @@ namespace ObjectListViewDemo
 
             this.comboBox2.SelectedIndex = 4;
             this.comboBox8.SelectedIndex = 0;
+            this.comboBoxNagLevel.SelectedIndex = 0;
 		}
 
         void InitializeExplorerExample()
@@ -609,7 +615,13 @@ namespace ObjectListViewDemo
             };
             this.treeListView.ChildrenGetter = delegate(object x) {
                 DirectoryInfo dir = (DirectoryInfo)x;
-                return new ArrayList(dir.GetFileSystemInfos());
+                try {
+                    return new ArrayList(dir.GetFileSystemInfos());
+                }
+                catch (UnauthorizedAccessException ex) {
+                    MessageBox.Show(this, ex.Message, "ObjectListViewDemo", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    return new ArrayList();
+                }
             };
 
             this.treeListView.CheckBoxes = true;
@@ -1452,9 +1464,13 @@ namespace ObjectListViewDemo
         }
 
         private void InitializeDragDropExample(List<Person> list) {
+            //this.olvGeeks.AutoArrange = true;
+            //this.olvFroods.AutoArrange = true;
+
             this.olvGeeks.DragSource = new SimpleDragSource();
-            this.olvGeeks.DropSink = new RearrangingDropSink(true);
             this.olvFroods.DragSource = new SimpleDragSource();
+
+            this.olvGeeks.DropSink = new RearrangingDropSink(true);
             this.olvFroods.DropSink = new RearrangingDropSink(true);
 
             this.olvGeeks.GetColumn(0).ImageGetter = delegate(object x) { return "user"; };
@@ -1731,14 +1747,44 @@ namespace ObjectListViewDemo
             this.ChangeOwnerDrawn(this.olvFroods, (CheckBox)sender);
         }
 
-        private void listViewSimple_ModelCanDrop(object sender, ModelDropEventArgs e) {
-            System.Diagnostics.Debug.WriteLine("listViewSimple_ModelCanDrop");
-        }
+        private void comboBoxNagLevel_SelectedIndexChanged(object sender, EventArgs e) {
+            this.listViewVirtual.RemoveOverlay(this.nagOverlay);
 
-        private void listViewSimple_ModelDropped(object sender, ModelDropEventArgs e) {
-            System.Diagnostics.Debug.WriteLine("listViewSimple_ModelDropped");
-
+            this.nagOverlay = new TextOverlay();
+            switch (comboBoxNagLevel.SelectedIndex) {
+                case 0:
+                    this.nagOverlay.Alignment = ContentAlignment.BottomRight;
+                    this.nagOverlay.Text = "Trial version";
+                    this.nagOverlay.BorderWidth = 2.0f;
+                    this.nagOverlay.BorderColor = Color.DarkGray;
+                    this.nagOverlay.TextColor = Color.Black;
+                    this.listViewVirtual.OverlayTransparency = 128;
+                    break;
+                case 1:
+                    this.nagOverlay.Alignment = ContentAlignment.TopRight;
+                    this.nagOverlay.Text = "TRIAL VERSION EXPIRED";
+                    this.nagOverlay.TextColor = Color.Red;
+                    this.nagOverlay.BorderWidth = 2.0f;
+                    this.nagOverlay.BorderColor = Color.DarkGray;
+                    this.nagOverlay.Rotation = 20;
+                    this.nagOverlay.InsetX = 5;
+                    this.nagOverlay.InsetY = 50;
+                    this.listViewVirtual.OverlayTransparency = 255;
+                    break;
+                case 2:
+                    this.nagOverlay.Alignment = ContentAlignment.MiddleCenter;
+                    this.nagOverlay.Text = "TRIAL EXPIRED! BUY NOW!";
+                    this.nagOverlay.TextColor = Color.Red;
+                    this.nagOverlay.BorderWidth = 4.0f;
+                    this.nagOverlay.BorderColor = Color.Red;
+                    this.nagOverlay.Rotation = -30;
+                    this.nagOverlay.Font = new Font("Stencil", 36);
+                    this.listViewVirtual.OverlayTransparency = 192;
+                    break;
+            }
+            this.listViewVirtual.AddOverlay(this.nagOverlay);
         }
+        private TextOverlay nagOverlay;
     }
         
     enum MaritalStatus
