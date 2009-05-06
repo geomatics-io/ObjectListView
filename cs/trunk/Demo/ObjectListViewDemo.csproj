@@ -170,14 +170,10 @@
     <Content Include="Photos\sp.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="Resources\2uparrow.png" />
-    <None Include="Resources\2downarrow.png" />
     <Content Include="Resources\Espresso Maker.ico" />
     <Content Include="Persons.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="Resources\icecream3.jpg" />
-    <None Include="Resources\not16.png" />
     <None Include="Resources\star16.png" />
     <None Include="Resources\down16.png" />
     <None Include="Resources\tick16.png" />
