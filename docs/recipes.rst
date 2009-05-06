@@ -46,6 +46,8 @@ Learning to cook
 
     :ref:`recipe-hottracking`
 
+    :ref:`recipe-overlays`
+
 
 .. _recipe-flavour:
 
@@ -475,7 +477,7 @@ the "Complex" tab, click the "Owner Drawn" checkbox, and switch to Tile view.
 12. How do I change the message that's shown when the ObjectListView is empty?
 ------------------------------------------------------------------------------
 
-When an ObjectListView is empty, it can display a "this list is empty" type message.
+When an `ObjectListView` is empty, it can display a "this list is empty" type message.
 
 The `EmptyListMsg` is the property that holds the string that appears when an
 `ObjectListView` is empty. This string is rendered using the `EmptyListMsgFont`::
@@ -483,7 +485,25 @@ The `EmptyListMsg` is the property that holds the string that appears when an
     this.objectListView1.EmptyListMsg = "This database has no rows";
     this.objectListView1.EmptyListMsgFont = new Font("Tahoma", 24);
 
-No, you can't owner draw it. Don't even think about it.
+[v2.2] The empty msg list is now implemented as an overlay. You can access that overlay
+though the `EmptyListMsgOverlay` property. By default, this is a `TextOverlay` that
+you can customise to your hearts content::
+
+    TextOverlay textOverlay = this.objectListView1.EmptyListMsgOverlay as TextOverlay;
+    textOverlay.TextColor = Color.Firebrick;
+    textOverlay.BackColor = Color.AntiqueWhite;
+    textOverlay.BorderColor = Color.DarkRed;
+    textOverlay.BorderWidth = 4.0f;
+    textOverlay.Font = new Font("Chiller", 36);
+    textOverlay.Rotation = -5;
+
+gives this:
+
+.. image:: images/emptylistmsg-example.png
+
+If you really want to, you can set the
+`EmptyListMsgOverlay` property to an object that implement the `IOverlay` interface,
+and then draw whatever you want to.
 
 .. _recipe-images-from-db:
 
@@ -718,3 +738,56 @@ configure these in the IDE as non-visual components. Once you have created an
 instance, you can assign it to the `HotTrackingStyle` property of the
 `ObjectListView`. The same style instance can be shared between various
 `ObjectListViews`, making it easier for your application to behave consistently.
+
+
+.. _recipe-overlays:
+
+19. How can I put an image (or some text) over the top of the ListView?
+-----------------------------------------------------------------------
+
+This is called an "overlay." A normal ObjectList comes pre-equipped with
+two overlays ready to use: `OverlayImage` and `OverlayText`. These can be
+configured from within the IDE, controlling what image (or text) is displayed,
+the corner in which the overlay is shown, and its inset from the control edge.
+
+`TextOverlays` can be further customised, by controlling the color and font
+of the text, the color of the background, the width and color of the border,
+and whether the border should have rounded corners. All these properties
+are controllable from inside the IDE.
+
+If you want to do something other than show a simple image or text, you
+can implement the `IOverlay` interface. This interface is very simple::
+
+    public interface IOverlay {
+        void Draw(ObjectListView olv, Graphics g, Rectangle r);
+    }
+
+Within the `Draw()` method, your implementation can draw whatever it likes.
+
+Once you have implemented this interface, you add it to an `ObjectlistView`
+via the `AddOverlay()` method::
+
+    MyFantasticOverlay myOverlay = new MyFantasticOverlay();
+    myOverlay.ConfigureToDoAmazingThings();
+    this.objectListView1.AddOverlay(myOverlay);
+
+Overlays are actually quite tricky to implement. If you use your ObjectListView
+in a "normal" way (design your interface through the IDE using normal WinForm
+controls), they will work flawlessly.
+
+However, if you do "clever" things with your `ObjectListViews`, you
+may need to read this: `Underneath the Overlays`_. "Clever" in this case
+means reparenting the ObjectListView after it has been created, or
+hiding it by rearranging the windows z-ordering. You may also need
+to read that if the `ObjectListView` is hosted by a non-standard
+TabControl-like container.
+
+.. _recipe-dragdrop:
+
+20. How can I use drag and drop in an ObjectListView?
+-----------------------------------------------------
+
+This needs its own page to explain properly. :ref:`Drag and dropping with an ObjectListView <dragdrop-label>`
+
+
+

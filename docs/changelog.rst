@@ -9,7 +9,7 @@ Change Log
 
 Version Index
 -------------
-* `v2.1 - 24 February 2009`_
+* `v2.1 - 26 February 2009`_
 * `v2.1a - 07 February 2009`_
 * `v2.0.1 - 10 January 2009`_
 * `v2.0 - 30 November 2008`_
@@ -26,8 +26,36 @@ Version Index
 * `Previous versions - 04 April 2007`_
 
 
-v2.1 - 24 February 2009
+v2.1 - 26 February 2009
 -----------------------
+
+2009-02-26 21:31 (#474) - docs/whatsnew.rst, docs/.templates/layout.html
+  - Complete v2.1 documentation
+
+2009-02-25 19:45 (#471) - ObjectListView/ObjectListView.cs, ObjectListView/TreeListView.cs
+  - Maintain focused item when rebuilding list (SF #2547060)
+
+2009-02-25 01:01 (#470) - docs/faq.rst
+  - Added class diagrams to docs
+
+2009-02-25 00:40 (#469) - docs/features.rst, docs/ClassDiagram-VirtualList.dia, docs/ClassDiagram.dia, docs/whatsnew.rst, docs/cellEditing.rst, docs/changelog.rst, docs/gettingStarted.rst, docs/images/ClassDiagram-VirtualList.png, docs/images/ClassDiagram.png
+  - Updated feature list
+  - Added clas diagrams
+
+2009-02-25 00:36 (#468) - ObjectListView/TreeListView.cs, ObjectListView/Renderers.cs
+  - All TreeListView commands now work when the list is empty
+  - Renderers now work properly with ListViewPrinter
+  - TreeListViews can now be printed
+
+2009-02-25 00:35 (#467) - ObjectListView/ObjectListView.cs
+  - Fix bug where double-clicking VERY quickly on two different cells could give two editors
+  - Removed HitTestDelegate and co since that was only ever an experiment
+
+2009-02-25 00:33 (#466) - ObjectListView/VirtualObjectListView.cs, ObjectListView/FastObjectListView.cs
+  - Removed redundant OnMouseDown() since checkbox handling is now handled in the base class
+
+2009-02-25 00:30 (#464) - ListViewPrinter/ListViewPrinter.cs
+  - Correctly use new renderer scheme :)
 
 2009-02-23 22:07 (#461) - Tests/Program.cs, Tests/TestCheckBoxes.cs
   - Allow tests for check events for virtual lists
