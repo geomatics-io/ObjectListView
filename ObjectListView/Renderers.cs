@@ -5,6 +5,8 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-05-05   JPP  - Added Unfocused foreground and background colors 
+ *                     (thanks to Christophe Hosten)
  * 2009-04-21   JPP  - Fixed off-by-1 error when calculating text widths. This caused
  *                     middle and right aligned columns to always wrap one character
  *                     when printed using ListViewPrinter (SF#2776634).
@@ -594,7 +596,7 @@ namespace BrightIdeasSoftware
                     return this.ListView.HighlightBackgroundColorOrDefault;
                 else
                     if (!this.ListView.HideSelection)
-                        return SystemColors.Control; //TODO: What color should this be?
+                        return this.ListView.UnfocusedHighlightBackgroundColorOrDefault;
             }
             if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
                 return this.ListItem.BackColor;
@@ -613,7 +615,7 @@ namespace BrightIdeasSoftware
                     return this.ListView.HighlightForegroundColorOrDefault;
                 else
                     if (!this.ListView.HideSelection)
-                        return SystemColors.ControlText; //TODO: What color should this be?
+                        return this.ListView.UnfocusedHighlightForegroundColorOrDefault;
             }
             if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
                 return this.ListItem.ForeColor;
@@ -701,7 +703,7 @@ namespace BrightIdeasSoftware
                     return this.ListView.HighlightBackgroundColorOrDefault;
                 else
                     if (!this.ListView.HideSelection)
-                        return SystemColors.Control; //TODO: What color should this be?
+                        return this.ListView.UnfocusedHighlightBackgroundColorOrDefault;
             }
 
             if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
