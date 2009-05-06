@@ -40,15 +40,17 @@ OK, here's the bullet point feature list:
 * Automatically transforms a list of model objects into a fully functional ListView, including automatically sorting and grouping rows.
 * Supports :ref:`owner drawing <owner-draw-label>`, including rendering animated graphics and images stored in a database.
 * Easily :ref:`edit the cell values <cell-editing-label>`.
+* Easily enable :ref:`drag and drop <dragdrop-label>`.
 * Supports all ListView views (report, list, large and small icons).
 * Supports automatic grouping.
-* Columns can be fixed-width, have a minimum and/or maximum width, or be space-filling (:ref:`Column Widths <column-widths>`)
+* Columns can be fixed-width, have a minimum and/or maximum width, or be space-filling (:ref:`Column Widths <recipe-column-width>`)
 * Displays a :ref:`"list is empty" message <recipe-emptymsg>` when the list is empty (obviously).
 * Supports :ref:`tooltips <recipe-tooltips>` for cells and for headers
 * Supports :ref:`checkboxes in any column <recipe-checkbox>` as well as tri-state checkboxes
-* Supports :ref:`alternate rows background colors <alternate-row-backgrounds>`.
+* Supports alternate rows background colors.
 * Supports :ref:`custom formatting of rows <recipe-formatter>`.
-* Supports :ref:`searching (by typing) on any column <search-by-typing>`
+* Supports :ref:`searching (by typing) on any column <recipe-search>`
+* Supports :ref:`image and text overlays <recipe-overlays>`
 * The `DataListView` version supports data binding.
 * The `FastObjectListView` version can build a list of 10,000 objects in less than 0.1 seconds.
 * The `VirtualObjectListView` version supports millions of rows through ListView's virtual mode.
@@ -109,6 +111,15 @@ Please remember that code within the SVN is bleeding edge. It has not been well-
 is almost certainly full of bugs. If you just want to play with the ObjectListView, it's
 better to stay with the official releases, where the bugs are (hopefully) less obvious.
 
+Technical details
+-----------------
+
+I've started keeping a technical blog documenting some of the efforts that were required to
+solve some of the problem encountered within the ObjectListView.
+
+:ref:`This long article <blog>` talks about the problems and solutions encountered when developing the
+overlay feature of v2.2.
+
 What people have said about ObjectListView
 ------------------------------------------
 
@@ -117,7 +128,7 @@ When thinking about using some new code, it's always interesting to hear what ot
 .. pull-quote:: ObjectListView has got to be one of the slickest controls out there - simple, quick and powerful.
 
    -- `jake <http://www.riggshill.com/home/node/23>`_
-   
+
 .. pull-quote:: I wanted to say that your control, your code, and your support on the forums, has been one of the best experiences I have had with working with someone elses' product. Great job man, and very nice programming.
 
    -- Mike Coffey (in personal email)
@@ -198,6 +209,7 @@ Site contents
    recipes
    Recipe - Cell Editing <cellEditing>
    Recipe - Owner Drawn <ownerDraw>
+   Recipe - Drag and Drop <dragdrop>
    faq
-   majorClasses
+   blog
    changelog
