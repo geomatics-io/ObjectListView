@@ -5,6 +5,11 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2009-05-05  JPP  - Added Scroll event (thanks to Christophe Hosten for the complete patch to implement this)
+ *                  - Added Unfocused foreground and background colors (also thanks to Christophe Hosten)
+ * 2009-04-29  JPP  - Added SelectedColumn property, which puts a slight tint on that column. Combine
+ *                    this with TintSortColumn property and the sort column is automatically tinted.
+ *                  - Use an overlay to implement "empty list" msg. Default empty list msg is now prettier.
  * 2009-04-28  JPP  - Fixed bug where DoubleClick events were not triggered when CheckBoxes was true
  * 2009-04-23  JPP  - Fixed various bugs under Vista.
  *                  - Made groups collapsible - Vista only. Thanks to Crustyapplesniffer.
@@ -367,11 +372,19 @@ namespace BrightIdeasSoftware
             this.ShowSortIndicators = true;
 
             // Setup the overlays that will be controlled by the IDE settings
-            this.imageOverlay = new ImageOverlay();
-            this.Overlays.Add(this.imageOverlay);
-            this.textOverlay = new TextOverlay();
-            this.Overlays.Add(this.textOverlay);
+            this.OverlayImage = new ImageOverlay();
+            this.Overlays.Add(this.OverlayImage);
+            this.OverlayText = new TextOverlay();
+            this.Overlays.Add(this.OverlayText);
 
+            // Setup the overlay that draws the empty list msg
+            TextOverlay textOverlay = new TextOverlay();
+            textOverlay.Alignment = System.Drawing.ContentAlignment.MiddleCenter;
+            textOverlay.TextColor = SystemColors.ControlDarkDark;
+            textOverlay.BackColor = Color.BlanchedAlmond;
+            textOverlay.BorderColor = SystemColors.ControlDark;
+            textOverlay.BorderWidth = 2.0f;
+            this.EmptyListMsgOverlay = textOverlay;
         }
 
         #region Public properties
@@ -729,34 +742,67 @@ namespace BrightIdeasSoftware
         static public EditorRegistry EditorRegistry = new EditorRegistry();
 
         /// <summary>
-        /// If there are no items in this list view, what m should be drawn onto the control?
+        /// Gets or sets the text that should be shown when there are no items in this list view.
         /// </summary>
+        /// <remarks>If the EmptyListMsgOverlay has been changed to something other than a TextOverlay,
+        /// this property does nothing</remarks>
         [Category("Appearance - ObjectListView"),
          Description("When the list has no items, show this m in the control"),
          DefaultValue(null),
          Localizable(true)]
         public virtual String EmptyListMsg {
-            get { return emptyListMsg; }
+            get {
+                TextOverlay overlay = this.EmptyListMsgOverlay as TextOverlay;
+                if (overlay == null)
+                    return null;
+                else
+                    return overlay.Text;
+            }
             set {
-                if (emptyListMsg != value) {
-                    emptyListMsg = value;
+                TextOverlay overlay = this.EmptyListMsgOverlay as TextOverlay;
+                if (overlay != null)
+                    overlay.Text = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the font in which the List Empty message should be drawn
+        /// </summary>
+        /// <remarks>If the EmptyListMsgOverlay has been changed to something other than a TextOverlay,
+        /// this property does nothing</remarks>
+        [Category("Appearance - ObjectListView"),
+        Description("What font should the 'list empty' message be drawn in?"),
+        DefaultValue(null)]
+        public virtual Font EmptyListMsgFont {
+            get {
+                TextOverlay overlay = this.EmptyListMsgOverlay as TextOverlay;
+                if (overlay == null)
+                    return null;
+                else
+                    return overlay.Font;
+            }
+            set {
+                TextOverlay overlay = this.EmptyListMsgOverlay as TextOverlay;
+                if (overlay != null)
+                    overlay.Font = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the overlay responsible for drawing the List Empty msg.
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual IOverlay EmptyListMsgOverlay {
+            get { return this.emptyListMsgOverlay; }
+            set {
+                if (this.emptyListMsgOverlay != value) {
+                    this.emptyListMsgOverlay = value;
                     this.Invalidate();
                 }
             }
         }
-        private String emptyListMsg;
-
-        /// <summary>
-        /// What font should the 'list empty' m be drawn in?
-        /// </summary>
-        [Category("Appearance - ObjectListView"),
-        Description("What font should the 'list empty' m be drawn in?"),
-        DefaultValue(null)]
-        public virtual Font EmptyListMsgFont {
-            get { return emptyListMsgFont; }
-            set { emptyListMsgFont = value; }
-        }
-        private Font emptyListMsgFont;
+        private IOverlay emptyListMsgOverlay;
 
         /// <summary>
         /// Return the font for the 'list empty' m or a default
@@ -1063,8 +1109,13 @@ namespace BrightIdeasSoftware
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual OLVColumn LastSortColumn {
-            get { return lastSortColumn; }
-            set { lastSortColumn = value; }
+            get { return this.lastSortColumn; }
+            set {
+                this.lastSortColumn = value;
+                if (this.TintSortColumn) {
+                    this.SelectedColumn = value;
+                }
+            }
         }
         private OLVColumn lastSortColumn;
 
@@ -1139,11 +1190,15 @@ namespace BrightIdeasSoftware
         /// This is the default value, but individual overlays can ignore it if they wish.
         /// </remarks>
         [Category("Appearance - ObjectListView"),
-         Description("How transparent should overlays be? 0 is opaque, 255 is completely transparent"),
+        Description("How transparent should overlays be? 0 is completely transparent, 255 is completely opaque"),
          DefaultValue(128)]
         public int OverlayTransparency {
             get { return this.overlayTransparency; }
-            set { this.overlayTransparency = Math.Min(255, Math.Max(0, value)); }
+            set { 
+                this.overlayTransparency = Math.Min(255, Math.Max(0, value));
+                if (this.glassPanel != null)
+                    this.glassPanel.UpdateTransparency();
+            }
         }
         private int overlayTransparency = 128;
 
@@ -1155,7 +1210,12 @@ namespace BrightIdeasSoftware
          DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         public TextOverlay OverlayText {
             get { return this.textOverlay; }
-            set { this.textOverlay = value; }
+            set { 
+                this.textOverlay = value;
+                
+                if (this.Created)
+                    this.Invalidate();
+            }
         }
 
         /// <summary>
@@ -1170,6 +1230,18 @@ namespace BrightIdeasSoftware
             get { return this.overlays; }
         }
         private List<IOverlay> overlays = new List<IOverlay>();
+
+        /// <summary>
+        /// Gets the list of decorations that will be drawn the ListView
+        /// </summary>
+        /// <remarks>
+        /// A decoration scrolls with the list contents. An overlay is fixed in place.
+        /// </remarks>
+        [Browsable(false)]
+        protected IList<IOverlay> Decorations {
+            get { return this.decorations; }
+        }
+        private List<IOverlay> decorations = new List<IOverlay>();
 
         /// <summary>
         /// Specify the height of each row in the control in pixels.
@@ -1298,6 +1370,30 @@ namespace BrightIdeasSoftware
             set { selectColumnsMenuStaysOpen = value; }
         }
         private bool selectColumnsMenuStaysOpen = true;
+
+        /// <summary>
+        /// Gets or sets the column that is drawn with a bluish-tint. 
+        /// </summary>
+        /// <remarks>
+        /// If TintSortColumn is true, the sort column will automatically
+        /// be made the selected column.
+        /// </remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public OLVColumn SelectedColumn {
+            get { return this.selectedColumn; }
+            set {
+                this.selectedColumn = value;
+                if (value == null) {
+                    this.RemoveDecoration(this.selectedColumnOverlay);
+                } else {
+                    if (!this.HasDecoration(this.selectedColumnOverlay))
+                        this.AddDecoration(this.selectedColumnOverlay);
+                }
+            }
+        }
+        private OLVColumn selectedColumn;
+        private SelectedColumnOverlay selectedColumnOverlay = new SelectedColumnOverlay();
 
         /// <summary>
         /// Return the index of the row that is currently selected. If no row is selected,
@@ -1451,6 +1547,23 @@ namespace BrightIdeasSoftware
         }
         private bool sortGroupItemsByPrimaryColumn = true;
 
+        /// <summary>
+        /// Should the sort column show a slight bluish tinge?
+        /// </summary>
+        [Category("Appearance - ObjectListView"),
+         Description("Should the sort column show a slight tinting?"),
+         DefaultValue(false)]
+        public virtual bool TintSortColumn {
+            get { return this.tintSortColumn; }
+            set { 
+                this.tintSortColumn = value;
+                if (value && this.LastSortColumn != null)
+                    this.SelectedColumn = this.LastSortColumn;
+                else
+                    this.SelectedColumn = null;
+            }
+        }
+        private bool tintSortColumn;
 
         /// <summary>
         /// Should each row have a tri-state checkbox?
@@ -1542,6 +1655,62 @@ namespace BrightIdeasSoftware
             set { updateSpaceFillingColumnsWhenDraggingColumnDivider = value; }
         }
         private bool updateSpaceFillingColumnsWhenDraggingColumnDivider = true;
+
+        /// <summary>
+        /// What color should be used for the background of selected rows when the control doesn't have the focus?
+        /// </summary>
+        /// <remarks>Windows does not give the option of changing the selection background.
+        /// So the control has to be owner drawn to see the result of this setting.
+        /// Setting UseCustomSelectionColors = true will do this for you.</remarks>
+        [Category("Appearance"),
+         Description("The background color of selected rows when the control is owner drawn and doesn't have the focus"),
+         DefaultValue(typeof(Color), "")]
+        public virtual Color UnfocusedHighlightBackgroundColor {
+            get { return unfocusedHighlightBackgroundColor; }
+            set { unfocusedHighlightBackgroundColor = value; }
+        }
+        private Color unfocusedHighlightBackgroundColor = Color.Empty;
+
+        /// <summary>
+        /// Return the color should be used for the background of selected rows when the control doesn't have the focus or a reasonable default
+        /// </summary>
+        [Browsable(false)]
+        public virtual Color UnfocusedHighlightBackgroundColorOrDefault {
+            get {
+                if (this.UnfocusedHighlightBackgroundColor.IsEmpty)
+                    return SystemColors.Control;
+                else
+                    return this.UnfocusedHighlightBackgroundColor;
+            }
+        }
+ 
+        /// <summary>
+        /// What color should be used for the foreground of selected rows when the control doesn't have the focus?
+        /// </summary>
+        /// <remarks>Windows does not give the option of changing the selection foreground (text color).
+        /// So the control has to be owner drawn to see the result of this setting.
+        /// Setting UseCustomSelectionColors = true will do this for you.</remarks>
+        [Category("Appearance"),
+         Description("The foreground color of selected rows when the control is owner drawn and doesn't have the focus"),
+         DefaultValue(typeof(Color), "")]
+        public virtual Color UnfocusedHighlightForegroundColor {
+            get { return unfocusedHighlightForegroundColor; }
+            set { unfocusedHighlightForegroundColor = value; }
+        }
+        private Color unfocusedHighlightForegroundColor = Color.Empty;
+
+        /// <summary>
+        /// Return the color should be used for the foreground of selected rows when the control doesn't have the focus or a reasonable default
+        /// </summary>
+        [Browsable(false)]
+        public virtual Color UnfocusedHighlightForegroundColorOrDefault {
+            get {
+                if (this.UnfocusedHighlightForegroundColor.IsEmpty)
+                    return SystemColors.ControlText;
+                else
+                    return this.UnfocusedHighlightForegroundColor;
+            }
+        }
 
         /// <summary>
         /// Should the list give a different background color to every second row?
@@ -1877,7 +2046,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         public virtual void AddObjects(ICollection modelObjects) {
             this.InsertObjects(this.GetItemCount(), modelObjects);
-            this.Sort(this.lastSortColumn, this.lastSortOrder);
+            this.Sort(this.LastSortColumn, this.LastSortOrder);
 
         }
 
@@ -1968,7 +2137,7 @@ namespace BrightIdeasSoftware
         /// if there is no last sort column
         /// </summary>
         public virtual void BuildGroups() {
-            this.BuildGroups(this.lastSortColumn);
+            this.BuildGroups(this.LastSortColumn);
         }
 
         /// <summary>
@@ -1984,7 +2153,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         /// <param name="column">The column whose values should be used for sorting.</param>
         public virtual void BuildGroups(OLVColumn column) {
-            SortOrder order = this.lastSortOrder;
+            SortOrder order = this.LastSortOrder;
             if (order == SortOrder.None)
                 order = this.Sorting;
             OLVColumn secondaryColumn = this.SecondarySortColumn;
@@ -2401,7 +2570,7 @@ namespace BrightIdeasSoftware
                 this.Items.RemoveAt(rowIndex);
 
             this.Items.AddRange(newItems.ToArray());
-            this.Sort(this.lastSortColumn);
+            this.Sort(this.LastSortColumn);
 
             SetAllSubItemImages();
 
@@ -2650,7 +2819,7 @@ namespace BrightIdeasSoftware
         /// Sort the items by the last sort column
         /// </summary>
         new public void Sort() {
-            this.Sort(this.lastSortColumn);
+            this.Sort(this.LastSortColumn);
         }
 
         #endregion
@@ -2686,9 +2855,9 @@ namespace BrightIdeasSoftware
             // case, it's Index will be -1. So we calculate its index directly. Technically, the sort
             // column does not even have to a member of AllColumns, in which case IndexOf will return -1,
             // which is works fine since we have no way of restoring such a column anyway.
-            if (this.lastSortColumn != null)
-                olvState.SortColumn = this.AllColumns.IndexOf(this.lastSortColumn);
-            olvState.LastSortOrder = this.lastSortOrder;
+            if (this.LastSortColumn != null)
+                olvState.SortColumn = this.AllColumns.IndexOf(this.LastSortColumn);
+            olvState.LastSortOrder = this.LastSortOrder;
             olvState.IsShowingGroups = this.ShowGroups;
 
             if (this.AllColumns.Count > 0 && this.AllColumns[0].LastDisplayIndex == -1)
@@ -2731,11 +2900,11 @@ namespace BrightIdeasSoftware
                 return false;
 
             if (olvState.SortColumn == -1) {
-                this.lastSortColumn = null;
-                this.lastSortOrder = SortOrder.None;
+                this.LastSortColumn = null;
+                this.LastSortOrder = SortOrder.None;
             } else {
-                this.lastSortColumn = this.AllColumns[olvState.SortColumn];
-                this.lastSortOrder = olvState.LastSortOrder;
+                this.LastSortColumn = this.AllColumns[olvState.SortColumn];
+                this.LastSortOrder = olvState.LastSortOrder;
             }
 
             for (int i = 0; i < olvState.NumberOfColumns; i++) {
@@ -2790,17 +2959,17 @@ namespace BrightIdeasSoftware
             this.OnSelectionChanged(new EventArgs());
         }
 
-        protected virtual void Application_Idle2(object sender, EventArgs e) {
-            if (Environment.TickCount - this.lastSwitchToGlass < 200)
-                return;
+        //protected virtual void Application_Idle2(object sender, EventArgs e) {
+        //    if (Environment.TickCount - this.lastSwitchToGlass < 200)
+        //        return;
 
-            // Remove the handler before triggering the event
-            Application.Idle -= new EventHandler(Application_Idle2);
-            this.usingGlassPanel = false;
+        //    // Remove the handler before triggering the event
+        //    Application.Idle -= new EventHandler(Application_Idle2);
+        //    this.usingGlassPanel = false;
 
-            this.Refresh();
-            this.glassPanel.HideGlass();
-        }
+        //    this.Refresh();
+        //    this.glassPanel.HideGlass();
+        //}
 
         /// <summary>
         /// Event handler for the column click event
@@ -2812,13 +2981,13 @@ namespace BrightIdeasSoftware
             // Toggle the sorting direction on successive clicks on the same column
             // We use lastClickedSortOrder rather than lastSortOrder so that column clicks always
             // toggle sorting order, regardless of any playing with lastSortOrder that external code might do
-            if (this.lastSortColumn != null && e.Column == this.lastClickedColumnIndex)
+            if (this.LastSortColumn != null && e.Column == this.lastClickedColumnIndex)
                 this.lastClickedSortOrder = (this.lastClickedSortOrder == SortOrder.Descending ? SortOrder.Ascending : SortOrder.Descending);
             else
                 this.lastClickedSortOrder = SortOrder.Ascending;
 
             this.lastClickedColumnIndex = e.Column;
-            this.lastSortOrder = this.lastClickedSortOrder;
+            this.LastSortOrder = this.lastClickedSortOrder;
 
             this.BeginUpdate();
             try {
@@ -2867,7 +3036,6 @@ namespace BrightIdeasSoftware
                         base.WndProc(ref m);
                     }
                     break;
-
                 case 0x0201: // WM_LBUTTONDOWN
                     if (this.PossibleFinishCellEditing() && !this.HandleLButtonDown(ref m))
                         base.WndProc(ref m);
@@ -2897,16 +3065,11 @@ namespace BrightIdeasSoftware
                         base.WndProc(ref m);
                     break;
                 case 0x1000 + 145: // LVM_INSERTGROUP     = LVM_FIRST + 145;
-                    // Add the collapsible feature id needed
-                    if (ObjectListView.IsVista && this.HasCollapsibleGroups) {
-                        NativeMethods.LVGROUP group = (NativeMethods.LVGROUP)Marshal.PtrToStructure(m.LParam, typeof(NativeMethods.LVGROUP));
-                        group.state = (int)NativeMethods.GroupState.COLLAPSIBLE; // LVGS_COLLAPSIBLE 
-                        group.mask = group.mask ^ 4; // LVGF_STATE 
-                        Marshal.StructureToPtr(group, m.LParam, true);
+                    // Add the collapsible feature if needed
+                    if (!this.HandleInsertGroup(ref m)) {
+                        base.WndProc(ref m);
                     }
-                    base.WndProc(ref m);
                     break;
-
                 case 0x202:  /*WM_LBUTTONUP*/
                     if (ObjectListView.IsVista && this.HasCollapsibleGroups) {
                         base.DefWndProc(ref m);
@@ -3061,9 +3224,9 @@ namespace BrightIdeasSoftware
             const int CDDS_ITEMPOSTPAINT = (CDDS_ITEM | CDDS_POSTPAINT);
             const int CDDS_ITEMPREERASE = (CDDS_ITEM | CDDS_PREERASE);
             const int CDDS_ITEMPOSTERASE = (CDDS_ITEM | CDDS_POSTERASE);
-
             const int CDRF_NOTIFYPOSTPAINT = 0x10;
             const int CDRF_NOTIFYPOSTERASE = 0x40; 
+
             NativeMethods.NMLVCUSTOMDRAW* lParam = (NativeMethods.NMLVCUSTOMDRAW*)m.LParam;
             //System.Diagnostics.Debug.WriteLine(String.Format("cd: {0:x}", lParam->nmcd.dwDrawStage));
 
@@ -3123,10 +3286,9 @@ namespace BrightIdeasSoftware
                     this.isAfterItemPaint = true;
 
                     // This scheme of catching custom draw msgs works fine, except
-                    // for Tile view.
-                    // Something in .NET's handling of Tile view causes lots
+                    // for Tile view. Something in .NET's handling of Tile view causes lots
                     // of invalidates and erases. So, we just ignore completely
-                    // .NET's handling of Tile view and let the underlying contrl
+                    // .NET's handling of Tile view and let the underlying control
                     // do its stuff. Strangely, if the Tile view is
                     // completely owner drawn, those erasures don't happen.
                     if (this.View == View.Tile) {
@@ -3252,27 +3414,47 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Handle an InsertGroup message
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
+        protected virtual bool HandleInsertGroup(ref Message m) {
+            if (ObjectListView.IsVista && this.HasCollapsibleGroups) {
+                NativeMethods.LVGROUP group = (NativeMethods.LVGROUP)Marshal.PtrToStructure(
+                    m.LParam, typeof(NativeMethods.LVGROUP));
+                group.state = (int)NativeMethods.GroupState.COLLAPSIBLE;
+                group.mask = group.mask ^ 4; // LVGF_STATE 
+                Marshal.StructureToPtr(group, m.LParam, true);
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Handle a key down message
         /// </summary>
         /// <param name="m"></param>
         /// <returns>True if the msg has been handled</returns>
         protected virtual bool HandleKeyDown(ref Message m) {
-            // If there are no overlays, normal processing will be fine
-            if (!this.HasOverlays)
-                return false;
 
-            //// Remember the scroll position so we can decide if the listview has scrolled in the 
-            //// handling of the event.
+            // Remember the scroll position so we can decide if the listview has scrolled in the 
+            // handling of the event.
             int scrollPositionH = NativeMethods.GetScrollPosition(this.Handle, true);
             int scrollPositionV = NativeMethods.GetScrollPosition(this.Handle, false);
 
             base.WndProc(ref m);
 
-            //// If the keydown processing changed the scroll position, the overlays will probably
-            //// be corrupt, so force them to be redrawn
-            if (scrollPositionH != NativeMethods.GetScrollPosition(this.Handle, true) ||
-                scrollPositionV != NativeMethods.GetScrollPosition(this.Handle, false)) {
-                this.Invalidate();
+            // If the keydown processing changed the scroll position, trigger a Scroll event    
+            int newScrollPositionH = NativeMethods.GetScrollPosition(this.Handle, true);
+            int newScrollPositionV = NativeMethods.GetScrollPosition(this.Handle, false);
+
+            if (scrollPositionH != newScrollPositionH) {
+                ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, 
+                    scrollPositionH, newScrollPositionH, ScrollOrientation.HorizontalScroll);
+                this.OnScroll(args);
+            } else if (scrollPositionV != newScrollPositionV) {
+                ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, 
+                    scrollPositionV, newScrollPositionV, ScrollOrientation.VerticalScroll);
+                this.OnScroll(args);
             }
 
             return true;
@@ -3383,16 +3565,17 @@ namespace BrightIdeasSoftware
                 case LVN_BEGINSCROLL:
                     //System.Diagnostics.Debug.WriteLine("LVN_BEGINSCROLL");
 
-                    // Our overlay scheme works almost perfectly -- except when the listview scrolls.
-                    // When the listview scrolls, it does a bitblt of the current window and then
-                    // redraws the revealed section. This works fine for almost everything except our
-                    // overlays which shouldn't scroll - they should remain fixed in place. So before
-                    // scrolling, we have to switch to a glass panel strategy. The glass panel is 
-                    // positioned over the listview and the overlays are drawn into that panel, rather
-                    // than into the listview itself. The listview can then scroll without moving
-                    // the overlays.
-                    if (this.HasOverlays) {
-                        this.TemporarilySwitchToGlassPanel();
+                    NativeMethods.NMLVSCROLL* nmlistviewPtr3 = (NativeMethods.NMLVSCROLL*)m.LParam;
+                    if (nmlistviewPtr3->dx != 0) {
+                        int scrollPositionH = NativeMethods.GetScrollPosition(this.Handle, true);
+                        ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, scrollPositionH - nmlistviewPtr3->dx, scrollPositionH, ScrollOrientation.HorizontalScroll);
+                        this.OnScroll(args);
+                    }
+                    else if (nmlistviewPtr3->dy != 0)
+                    {
+                        int scrollPositionV = NativeMethods.GetScrollPosition(this.Handle, false);
+                        ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, scrollPositionV - nmlistviewPtr3->dy, scrollPositionV, ScrollOrientation.VerticalScroll);
+                        this.OnScroll(args);
                     }
                     break;
 
@@ -3461,24 +3644,24 @@ namespace BrightIdeasSoftware
             return isMsgHandled;
         }
 
-        private void TemporarilySwitchToGlassPanel() {
-            this.lastSwitchToGlass = Environment.TickCount;
-            if (this.usingGlassPanel)
-                return;
-            this.usingGlassPanel = true;
-            Application.Idle += new EventHandler(Application_Idle2);
+        //private void TemporarilySwitchToGlassPanel() {
+        //    this.lastSwitchToGlass = Environment.TickCount;
+        //    if (this.usingGlassPanel)
+        //        return;
+        //    this.usingGlassPanel = true;
+        //    Application.Idle += new EventHandler(Application_Idle2);
 
-            if (this.glassPanel == null) {
-                this.glassPanel = new GlassPanelForm();
-                this.glassPanel.Bind(this);
-            }
-            this.glassPanel.Opacity = this.OverlayTransparency / 255.0f;
-            this.glassPanel.ShowGlass();
-            this.Refresh();
-        }
-        private bool usingGlassPanel;
-        private GlassPanelForm glassPanel;
-        private int lastSwitchToGlass;
+        //    if (this.glassPanel == null) {
+        //        this.glassPanel = new GlassPanelForm();
+        //        this.glassPanel.Bind(this);
+        //    }
+        //    this.glassPanel.Opacity = this.OverlayTransparency / 255.0f;
+        //    this.glassPanel.ShowGlass();
+        //    this.Refresh();
+        //}
+        //private bool usingGlassPanel;
+        //private GlassPanelForm glassPanel;
+        //private int lastSwitchToGlass;
 
         private CheckState CalculateState(int state) {
             switch ((state & 0xf000) >> 12) {
@@ -3637,6 +3820,8 @@ namespace BrightIdeasSoftware
             this.isInWmPaintEvent = true;
             this.shouldDoCustomDrawing = true;
             this.prePaintLevel = 0;
+
+            this.ShowOverlays();
 
             this.HandlePrePaint();
             base.WndProc(ref m);
@@ -4151,7 +4336,6 @@ namespace BrightIdeasSoftware
                     return this.AllColumns.FindAll(delegate(OLVColumn x) { return (index++ == 0) || x.IsTileViewColumn; });
                 default:
                     return new List<OLVColumn>();
-                    ;
             }
         }
 
@@ -4488,7 +4672,7 @@ namespace BrightIdeasSoftware
                 return;
             }
 
-            SortOrder order = this.lastSortOrder;
+            SortOrder order = this.LastSortOrder;
             if (order == SortOrder.None)
                 order = this.Sorting;
 
@@ -4553,8 +4737,8 @@ namespace BrightIdeasSoftware
             if (this.UseAlternatingBackColors && this.View == View.Details)
                 PrepareAlternateBackColors();
 
-            this.lastSortColumn = columnToSort;
-            this.lastSortOrder = order;
+            this.LastSortColumn = columnToSort;
+            this.LastSortOrder = order;
 
             if (selection.Count > 0)
                 this.SelectedObjects = selection;
@@ -4592,8 +4776,8 @@ namespace BrightIdeasSoftware
         /// Put a sort indicator next to the text of the sort column
         /// </summary>
         public virtual void ShowSortIndicator() {
-            if (this.ShowSortIndicators && this.lastSortOrder != SortOrder.None)
-                this.ShowSortIndicator(this.lastSortColumn, this.lastSortOrder);
+            if (this.ShowSortIndicators && this.LastSortOrder != SortOrder.None)
+                this.ShowSortIndicator(this.LastSortColumn, this.LastSortOrder);
         }
 
         /// <summary>
@@ -6070,7 +6254,19 @@ namespace BrightIdeasSoftware
 
         #endregion
 
-        #region Overlays
+        #region Decorations and Overlays
+
+        /// <summary>
+        /// Add the given overlay to those on this list and make it appear
+        /// </summary>
+        /// <param name="overlay">The overlay</param>
+        /// <remarks>
+        /// A decoration scrolls with the listview. An overlay stays fixed in place.
+        /// </remarks>
+        public void AddDecoration(IOverlay decoration) {
+            this.Decorations.Add(decoration);
+            this.Invalidate();
+        }
 
         /// <summary>
         /// Add the given overlay to those on this list and make it appear
@@ -6078,7 +6274,7 @@ namespace BrightIdeasSoftware
         /// <param name="overlay">The overlay</param>
         public void AddOverlay(IOverlay overlay) {
             this.Overlays.Add(overlay);
-            this.Invalidate();
+            this.RefreshOverlays();
         }
 
         /// <summary>
@@ -6086,10 +6282,13 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="g">A Graphics</param>
         internal void DrawAllDecorations(Graphics g) {
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+            g.SmoothingMode = SmoothingMode.HighQuality;
+
             Rectangle contentRectangle = this.ContentRectangle;
 
             if (this.HasEmptyListMsg && this.GetItemCount() == 0) {
-                this.DrawEmptyListMsg(g, contentRectangle);
+                this.EmptyListMsgOverlay.Draw(this, g, contentRectangle);
             }
 
             // Let the drop sink draw whatever feedback it likes
@@ -6097,14 +6296,14 @@ namespace BrightIdeasSoftware
                 this.DropSink.DrawFeedback(g, contentRectangle);
             }
 
-            // When there is a glass panel, that will handle the overlays.
-            // Otherwise, we draw them now
-            if (!this.usingGlassPanel) {
-                //System.Diagnostics.Debug.WriteLine("REAL DrawAllDecorations");
-                foreach (IOverlay overlay in this.Overlays) {
-                    overlay.Draw(this, g, contentRectangle, this.OverlayTransparency);
-                }
+            // Draw our decorations
+            g.TranslateTransform(
+                0 - NativeMethods.GetScrollPosition(this.Handle, true),
+                0);
+            foreach (IOverlay decoration in this.Decorations) {
+                decoration.Draw(this, g, contentRectangle);
             }
+            g.ResetTransform();
         }
 
         /// <summary>
@@ -6113,33 +6312,58 @@ namespace BrightIdeasSoftware
         /// <param name="g"></param>
         internal void DrawBackgroundOverlays(Graphics g) {
             Rectangle contentRectangle = this.ContentRectangle;
-
-            // This method is called from the glass panel, which handles
-            // transparency itself
             foreach (IOverlay overlay in this.Overlays) {
-                overlay.Draw(this, g, contentRectangle, 255);
+                overlay.Draw(this, g, contentRectangle);
             }
-        }
-
-        /// <summary>
-        /// Draw our empty list message
-        /// </summary>
-        /// <param name="g"></param>
-        /// <param name="r"></param>
-        protected virtual void DrawEmptyListMsg(Graphics g, Rectangle r) {
-            StringFormat sf = new StringFormat();
-            sf.Alignment = StringAlignment.Center;
-            sf.LineAlignment = StringAlignment.Center;
-            sf.Trimming = StringTrimming.EllipsisCharacter;
-            g.DrawString(this.EmptyListMsg, this.EmptyListMsgFontOrDefault, SystemBrushes.ControlDark, r, sf);
         }
 
         /// <summary>
         /// Is the given overlay showne on this list
         /// </summary>
         /// <param name="overlay">The overlay</param>
+        public bool HasDecoration(IOverlay overlay) {
+            return this.Decorations.Contains(overlay);
+        }
+
+        /// <summary>
+        /// Is the given overlay shown on this list?
+        /// </summary>
+        /// <param name="overlay">The overlay</param>
         public bool HasOverlay(IOverlay overlay) {
             return this.Overlays.Contains(overlay);
+        }
+
+        public void HideOverlays() {
+            if (this.glassPanel != null)
+                this.glassPanel.HideGlass();
+        }
+        private GlassPanelForm glassPanel;
+
+        public void ShowOverlays() {
+            if (!this.HasOverlays)
+                return;
+
+            if (this.glassPanel == null) {
+                this.glassPanel = new GlassPanelForm();
+                this.glassPanel.Bind(this);
+            }
+
+            this.glassPanel.ShowGlass();
+        }
+
+        public void RefreshOverlays() {
+            if (this.glassPanel != null) {
+                this.glassPanel.Invalidate();
+            }
+        }
+
+        /// <summary>
+        /// Remove the given decoration from this list
+        /// </summary>
+        /// <param name="overlay">The overlay</param>
+        public void RemoveDecoration(IOverlay overlay) {
+            this.Decorations.Remove(overlay);
+            this.Invalidate();
         }
 
         /// <summary>
@@ -6148,7 +6372,7 @@ namespace BrightIdeasSoftware
         /// <param name="overlay">The overlay</param>
         public void RemoveOverlay(IOverlay overlay) {
             this.Overlays.Remove(overlay);
-            this.Invalidate();
+            this.RefreshOverlays();
         }
 
         #endregion
