@@ -189,6 +189,13 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
         Description("This event is triggered once per user action that changes the selection state of one or more rows.")]
         public event EventHandler SelectionChanged;
+        
+        /// <summary>
+        /// This event is triggered when the contents of the ObjectListView has scrolled.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when the contents of the ObjectListView has scrolled.")]
+        public event EventHandler<ScrollEventArgs> Scroll;
 
         #endregion
         
@@ -273,6 +280,12 @@ namespace BrightIdeasSoftware
         {
             if (this.SelectionChanged != null)
                 this.SelectionChanged(this, e);
+        }
+
+        protected virtual void OnScroll(ScrollEventArgs e)
+        {
+            if (this.Scroll != null)
+                this.Scroll(this, e);
         }
 
         /// <summary>
