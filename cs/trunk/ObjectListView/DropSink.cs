@@ -528,7 +528,7 @@ namespace BrightIdeasSoftware
             }
 
             if (this.Billboard != null) {
-                this.Billboard.Draw(this.ListView, g, bounds, 255);
+                this.Billboard.Draw(this.ListView, g, bounds);
             }
         }
 
