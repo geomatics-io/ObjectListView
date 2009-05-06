@@ -7,6 +7,66 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
+May 2009 - Version 2.2
+----------------------
+
+The two big features in this version are overlays and drag and drop support.
+
+Drag and drop support
+^^^^^^^^^^^^^^^^^^^^^
+
+`ObjectListViews` now have sophisticated support for drag and drop operations.
+
+The dragging is based on the `IDragSource` interface, and the drop handling
+revolves around the `IDropSink` interface. `SimpleDragSource` and
+`SimpleDropSink` provide reasonable default implementations for these
+interfaces. An `ObjectListView` can be made a source for drag operations by
+setting the `DragSource` property. Similarly, it can be made a sink for drop
+actions by setting the `DropSink` property.
+
+For most simple cases, these details can be ignored and you can just set the
+`IsSimpleDragSource` and `IsSimpleDropSink` properties to `true`.
+
+See :ref:`dragdrop-label` for more details.
+
+The `RearrangeableDropSink` class gives an `ObjectListView` the ability to be rearranged by dragging.
+See :ref:`dragdrop-rearranging`.
+
+Image and text overlays
+^^^^^^^^^^^^^^^^^^^^^^^
+
+This version added the ability to draw translucent images and text over the top
+over the `ObjectListView` contents. These overlays do not scroll when the list
+contents scroll. These overlays works in all Views. You can set an overlays
+within the IDE using the `OverlayImage` and `OverlayText` properties.
+
+The overlay design is extensible, and you can add arbitrary overlays through the `AddOverlay()` method.
+
+The "list is empty" message is now implemented as an overlay, and as such is heavily customisable.
+See :ref:`recipe-emptymsg` for details.
+
+Other changes
+^^^^^^^^^^^^^
+
+* The most requested feature ever -- collapsible groups -- is now available.
+  But it is for Vista only. Thanks to Crustyapplesniffer for his implementation of this feature.
+  Set the `HasCollapsibleGroups` to `false` if you don't want this on your `ObjectListView` (it is `true` by default).
+
+* Added `SelectedColumn` property, which puts a slight tint over that column.
+  When combined with the `TintSortColumn` property, the sorted column will automatically be tinted.
+
+* Added `Scroll` event (thanks to Christophe Hosten who implemented this)
+
+* Fix a long standing problem with flickering on owner drawn virtual lists.
+  Apart from now being flicker-free, this means that grid lines no longer get
+  confused, and drag-select no longer flickers. This means that TreeListView now
+  has noticeably less flicker (it is always an owner drawn virtual list).
+
+* Double-clicking on a row no longer toggles the checkbox (Why did MS ever include that?)
+* Double-clicking on a checkbox no longer confuses the checkbox
+* Correctly renderer checkboxes when `RowHeight` is non-standard
+* Made several properties localizable.
+
 3 February 2009 - Version 2.1
 -----------------------------
 
@@ -30,7 +90,8 @@ non-detail view. This second responsibility now belongs explicitly to the
 * The text AND bitmaps now follow the alignment of the column. Previously only the
   text was aligned.
 * Added `ItemRenderer` to handle non-details owner drawing
-* Images are now drawn directly from the image list if possible. 30% faster than previous versions.
+* Images are now drawn directly from the image list if possible.
+  30% faster than previous versions.
 
 Other significant changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^
