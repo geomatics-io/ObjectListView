@@ -1,14 +1,15 @@
 ﻿/*
  * Overlays - Decorations that can be rendered over the top of a ListView
- *
+ * 
  * Author: Phillip Piper
  * Date: 14/04/2009 4:36 PM
  *
  * Change log:
+ * 2009-05-05   JPP  - Unified BillboardOverlay text rendering with that of TextOverlay
+ * 2009-04-30   JPP  - Added SelectedColumnOverlay
  * 2009-04-14   JPP  - Initial version
  *
  * To do:
- * - Move ability to have border and background from billboard into text overlay
  * 
  * Copyright (C) 2009 Phillip Piper
  *
@@ -45,11 +46,10 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Draw this overlay
         /// </summary>
-        /// <param name="olv"></param>
-        /// <param name="g"></param>
-        /// <param name="r"></param>
-        /// <param name="transparency"></param>
-        void Draw(ObjectListView olv, Graphics g, Rectangle r, int transparency);
+        /// <param name="olv">The ObjectListView that is being overlaid</param>
+        /// <param name="g">The Graphics onto the given OLV</param>
+        /// <param name="r">The content area of the OLV</param>
+        void Draw(ObjectListView olv, Graphics g, Rectangle r);
     }
 
     /// <summary>
@@ -62,10 +62,10 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Draw this overlay
         /// </summary>
-        /// <param name="olv"></param>
-        /// <param name="g"></param>
-        /// <param name="r"></param>
-        public virtual void Draw(ObjectListView olv, Graphics g, Rectangle r, int transparency) {
+        /// <param name="olv">The ObjectListView that is being overlaid</param>
+        /// <param name="g">The Graphics onto the given OLV</param>
+        /// <param name="r">The content area of the OLV</param>
+        public virtual void Draw(ObjectListView olv, Graphics g, Rectangle r) {
         }
 
         #endregion
@@ -85,8 +85,7 @@ namespace BrightIdeasSoftware
         [Category("Appearance - ObjectListView"),
          Description("Where within the content rectangle of the listview the overlay will be drawn"),
          DefaultValue(System.Drawing.ContentAlignment.BottomRight),
-         NotifyParentProperty(true),
-         RefreshProperties(RefreshProperties.All)]
+          RefreshProperties(RefreshProperties.Repaint)]
         public System.Drawing.ContentAlignment Alignment {
             get { return this.overlayImageAlignment; }
             set { this.overlayImageAlignment = value; }
@@ -94,18 +93,46 @@ namespace BrightIdeasSoftware
         private System.Drawing.ContentAlignment overlayImageAlignment = System.Drawing.ContentAlignment.BottomRight;
 
         /// <summary>
-        /// Gets or sets the number of pixels that this overlay will be inset of the edge of the 
+        /// Gets or sets the number of pixels that this overlay will be inset of the horizontal edges of the 
         /// ListViews content rectangle
         /// </summary>
         [Category("Appearance - ObjectListView"),
-         Description("The number of pixels that the overlay will be inset of the edge of the ListViews content rectangle"),
+         Description("The number of pixels that the overlay will be inset from the horizontal edges of the ListViews content rectangle"),
          DefaultValue(20),
          NotifyParentProperty(true)]
-        public int Inset {
-            get { return this.inset; }
-            set { this.inset = Math.Max(0, value); }
+        public int InsetX {
+            get { return this.insetx; }
+            set { this.insetx = Math.Max(0, value); }
         }
-        private int inset = 20;
+        private int insetx = 20;
+
+        /// <summary>
+        /// Gets or sets the number of pixels that this overlay will be inset from the vertical edges of the 
+        /// ListViews content rectangle
+        /// </summary>
+        [Category("Appearance - ObjectListView"),
+         Description("The number of pixels that the overlay will be inset from the vertical edges of the ListViews content rectangle"),
+         DefaultValue(20),
+         NotifyParentProperty(true)]
+        public int InsetY {
+            get { return this.insety; }
+            set { this.insety = Math.Max(0, value); }
+        }
+        private int insety = 20;
+
+        /// <summary>
+        /// Gets or sets the degree of rotation by which the graphic will be transformed.
+        /// The centre of rotation will be the point indicated by Alignment.
+        /// </summary>
+        [Category("Appearance - ObjectListView"),
+         Description("The degree of rotation that will be applied to the graphic."),
+         DefaultValue(0),
+         NotifyParentProperty(true)]
+        public int Rotation {
+            get { return this.rotation; }
+            set { this.rotation = value; }
+        }
+        private int rotation;
 
         #endregion
 
@@ -120,7 +147,7 @@ namespace BrightIdeasSoftware
         /// <returns>A rectangle</returns>
         protected Point CalculateAlignedLocation(Rectangle bounds, Size size) {
             Rectangle r = bounds;
-            r.Inflate(-this.Inset, -this.Inset);
+            r.Inflate(-this.InsetX, -this.InsetY);
 
             Point pt = r.Location;
             switch (this.Alignment) {
@@ -146,6 +173,31 @@ namespace BrightIdeasSoftware
 
             // Should never reach here
             return bounds.Location;
+        }
+
+        /// <summary>
+        /// Apply any specified rotation to the Graphic content.
+        /// </summary>
+        /// <param name="g">The Graphics to be transformed</param>
+        /// <param name="r">The rotation will be around the centre of this rect</param>
+        protected void ApplyRotation(Graphics g, Rectangle r) {
+            if (this.Rotation == 0)
+                return;
+            
+            // THINK: Do we want to reset the transform? I think we want to push a new transform
+            g.ResetTransform();
+            Matrix m = new Matrix();
+            m.RotateAt(this.Rotation, new Point(r.Left + r.Width / 2, r.Top + r.Height / 2));
+            g.Transform = m;
+        }
+
+        /// <summary>
+        /// Reverse the rotation created by ApplyRotation()
+        /// </summary>
+        /// <param name="g"></param>
+        protected void UnapplyRotation(Graphics g) {
+            if (this.Rotation != 0)
+                g.ResetTransform();
         }
 
         #endregion
@@ -215,13 +267,18 @@ namespace BrightIdeasSoftware
         /// <param name="olv">The ObjectListView being decorated</param>
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The bounds of the rendering</param>
-        /// <param name="transparency">How transparent is the overlay?</param>
-        public override void Draw(ObjectListView olv, Graphics g, Rectangle r, int transparency) {
+        public override void Draw(ObjectListView olv, Graphics g, Rectangle r) {
             if (this.Image == null)
                 return;
 
             Point pt = this.CalculateAlignedLocation(r, this.Image.Size);
-            this.DrawTransparentBitmap(g, pt, this.Image, transparency);
+            try {
+                this.ApplyRotation(g, new Rectangle(pt, this.Image.Size));
+                this.DrawTransparentBitmap(g, pt, this.Image, 255);
+            }
+            finally {
+                this.UnapplyRotation(g);
+            }
         }
 
         private void DrawTransparentBitmap(Graphics g, Point pt, Image image, int transparency) {
@@ -256,6 +313,8 @@ namespace BrightIdeasSoftware
         public TextOverlay() {
         }
 
+        #region Public properties
+
         /// <summary>
         /// Gets or sets the font that will be used to draw the text over the top of the ListView
         /// </summary>
@@ -280,17 +339,29 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets or sets whether the border will be drawn with rounded corners
+        /// </summary>
+        [Category("Appearance - ObjectListView"),
+         Description("Will the border be drawn with rounded corners"),
+         DefaultValue(true)]
+        public bool RoundCorneredBorder {
+            get { return this.roundCorneredBorder; }
+            set { this.roundCorneredBorder = value; }
+        }
+        private bool roundCorneredBorder = true;
+
+        /// <summary>
         /// Gets or sets the color of the text
         /// </summary>
         [Category("Appearance - ObjectListView"),
          Description("The color of the text"),
-         DefaultValue(typeof(Color), "DarkGray"),
+         DefaultValue(typeof(Color), "DarkBlue"),
          NotifyParentProperty(true)]
         public Color TextColor {
             get { return this.textColor; }
             set { this.textColor = value; }
         }
-        private Color textColor = Color.DarkGray;
+        private Color textColor = Color.DarkBlue;
 
         /// <summary>
         /// Gets the brush that will be used to paint the text
@@ -317,8 +388,11 @@ namespace BrightIdeasSoftware
         private string text;
 
         /// <summary>
-        /// Gets or sets the background color of the billboard
+        /// Gets or sets the background color of the text
         /// </summary>
+        [Category("Appearance - ObjectListView"),
+         Description("the background color of the billboard text"),
+         DefaultValue(typeof(Color), "")]
         public Color BackColor {
             get { return this.backColor; }
             set { this.backColor = value; }
@@ -339,6 +413,9 @@ namespace BrightIdeasSoftware
         /// Gets or sets the color of the border around the billboard.
         /// Set this to Color.Empty to remove the border
         /// </summary>
+        [Category("Appearance - ObjectListView"),
+         Description("The color of the border around the text"),
+         DefaultValue(typeof(Color), "")]
         public Color BorderColor {
             get { return this.borderColor; }
             set { this.borderColor = value; }
@@ -346,8 +423,11 @@ namespace BrightIdeasSoftware
         private Color borderColor = Color.Empty;
 
         /// <summary>
-        /// Gets or sets the width of the border around the billboard
+        /// Gets or sets the width of the border around the text
         /// </summary>
+        [Category("Appearance - ObjectListView"),
+         Description("The width of the border around the text"),
+         DefaultValue(0.0f)]
         public float BorderWidth {
             get { return this.borderWidth; }
             set { this.borderWidth = value; }
@@ -384,75 +464,79 @@ namespace BrightIdeasSoftware
             }
         }
 
+        #endregion
+
+        #region Implementation
+
         /// <summary>
         /// Draw this overlay
         /// </summary>
         /// <param name="olv">The ObjectListView being decorated</param>
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The bounds of the rendering</param>
-        public override void Draw(ObjectListView olv, Graphics g, Rectangle r, int transparency) {
+        public override void Draw(ObjectListView olv, Graphics g, Rectangle r) {
             if (String.IsNullOrEmpty(this.Text))
                 return;
 
-            this.transparency = transparency;
+            this.transparency = 255;
 
-            if (this.HasBackground || this.HasBorder) {
-                this.DrawBorderedText(g, r);
-            } else {
-                this.DrawSimpleText(g, r);
-            }
+            Rectangle textRect = this.CalculateTextBounds(g, r);
+            this.DrawBorderedText(g, textRect);
         }
 
-        private void DrawSimpleText(Graphics g, Rectangle r) {
-            StringFormat sf = new StringFormat();
+        /// <summary>
+        /// Draw the text with a border
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        protected void DrawBorderedText(Graphics g, Rectangle textRect) {
+            Rectangle borderRect = textRect;
+            borderRect.Inflate((int)this.BorderWidth / 2, (int)this.BorderWidth / 2);
+            borderRect.Y -= 1; // Looker better a little higher
+
+            StringFormat sf;
+            sf = new StringFormat();
+            sf.Alignment = StringAlignment.Center;
+            sf.LineAlignment = StringAlignment.Center;
             sf.Trimming = StringTrimming.EllipsisCharacter;
-            switch (this.Alignment) {
-                case ContentAlignment.TopLeft:
-                    sf.Alignment = StringAlignment.Near;
-                    sf.LineAlignment = StringAlignment.Near;
-                    break;
-                case ContentAlignment.TopCenter:
-                    sf.Alignment = StringAlignment.Center;
-                    sf.LineAlignment = StringAlignment.Near;
-                    break;
-                case ContentAlignment.TopRight:
-                    sf.Alignment = StringAlignment.Far;
-                    sf.LineAlignment = StringAlignment.Near;
-                    break;
-                case ContentAlignment.MiddleLeft:
-                    sf.Alignment = StringAlignment.Near;
-                    sf.LineAlignment = StringAlignment.Center;
-                    break;
-                case ContentAlignment.MiddleCenter:
-                    sf.Alignment = StringAlignment.Center;
-                    sf.LineAlignment = StringAlignment.Center;
-                    break;
-                case ContentAlignment.MiddleRight:
-                    sf.Alignment = StringAlignment.Far;
-                    sf.LineAlignment = StringAlignment.Center;
-                    break;
-                case ContentAlignment.BottomLeft:
-                    sf.Alignment = StringAlignment.Near;
-                    sf.LineAlignment = StringAlignment.Far;
-                    break;
-                case ContentAlignment.BottomCenter:
-                    sf.Alignment = StringAlignment.Center;
-                    sf.LineAlignment = StringAlignment.Far;
-                    break;
-                case ContentAlignment.BottomRight:
-                    sf.Alignment = StringAlignment.Far;
-                    sf.LineAlignment = StringAlignment.Far;
-                    break;
-            }
 
-            Rectangle r2 = r;
-            r2.Inflate(-this.Inset, -this.Inset);
-            g.DrawString(this.Text, this.FontOrDefault, this.TextBrush, r2, sf);
+            try {
+                this.ApplyRotation(g, textRect);
+                if (this.RoundCorneredBorder) {
+                    float diameter = borderRect.Height / 3; // this should be a property
+                    using (GraphicsPath path = this.GetRoundedRect(borderRect, diameter)) {
+                        if (this.HasBackground)
+                            g.FillPath(this.BackgroundBrush, path);
+
+                        g.DrawString(this.Text, this.FontOrDefault, this.TextBrush, textRect, sf);
+
+                        if (this.HasBorder)
+                            g.DrawPath(this.BorderPen, path);
+                    }
+                } else {
+                    if (this.HasBackground)
+                        g.FillRectangle(this.BackgroundBrush, textRect);
+
+                    g.DrawString(this.Text, this.FontOrDefault, this.TextBrush, textRect, sf);
+
+                    if (this.HasBorder)
+                        g.DrawRectangle(this.BorderPen, borderRect);
+                }
+            }
+            finally {
+                this.UnapplyRotation(g);
+            }
         }
 
-        private void DrawBorderedText(Graphics g, Rectangle r) {
+        /// <summary>
+        /// Return the rectangle that will be the precise bounds of the displayed text
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <returns>The bounds of the text</returns>
+        protected Rectangle CalculateTextBounds(Graphics g, Rectangle r) {
             Rectangle insetRect = r;
-            insetRect.Inflate(-this.Inset, -this.Inset);
+            insetRect.Inflate(-this.InsetX, -this.InsetY);
             StringFormat sf = new StringFormat();
             sf.Alignment = StringAlignment.Center;
             sf.LineAlignment = StringAlignment.Center;
@@ -460,34 +544,102 @@ namespace BrightIdeasSoftware
             SizeF sizeF = g.MeasureString(this.Text, this.FontOrDefault, insetRect.Width, sf);
             Size size = new Size(1 + (int)sizeF.Width, 1 + (int)sizeF.Height);
             Point location = this.CalculateAlignedLocation(r, size);
-            Rectangle r2 = new Rectangle(location, size);
-
-
-            if (this.HasBackground) {
-                g.FillRectangle(this.BackgroundBrush, r2);
-            }
-
-            g.DrawString(this.Text, this.FontOrDefault, this.TextBrush, r2, sf);
-
-            if (this.HasBorder) {
-                r2.Inflate((int)this.BorderWidth / 2, (int)this.BorderWidth / 2);
-                g.DrawRectangle(this.BorderPen, r2);
-            }
+            return new Rectangle(location, size);
         }
 
+        /// <summary>
+        /// Return a GraphicPath that is a round cornered rectangle
+        /// </summary>
+        /// <param name="rect">The rectangle</param>
+        /// <param name="diameter">The diameter of the corners</param>
+        /// <returns>A round cornered rectagle path</returns>
+        /// <remarks>If I could rely on people using C# 3.0+, this should be
+        /// an extension method of GraphicsPath.</remarks>
+        protected GraphicsPath GetRoundedRect(Rectangle rect, float diameter) {
+            GraphicsPath path = new GraphicsPath();
+
+            RectangleF arc = new RectangleF(rect.X, rect.Y, diameter, diameter);
+            path.AddArc(arc, 180, 90);
+            arc.X = rect.Right - diameter;
+            path.AddArc(arc, 270, 90);
+            arc.Y = rect.Bottom - diameter;
+            path.AddArc(arc, 0, 90);
+            arc.X = rect.Left;
+            path.AddArc(arc, 90, 90);
+            path.CloseFigure();
+
+            return path;
+        }
+
+        #endregion
+
+        #region Private variables
+
         protected int transparency;
+
+        #endregion
+
+        /// <summary>
+        /// Draw simple text without a border or background.
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        //protected void DrawSimpleText(Graphics g, Rectangle r) {
+        //    StringFormat sf = new StringFormat();
+        //    sf.Trimming = StringTrimming.EllipsisCharacter;
+        //    switch (this.Alignment) {
+        //        case ContentAlignment.TopLeft:
+        //            sf.Alignment = StringAlignment.Near;
+        //            sf.LineAlignment = StringAlignment.Near;
+        //            break;
+        //        case ContentAlignment.TopCenter:
+        //            sf.Alignment = StringAlignment.Center;
+        //            sf.LineAlignment = StringAlignment.Near;
+        //            break;
+        //        case ContentAlignment.TopRight:
+        //            sf.Alignment = StringAlignment.Far;
+        //            sf.LineAlignment = StringAlignment.Near;
+        //            break;
+        //        case ContentAlignment.MiddleLeft:
+        //            sf.Alignment = StringAlignment.Near;
+        //            sf.LineAlignment = StringAlignment.Center;
+        //            break;
+        //        case ContentAlignment.MiddleCenter:
+        //            sf.Alignment = StringAlignment.Center;
+        //            sf.LineAlignment = StringAlignment.Center;
+        //            break;
+        //        case ContentAlignment.MiddleRight:
+        //            sf.Alignment = StringAlignment.Far;
+        //            sf.LineAlignment = StringAlignment.Center;
+        //            break;
+        //        case ContentAlignment.BottomLeft:
+        //            sf.Alignment = StringAlignment.Near;
+        //            sf.LineAlignment = StringAlignment.Far;
+        //            break;
+        //        case ContentAlignment.BottomCenter:
+        //            sf.Alignment = StringAlignment.Center;
+        //            sf.LineAlignment = StringAlignment.Far;
+        //            break;
+        //        case ContentAlignment.BottomRight:
+        //            sf.Alignment = StringAlignment.Far;
+        //            sf.LineAlignment = StringAlignment.Far;
+        //            break;
+        //    }
+        //    Rectangle r2 = r;
+        //    r2.Inflate(-this.InsetX, -this.InsetY);
+        //    g.DrawString(this.Text, this.FontOrDefault, this.TextBrush, r2, sf);
+        //}
     }
 
     /// <summary>
-    /// A Billboard overlay is positioned at an absolute point and 
-    /// painted with a background and border
+    /// A Billboard overlay is positioned at an absolute point 
     /// </summary>
     public class BillboardOverylay : TextOverlay
     {
         public BillboardOverylay() {
             this.BackColor = Color.PeachPuff;
             this.TextColor = Color.Black;
-            this.BorderWidth = 2.0f;
+            //this.BorderWidth = 2.0f;
             this.BorderColor = Color.Empty;
             this.Font = new Font("Tahoma", 10);
         }
@@ -507,53 +659,89 @@ namespace BrightIdeasSoftware
         /// <param name="olv">The ObjectListView being decorated</param>
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The bounds of the rendering</param>
-        public override void Draw(ObjectListView olv, Graphics g, Rectangle r, int transparency) {
+        public override void Draw(ObjectListView olv, Graphics g, Rectangle r) {
             if (String.IsNullOrEmpty(this.Text))
                 return;
 
-            this.transparency = transparency;
-            g.SmoothingMode = SmoothingMode.HighQuality;
-            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-            int maximumWidth = Math.Max(200, olv.Width);
-            StringFormat sf = new StringFormat();
-            sf.Alignment = StringAlignment.Center;
-            sf.LineAlignment = StringAlignment.Center;
-            sf.Trimming = StringTrimming.EllipsisCharacter;
-            SizeF size = g.MeasureString(this.Text, this.FontOrDefault, maximumWidth, sf);
-            Rectangle r2 = new Rectangle(this.Location.X, this.Location.Y, 1+(int)size.Width, 1+(int)size.Height);
+            this.transparency = 255;
 
-            if (this.HasBorder)
-                r2.Inflate((int)this.BorderWidth / 2, (int)this.BorderWidth / 2);
+            // Calculate the bounds of the text, and then move it to where it should be
+            Rectangle textRect = this.CalculateTextBounds(g, r);
+            textRect.Location = this.Location;
 
             // Make sure the billboard is within the bounds of the List, as far as is possible
-            if (r2.Right > olv.Width)
-                r2.X = Math.Max(olv.Left, olv.Width - r2.Width);
-            if (r2.Bottom > olv.Height)
-                r2.Y = Math.Max(olv.Top, olv.Height - r2.Height);
+            if (textRect.Right > r.Width)
+                textRect.X = Math.Max(r.Left, r.Width - textRect.Width);
+            if (textRect.Bottom > r.Height)
+                textRect.Y = Math.Max(r.Top, r.Height - textRect.Height);
 
-            float diameter = r2.Height / 3;
-            using (GraphicsPath path = this.GetRoundedRect(r2, diameter)) {
-                g.FillPath(this.BackgroundBrush, path);
-                if (this.HasBorder)
-                    g.DrawPath(this.BorderPen, path);
-                g.DrawString(this.Text, this.FontOrDefault, this.TextBrush, r2, sf);
+            this.DrawBorderedText(g, textRect);
+        }
+    }
+
+    /// <summary>
+    /// This overlay draws a slight tint over the selected column of the 
+    /// owning listview. The selected column is normally the sort column,
+    /// but does not have to be.
+    /// </summary>
+    public class SelectedColumnOverlay : IOverlay
+    {
+        public SelectedColumnOverlay() {
+            this.Tint = Color.FromArgb(15, Color.Blue);
+        }
+
+        /// <summary>
+        /// Gets or sets the color that will be 'tinted' over the selected column
+        /// </summary>
+        public Color Tint {
+            get { return this.tint; }
+            set {
+                if (this.tint == value)
+                    return;
+
+                if (this.tintBrush != null) {
+                    this.tintBrush.Dispose();
+                    this.tintBrush = null;
+                }
+
+                this.tint = value;
+                this.tintBrush = new SolidBrush(this.tint);
             }
         }
+        private Color tint;
+        private SolidBrush tintBrush;
 
-        protected GraphicsPath GetRoundedRect(Rectangle rect, float diameter) {
-            GraphicsPath path = new GraphicsPath();
+        #region IOverlay Members
 
-            RectangleF arc = new RectangleF(rect.X, rect.Y, diameter, diameter);
-            path.AddArc(arc, 180, 90);
-            arc.X = rect.Right - diameter;
-            path.AddArc(arc, 270, 90);
-            arc.Y = rect.Bottom - diameter;
-            path.AddArc(arc, 0, 90);
-            arc.X = rect.Left;
-            path.AddArc(arc, 90, 90);
-            path.CloseFigure();
+        public void Draw(ObjectListView olv, Graphics g, Rectangle r) {
 
-            return path;
+            // This overlay only works when:
+            // - the list is in Details view 
+            // - there is at least one row
+            // - there is a selected column
+            if (olv.View != System.Windows.Forms.View.Details)
+                return;
+
+            if (olv.GetItemCount() == 0)
+                return;
+
+            OLVColumn column = olv.SelectedColumn;
+            if (column == null)
+                return;
+
+            Point sides = NativeMethods.GetColumnSides(olv, column.Index);
+            if (sides.X == -1)
+                return;
+
+            Rectangle columnBounds = new Rectangle(sides.X, r.Top, sides.Y - sides.X, r.Bottom);
+
+            // Find the bottom of the last item
+            Rectangle lastItemBounds = olv.GetItem(olv.GetItemCount() - 1).Bounds;
+            if (lastItemBounds.Bottom < columnBounds.Bottom)
+                columnBounds.Height = lastItemBounds.Bottom - columnBounds.Top;
+            g.FillRectangle(this.tintBrush, columnBounds);
         }
+
+        #endregion
     }
 }
