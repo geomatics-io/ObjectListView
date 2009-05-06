@@ -54,6 +54,12 @@
     <Compile Include="FastObjectListView.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="GlassPanelForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GlassPanelForm.Designer.cs">
+      <DependentUpon>GlassPanelForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Munger.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Comparers.cs">
@@ -78,6 +84,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="CustomDictionary.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="GlassPanelForm.resx">
+      <DependentUpon>GlassPanelForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
