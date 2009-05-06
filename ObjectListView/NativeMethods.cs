@@ -1,3 +1,32 @@
+/*
+ * NativeMethods - All the Windows SDK structures and imports
+ *
+ * Author: Phillip Piper
+ * Date: 10/10/2006
+ *
+ * Change log:
+ * 2006-10-10   JPP  - Initial version
+ *
+ * To do:
+ * 
+ * Copyright (C) 2006-2009 Phillip Piper
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
+ */
+
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
@@ -21,6 +50,7 @@ namespace BrightIdeasSoftware
         private const int LVM_SETITEM = LVM_FIRST + 76;
         private const int LVM_GETCOLUMN = LVM_FIRST + 95;
         private const int LVM_SETCOLUMN = LVM_FIRST + 96;
+        private const int LVM_SETSELECTEDCOLUMN = LVM_FIRST + 140;
 
         private const int LVS_EX_SUBITEMIMAGES = 0x0002;
 
@@ -48,6 +78,7 @@ namespace BrightIdeasSoftware
 
         private const int HDM_FIRST = 0x1200;
         private const int HDM_HITTEST = HDM_FIRST + 6;
+        private const int HDM_GETITEMRECT = HDM_FIRST + 7;
         private const int HDM_GETITEM = HDM_FIRST + 11;
         private const int HDM_SETITEM = HDM_FIRST + 12;
 
@@ -222,6 +253,14 @@ namespace BrightIdeasSoftware
             public IntPtr idFrom;
             public int code;
         }
+                 
+        [StructLayout(LayoutKind.Sequential)]
+        public struct NMLVSCROLL
+        {
+            public NativeMethods.NMHDR hdr;
+            public int dx;
+            public int dy;
+        }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct NMCUSTOMDRAW
@@ -347,6 +386,8 @@ namespace BrightIdeasSoftware
         public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
         private static extern IntPtr SendMessageLVItem(IntPtr hWnd, int msg, int wParam, ref LVITEM lvi);
+        [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
+        private static extern IntPtr SendMessageRECT(IntPtr hWnd, int msg, int wParam, ref RECT r);
         //[DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
         //private static extern IntPtr SendMessageLVColumn(IntPtr hWnd, int m, int wParam, ref LVCOLUMN lvc);
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
@@ -420,14 +461,6 @@ namespace BrightIdeasSoftware
             else {
                 lvbkimage.hBmp = bm.GetHbitmap();
                 lvbkimage.ulFlags = LVBKIF_TYPE_WATERMARK;
-
-                //lvbkimage.xOffset = 90;
-                //lvbkimage.yOffset = 90;
-
-                //string backgroundImageFileName = @"c:\temp\t2.bmp";
-                //lvbkimage.pszImage = backgroundImageFileName;
-                //lvbkimage.cchImageMax = backgroundImageFileName.Length + 1;
-                //lvbkimage.ulFlags = LVBKIF_SOURCE_URL | LVBKIF_STYLE_TILE;
             }
 
             Application.OleRequired();
@@ -597,14 +630,27 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Return the index of the divider under the given point. Return -1 if no divider is under the pt
+        /// Return the edges of the given column.
         /// </summary>
-        /// <param name="handle">The list we are interested in</param>
-        /// <param name="pt">The client co-ords</param>
-        /// <returns>The index of the divider under the point, or -1 if no divider is under that point</returns>
-        public static int GetDividerUnderPoint(IntPtr handle, Point pt) {
-            const int HHT_ONDIVIDER = 4;
-            return NativeMethods.HeaderControlHitTest(handle, pt, HHT_ONDIVIDER);
+        /// <param name="lv"></param>
+        /// <param name="columnIndex"></param>
+        /// <returns>A Point holding the left and right co-ords of the column.
+        /// -1 means that the sides could not be retrieved.</returns>
+        public static Point GetColumnSides(ListView lv, int columnIndex) {
+            Point sides = new Point(-1, -1);
+            IntPtr hdr = NativeMethods.GetHeaderControl(lv);
+            if (hdr == IntPtr.Zero)
+                return sides;
+
+            RECT r = new RECT();
+            IntPtr result = NativeMethods.SendMessageRECT(hdr, HDM_GETITEMRECT, columnIndex, ref r);
+            if (result != IntPtr.Zero) {
+                int scrollH = 0;
+                //NativeMethods.GetScrollPosition(lv.Handle, true);
+                sides.X = r.left - scrollH;
+                sides.Y = r.right - scrollH;
+            }
+            return sides;
         }
 
         /// <summary>
@@ -628,6 +674,17 @@ namespace BrightIdeasSoftware
                 return result.ToInt32();
             else
                 return -1;
+        }
+
+        /// <summary>
+        /// Return the index of the divider under the given point. Return -1 if no divider is under the pt
+        /// </summary>
+        /// <param name="handle">The list we are interested in</param>
+        /// <param name="pt">The client co-ords</param>
+        /// <returns>The index of the divider under the point, or -1 if no divider is under that point</returns>
+        public static int GetDividerUnderPoint(IntPtr handle, Point pt) {
+            const int HHT_ONDIVIDER = 4;
+            return NativeMethods.HeaderControlHitTest(handle, pt, HHT_ONDIVIDER);
         }
 
         /// <summary>
@@ -671,6 +728,20 @@ namespace BrightIdeasSoftware
         static public void ShowWithoutActivate(IWin32Window win) {
             const int SW_SHOWNA = 8;
             NativeMethods.ShowWindow(win.Handle, SW_SHOWNA);
+        }
+
+        /// <summary>
+        /// Mark the given column as being selected.
+        /// </summary>
+        /// <param name="objectListView"></param>
+        /// <param name="value">The OLVColumn or null to clear</param>
+        /// <remarks>
+        /// This method works, but it prevents subitems in the given column from having
+        /// back colors. 
+        /// </remarks>
+        static public void SetSelectedColumn(ObjectListView objectListView, OLVColumn value) {
+            NativeMethods.SendMessage(objectListView.Handle, 
+                LVM_SETSELECTEDCOLUMN, (value == null) ? -1 : value.Index, 0);
         }
     }
 }
