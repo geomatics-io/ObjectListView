@@ -210,6 +210,7 @@ Site contents
    Recipe - Cell Editing <cellEditing>
    Recipe - Owner Drawn <ownerDraw>
    Recipe - Drag and Drop <dragdrop>
+   Recipe - Overlays <overlays>
    faq
    blog
    changelog

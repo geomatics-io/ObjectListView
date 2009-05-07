@@ -9,6 +9,7 @@ Change Log
 
 Version Index
 -------------
+* `v2.2 alpha - 07 May 2009`_
 * `v2.1 - 26 February 2009`_
 * `v2.1a - 07 February 2009`_
 * `v2.0.1 - 10 January 2009`_
@@ -24,6 +25,182 @@ Version Index
 * `v1.5 - 03 August 2007`_
 * `v1.4 - 30 April 2007`_
 * `Previous versions - 04 April 2007`_
+
+
+v2.2 alpha - 07 May 2009
+------------------------
+
+2009-05-06 15:45 (#568) - ObjectListView/GlassPanelForm.cs, ObjectListView/Overlays.cs
+  - Unified BillboardOverlay text rendering with that of TextOverlay
+  - Improved docs
+
+2009-05-06 13:31 (#567) - ObjectListView/ObjectListView.cs, ObjectListView/Events.cs, ObjectListView/Renderers.cs, ObjectListView/NativeMethods.cs
+  - Added Scroll event
+  - Added Unfocused foreground and background colors (thanks to Christophe Hosten)
+
+2009-05-06 13:25 (#565) - docs/images/dragdrop-dropbetween.png, docs/whatsnew.rst, docs/dragdrop.rst, docs/images/dragdrop-feedbackcolor.png, docs/conf.py, docs/images/blog-badscroll.png, docs/index.rst, docs/.static/dragdrop-icon.png, docs/images/emptylistmsg-example.png, docs/images/blog-setbkimage.png, docs/images/dragdrop-dropsubitem.png, docs/images/dragdrop-infomsg.png, docs/blog.rst, docs/.static/Thumbs.db, docs/images/dragdrop-dropbackground.png, docs/images/blog-overlayimage.png, docs/recipes.rst, docs/.static/blog-icon.png, docs/images/dragdrop-example1.png
+  - First take at v2.2 documentation
+
+2009-05-05 09:25 (#564) - ObjectListView/ObjectListView.cs, ObjectListView/Overlays.cs, ObjectListView/DropSink.cs
+  - Removed transparency parameter from IOverlay interface
+  - Correctly translate the graphic for decorations
+
+2009-05-05 00:48 (#562) - ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs, Demo/MainForm.cs, ObjectListView/NativeMethods.cs
+  - Changed to always use glass overlay
+
+2009-05-01 15:51 (#558) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/ObjectListViewDemo.csproj, Demo/MainForm.resx
+  - Added Nag level drop down to Virtual List tab
+
+2009-05-01 15:49 (#556) - ObjectListView/Overlays.cs
+  - Added Rotation to Overlays
+  - Added SelectedColumnOverlay
+
+2009-05-01 15:48 (#555) - ObjectListView/NativeMethods.cs
+  - Added SetSelectedColumn() method
+
+2009-05-01 15:47 (#554) - ObjectListView/GlassPanelForm.cs
+  - Do our drawing with antialiased text
+
+2009-05-01 15:47 (#553) - ObjectListView/ObjectListView.cs
+  - Added Decorations (scrolling overlays)
+  - Added SelectedColumn property, which puts a slight tint on that column. Combine this with TintSortColumn property and the sort column is automatically tinted.
+  - Consistently use LastSortColumn and LastSortOrder properties instead of using the private fields.
+
+2009-04-29 22:55 (#552) - ObjectListView/ObjectListView.cs
+  - Use an overlay to implement "empty list" msg. Default empty list msg is now prettier.
+
+2009-04-29 22:54 (#551) - ObjectListView/Overlays.cs
+  - TextOverlay can now have round cornered BorderColor
+  - Added attributes to more properties of TextOverlay
+
+2009-04-29 22:53 (#550) - ObjectListView/GlassPanelForm.cs, ObjectListView/NativeMethods.cs
+  - Added file header docs
+
+2009-04-29 00:18 (#546) - ObjectListView/ObjectListView.cs
+  - Use GlassPanelForm to show overlays when scrolling
+  - Correctly refresh overlays when marque selecting
+  - Fixed bug where DoubleClick events were not triggered when CheckBoxes was true
+
+2009-04-29 00:15 (#545) - ObjectListView/Overlays.cs
+  - Overlays can no longer have individual transparency
+  - Moved bordering and backgrounding from BillboardOverylay to TextOverlay
+
+2009-04-29 00:12 (#544) - ObjectListView/NativeMethods.cs
+  - Added  ShowWithoutActivate() and ChangeZOrder()
+
+2009-04-29 00:12 (#543) - ObjectListView/Events.cs
+  - Renamed DropEventArgs to OlvDropEventArgs to prevent naming confusion
+
+2009-04-29 00:11 (#542) - ObjectListView/DropSink.cs
+  - Allow CanDrop event handlers to change DropTarget*
+
+2009-04-23 21:05 (#529) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Removed show groups checkboxes from Drag and drop tab
+
+2009-04-23 21:04 (#528) - ObjectListView/Events.cs
+  - Added some documentation strings
+
+2009-04-23 15:42 (#527) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Updated demo for v2.2
+
+2009-04-23 15:41 (#526) - ObjectListView/ObjectListView.cs
+  - Fixed various bugs under Vista.
+  - Made groups collapsible - Vista only. Thanks to Crustyapplesniffer.
+  - Forward events from DropSink to the control itself. This allows handlers to be defined within the IDE for drop events
+  - Added ObjectListView.IsVista
+
+2009-04-23 15:33 (#525) - ObjectListView/NativeMethods.cs
+  - Added GROUP structures
+
+2009-04-23 15:32 (#524) - ObjectListView/Events.cs
+  - Added drag drop events
+
+2009-04-23 15:32 (#523) - ObjectListView/DropSink.cs
+  - Simplified RearrangingDropSink
+
+2009-04-23 10:55 (#522) - ObjectListView/ObjectListView.cs, ObjectListView/DropSink.cs
+  - Added IsSimpleDragSource and IsSimpleDropSink
+  - Changed to use "Appearance - ObjectListView" category
+
+2009-04-23 10:53 (#521) - ObjectListView/Overlays.cs, ObjectListView/Renderers.cs
+  - Changed to use "Appearance - ObjectListView" category
+
+2009-04-23 10:51 (#520) - ObjectListView/DragSource.cs
+  - Renamed *DataSource to *DragSource, as it always should have been
+
+2009-04-21 16:17 (#519) - ObjectListView/Properties/AssemblyInfo.cs
+  - Updated version to 2.2a
+
+2009-04-21 16:14 (#518) - ObjectListView/ObjectListView.cs
+  - Reorganized code ready for v2.2alpha release
+  - Added MoveObjects()
+  - More tweaking custom draw, this time for problems for grouped views
+  - Update row colors after RemoveObject()
+
+2009-04-21 16:11 (#516) - ObjectListView/DropSink.cs
+  - Added RearrangingDropSink
+
+2009-04-21 16:10 (#515) - ObjectListView/Renderers.cs
+  - Fixed off-by-1 error when calculating text widths. This caused middle and right aligned columns to always wrap one character when printed using ListViewPrinter (SF#2776634).
+
+2009-04-21 16:10 (#514) - Demo/Resources/redback1.png, Demo/MainForm.Designer.cs, Demo/ObjectListViewDemo2008.csproj, Demo/Resource1.Designer.cs, Demo/Properties, Demo/MainForm.cs, Demo/Photos/Thumbs.db, Demo/Resources/redbull.png, Demo/MainForm.resx, Demo/Resource1.resx
+  - Prepare for v2.2 alpha
+
+2009-04-20 11:23 (#513) - Demo/Resources/limeleaf.png, Demo/MainForm.Designer.cs, Demo/ObjectListViewDemo2008.csproj, Demo/Resource1.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx, Demo/Resource1.resx
+  - Changed to show new drag drop features and overlays
+
+2009-04-20 11:23 (#512) - ListViewPrinter/ListViewPrinter.cs
+  - Changed to use RowHeightEffective
+
+2009-04-20 11:22 (#510) - ObjectListView/ObjectListView2008.csproj
+  - Added Overlays.cs, DropSink.cs and DragSource.cs
+
+2009-04-20 11:21 (#509) - ObjectListView/ObjectListView.cs
+  - Implemented overlay architecture, based on CustomDraw scheme. This unified drag drop feedback, empty list msgs and overlay images.
+  - Added OverlayImage and OverlayText to allow transparent images and text over the listview from within the IDE
+  - Fixed long-standing annoying flicker on owner drawn virtual lists! This means, amongst other things, that grid lines no longer get confused, and drag-select no longer flickers.
+  - Made several properties localizable.
+  - Correctly renderer checkboxes when RowHeight is non-standard
+  - Added RowHeightEffective property
+
+2009-04-20 11:16 (#508) - ObjectListView/Renderers.cs
+  - Correctly renderer checkboxes when RowHeight is non-standard
+
+2009-04-20 11:15 (#507) - ObjectListView/NativeMethods.cs
+  - Added structure and methods to put image under ListView (no longer used)
+  - Added custom draw structures
+
+2009-04-20 11:14 (#506) - ObjectListView/DragSource.cs, ObjectListView/Overlays.cs, ObjectListView/DropSink.cs
+  - Initial checking
+
+2009-04-20 10:18 (#505) - ObjectListView/TreeListView.cs
+  - Fixed SF#2499313 - Calling Expand() on an already expand branch causes a confused display of the branches children
+
+2009-04-07 00:00 (#485) - ObjectListView/DragDrop.cs
+  - Initial checkin
+
+2009-04-07 00:00 (#484) - ObjectListView/TypedObjectListView.cs
+  - Added Objects property
+
+2009-04-06 23:59 (#483) - ObjectListView/ObjectListView.cs
+  - Calculate edit rectangles more accurately
+
+2009-04-06 23:58 (#482) - ObjectListView/VirtualObjectListView.cs
+  - ClearObjects() now works again
+
+2009-04-06 23:57 (#481) - ObjectListView/TreeListView.cs
+  - Calculate edit rectangle on column 0 more accurately
+
+2009-04-06 23:56 (#480) - ObjectListView/Renderers.cs
+  - Allow for item indent when calculating edit rectangle
+
+2009-04-06 22:31 (#479) - ObjectListView/ObjectListView.cs
+  - Double-clicking no longer toggles the checkbox
+  - Double-clicking on a checkbox no longer confuses the checkbox
+
+2009-03-16 16:12 (#478) - ObjectListView/ObjectListView.cs
+  - Optimized the build of autocomplete lists
+
 
 
 v2.1 - 26 February 2009
