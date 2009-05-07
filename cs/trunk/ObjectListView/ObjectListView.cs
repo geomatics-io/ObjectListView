@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2009-05-07  JPP  - Don't use glass panel for overlays when in design mode. It's too confusing.
  * 2009-05-05  JPP  - Added Scroll event (thanks to Christophe Hosten for the complete patch to implement this)
  *                  - Added Unfocused foreground and background colors (also thanks to Christophe Hosten)
  * 2009-04-29  JPP  - Added SelectedColumn property, which puts a slight tint on that column. Combine
@@ -3438,14 +3439,14 @@ namespace BrightIdeasSoftware
 
             // Remember the scroll position so we can decide if the listview has scrolled in the 
             // handling of the event.
-            int scrollPositionH = NativeMethods.GetScrollPosition(this.Handle, true);
-            int scrollPositionV = NativeMethods.GetScrollPosition(this.Handle, false);
+            int scrollPositionH = NativeMethods.GetScrollPosition(this, true);
+            int scrollPositionV = NativeMethods.GetScrollPosition(this, false);
 
             base.WndProc(ref m);
 
             // If the keydown processing changed the scroll position, trigger a Scroll event    
-            int newScrollPositionH = NativeMethods.GetScrollPosition(this.Handle, true);
-            int newScrollPositionV = NativeMethods.GetScrollPosition(this.Handle, false);
+            int newScrollPositionH = NativeMethods.GetScrollPosition(this, true);
+            int newScrollPositionV = NativeMethods.GetScrollPosition(this, false);
 
             if (scrollPositionH != newScrollPositionH) {
                 ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, 
@@ -3567,13 +3568,13 @@ namespace BrightIdeasSoftware
 
                     NativeMethods.NMLVSCROLL* nmlistviewPtr3 = (NativeMethods.NMLVSCROLL*)m.LParam;
                     if (nmlistviewPtr3->dx != 0) {
-                        int scrollPositionH = NativeMethods.GetScrollPosition(this.Handle, true);
+                        int scrollPositionH = NativeMethods.GetScrollPosition(this, true);
                         ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, scrollPositionH - nmlistviewPtr3->dx, scrollPositionH, ScrollOrientation.HorizontalScroll);
                         this.OnScroll(args);
                     }
                     else if (nmlistviewPtr3->dy != 0)
                     {
-                        int scrollPositionV = NativeMethods.GetScrollPosition(this.Handle, false);
+                        int scrollPositionV = NativeMethods.GetScrollPosition(this, false);
                         ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, scrollPositionV - nmlistviewPtr3->dy, scrollPositionV, ScrollOrientation.VerticalScroll);
                         this.OnScroll(args);
                     }
@@ -4541,7 +4542,7 @@ namespace BrightIdeasSoftware
             int groupIndex = this.Groups.IndexOf(lvg);
             if (groupIndex <= 0) {
                 // There is no easy way to scroll back to the beginning of the list
-                int delta = 0 - NativeMethods.GetScrollPosition(this.Handle, false);
+                int delta = 0 - NativeMethods.GetScrollPosition(this, false);
                 NativeMethods.Scroll(this, 0, delta);
             } else {
                 // Find the display rectangle of the last item in the previous group
@@ -6297,13 +6298,17 @@ namespace BrightIdeasSoftware
             }
 
             // Draw our decorations
-            g.TranslateTransform(
-                0 - NativeMethods.GetScrollPosition(this.Handle, true),
-                0);
+            g.TranslateTransform(0 - NativeMethods.GetScrollPosition(this, true), 0);
             foreach (IOverlay decoration in this.Decorations) {
                 decoration.Draw(this, g, contentRectangle);
             }
             g.ResetTransform();
+
+            // If we are in design mode, we don't want to use the glass panel,
+            // so we draw the background overlays here
+            if (this.DesignMode) {
+                this.DrawBackgroundOverlays(g);
+            }
         }
 
         /// <summary>
@@ -6333,14 +6338,25 @@ namespace BrightIdeasSoftware
             return this.Overlays.Contains(overlay);
         }
 
+        /// <summary>
+        /// Hide any overlays.
+        /// </summary>
+        /// <remarks>
+        /// This is only a temporary hiding -- the overlays will be shown
+        /// the next time the ObjectListView redraws.
+        /// </remarks>
         public void HideOverlays() {
             if (this.glassPanel != null)
                 this.glassPanel.HideGlass();
         }
         private GlassPanelForm glassPanel;
 
+        /// <summary>
+        /// Make sure that any overlays are visible.
+        /// </summary>
         public void ShowOverlays() {
-            if (!this.HasOverlays)
+            // If we are in design mode or there are no overlays, don't use a glass panel
+            if (this.DesignMode || !this.HasOverlays)
                 return;
 
             if (this.glassPanel == null) {
@@ -6351,6 +6367,9 @@ namespace BrightIdeasSoftware
             this.glassPanel.ShowGlass();
         }
 
+        /// <summary>
+        /// Refresh the display of the overlays
+        /// </summary>
         public void RefreshOverlays() {
             if (this.glassPanel != null) {
                 this.glassPanel.Invalidate();
