@@ -48,6 +48,8 @@ Learning to cook
 
     :ref:`recipe-overlays`
 
+    :ref:`recipe-dragdrop`
+
 
 .. _recipe-flavour:
 
@@ -776,7 +778,7 @@ in a "normal" way (design your interface through the IDE using normal WinForm
 controls), they will work flawlessly.
 
 However, if you do "clever" things with your `ObjectListViews`, you
-may need to read this: `Underneath the Overlays`_. "Clever" in this case
+may need to read this: :ref:`overlays-label`. "Clever" in this case
 means reparenting the ObjectListView after it has been created, or
 hiding it by rearranging the windows z-ordering. You may also need
 to read that if the `ObjectListView` is hosted by a non-standard
@@ -787,7 +789,7 @@ TabControl-like container.
 20. How can I use drag and drop in an ObjectListView?
 -----------------------------------------------------
 
-This needs its own page to explain properly. :ref:`Drag and dropping with an ObjectListView <dragdrop-label>`
+This needs its own page to explain properly. :ref:`dragdrop-label`
 
 
 
