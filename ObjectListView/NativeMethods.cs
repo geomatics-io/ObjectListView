@@ -693,12 +693,12 @@ namespace BrightIdeasSoftware
         /// <param name="handle"></param>
         /// <param name="horizontalBar"></param>
         /// <returns></returns>
-        public static int GetScrollPosition(IntPtr handle, bool horizontalBar) {
+        public static int GetScrollPosition(ObjectListView objectListView, bool horizontalBar) {
             int fnBar = (horizontalBar ? SB_HORZ : SB_VERT);
 
             SCROLLINFO si = new SCROLLINFO();
             si.fMask = SIF_POS;
-            if (GetScrollInfo(handle, fnBar, si))
+            if (GetScrollInfo(objectListView.Handle, fnBar, si))
                 return si.nPos;
             else
                 return -1;

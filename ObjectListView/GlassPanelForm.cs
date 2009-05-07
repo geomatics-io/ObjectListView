@@ -200,7 +200,9 @@ namespace BrightIdeasSoftware
         /// <param name="sender"></param>
         /// <param name="e"></param>
         void objectListView_LocationChanged(object sender, EventArgs e) {
-            this.RecalculateBounds();
+            if (this.isGlassShown) {
+                this.RecalculateBounds();
+            }
         }
 
         /// <summary>
