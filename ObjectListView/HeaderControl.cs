@@ -44,8 +44,7 @@ namespace BrightIdeasSoftware
         private ObjectListView parentListView;
         private MyToolTip tooltip;
 
-        public HeaderControl(ObjectListView olv)
-        {
+        public HeaderControl(ObjectListView olv) {
             this.parentListView = olv;
             this.AssignHandle(NativeMethods.GetHeaderControl(olv));
             this.tooltip = new MyToolTip();
@@ -62,14 +61,12 @@ namespace BrightIdeasSoftware
         /// doesn't work. So we override the Handle property so value is always
         /// current.
         /// </remarks>
-        public new IntPtr Handle
-        {
+        public new IntPtr Handle {
             get { return NativeMethods.GetHeaderControl(this.parentListView); }
         }
         //TODO: The Handle property may no longer be necessary. CHECK! 2008/11/28
 
-        protected override void WndProc(ref Message m)
-        {
+        protected override void WndProc(ref Message m) {
             const int WM_SETCURSOR = 0x20;
             const int WM_NOTIFY = 0x4E;
             const int WM_MOUSEMOVE = 0x200;
@@ -95,8 +92,7 @@ namespace BrightIdeasSoftware
             base.WndProc(ref m);
         }
 
-        protected void HandleMouseMove(ref Message m)
-        {
+        protected void HandleMouseMove(ref Message m) {
             int columnIndex = this.ColumnIndexUnderCursor;
 
             // If the mouse has moved to a different header, pop the current tip (if any)
@@ -107,8 +103,7 @@ namespace BrightIdeasSoftware
         }
         private int columnShowingTip = -1;
 
-        unsafe protected bool HandleNotify(ref Message m)
-        {
+        unsafe protected bool HandleNotify(ref Message m) {
             //const int TTN_SHOW = -521;
             //const int TTN_POP = -522;
             const int TTN_GETDISPINFO = -530;
@@ -125,8 +120,7 @@ namespace BrightIdeasSoftware
             return false;
         }
 
-        protected bool HandleGetDispInfo(ref Message m)
-        {
+        protected bool HandleGetDispInfo(ref Message m) {
             int columnIndex = this.ColumnIndexUnderCursor;
             if (columnIndex < 0)
                 return false;
@@ -144,11 +138,10 @@ namespace BrightIdeasSoftware
             return true;
         }
 
-        protected bool IsCursorOverLockedDivider
-        {
+        protected bool IsCursorOverLockedDivider {
             get {
                 Point pt = this.parentListView.PointToClient(Cursor.Position);
-                pt.X += NativeMethods.GetScrollPosition(this.parentListView.Handle, true);
+                pt.X += NativeMethods.GetScrollPosition(this.parentListView, true);
                 int dividerIndex = NativeMethods.GetDividerUnderPoint(this.Handle, pt);
                 if (dividerIndex >= 0 && dividerIndex < this.parentListView.Columns.Count) {
                     OLVColumn column = this.parentListView.GetColumn(dividerIndex);
@@ -163,11 +156,10 @@ namespace BrightIdeasSoftware
         /// or -1 if the cursor is not over a column
         /// </summary>
         /// <returns>Index of the column under the cursor, or -1</returns>
-        public int ColumnIndexUnderCursor
-        {
+        public int ColumnIndexUnderCursor {
             get {
                 Point pt = this.parentListView.PointToClient(Cursor.Position);
-                pt.X += NativeMethods.GetScrollPosition(this.parentListView.Handle, true);
+                pt.X += NativeMethods.GetScrollPosition(this.parentListView, true);
                 return NativeMethods.GetColumnUnderPoint(this.Handle, pt);
             }
         }
@@ -178,14 +170,12 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class MyToolTip
     {
-        public MyToolTip()
-        {
+        public MyToolTip() {
             this.window = new MyToolTipNativeWindow(this);
         }
         private MyToolTipNativeWindow window;
 
-        public IntPtr Handle
-        {
+        public IntPtr Handle {
             get {
                 if (!this.IsHandleCreated) {
                     this.CreateHandle();
@@ -194,8 +184,7 @@ namespace BrightIdeasSoftware
             }
         }
 
-        public void AddTool(IWin32Window window)
-        {
+        public void AddTool(IWin32Window window) {
             const int TTM_ADDTOOL = 0x432;
 
             NativeMethods.SendMessage(this.Handle, 0x418, 0, SystemInformation.MaxWindowTrackSize.Width);
@@ -204,21 +193,18 @@ namespace BrightIdeasSoftware
             IntPtr result = NativeMethods.SendMessageTOOLINFO(this.Handle, TTM_ADDTOOL, 0, lParam);
         }
 
-        public void PopToolTip(IWin32Window window)
-        {
+        public void PopToolTip(IWin32Window window) {
             const int TTM_POP = 0x41c;
             NativeMethods.SendMessage(this.Handle, TTM_POP, 0, 0);
         }
 
-        public void RemoveToolTip(IWin32Window window)
-        {
+        public void RemoveToolTip(IWin32Window window) {
             const int TTM_DELTOOL = 0x433;
             NativeMethods.TOOLINFO lParam = this.GetTOOLINFO(window);
             NativeMethods.SendMessageTOOLINFO(this.Handle, TTM_DELTOOL, 0, lParam);
         }
 
-        internal NativeMethods.TOOLINFO GetTOOLINFO(IWin32Window window)
-        {
+        internal NativeMethods.TOOLINFO GetTOOLINFO(IWin32Window window) {
             const int TTF_IDISHWND = 1;
             //const int TTF_ABSOLUTE = 0x80;
             //const int TTF_CENTERTIP = 2;
@@ -235,8 +221,7 @@ namespace BrightIdeasSoftware
             return toolinfo_tooltip;
         }
 
-        protected void CreateHandle()
-        {
+        protected void CreateHandle() {
             if (this.IsHandleCreated)
                 return;
 
@@ -250,15 +235,13 @@ namespace BrightIdeasSoftware
             this.window.CreateHandle(p);
         }
 
-        protected bool IsHandleCreated
-        {
+        protected bool IsHandleCreated {
             get {
                 return (this.window != null && this.window.Handle != IntPtr.Zero);
             }
         }
 
-        public void WndProc(ref Message msg)
-        {
+        public void WndProc(ref Message msg) {
             //System.Diagnostics.Debug.WriteLine(String.Format("xx {0:x}", m.Msg));
             //switch (m.Msg) {
             //    case 0x4E: // WM_NOTIFY
@@ -275,13 +258,11 @@ namespace BrightIdeasSoftware
 
         internal class MyToolTipNativeWindow : NativeWindow
         {
-            public MyToolTipNativeWindow(MyToolTip control)
-            {
+            public MyToolTipNativeWindow(MyToolTip control) {
                 this.control = control;
             }
 
-            protected override void WndProc(ref Message m)
-            {
+            protected override void WndProc(ref Message m) {
                 if (this.control != null) {
                     this.control.WndProc(ref m);
                 }
