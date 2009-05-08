@@ -817,6 +817,11 @@ namespace BrightIdeasSoftware
 
         #region Rendering
 
+        /// <summary>
+        /// Draw the feedback that shows that the background is the target
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="bounds"></param>
         protected virtual void DrawFeedbackBackgroundTarget(Graphics g, Rectangle bounds) {
             Rectangle r = bounds;
             using (Pen p = new Pen(this.FeedbackColor, 15.0f)) {
@@ -824,6 +829,14 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Draw the feedback that shows that an item (or a subitem) is the target
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="bounds"></param>
+        /// <remarks>
+        /// DropTargetItem and DropTargetSubItemIndex tells what is the target
+        /// </remarks>
         protected virtual void DrawFeedbackItemTarget(Graphics g, Rectangle bounds) {
             Rectangle r = this.CalculateDropTargetRectangle(this.DropTargetItem, this.DropTargetSubItemIndex);
             r.Inflate(1, 1);
@@ -838,11 +851,21 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Draw the feedback that shows the drop will occur before target
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="bounds"></param>
         protected virtual void DrawFeedbackAboveItemTarget(Graphics g, Rectangle bounds) {
             Rectangle r = this.CalculateDropTargetRectangle(this.DropTargetItem, this.DropTargetSubItemIndex);
             this.DrawBetweenLine(g, r.Left, r.Top, r.Right, r.Top);
         }
 
+        /// <summary>
+        /// Draw the feedback that shows the drop will occur after target
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="bounds"></param>
         protected virtual void DrawFeedbackBelowItemTarget(Graphics g, Rectangle bounds) {
             Rectangle r = this.CalculateDropTargetRectangle(this.DropTargetItem, this.DropTargetSubItemIndex);
             this.DrawBetweenLine(g, r.Left, r.Bottom, r.Right, r.Bottom);
@@ -870,7 +893,14 @@ namespace BrightIdeasSoftware
             return path;
         }
 
-        protected Rectangle CalculateDropTargetRectangle(OLVListItem item, int subItem) {
+        /// <summary>
+        /// Calculate the target rectangle when the given item (and possible subitem)
+        /// is the target of the drop.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="subItem"></param>
+        /// <returns></returns>
+        protected virtual Rectangle CalculateDropTargetRectangle(OLVListItem item, int subItem) {
             if (subItem > 0)
                 return item.SubItems[subItem].Bounds;
             
@@ -878,7 +908,7 @@ namespace BrightIdeasSoftware
 
             // Allow for indent
             if (item.IndentCount > 0) {
-                int indentWidth = (this.ListView.SmallImageList == null) ? 16 : this.ListView.SmallImageList.ImageSize.Width;
+                int indentWidth = this.ListView.SmallImageSize.Width;
                 r.X += (indentWidth * item.IndentCount);
                 r.Width -= (indentWidth * item.IndentCount);
             }
@@ -886,6 +916,14 @@ namespace BrightIdeasSoftware
             return r;
         }
 
+        /// <summary>
+        /// Draw a "between items" line at the given co-ordinates
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="x1"></param>
+        /// <param name="y1"></param>
+        /// <param name="x2"></param>
+        /// <param name="y2"></param>
         protected virtual void DrawBetweenLine(Graphics g, int x1, int y1, int x2, int y2) {
             using (Brush b = new SolidBrush(this.FeedbackColor)) {
                 int x = x1;
@@ -947,6 +985,7 @@ namespace BrightIdeasSoftware
     /// <remarks>
     /// <para>
     /// This class can only be used on plain ObjectListViews and FastObjectListViews.
+    /// The other flavours have no way to implement the insert operation that is required.
     /// </para>
     /// <para>
     /// This class works when the OLV is sorted or grouped, but it is up to the programmer
@@ -1003,6 +1042,10 @@ namespace BrightIdeasSoftware
             this.RearrangeModels(args);
         }
 
+        /// <summary>
+        /// Do the work of processing the dropped items
+        /// </summary>
+        /// <param name="args"></param>
         public virtual void RearrangeModels(ModelDropEventArgs args) {
             switch (args.DropTargetLocation) {
                 case DropTargetLocation.AboveItem:
