@@ -5,6 +5,8 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2009-05-07  JPP  - Fixed bug where RefreshObjects() would fail when none of the given
+ *                    objects were present/visible.
  * 2009-04-20  JPP  - Fixed bug where calling Expand() on an already expanded branch confused
  *                    the display of the children (SF#2499313)
  * 2009-03-06  JPP  - Calculate edit rectangle on column 0 more accurately
@@ -334,6 +336,11 @@ namespace BrightIdeasSoftware
                 if (idx >= 0)
                     firstChange = Math.Min(firstChange, idx);
             }
+
+            // If we didn't refresh any objects, don't do anything else
+            if (firstChange == Int32.MaxValue)
+                return;
+
             this.UpdateVirtualListSize();
             this.SelectedObjects = selection;
 
