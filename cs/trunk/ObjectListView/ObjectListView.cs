@@ -1281,10 +1281,7 @@ namespace BrightIdeasSoftware
                     case View.List:
                     case View.SmallIcon:
                     case View.Details:
-                        if (this.BaseSmallImageList == null)
-                            return this.Font.Height;
-                        else
-                            return Math.Max(this.BaseSmallImageList.ImageSize.Height, this.Font.Height);
+                        return Math.Max(this.SmallImageSize.Height, this.Font.Height);
 
                     case View.Tile:
                         return this.TileSize.Height;
@@ -1536,6 +1533,18 @@ namespace BrightIdeasSoftware
         private ImageList shadowedImageList = null;
 
         /// <summary>
+        /// Return the size of the images in the small image list or a reasonable default
+        /// </summary>
+        public virtual Size SmallImageSize {
+            get {
+                if (this.SmallImageList == null)
+                    return new Size(16, 16);
+                else
+                    return this.SmallImageList.ImageSize;
+            }
+        }
+
+        /// <summary>
         /// When the listview is grouped, should the items be sorted by the primary column?
         /// If this is false, the items will be sorted by the same column as they are grouped.
         /// </summary>
@@ -1663,7 +1672,7 @@ namespace BrightIdeasSoftware
         /// <remarks>Windows does not give the option of changing the selection background.
         /// So the control has to be owner drawn to see the result of this setting.
         /// Setting UseCustomSelectionColors = true will do this for you.</remarks>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("The background color of selected rows when the control is owner drawn and doesn't have the focus"),
          DefaultValue(typeof(Color), "")]
         public virtual Color UnfocusedHighlightBackgroundColor {
@@ -1691,7 +1700,7 @@ namespace BrightIdeasSoftware
         /// <remarks>Windows does not give the option of changing the selection foreground (text color).
         /// So the control has to be owner drawn to see the result of this setting.
         /// Setting UseCustomSelectionColors = true will do this for you.</remarks>
-        [Category("Appearance"),
+        [Category("Appearance - ObjectListView"),
          Description("The foreground color of selected rows when the control is owner drawn and doesn't have the focus"),
          DefaultValue(typeof(Color), "")]
         public virtual Color UnfocusedHighlightForegroundColor {
@@ -2670,7 +2679,7 @@ namespace BrightIdeasSoftware
 
             // Figure out if they clicked in the checkbox.
             Rectangle r = hti.SubItem.Bounds;
-            r.Width = this.SmallImageList.ImageSize.Width;
+            r.Width = this.SmallImageSize.Width;
             if (r.Contains(x, y))
                 hti.HitTestLocation = HitTestLocation.CheckBox;
         }
@@ -5129,7 +5138,7 @@ namespace BrightIdeasSoftware
             if (this.UseCustomSelectionColors)
                 this.EnableCustomSelectionColors();
 
-            if (this.UseSubItemCheckBoxes)
+            if (this.UseSubItemCheckBoxes || (this.VirtualMode && this.CheckBoxes))
                 this.SetupSubItemCheckBoxes();
 
             this.Frozen = false;
@@ -5251,6 +5260,7 @@ namespace BrightIdeasSoftware
 
         /// <summary>
         /// Setup this control so it can display check boxes on subitems
+        /// (or primary checkboxes in virtual mode)
         /// </summary>
         /// <remarks>This gives the ListView a small image list, if it doesn't already have one.</remarks>
         public virtual void SetupSubItemCheckBoxes() {
@@ -5663,7 +5673,7 @@ namespace BrightIdeasSoftware
             int offset = 0;
             if (this.SmallImageList != null &&
                 this.GetColumn(subItemIndex).GetImage(item.RowObject) is int) {
-                offset += this.SmallImageList.ImageSize.Width + 2;
+                offset += this.SmallImageSize.Width + 2;
             }
 
             // Allow for checkbox
@@ -5673,10 +5683,7 @@ namespace BrightIdeasSoftware
 
             // Allow for indent
             if (item.IndentCount > 0) {
-                int indentWidth = 16;
-                if (this.SmallImageList != null)
-                    indentWidth = this.SmallImageList.ImageSize.Width;
-                offset += (indentWidth * item.IndentCount);
+                offset += (this.SmallImageSize.Width * item.IndentCount);
             }
 
             // Do the adjustment
