@@ -967,9 +967,7 @@ namespace BrightIdeasSoftware
             width += this.CalculateImageWidth(g, this.GetImageSelector());
 
             if (this.ListItem.IndentCount > 0) {
-                int indentWidth = 16;
-                if (this.ListView.SmallImageList != null)
-                    indentWidth = this.ListView.SmallImageList.ImageSize.Width;
+                int indentWidth = this.ListView.SmallImageSize.Width;
                 width += (indentWidth * this.ListItem.IndentCount);
             }
 
@@ -1480,9 +1478,9 @@ namespace BrightIdeasSoftware
         {
             // We don't use this because the checkbox images were drawn into the small image list
             //Size checkBoxSize = CheckBoxRenderer.GetGlyphSize(g, CheckBoxState.CheckedNormal);
-            Size checkBoxSize = this.ListView.SmallImageList.ImageSize;
-            return this.AlignRectangle(cellBounds, 
-                new Rectangle(0, 0, this.ListView.SmallImageList.ImageSize.Width, cellBounds.Height));
+            Size checkBoxSize = this.ListView.SmallImageSize;
+            return this.AlignRectangle(cellBounds,
+                new Rectangle(0, 0, this.ListView.SmallImageSize.Width, cellBounds.Height));
         }
     }
         
