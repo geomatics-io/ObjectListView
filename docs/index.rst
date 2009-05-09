@@ -117,7 +117,7 @@ Technical details
 I've started keeping a technical blog documenting some of the efforts that were required to
 solve some of the problem encountered within the ObjectListView.
 
-:ref:`This long article <blog>` talks about the problems and solutions encountered when developing the
+:ref:`This long article <blog-overlays>` talks about the problems and solutions encountered when developing the
 overlay feature of v2.2.
 
 What people have said about ObjectListView
@@ -212,5 +212,5 @@ Site contents
    Recipe - Drag and Drop <dragdrop>
    Recipe - Overlays <overlays>
    faq
-   blog
+   Technical Blog <blog>
    changelog
