@@ -1,16 +1,16 @@
 ﻿/*
  * Overlays - Decorations that can be rendered over the top of a ListView
- * 
+ *
  * Author: Phillip Piper
  * Date: 14/04/2009 4:36 PM
  *
  * Change log:
  * 2009-05-05   JPP  - Unified BillboardOverlay text rendering with that of TextOverlay
- * 2009-04-30   JPP  - Added SelectedColumnOverlay
+ * 2009-04-30   JPP  - Added TintedColumnDecoration
  * 2009-04-14   JPP  - Initial version
  *
  * To do:
- * 
+ *
  * Copyright (C) 2009 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@ using System.ComponentModel;
 namespace BrightIdeasSoftware
 {
     /// <summary>
-    /// The interface for an object which can draw itself over the top of 
+    /// The interface for an object which can draw itself over the top of
     /// an ObjectListView.
     /// </summary>
     public interface IOverlay
@@ -93,7 +93,7 @@ namespace BrightIdeasSoftware
         private System.Drawing.ContentAlignment overlayImageAlignment = System.Drawing.ContentAlignment.BottomRight;
 
         /// <summary>
-        /// Gets or sets the number of pixels that this overlay will be inset of the horizontal edges of the 
+        /// Gets or sets the number of pixels that this overlay will be inset of the horizontal edges of the
         /// ListViews content rectangle
         /// </summary>
         [Category("Appearance - ObjectListView"),
@@ -107,7 +107,7 @@ namespace BrightIdeasSoftware
         private int insetx = 20;
 
         /// <summary>
-        /// Gets or sets the number of pixels that this overlay will be inset from the vertical edges of the 
+        /// Gets or sets the number of pixels that this overlay will be inset from the vertical edges of the
         /// ListViews content rectangle
         /// </summary>
         [Category("Appearance - ObjectListView"),
@@ -183,7 +183,7 @@ namespace BrightIdeasSoftware
         protected void ApplyRotation(Graphics g, Rectangle r) {
             if (this.Rotation == 0)
                 return;
-            
+
             // THINK: Do we want to reset the transform? I think we want to push a new transform
             g.ResetTransform();
             Matrix m = new Matrix();
@@ -632,14 +632,13 @@ namespace BrightIdeasSoftware
     }
 
     /// <summary>
-    /// A Billboard overlay is positioned at an absolute point 
+    /// A Billboard overlay is positioned at an absolute point
     /// </summary>
     public class BillboardOverylay : TextOverlay
     {
         public BillboardOverylay() {
             this.BackColor = Color.PeachPuff;
             this.TextColor = Color.Black;
-            //this.BorderWidth = 2.0f;
             this.BorderColor = Color.Empty;
             this.Font = new Font("Tahoma", 10);
         }
@@ -680,15 +679,32 @@ namespace BrightIdeasSoftware
     }
 
     /// <summary>
-    /// This overlay draws a slight tint over the selected column of the 
-    /// owning listview. The selected column is normally the sort column,
+    /// This decoration draws a slight tint over a column of the
+    /// owning listview. If no column is explicitly set, the selected
+    /// column in the listview will be used.
+    /// The selected column is normally the sort column,
     /// but does not have to be.
     /// </summary>
-    public class SelectedColumnOverlay : IOverlay
+    public class TintedColumnDecoration : IOverlay
     {
-        public SelectedColumnOverlay() {
+        public TintedColumnDecoration() {
             this.Tint = Color.FromArgb(15, Color.Blue);
         }
+
+        public TintedColumnDecoration(OLVColumn column) : this() {
+            this.ColumnToTint = column;
+        }
+
+		#region Properties
+
+        /// <summary>
+        /// Gets or sets the column that will be tinted
+        /// </summary>
+		public OLVColumn ColumnToTint {
+			get { return this.columnToTint; }
+			set { this.columnToTint = value; }
+		}
+		private OLVColumn columnToTint;
 
         /// <summary>
         /// Gets or sets the color that will be 'tinted' over the selected column
@@ -711,12 +727,14 @@ namespace BrightIdeasSoftware
         private Color tint;
         private SolidBrush tintBrush;
 
+		#endregion
+
         #region IOverlay Members
 
         public void Draw(ObjectListView olv, Graphics g, Rectangle r) {
 
             // This overlay only works when:
-            // - the list is in Details view 
+            // - the list is in Details view
             // - there is at least one row
             // - there is a selected column
             if (olv.View != System.Windows.Forms.View.Details)
@@ -725,7 +743,7 @@ namespace BrightIdeasSoftware
             if (olv.GetItemCount() == 0)
                 return;
 
-            OLVColumn column = olv.SelectedColumn;
+            OLVColumn column = this.ColumnToTint ?? olv.SelectedColumn;
             if (column == null)
                 return;
 
