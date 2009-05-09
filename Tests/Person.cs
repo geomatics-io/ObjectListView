@@ -147,12 +147,14 @@ namespace BrightIdeasSoftware.Tests
                 new Person(PersonDb.FirstAlphabeticalName, "occupation3", 90, DateTime.Now, 3.0, true, "  photo3  ", "comments3"),
                 new Person("name4", "occupation4", 80, DateTime.Now, 4.0, true, "  photo4  ", "comments4"),
                 new Person2("name5", "occupation5", 70, DateTime.Now, 5.0, true, "  photo5  ", "comments5"),
+                new Person("name6", "occupation6", 65, DateTime.Now, 6.0, true, "  photo6  ", "comments6"),
                 new Person(PersonDb.LastAlphabeticalName, "occupation6", 60, DateTime.Now.AddYears(-1), 6.0, true, "  photo6  ", "comments6"),
             });
             allPersons[0].Children.Add(allPersons[2]);
             allPersons[0].Children.Add(allPersons[3]);
             allPersons[1].Children.Add(allPersons[4]);
             allPersons[1].Children.Add(allPersons[5]);
+            allPersons[5].Children.Add(allPersons[6]);
         }
         static private List<Person> allPersons;
 
