@@ -1785,6 +1785,10 @@ namespace ObjectListViewDemo
             this.listViewVirtual.AddOverlay(this.nagOverlay);
         }
         private TextOverlay nagOverlay;
+
+        private void button28_Click_1(object sender, EventArgs e) {
+            this.treeListView.RefreshObjects(this.treeListView.SelectedObjects);
+        }
     }
         
     enum MaritalStatus

@@ -303,6 +303,7 @@ namespace ObjectListViewDemo
             this.olvColumn11 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn16 = new BrightIdeasSoftware.OLVColumn();
             this.blockFormat1 = new BrightIdeasSoftware.BlockFormat();
+            this.button28 = new System.Windows.Forms.Button();
             this.contextMenuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -2559,6 +2560,7 @@ namespace ObjectListViewDemo
             // 
             // tabPage9
             // 
+            this.tabPage9.Controls.Add(this.button28);
             this.tabPage9.Controls.Add(this.button25);
             this.tabPage9.Controls.Add(this.button26);
             this.tabPage9.Controls.Add(this.button27);
@@ -2649,6 +2651,7 @@ namespace ObjectListViewDemo
             this.treeListView.OverlayImage.Image = global::ObjectListViewDemo.Resource1.limeleaf;
             this.treeListView.OwnerDraw = true;
             this.treeListView.ShowGroups = false;
+            this.treeListView.ShowImagesOnSubItems = true;
             this.treeListView.Size = new System.Drawing.Size(774, 395);
             this.treeListView.TabIndex = 13;
             this.treeListView.UseCompatibleStateImageBehavior = false;
@@ -3414,6 +3417,17 @@ namespace ObjectListViewDemo
             this.olvColumn16.IsVisible = false;
             this.olvColumn16.Text = "Five";
             // 
+            // button28
+            // 
+            this.button28.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.button28.Location = new System.Drawing.Point(6, 456);
+            this.button28.Name = "button28";
+            this.button28.Size = new System.Drawing.Size(105, 23);
+            this.button28.TabIndex = 14;
+            this.button28.Text = "Refresh Selected";
+            this.button28.UseVisualStyleBackColor = true;
+            this.button28.Click += new System.EventHandler(this.button28_Click_1);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -3729,6 +3743,7 @@ namespace ObjectListViewDemo
         private CheckBox checkBox21;
         private ComboBox comboBoxNagLevel;
         private Label label36;
+        private Button button28;
 
 	}
 }
