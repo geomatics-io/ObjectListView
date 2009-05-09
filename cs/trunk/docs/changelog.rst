@@ -9,6 +9,7 @@ Change Log
 
 Version Index
 -------------
+* `Future versions - 31 December 2010`_
 * `v2.2 alpha - 07 May 2009`_
 * `v2.1 - 26 February 2009`_
 * `v2.1a - 07 February 2009`_
@@ -27,8 +28,29 @@ Version Index
 * `Previous versions - 04 April 2007`_
 
 
+Future versions - 31 December 2010
+----------------------------------
+
+2009-05-08 22:58 (#574) - ObjectListView/TreeListView.cs
+  - Fixed bug where RefreshObjects() would fail when none of the given objects were present/visible.
+
+2009-05-08 22:58 (#573) - ObjectListView/ObjectListView.cs
+  - Use SmallImageSize property whenever possible
+
+2009-05-08 22:56 (#572) - ObjectListView/Renderers.cs
+  - Use SmallImageSize property whenever possible
+
+2009-05-08 22:55 (#571) - ObjectListView/DropSink.cs
+  - Use SmallImageSize property whenever possible
+  - Updated docs
+
+
+
 v2.2 alpha - 07 May 2009
 ------------------------
+
+2009-05-07 23:06 (#569) - ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs, ObjectListView/HeaderControl.cs, ObjectListView/NativeMethods.cs
+  - Don't show glass panel in design mode
 
 2009-05-06 15:45 (#568) - ObjectListView/GlassPanelForm.cs, ObjectListView/Overlays.cs
   - Unified BillboardOverlay text rendering with that of TextOverlay

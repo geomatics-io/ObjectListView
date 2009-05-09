@@ -331,8 +331,7 @@ accept a single `object` parameter and returns an `object`. A completely frivolo
 example might be like this, which displays a star image if the song has a rating
 80 or higher and a normal song icon otherwise::
 
-	public object SongImageGetter(object rowObject)
-	{
+	public object SongImageGetter(object rowObject) {
 	    Song s = (Song)rowObject;
 	    if (s.Rating >= 80)
 	        return "star";
