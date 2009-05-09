@@ -30,10 +30,10 @@ namespace BrightIdeasSoftware.Tests
             MyGlobals g = new MyGlobals();
             g.RunBeforeAnyTests();
 
-            TestOlvCheckBoxes t = new TestOlvCheckBoxes();
+            TestTreeView t = new TestTreeView();
             t.Init();
             t.InitEachTest();
-            t.TestCheckStatePutter();
+            t.TestRefreshOfHiddenItem();
 
             g.RunAfterAnyTests();
         }
