@@ -373,19 +373,8 @@ namespace BrightIdeasSoftware
             this.ShowSortIndicators = true;
 
             // Setup the overlays that will be controlled by the IDE settings
-            this.OverlayImage = new ImageOverlay();
-            this.Overlays.Add(this.OverlayImage);
-            this.OverlayText = new TextOverlay();
-            this.Overlays.Add(this.OverlayText);
-
-            // Setup the overlay that draws the empty list msg
-            TextOverlay textOverlay = new TextOverlay();
-            textOverlay.Alignment = System.Drawing.ContentAlignment.MiddleCenter;
-            textOverlay.TextColor = SystemColors.ControlDarkDark;
-            textOverlay.BackColor = Color.BlanchedAlmond;
-            textOverlay.BorderColor = SystemColors.ControlDark;
-            textOverlay.BorderWidth = 2.0f;
-            this.EmptyListMsgOverlay = textOverlay;
+            this.InitializeStandardOverlays();
+            this.InitializeEmptyListMsgOverlay();
         }
 
         #region Public properties
@@ -1184,6 +1173,22 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets or sets the text that will be drawn over the top of the ListView
+        /// </summary>
+        [Category("Appearance - ObjectListView"),
+         Description("The text that will be drawn over the top of the ListView"),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
+        public TextOverlay OverlayText {
+            get { return this.textOverlay; }
+            set { 
+                this.textOverlay = value;
+                
+                if (this.Created)
+                    this.Invalidate();
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the transparency of all the overlays. 
         /// 0 is completely transparent, 255 is completely opaque.
         /// </summary>
@@ -1202,22 +1207,6 @@ namespace BrightIdeasSoftware
             }
         }
         private int overlayTransparency = 128;
-
-        /// <summary>
-        /// Gets or sets the text that will be drawn over the top of the ListView
-        /// </summary>
-        [Category("Appearance - ObjectListView"),
-         Description("The text that will be drawn over the top of the ListView"),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-        public TextOverlay OverlayText {
-            get { return this.textOverlay; }
-            set { 
-                this.textOverlay = value;
-                
-                if (this.Created)
-                    this.Invalidate();
-            }
-        }
 
         /// <summary>
         /// Gets the list of overlays that will be drawn on top of the ListView
@@ -1385,13 +1374,35 @@ namespace BrightIdeasSoftware
                 if (value == null) {
                     this.RemoveDecoration(this.selectedColumnOverlay);
                 } else {
-                    if (!this.HasDecoration(this.selectedColumnOverlay))
+                    if (!this.HasDecoration(this.selectedColumnOverlay)) 
                         this.AddDecoration(this.selectedColumnOverlay);
                 }
             }
         }
         private OLVColumn selectedColumn;
-        private SelectedColumnOverlay selectedColumnOverlay = new SelectedColumnOverlay();
+        private TintedColumnDecoration selectedColumnOverlay = new TintedColumnDecoration();
+
+        /// <summary>
+        /// What color should be used to tint the selected column?
+        /// </summary>
+        /// <remarks>
+        /// The tint color must be alpha-blendable, so if the given color is solid
+        /// (i.e. alpha = 255), it will be changed to have a reasonable alpha value.
+        /// </remarks>
+        [Category("Appearance - ObjectListView"),
+        Description("The color that will be used to tint the selected column"),
+         DefaultValue(typeof(Color), "")]
+        public virtual Color SelectedColumnTint {
+            get { return selectedColumnTint; }
+            set {
+                Color newTint = value;
+                if (newTint.A == 255)
+                    newTint = Color.FromArgb(15, newTint);
+                this.selectedColumnTint = newTint;
+                this.selectedColumnOverlay.Tint = this.selectedColumnTint;
+            }
+        }
+        private Color selectedColumnTint = Color.Empty;
 
         /// <summary>
         /// Return the index of the row that is currently selected. If no row is selected,
@@ -6357,6 +6368,29 @@ namespace BrightIdeasSoftware
                 this.glassPanel.HideGlass();
         }
         private GlassPanelForm glassPanel;
+
+        /// <summary>
+        /// Create and configure the empty list msg overlay
+        /// </summary>
+        protected virtual void InitializeEmptyListMsgOverlay() {
+            TextOverlay textOverlay = new TextOverlay();
+            textOverlay.Alignment = System.Drawing.ContentAlignment.MiddleCenter;
+            textOverlay.TextColor = SystemColors.ControlDarkDark;
+            textOverlay.BackColor = Color.BlanchedAlmond;
+            textOverlay.BorderColor = SystemColors.ControlDark;
+            textOverlay.BorderWidth = 2.0f;
+            this.EmptyListMsgOverlay = textOverlay;
+        }
+
+        /// <summary>
+        /// Initialize the standard image and text overlays
+        /// </summary>
+        protected virtual void InitializeStandardOverlays() {
+            this.OverlayImage = new ImageOverlay();
+            this.Overlays.Add(this.OverlayImage);
+            this.OverlayText = new TextOverlay();
+            this.Overlays.Add(this.OverlayText);
+        }
 
         /// <summary>
         /// Make sure that any overlays are visible.
