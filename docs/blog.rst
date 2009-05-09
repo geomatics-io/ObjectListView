@@ -2,7 +2,7 @@
 
 :Subtitle: Implementing an image background in a ListView
 
-.. _blog:
+.. _blog-overlays:
 
 Technical Blog
 ==============

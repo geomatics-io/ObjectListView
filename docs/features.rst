@@ -22,6 +22,7 @@ can use it when the need arises.
 * `Custom selection colours`_
 * `Different flavours of ObjectListView for different purposes`_
 * `Displays a "list is empty" message`_
+* `Drag and drop`_
 * `Ease of use`_
 * `Editing cell values`_
 * `Hot item tracking`_
@@ -29,10 +30,12 @@ can use it when the need arises.
 * `Model object level operations`_
 * `More control over column width`_
 * `Owner drawing`_
+* `Overlays`_
 * `Row height can be changed`_
 * `Save and restore state`_
 * `Searching on the sort column`_
 * `SelectionChanged event`_
+* `Selected Column`_
 * `Supports all ListView views`_
 * `Tool Tips`_
 * `User-selection of visible columns`_
@@ -138,11 +141,30 @@ know).
 See :ref:`owner-draw-label` for more information.
 
 
+Drag and drop
+-------------
+
+`ObjectListView` supports dragging rows to other places, including other application. It also
+supports accepting drops from other sources including cross-application drops. Special support
+is provide for drops from other `ObjectListViews` in the same application.
+
+In many cases, an `ObjectListView` becomes a full drag source by setting
+*IsSimpleDragSource* to *true*.
+
+Similarly, to accept drops, it is usually enough to set *IsSimpleDropSink* to *true*, and
+then handle the *CanDrop* and *Dropped* events (or the *ModelCanDrop* and *ModelDropped*
+events, if you only want to handle drops from other `ObjectListViews` in your application).
+
+See :ref:`dragdrop-label` for more information.
+
+
 Supports all ListView views
 ---------------------------
 
 An ObjectListView supports all views: report, tile, list, large and small icons. All functions
-should work equally in all views: editing, check state, icons, selection.
+should work equally in all views: drag and drop, editing, check state, icons, selection.
+
+You can even owner draw the non-details views (through the *ItemRenderer* property).
 
 
 More control over column width
@@ -179,6 +201,7 @@ Do I need to wait longer and then something will appear?
 
 An ObjectListView can show a "this list is empty" message when there is nothing
 to show in the list, so that the user knows the control is supposed to be empty.
+You even have a fair
 
 See this recipe: :ref:`recipe-emptymsg`
 
@@ -287,6 +310,15 @@ ObjectListView has a `SelectionChanged` event which is triggered once, no matter
 rows are selected or deselected. This is normally far more convenient.
 
 
+Selected Column
+---------------
+
+If you set the *SelectedColumn* property, that column will be lightly tinted to show
+that it is selected.
+
+If you set the *TintSortColumn* property, the sort column will automatically be
+selected.
+
 Row height can be changed
 -------------------------
 
@@ -328,8 +360,20 @@ support it fully, as do `FastObjectListViews`. `VirtualObjectListViews` simply h
 methods to their data source, so whether these methods work depends on the implementor
 of the data source.
 
-`DataListViews` do *not* support these methods since they are controlled
-by their `DataSource`.
+`DataListViews` do *not* support these methods since they are controlled by
+their `DataSource`.
 
-`TreeListViews` interpret these operations as modifying the top level item ("roots") \
-of their list.
+`TreeListViews` interpret these operations as modifying the top level item
+("roots") of their list.
+
+Overlays
+--------
+
+`ObjectListViews` can draw images and text over the top of the control. This drawing
+is normally done transluscently, so that the drawn images/text do not completely
+obscure the underlying information.
+
+See:
+* :ref:`recipe-overlays` for how to use them;
+* :ref:`overlays-label` for some gotchas
+* :ref:`blog-overlays` for the history of their development.

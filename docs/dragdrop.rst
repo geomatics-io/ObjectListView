@@ -40,9 +40,8 @@ So, the normal drop sink triggers two events: `CanDrop` and `Dropped`. To
 actually be useful, you need to handle these events. You can set
 up handlers for these events within the IDE, like normal.
 
-You can
-alternatively listen for the `ModelCanDrop` and `ModelDropped` events. This
-second pair of events are triggered when the source of the drag is another
+You can alternatively listen for the `ModelCanDrop` and `ModelDropped` events.
+This second pair of events are triggered when the source of the drag is another
 `ObjectListView`. These events work the same as the `CanDrop` and `Dropped`
 events except that the argument block includes useful information:
 
@@ -78,6 +77,10 @@ dragging. This can be used to tell the user why something cannot be dropped at
 that particular point, or to explain what will happen if the drop occured there:
 
 .. image:: images/dragdrop-infomsg.png
+
+This message is displayed by a specialised `TextOverlay`, which is exposed through
+the *Billboard* property of the `SimpleDropSink` class. You can make changes to the
+messages appearance through this property.
 
 Handling the events - Dropped
 -----------------------------
@@ -181,6 +184,12 @@ full suite of Windows drag-drop messages::
         void Over(DragEventArgs args);
         void QueryContinue(QueryContinueDragEventArgs args);
     }
+
+The only new method in this list is the *DrawFeedback()* method. This
+is where the `DropSink` can draw feedback onto the `ObjectListView`
+to indicate the state of the drop. This drawing is done over the
+top of the `ObjectListView` and this will normally involve some form
+of alpha blending.
 
 In almost all cases, you can subclass `AbstractDropSink` which provides
 minimal implementations of all these methods.

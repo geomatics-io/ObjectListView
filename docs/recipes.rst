@@ -50,6 +50,7 @@ Learning to cook
 
     :ref:`recipe-dragdrop`
 
+    :ref:`recipe-columntinting`
 
 .. _recipe-flavour:
 
@@ -791,5 +792,20 @@ TabControl-like container.
 
 This needs its own page to explain properly. :ref:`dragdrop-label`
 
+.. _recipe-columntinting:
 
+21. How do I make the sorted column have that slightly different colour?
+------------------------------------------------------------------------
+
+If you set *TintSortColumn* property to *true*, the sort column will be
+automatically tinted. The color of the tinting is controlled by the
+*SelectedColumnTint* property.
+
+You can tint a different column (other than the sort column) by setting the
+*SelectedColumn* property, or by installing `TintedColumnDecoration` for the
+column that you want to color::
+
+    this.objectListView1.AddDecoration(new TintedColumnDecoration(columnToTint));
+
+This latter option lets you tint more than one column.
 
