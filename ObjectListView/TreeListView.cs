@@ -5,6 +5,7 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2009-05-10  JPP  - Removed all unsafe code
  * 2009-05-09  JPP  - Fixed bug where any command (Expand/Collapse/Refresh) on a model
  *                    object that was once visible but that is currently in a collapsed branch
  *                    would cause the control to crash.
@@ -402,7 +403,7 @@ namespace BrightIdeasSoftware
         /// Handle a hit test to account for the indent of the branch
         /// </summary>
         /// <param name="m"></param>
-        unsafe protected virtual void HandleHitTest(ref Message m) {
+        protected virtual void HandleHitTest(ref Message m) {
             //THINK: Do we need to do this, since we are using the build-in Level ability of
             // of ListCtrl, which should take the indent into account
 
@@ -412,9 +413,10 @@ namespace BrightIdeasSoftware
             // so that the normal hittest is done, but indented by the correct amount.
 
             this.DefWndProc(ref m);
-            NativeMethods.LVHITTESTINFO* hittest = (NativeMethods.LVHITTESTINFO*)m.LParam;
+            //NativeMethods.LVHITTESTINFO* hittest = (NativeMethods.LVHITTESTINFO*)m.LParam;
+            NativeMethods.LVHITTESTINFO hittest = (NativeMethods.LVHITTESTINFO)m.GetLParam(typeof(NativeMethods.LVHITTESTINFO));
             // Find which row was hit...
-            int row = hittest->iItem;
+            int row = hittest.iItem;
             if (row < 0)
                 return;
 
@@ -429,7 +431,8 @@ namespace BrightIdeasSoftware
                 return;
 
             // ...use the indentation on that branch to modify the hittest
-            hittest->pt_x += (br.Level * TreeRenderer.PIXELS_PER_LEVEL);
+            hittest.pt_x += (br.Level * TreeRenderer.PIXELS_PER_LEVEL);
+            System.Runtime.InteropServices.Marshal.StructureToPtr(hittest, m.LParam, false);
             this.DefWndProc(ref m);
         }
 
