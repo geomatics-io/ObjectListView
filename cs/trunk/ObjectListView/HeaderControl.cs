@@ -5,11 +5,12 @@
  * Date: 25/11/2008 17:15 
  *
  * Change log:
- * 2008-11-25  JPP  Initial version
+ * 2009-05-10  JPP  - Removed all unsafe code
+ * 2008-11-25  JPP  - Initial version
  *
  * TO DO:
  *
- * Copyright (C) 2006-2008 Phillip Piper
+ * Copyright (C) 2006-2009 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,7 +104,7 @@ namespace BrightIdeasSoftware
         }
         private int columnShowingTip = -1;
 
-        unsafe protected bool HandleNotify(ref Message m) {
+        protected bool HandleNotify(ref Message m) {
             //const int TTN_SHOW = -521;
             //const int TTN_POP = -522;
             const int TTN_GETDISPINFO = -530;
@@ -111,8 +112,8 @@ namespace BrightIdeasSoftware
             if (m.LParam == IntPtr.Zero)
                 return false;
 
-            NativeMethods.NMHDR* lParam = (NativeMethods.NMHDR*)m.LParam;
-            switch (lParam->code) {
+            NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
+            switch (nmhdr.code) {
                 case TTN_GETDISPINFO:
                     return HandleGetDispInfo(ref m);
             }

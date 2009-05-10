@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2009-05-10  JPP  - Removed all unsafe code
  * 2009-05-07  JPP  - Don't use glass panel for overlays when in design mode. It's too confusing.
  * 2009-05-05  JPP  - Added Scroll event (thanks to Christophe Hosten for the complete patch to implement this)
  *                  - Added Unfocused foreground and background colors (also thanks to Christophe Hosten)
@@ -2980,18 +2981,6 @@ namespace BrightIdeasSoftware
             this.OnSelectionChanged(new EventArgs());
         }
 
-        //protected virtual void Application_Idle2(object sender, EventArgs e) {
-        //    if (Environment.TickCount - this.lastSwitchToGlass < 200)
-        //        return;
-
-        //    // Remove the handler before triggering the event
-        //    Application.Idle -= new EventHandler(Application_Idle2);
-        //    this.usingGlassPanel = false;
-
-        //    this.Refresh();
-        //    this.glassPanel.HideGlass();
-        //}
-
         /// <summary>
         /// Event handler for the column click event
         /// </summary>
@@ -3235,7 +3224,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="m">The message</param>
         /// <returns>True if the message has been handled</returns>
-        unsafe protected virtual bool HandleCustomDraw(ref Message m) {
+        protected virtual bool HandleCustomDraw(ref Message m) {
             const int CDDS_PREPAINT = 1;
             const int CDDS_POSTPAINT = 2;
             const int CDDS_PREERASE = 3;
@@ -3248,7 +3237,8 @@ namespace BrightIdeasSoftware
             const int CDRF_NOTIFYPOSTPAINT = 0x10;
             const int CDRF_NOTIFYPOSTERASE = 0x40; 
 
-            NativeMethods.NMLVCUSTOMDRAW* lParam = (NativeMethods.NMLVCUSTOMDRAW*)m.LParam;
+            //NativeMethods.NMLVCUSTOMDRAW* lParam = (NativeMethods.NMLVCUSTOMDRAW*)m.LParam;
+            NativeMethods.NMLVCUSTOMDRAW lParam = (NativeMethods.NMLVCUSTOMDRAW)m.GetLParam(typeof(NativeMethods.NMLVCUSTOMDRAW));
             //System.Diagnostics.Debug.WriteLine(String.Format("cd: {0:x}", lParam->nmcd.dwDrawStage));
 
             // There is a bug in owner drawn virtual lists which causes lots of custom draw messages
@@ -3264,7 +3254,7 @@ namespace BrightIdeasSoftware
             if (!this.shouldDoCustomDrawing)
                 return true;
 
-            switch (lParam->nmcd.dwDrawStage) {
+            switch (lParam.nmcd.dwDrawStage) {
                 case CDDS_PREPAINT:
                     //System.Diagnostics.Debug.WriteLine("CDDS_PREPAINT");
 
@@ -3292,7 +3282,7 @@ namespace BrightIdeasSoftware
                         this.shouldDoCustomDrawing = false;
 
                         // Draw our overlays after everything has been drawn
-                        using (Graphics g = Graphics.FromHdc(lParam->nmcd.hdc)) {
+                        using (Graphics g = Graphics.FromHdc(lParam.nmcd.hdc)) {
                             this.DrawAllDecorations(g);
                         }
                     }
@@ -3565,7 +3555,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the m has been handled</returns>
-        unsafe protected virtual bool HandleReflectNotify(ref Message m) {
+        protected virtual bool HandleReflectNotify(ref Message m) {
             const int NM_DBLCLK = -3;
             const int NM_RDBLCLK = -6;
             const int NM_CUSTOMDRAW = -12;
@@ -3579,23 +3569,25 @@ namespace BrightIdeasSoftware
 
             bool isMsgHandled = false;
 
-            NativeMethods.NMHDR* nmhdr = (NativeMethods.NMHDR*)m.LParam;
+            //NativeMethods.NMHDR* nmhdr = (NativeMethods.NMHDR*)m.LParam;
+            NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
             //System.Diagnostics.Debug.WriteLine(String.Format("rn: {0}", nmhdr->code));
 
-            switch (nmhdr->code) {
+            switch (nmhdr.code) {
                 case LVN_BEGINSCROLL:
                     //System.Diagnostics.Debug.WriteLine("LVN_BEGINSCROLL");
 
-                    NativeMethods.NMLVSCROLL* nmlistviewPtr3 = (NativeMethods.NMLVSCROLL*)m.LParam;
-                    if (nmlistviewPtr3->dx != 0) {
+                    //NativeMethods.NMLVSCROLL* nmlistviewPtr3 = (NativeMethods.NMLVSCROLL*)m.LParam;
+                    NativeMethods.NMLVSCROLL nmlvscroll = (NativeMethods.NMLVSCROLL)m.GetLParam(typeof(NativeMethods.NMLVSCROLL));
+                    if (nmlvscroll.dx != 0) {
                         int scrollPositionH = NativeMethods.GetScrollPosition(this, true);
-                        ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, scrollPositionH - nmlistviewPtr3->dx, scrollPositionH, ScrollOrientation.HorizontalScroll);
+                        ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, scrollPositionH - nmlvscroll.dx, scrollPositionH, ScrollOrientation.HorizontalScroll);
                         this.OnScroll(args);
                     }
-                    else if (nmlistviewPtr3->dy != 0)
+                    else if (nmlvscroll.dy != 0)
                     {
                         int scrollPositionV = NativeMethods.GetScrollPosition(this, false);
-                        ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, scrollPositionV - nmlistviewPtr3->dy, scrollPositionV, ScrollOrientation.VerticalScroll);
+                        ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, scrollPositionV - nmlvscroll.dy, scrollPositionV, ScrollOrientation.VerticalScroll);
                         this.OnScroll(args);
                     }
                     break;
@@ -3629,34 +3621,37 @@ namespace BrightIdeasSoftware
                         // state, the ListView doesn't trigger MouseDoubleClick events. So we fake a 
                         // right button double click event, which sets up the same state, but without
                         // toggling the checkbox.
-                        nmhdr->code = NM_RDBLCLK;
+                        nmhdr.code = NM_RDBLCLK;
+                        Marshal.StructureToPtr(nmhdr, m.LParam, false);
                     }
                     break;
 
                 case LVN_ITEMCHANGED:
-                    NativeMethods.NMLISTVIEW* nmlistviewPtr2 = (NativeMethods.NMLISTVIEW*)m.LParam;
-                    if ((nmlistviewPtr2->uChanged & LVIF_STATE) != 0) {
-                        CheckState currentValue = this.CalculateState(nmlistviewPtr2->uOldState);
-                        CheckState newCheckValue = this.CalculateState(nmlistviewPtr2->uNewState);
+                    NativeMethods.NMLISTVIEW nmlistviewPtr2 = (NativeMethods.NMLISTVIEW)m.GetLParam(typeof(NativeMethods.NMLISTVIEW));
+                    if ((nmlistviewPtr2.uChanged & LVIF_STATE) != 0) {
+                        CheckState currentValue = this.CalculateState(nmlistviewPtr2.uOldState);
+                        CheckState newCheckValue = this.CalculateState(nmlistviewPtr2.uNewState);
                         if (currentValue != newCheckValue) {
                             // Remove the state indicies so that we don't trigger the OnItemChecked method
                             // when we call our base method after exiting this method
-                            nmlistviewPtr2->uOldState = (nmlistviewPtr2->uOldState & 0x0FFF);
-                            nmlistviewPtr2->uNewState = (nmlistviewPtr2->uNewState & 0x0FFF);
+                            nmlistviewPtr2.uOldState = (nmlistviewPtr2.uOldState & 0x0FFF);
+                            nmlistviewPtr2.uNewState = (nmlistviewPtr2.uNewState & 0x0FFF);
+                            Marshal.StructureToPtr(nmlistviewPtr2, m.LParam, false);
                         }
                     }
                     break;
 
                 case LVN_ITEMCHANGING:
-                    NativeMethods.NMLISTVIEW* nmlistviewPtr = (NativeMethods.NMLISTVIEW*)m.LParam;
-                    if ((nmlistviewPtr->uChanged & LVIF_STATE) != 0) {
-                        CheckState currentValue = this.CalculateState(nmlistviewPtr->uOldState);
-                        CheckState newCheckValue = this.CalculateState(nmlistviewPtr->uNewState);
+                    NativeMethods.NMLISTVIEW nmlistviewPtr = (NativeMethods.NMLISTVIEW)m.GetLParam(typeof(NativeMethods.NMLISTVIEW));
+                    if ((nmlistviewPtr.uChanged & LVIF_STATE) != 0) {
+                        CheckState currentValue = this.CalculateState(nmlistviewPtr.uOldState);
+                        CheckState newCheckValue = this.CalculateState(nmlistviewPtr.uNewState);
 
                         if (currentValue != newCheckValue) {
                             // Prevent the base method from seeing the state change,
                             // since we handled it elsewhere
-                            nmlistviewPtr->uChanged &= ~LVIF_STATE;
+                            nmlistviewPtr.uChanged &= ~LVIF_STATE;
+                            Marshal.StructureToPtr(nmlistviewPtr, m.LParam, false);
                         }
                     }
                     break;
@@ -3664,25 +3659,6 @@ namespace BrightIdeasSoftware
 
             return isMsgHandled;
         }
-
-        //private void TemporarilySwitchToGlassPanel() {
-        //    this.lastSwitchToGlass = Environment.TickCount;
-        //    if (this.usingGlassPanel)
-        //        return;
-        //    this.usingGlassPanel = true;
-        //    Application.Idle += new EventHandler(Application_Idle2);
-
-        //    if (this.glassPanel == null) {
-        //        this.glassPanel = new GlassPanelForm();
-        //        this.glassPanel.Bind(this);
-        //    }
-        //    this.glassPanel.Opacity = this.OverlayTransparency / 255.0f;
-        //    this.glassPanel.ShowGlass();
-        //    this.Refresh();
-        //}
-        //private bool usingGlassPanel;
-        //private GlassPanelForm glassPanel;
-        //private int lastSwitchToGlass;
 
         private CheckState CalculateState(int state) {
             switch ((state & 0xf000) >> 12) {
@@ -3702,7 +3678,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the m has been handled</returns>
-        unsafe protected bool HandleNotify(ref Message m) {
+        protected bool HandleNotify(ref Message m) {
             bool isMsgHandled = false;
 
             const int HDN_FIRST = (0 - 300);
@@ -3723,7 +3699,8 @@ namespace BrightIdeasSoftware
 
             // Handle the notification, remembering to handle both ANSI and Unicode versions
             //NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
-            NativeMethods.NMHDR* nmhdr = (NativeMethods.NMHDR*)m.LParam;
+            NativeMethods.NMHEADER nmheader = (NativeMethods.NMHEADER)m.GetLParam(typeof(NativeMethods.NMHEADER));
+            //NativeMethods.NMHDR* nmhdr = (NativeMethods.NMHDR*)m.LParam;
             //System.Diagnostics.Debug.WriteLine(String.Format("not: {0}", nmhdr->code));
 
             //if (nmhdr.code < HDN_FIRST)
@@ -3742,8 +3719,7 @@ namespace BrightIdeasSoftware
             // If we are willing to compile with unsafe code enabled, we can modify the size of the column in place, using the
             // commented out code below. But without unsafe code, the best we can do is allow the user to drag the column to
             // any width, and then spring it back to within bounds once they release the mouse button. UI-wise it's very ugly.
-            NativeMethods.NMHEADER nmheader;
-            switch (nmhdr->code) {
+            switch (nmheader.nhdr.code) {
 
                 case HDN_ITEMCLICKA:
                 case HDN_ITEMCLICKW:
@@ -3762,7 +3738,6 @@ namespace BrightIdeasSoftware
                         isMsgHandled = true;
                         break;
                     }
-                    nmheader = (NativeMethods.NMHEADER)m.GetLParam(typeof(NativeMethods.NMHEADER));
                     if (nmheader.iItem >= 0 && nmheader.iItem < this.Columns.Count) {
                         OLVColumn column = this.GetColumn(nmheader.iItem);
                         // Space filling columns can't be dragged or double-click resized
@@ -3775,14 +3750,16 @@ namespace BrightIdeasSoftware
 
                 case HDN_TRACKA:
                 case HDN_TRACKW:
-                    nmheader = (NativeMethods.NMHEADER)m.GetLParam(typeof(NativeMethods.NMHEADER));
+                    //nmheader = (NativeMethods.NMHEADER)m.GetLParam(typeof(NativeMethods.NMHEADER));
                     if (nmheader.iItem >= 0 && nmheader.iItem < this.Columns.Count) {
-                        NativeMethods.HDITEM* hditem = (NativeMethods.HDITEM*)nmheader.pHDITEM;
+                        //NativeMethods.HDITEM* hditem = (NativeMethods.HDITEM*)nmheader.pHDITEM;
+                        NativeMethods.HDITEM hditem = (NativeMethods.HDITEM)Marshal.PtrToStructure(nmheader.pHDITEM, typeof(NativeMethods.HDITEM));
                         OLVColumn column = this.GetColumn(nmheader.iItem);
-                        if (hditem->cxy < column.MinimumWidth)
-                            hditem->cxy = column.MinimumWidth;
-                        else if (column.MaximumWidth != -1 && hditem->cxy > column.MaximumWidth)
-                            hditem->cxy = column.MaximumWidth;
+                        if (hditem.cxy < column.MinimumWidth)
+                            hditem.cxy = column.MinimumWidth;
+                        else if (column.MaximumWidth != -1 && hditem.cxy > column.MaximumWidth)
+                            hditem.cxy = column.MaximumWidth;
+                        Marshal.StructureToPtr(hditem, nmheader.pHDITEM, false);
                     }
                     break;
 
@@ -3810,7 +3787,7 @@ namespace BrightIdeasSoftware
                         String tip = this.GetCellToolTip(columnIndex, info.Item.Index);
                         if (!String.IsNullOrEmpty(tip)) {
                             // HeaderControl has almost identical code. Is there some way to unify?
-                            NativeMethods.SendMessage(nmhdr->hwndFrom, 0x418, 0, SystemInformation.MaxWindowTrackSize.Width);
+                            NativeMethods.SendMessage(nmheader.nhdr.hwndFrom, 0x418, 0, SystemInformation.MaxWindowTrackSize.Width);
                             NativeMethods.TOOLTIPTEXT ttt = (NativeMethods.TOOLTIPTEXT)m.GetLParam(typeof(NativeMethods.TOOLTIPTEXT));
                             ttt.lpszText = tip;
                             if (this.RightToLeft == RightToLeft.Yes)
