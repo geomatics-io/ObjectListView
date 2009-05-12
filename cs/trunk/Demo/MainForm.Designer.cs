@@ -224,6 +224,7 @@ namespace ObjectListViewDemo
             this.olvColumn32 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn33 = new BrightIdeasSoftware.OLVColumn();
             this.tabPage9 = new System.Windows.Forms.TabPage();
+            this.button28 = new System.Windows.Forms.Button();
             this.button25 = new System.Windows.Forms.Button();
             this.button26 = new System.Windows.Forms.Button();
             this.button27 = new System.Windows.Forms.Button();
@@ -303,7 +304,6 @@ namespace ObjectListViewDemo
             this.olvColumn11 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn16 = new BrightIdeasSoftware.OLVColumn();
             this.blockFormat1 = new BrightIdeasSoftware.BlockFormat();
-            this.button28 = new System.Windows.Forms.Button();
             this.contextMenuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -632,6 +632,7 @@ namespace ObjectListViewDemo
             this.listViewSimple.UseCompatibleStateImageBehavior = false;
             this.listViewSimple.UseHotItem = true;
             this.listViewSimple.View = System.Windows.Forms.View.Details;
+            this.listViewSimple.Scroll += new System.EventHandler<System.Windows.Forms.ScrollEventArgs>(this.listViewSimple_Scroll);
             this.listViewSimple.SelectedIndexChanged += new System.EventHandler(this.ListViewSelectedIndexChanged);
             // 
             // columnHeader11
@@ -904,14 +905,14 @@ namespace ObjectListViewDemo
             this.listViewComplex.LargeImageList = this.imageList2;
             this.listViewComplex.Location = new System.Drawing.Point(6, 57);
             this.listViewComplex.Name = "listViewComplex";
-            this.listViewComplex.OverlayImage.Image = global::ObjectListViewDemo.Resource1.limeleaf;
+            this.listViewComplex.OverlayImage.Image = global::ObjectListViewDemo.Resource1.redbull;
             this.listViewComplex.OverlayText.Alignment = System.Drawing.ContentAlignment.TopRight;
             this.listViewComplex.OverlayText.BorderColor = System.Drawing.Color.DarkRed;
-            this.listViewComplex.OverlayText.BorderWidth = 2F;
+            this.listViewComplex.OverlayText.BorderWidth = 4F;
             this.listViewComplex.OverlayText.InsetX = 10;
             this.listViewComplex.OverlayText.InsetY = 35;
             this.listViewComplex.OverlayText.Rotation = 20;
-            this.listViewComplex.OverlayText.Text = "TRIAL VERSION";
+            this.listViewComplex.OverlayText.Text = "";
             this.listViewComplex.OverlayText.TextColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.listViewComplex.OwnerDraw = true;
             this.listViewComplex.ShowGroups = false;
@@ -1203,7 +1204,6 @@ namespace ObjectListViewDemo
             this.listViewDataSet.LargeImageList = this.imageList2;
             this.listViewDataSet.Location = new System.Drawing.Point(6, 19);
             this.listViewDataSet.Name = "listViewDataSet";
-            this.listViewDataSet.OverlayImage.Image = global::ObjectListViewDemo.Resource1.redbull;
             this.listViewDataSet.OwnerDraw = true;
             this.listViewDataSet.ShowGroups = false;
             this.listViewDataSet.ShowImagesOnSubItems = true;
@@ -2574,6 +2574,17 @@ namespace ObjectListViewDemo
             this.tabPage9.Text = "TreeListView";
             this.tabPage9.UseVisualStyleBackColor = true;
             // 
+            // button28
+            // 
+            this.button28.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.button28.Location = new System.Drawing.Point(6, 456);
+            this.button28.Name = "button28";
+            this.button28.Size = new System.Drawing.Size(105, 23);
+            this.button28.TabIndex = 14;
+            this.button28.Text = "Refresh Selected";
+            this.button28.UseVisualStyleBackColor = true;
+            this.button28.Click += new System.EventHandler(this.button28_Click_1);
+            // 
             // button25
             // 
             this.button25.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -3416,17 +3427,6 @@ namespace ObjectListViewDemo
             this.olvColumn16.DisplayIndex = 4;
             this.olvColumn16.IsVisible = false;
             this.olvColumn16.Text = "Five";
-            // 
-            // button28
-            // 
-            this.button28.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.button28.Location = new System.Drawing.Point(6, 456);
-            this.button28.Name = "button28";
-            this.button28.Size = new System.Drawing.Size(105, 23);
-            this.button28.TabIndex = 14;
-            this.button28.Text = "Refresh Selected";
-            this.button28.UseVisualStyleBackColor = true;
-            this.button28.Click += new System.EventHandler(this.button28_Click_1);
             // 
             // MainForm
             // 
