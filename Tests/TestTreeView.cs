@@ -22,7 +22,7 @@ namespace BrightIdeasSoftware.Tests
         [SetUp]
         public void InitEachTest() {
             this.olv.Roots = PersonDb.All.GetRange(0, this.numberOfRoots);
-            this.olv.CollapseAll();
+            this.olv.DiscardAllState();
         }
         int numberOfRoots = 2;
 
@@ -105,7 +105,42 @@ namespace BrightIdeasSoftware.Tests
         public void TestNonExistentObjects() {
             this.olv.Expand(new Person("name1"));
             this.olv.Collapse(new Person("name2"));
-            this.olv.RefreshObject(new Person("name3"));
+            this.olv.RefreshObject(1);
+        }
+
+        [Test]
+        public void TestGetParentRoot() {
+            Assert.IsNull(this.olv.GetParent(PersonDb.All[0]));
+        }
+
+        [Test]
+        public void TestGetParentBeforeExpand() {
+            Person p = PersonDb.All[0];
+            Assert.IsNull(this.olv.GetParent(p.Children[0]));
+        }
+
+        [Test]
+        public void TestGetParent() {
+            Person p = PersonDb.All[0];
+            this.olv.Expand(p);
+            Assert.AreEqual(p, this.olv.GetParent(p.Children[0]));
+        }
+
+        [Test]
+        public void TestGetChildrenLeaf() {
+            Person p = PersonDb.All[0];
+            Assert.IsEmpty((IList)this.olv.GetChildren(p.Children[0]));
+        }
+
+        [Test]
+        public void TestGetChildren() {
+            Person p = PersonDb.All[0];
+            IEnumerable kids = this.olv.GetChildren(p);
+            int i = 0;
+            foreach (Person x in kids) {
+                Assert.AreEqual(x, p.Children[i]);
+                i++;
+            }
         }
 
         [Test]
