@@ -76,10 +76,10 @@ namespace ObjectListViewDemo
 
             // Change this value to see the performance on bigger lists.
             // Each list builds about 1000 rows per second.
-            while (list.Count < 200) {
-                foreach (Person p in masterList)
-                    list.Add(new Person(p));
-            }
+            //while (list.Count < 200) {
+            //    foreach (Person p in masterList)
+            //        list.Add(new Person(p));
+            //}
 
 			InitializeSimpleExample(list);
 			InitializeComplexExample(list);
@@ -131,10 +131,6 @@ namespace ObjectListViewDemo
 
 		void InitializeComplexExample(List<Person> list)
 		{
-            this.listViewComplex.OverlayText.BackColor = Color.LightBlue;
-            this.listViewComplex.OverlayText.BorderWidth = 3.0f;
-            this.listViewComplex.OverlayText.BorderColor = Color.Black;
-
             // The following line makes getting aspect about 10x faster. Since getting the aspect is
             // the slowest part of building the ListView, it is worthwhile BUT NOT NECESSARY to do.
             TypedObjectListView<Person> tlist = new TypedObjectListView<Person>(this.listViewComplex);
@@ -902,7 +898,7 @@ namespace ObjectListViewDemo
 
         private void button6_Click(object sender, EventArgs e)
         {
-            this.listViewSimple.RemoveObject(this.listViewSimple.SelectedObject);
+            this.listViewSimple.RemoveObjects(this.listViewSimple.SelectedObjects);
         }
 
         #endregion
@@ -1788,6 +1784,10 @@ namespace ObjectListViewDemo
 
         private void button28_Click_1(object sender, EventArgs e) {
             this.treeListView.RefreshObjects(this.treeListView.SelectedObjects);
+        }
+
+        private void listViewSimple_Scroll(object sender, ScrollEventArgs e) {
+            //System.Diagnostics.Debug.WriteLine(String.Format("{0}, {1}, {2}", e.OldValue, e.NewValue, e.ScrollOrientation));
         }
     }
         
