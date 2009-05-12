@@ -9,7 +9,7 @@ Change Log
 
 Version Index
 -------------
-* `Future versions - 31 December 2010`_
+* `v2.2 alpha2 - 12 May 2009`_
 * `v2.2 alpha - 07 May 2009`_
 * `v2.1 - 26 February 2009`_
 * `v2.1a - 07 February 2009`_
@@ -28,8 +28,30 @@ Version Index
 * `Previous versions - 04 April 2007`_
 
 
-Future versions - 31 December 2010
-----------------------------------
+v2.2 alpha2 - 12 May 2009
+-------------------------
+
+2009-05-10 22:40 (#582) - ObjectListView/ObjectListView.cs, ObjectListView/ObjectListView2008.csproj, ObjectListView/TreeListView.cs, ObjectListView/HeaderControl.cs
+  - Removed all unsafe code. The project no longer requires unsafe code
+
+2009-05-09 11:40 (#580) - ObjectListView/ObjectListView.cs, ObjectListView/Overlays.cs
+  - Minor refactorings and docs
+
+2009-05-09 11:11 (#579) - docs/features.rst, docs/dragdrop.rst, docs/blog.rst, docs/changelog.rst, docs/index.rst, docs/gettingStarted.rst, docs/recipes.rst
+  - v2.2 docs - Take II
+
+2009-05-09 11:10 (#578) - Demo/MainForm.Designer.cs, Demo/MainForm.cs
+  - Added "Refresh" button to TreeList tab
+
+2009-05-09 11:10 (#577) - Tests/Program.cs, Tests/TestTreeView.cs, Tests/Person.cs
+  - Added more tests for TreeListView
+
+2009-05-09 11:10 (#576) - ObjectListView/TreeListView.cs
+  - Fixed bug where any command (Expand/Collapse/Refresh) on a model object that was once visible but that is currently in a collapsed branch would cause the control to crash.
+
+2009-05-09 01:02 (#575) - ObjectListView/ObjectListView.cs, ObjectListView/Overlays.cs
+  - Added SelectedColumnTintColor property
+  - Changed SelectedColumnOverlay to be TintedColumnDecoration
 
 2009-05-08 22:58 (#574) - ObjectListView/TreeListView.cs
   - Fixed bug where RefreshObjects() would fail when none of the given objects were present/visible.
