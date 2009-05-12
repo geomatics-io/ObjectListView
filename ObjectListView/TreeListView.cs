@@ -5,6 +5,8 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2009-05-12  JPP  - Added tree traverse operations: GetParent and GetChildren.
+ *                  - Added DiscardAllState() to completely reset the TreeListView.
  * 2009-05-10  JPP  - Removed all unsafe code
  * 2009-05-09  JPP  - Fixed bug where any command (Expand/Collapse/Refresh) on a model
  *                    object that was once visible but that is currently in a collapsed branch
@@ -262,6 +264,25 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Collapse all roots and forget everything we know about all models
+        /// </summary>
+        public virtual void DiscardAllState() {
+            // Remember the bits of info we don't want to forget (anyone ever see Memento?)
+            IEnumerable roots = this.Roots;
+            CanExpandGetterDelegate canExpand = this.CanExpandGetter;
+            ChildrenGetterDelegate childrenGetter = this.ChildrenGetter;
+
+            // Give ourselves a new data structure
+            this.TreeModel = new Tree(this);
+            this.DataSource = this.TreeModel;
+
+            // Put back the bits we didn't want to forget
+            this.CanExpandGetter = canExpand;
+            this.ChildrenGetter = childrenGetter;
+            this.Roots = roots;
+        }
+
+        /// <summary>
         /// Expand the subtree underneath the given model object
         /// </summary>
         /// <param name="model"></param>
@@ -361,6 +382,38 @@ namespace BrightIdeasSoftware
                 this.Collapse(model);
             else
                 this.Expand(model);
+        }
+
+        //------------------------------------------------------------------------------------------
+        // Commands - Tree traversal
+
+        /// <summary>
+        /// Return the model object that is the parent of the given model object.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        /// <remarks>The given model must have already been seen in the tree.</remarks>
+        public virtual Object GetParent(Object model) {
+            Branch br = this.TreeModel.GetBranch(model);
+            if (br == null || br.ParentBranch == null)
+                return null;
+            else
+                return br.ParentBranch.Model;
+        }
+
+        /// <summary>
+        /// Return the collection of model objects that are the children of the 
+        /// given model.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <remarks>The given model must have already been seen in the tree and
+        /// must be expandable</remarks>
+        public virtual IEnumerable GetChildren(Object model) {
+            Branch br = this.TreeModel.GetBranch(model);
+            if (br == null || !br.CanExpand)
+                return new ArrayList();
+            else
+                return br.Children;
         }
 
         //------------------------------------------------------------------------------------------
@@ -1023,29 +1076,10 @@ namespace BrightIdeasSoftware
             /// Expand this branch
             /// </summary>
             public virtual void Expand() {
-                if (!this.CanExpand)
-                    return;
-
-                // THINK: Should we cache the children or fetch them each time? If we cache, we need a "DiscardCache" ability
-
-                this.IsExpanded = true;
-                if (this.alreadyHasChildren)
-                    return;
-
-                if (this.Tree.ChildrenGetter != null) {
-                    Cursor previous = Cursor.Current;
-                    try {
-                        if (this.Tree.TreeView.UseWaitCursorWhenExpanding)
-                            Cursor.Current = Cursors.WaitCursor;
-                        this.Children = this.Tree.ChildrenGetter(this.Model);
-                    }
-                    finally {
-                        if (this.Tree.TreeView.UseWaitCursorWhenExpanding)
-                            Cursor.Current = previous;
-                    }
+                if (this.CanExpand) {
+                    this.IsExpanded = true;
+                    this.FetchChildren();
                 }
-
-                this.alreadyHasChildren = true;
             }
 
             /// <summary>
@@ -1055,6 +1089,33 @@ namespace BrightIdeasSoftware
                 this.Expand();
                 foreach (Branch br in this.ChildBranches)
                     br.ExpandAll();
+            }
+
+            /// <summary>
+            /// Fetch the children of this branch.
+            /// </summary>
+            /// <remarks>This should only be called when CanExpand is true.</remarks>
+            public virtual void FetchChildren() {
+                if (this.alreadyHasChildren)
+                    return;
+
+                this.alreadyHasChildren = true;
+
+                if (this.Tree.ChildrenGetter == null)
+                    return;
+
+                if (this.Tree.TreeView.UseWaitCursorWhenExpanding) {
+                    Cursor previous = Cursor.Current;
+                    try {
+                        Cursor.Current = Cursors.WaitCursor;
+                        this.Children = this.Tree.ChildrenGetter(this.Model);
+                    }
+                    finally {
+                        Cursor.Current = previous;
+                    }
+                } else {
+                    this.Children = this.Tree.ChildrenGetter(this.Model);
+                }
             }
 
             /// <summary>
