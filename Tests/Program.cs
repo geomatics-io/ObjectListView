@@ -33,7 +33,7 @@ namespace BrightIdeasSoftware.Tests
             TestTreeView t = new TestTreeView();
             t.Init();
             t.InitEachTest();
-            t.TestRefreshOfHiddenItem();
+            t.TestExpand();
 
             g.RunAfterAnyTests();
         }
