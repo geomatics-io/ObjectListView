@@ -61,22 +61,23 @@ Seriously, after using an `ObjectListView`, you will never go back to using a pl
 OK, I'm interested. What do I do next?
 --------------------------------------
 
-You can download_ a demonstration of the `ObjectListView` in
-action. This demo includes ObjectListView project which you need to include in
-your project.
+The source code to `ObjectListView` can be `downloaded here <download.html>`_. You
+can also download a demonstration, documentation and unit tests on the same page.
 
-After that, you might want to look at the :ref:`Getting Started` and the :ref:`Cookbook` sections. Please make
-sure you have read and understood these sections before asking questions in the Forum_.
-There is also an article describing the `ObjectListView at CodeProject`_.
+After that, you might want to look at the :ref:`Getting Started` and the
+:ref:`Cookbook` sections. Please make sure you have read and understood these
+sections before asking questions in the Forum_. There is also an article
+describing the `ObjectListView at CodeProject`_.
 
-At some point, you will want to do something with an ObjectListView and it won't be
-immediately obvious how to make it happen. After dutifully scouring the :ref:`Getting
-Started` and the :ref:`Cookbook` sections, you
-decide that is is still not obvious. The Forum_ section is the place to find
-all your as-yet-unasked questions.
+At some point, you will want to do something with an ObjectListView and it won't
+be immediately obvious how to make it happen. After dutifully scouring the
+:ref:`Getting Started` and the :ref:`Cookbook` sections, you decide that is is
+still not obvious. The Forum_ section is the place to find all your as-yet-
+unasked questions.
 
-It may even be possible that you might find some undocumented features in the code (also
-known as bugs). These "features" can be `reported here`_ and can be tracked on the project's `Issue Tracker`_.
+It may even be possible that you might find some undocumented features in the
+code (also known as bugs). These "features" can be `reported here`_ and can be
+tracked on the project's `Issue Tracker`_.
 
 Finally, after you realise just how great the ObjectListView is, and how you
 really have come to love .NET's ListView, you will be moved with gratitude to
@@ -84,8 +85,6 @@ really have come to love .NET's ListView, you will be moved with gratitude to
 
 If you would like to ask me a question or suggest an improvement, you can contact me here:
 phillip_piper@bigfoot.com.
-
-.. _download: https://sourceforge.net/project/platformdownload.php?group_id=225207
 
 .. _ObjectListView at CodeProject: http://www.codeproject.com/KB/list/ObjectListView.aspx
 
@@ -96,20 +95,6 @@ phillip_piper@bigfoot.com.
 .. _Issue Tracker: https://sourceforge.net/tracker/?group_id=225207&atid=1064157
 
 .. _give a donation: https://sourceforge.net/donate/index.php?group_id=225207
-
-Bleeding-edge source
---------------------
-
-If you are a very keen developer, you can access the SVN repository directly for this
-project. The following SVN command will fetch the most recent version from the repository::
-
- svn co https://objectlistview.svn.sourceforge.net/svnroot/objectlistview/cs/trunk objectlistview
-
-There are details on `how to use Subversion here <https://sourceforge.net/docs/E09>`_ on SourceForge.
-
-Please remember that code within the SVN is bleeding edge. It has not been well-tested and
-is almost certainly full of bugs. If you just want to play with the ObjectListView, it's
-better to stay with the official releases, where the bugs are (hopefully) less obvious.
 
 Technical details
 -----------------
@@ -125,9 +110,25 @@ What people have said about ObjectListView
 
 When thinking about using some new code, it's always interesting to hear what others have said about it.
 
+.. pull-quote:: I have been watching this control since 2007 and just checked the new features you've added recently and in the last couple of months. This gotta be the best list control out there. You've done a brilliant job with this and I'm sure many others appreciate your work. Well done and keep it up!
+
+   -- `Hakan <http://www.codeproject.com/Messages/3034884/feedback-about-this-control.aspx>`_
+
+.. pull-quote:: I second that. This should be brought into the next version of the framework, it's brill. work!
+
+   -- `id2008 <http://www.codeproject.com/Messages/3034969/Re-feedback-about-this-control.aspx>`_
+
+.. pull-quote:: Superb job. Thanks for sharing this fantastic control.
+
+   -- `Hamed Mosavi <http://www.codeproject.com/Messages/3018693/Superb-job.aspx>`_
+
 .. pull-quote:: ObjectListView has got to be one of the slickest controls out there - simple, quick and powerful.
 
    -- `jake <http://www.riggshill.com/home/node/23>`_
+
+.. pull-quote:: I'm using ObjectListView since one year now and it's certainly one of the best ListView control I know.
+
+  -- `Lionel Schiepers <http://www.codeproject.com/Messages/2937357/unsafe.aspx>`_
 
 .. pull-quote:: I wanted to say that your control, your code, and your support on the forums, has been one of the best experiences I have had with working with someone elses' product. Great job man, and very nice programming.
 
@@ -212,5 +213,6 @@ Site contents
    Recipe - Drag and Drop <dragdrop>
    Recipe - Overlays <overlays>
    faq
+   download
    Technical Blog <blog>
    changelog

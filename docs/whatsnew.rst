@@ -17,15 +17,17 @@ Drag and drop support
 
 `ObjectListViews` now have sophisticated support for drag and drop operations.
 
-The dragging is based on the `IDragSource` interface, and the drop handling
-revolves around the `IDropSink` interface. `SimpleDragSource` and
+An `ObjectListView` can be made a source for drag operations by setting the
+`DragSource` property. Similarly, it can be made a sink for drop actions by
+setting the `DropSink` property. These properties accept an `IDragSource`
+interface and an `IDropSink` interface respectively. `SimpleDragSource` and
 `SimpleDropSink` provide reasonable default implementations for these
-interfaces. An `ObjectListView` can be made a source for drag operations by
-setting the `DragSource` property. Similarly, it can be made a sink for drop
-actions by setting the `DropSink` property.
+interfaces.
 
-For most simple cases, these details can be ignored and you can just set the
-`IsSimpleDragSource` and `IsSimpleDropSink` properties to `true`.
+Since the whole goal of `ObjectListView` is to encourage slothfulness, for most
+simple cases, you can ignore these details and just set the `IsSimpleDragSource`
+and `IsSimpleDropSink` properties to `true`, and then listen for `CanDrop` and
+`Dropped` events.
 
 See :ref:`dragdrop-label` for more details.
 
@@ -35,37 +37,48 @@ See :ref:`dragdrop-rearranging`.
 Image and text overlays
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-This version added the ability to draw translucent images and text over the top
+`ObjectListView` now have the ability to draw translucent images and text over the top
 over the `ObjectListView` contents. These overlays do not scroll when the list
 contents scroll. These overlays works in all Views. You can set an overlays
 within the IDE using the `OverlayImage` and `OverlayText` properties.
 
 The overlay design is extensible, and you can add arbitrary overlays through the `AddOverlay()` method.
 
+See :ref:`recipe-overlays` for more details.
+
 The "list is empty" message is now implemented as an overlay, and as such is heavily customisable.
 See :ref:`recipe-emptymsg` for details.
 
-Other changes
-^^^^^^^^^^^^^
+Other new features
+^^^^^^^^^^^^^^^^^^
 
 * The most requested feature ever -- collapsible groups -- is now available.
   But it is for Vista only. Thanks to Crustyapplesniffer for his implementation of this feature.
   Set the `HasCollapsibleGroups` to `false` if you don't want this on your `ObjectListView` (it is `true` by default).
 
 * Added `SelectedColumn` property, which puts a slight tint over that column.
-  When combined with the `TintSortColumn` property, the sorted column will automatically be tinted.
+  When combined with the `TintSortColumn` and `SelectedColumnTint` properties, the
+  sorted column will automatically be tinted with whatever colour you want.
 
 * Added `Scroll` event (thanks to Christophe Hosten who implemented this)
+* Made several properties localizable.
+* The project no longer uses `unsafe` code, and can therefore be used in a limited trust environment.
+* `TreeListView` now has `GetParent()` and `GetChildren()` methods to allow tree traversal. It also has a
+  `DiscardAllState()` method to collapse all branches and forget everything about all model objects.
+
+Bug fixes (not a complete list)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Fix a long standing problem with flickering on owner drawn virtual lists.
   Apart from now being flicker-free, this means that grid lines no longer get
   confused, and drag-select no longer flickers. This means that TreeListView now
   has noticeably less flicker (it is always an owner drawn virtual list).
 
-* Double-clicking on a row no longer toggles the checkbox (Why did MS ever include that?)
-* Double-clicking on a checkbox no longer confuses the checkbox
-* Correctly renderer checkboxes when `RowHeight` is non-standard
-* Made several properties localizable.
+* Double-clicking on a row no longer toggles the checkbox (Why did MS ever include that?).
+* Double-clicking on a checkbox no longer confuses the checkbox.
+* Correctly renderer checkboxes when `RowHeight` is non-standard.
+* Checkboxes are now visible even when the `ObjectListView` does not have a `SmallImageList`.
+* Several Vista-only bugs were fixed
 
 3 February 2009 - Version 2.1
 -----------------------------

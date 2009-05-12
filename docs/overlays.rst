@@ -8,7 +8,7 @@ Overlays and Decorations
 ========================
 
 Overlays grew out of the desire to put a background image on a ListView.
-(See :ref:`blog` for the details).
+(See :ref:`blog-overlays` for the details).
 
 Overlays are managed using a normal set of operations::
 
