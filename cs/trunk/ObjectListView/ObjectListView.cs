@@ -376,6 +376,12 @@ namespace BrightIdeasSoftware
             // Setup the overlays that will be controlled by the IDE settings
             this.InitializeStandardOverlays();
             this.InitializeEmptyListMsgOverlay();
+
+            this.KeyPress += new KeyPressEventHandler(ObjectListView_KeyPress);
+        }
+
+        void ObjectListView_KeyPress(object sender, KeyPressEventArgs e) {
+            System.Diagnostics.Debug.WriteLine("keypress");
         }
 
         #region Public properties
@@ -3230,15 +3236,19 @@ namespace BrightIdeasSoftware
             const int CDDS_PREERASE = 3;
             const int CDDS_POSTERASE = 4;
             const int CDDS_ITEM = 0x00010000;
+            const int CDDS_SUBITEM = 0x00020000;
             const int CDDS_ITEMPREPAINT = (CDDS_ITEM | CDDS_PREPAINT);
             const int CDDS_ITEMPOSTPAINT = (CDDS_ITEM | CDDS_POSTPAINT);
             const int CDDS_ITEMPREERASE = (CDDS_ITEM | CDDS_PREERASE);
             const int CDDS_ITEMPOSTERASE = (CDDS_ITEM | CDDS_POSTERASE);
+            const int CDDS_SUBITEMPREPAINT = (CDDS_SUBITEM | CDDS_ITEMPREPAINT);
+            const int CDDS_SUBITEMPOSTPAINT = (CDDS_SUBITEM | CDDS_ITEMPOSTPAINT);
             const int CDRF_NOTIFYPOSTPAINT = 0x10;
+            //const int CDRF_NOTIFYITEMDRAW = 0x20;
+            //const int CDRF_NOTIFYSUBITEMDRAW = 0x20; // same value as above!
             const int CDRF_NOTIFYPOSTERASE = 0x40; 
 
-            //NativeMethods.NMLVCUSTOMDRAW* lParam = (NativeMethods.NMLVCUSTOMDRAW*)m.LParam;
-            NativeMethods.NMLVCUSTOMDRAW lParam = (NativeMethods.NMLVCUSTOMDRAW)m.GetLParam(typeof(NativeMethods.NMLVCUSTOMDRAW));
+            NativeMethods.NMLVCUSTOMDRAW nmcustomdraw = (NativeMethods.NMLVCUSTOMDRAW)m.GetLParam(typeof(NativeMethods.NMLVCUSTOMDRAW));
             //System.Diagnostics.Debug.WriteLine(String.Format("cd: {0:x}", lParam->nmcd.dwDrawStage));
 
             // There is a bug in owner drawn virtual lists which causes lots of custom draw messages
@@ -3254,7 +3264,7 @@ namespace BrightIdeasSoftware
             if (!this.shouldDoCustomDrawing)
                 return true;
 
-            switch (lParam.nmcd.dwDrawStage) {
+            switch (nmcustomdraw.nmcd.dwDrawStage) {
                 case CDDS_PREPAINT:
                     //System.Diagnostics.Debug.WriteLine("CDDS_PREPAINT");
 
@@ -3282,7 +3292,7 @@ namespace BrightIdeasSoftware
                         this.shouldDoCustomDrawing = false;
 
                         // Draw our overlays after everything has been drawn
-                        using (Graphics g = Graphics.FromHdc(lParam.nmcd.hdc)) {
+                        using (Graphics g = Graphics.FromHdc(nmcustomdraw.nmcd.hdc)) {
                             this.DrawAllDecorations(g);
                         }
                     }
@@ -3308,11 +3318,25 @@ namespace BrightIdeasSoftware
                     } else {
                         base.WndProc(ref m);
                     }
+
+                    //NativeMethods.NMLVCUSTOMDRAW nmcustomdraw2 = (NativeMethods.NMLVCUSTOMDRAW)m.GetLParam(typeof(NativeMethods.NMLVCUSTOMDRAW));
+                    //nmcustomdraw2.clrText = ColorTranslator.ToWin32(Color.Red);
+                    //Marshal.StructureToPtr(nmcustomdraw2, m.LParam, false);
+                    //m.Result = (IntPtr)CDRF_NOTIFYSUBITEMDRAW;
+
                     m.Result = (IntPtr)((int)m.Result | CDRF_NOTIFYPOSTPAINT | CDRF_NOTIFYPOSTERASE);
                     return true;
 
                 case CDDS_ITEMPOSTPAINT:
                     //System.Diagnostics.Debug.WriteLine("CDDS_ITEMPOSTPAINT");
+                    break;
+
+                case CDDS_SUBITEMPREPAINT:
+                    //System.Diagnostics.Debug.WriteLine("CDDS_SUBITEMPREPAINT");
+                    break;
+
+                case CDDS_SUBITEMPOSTPAINT:
+                    //System.Diagnostics.Debug.WriteLine("CDDS_SUBITEMPOSTPAINT");
                     break;
 
                 // I have included these stages, but it doesn't seem that they are sent for ListViews.

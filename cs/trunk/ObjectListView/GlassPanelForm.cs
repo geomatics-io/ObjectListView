@@ -37,15 +37,22 @@ namespace BrightIdeasSoftware
     public partial class GlassPanelForm : Form
     {
         public GlassPanelForm() {
-            InitializeComponent();
-            SetStyle(ControlStyles.Selectable, false);
+            this.Name = "GlassPanelForm";
+            this.Text = "GlassPanelForm";
+
+            ClientSize = new System.Drawing.Size(0, 0);
+            ControlBox = false;
             FormBorderStyle = FormBorderStyle.None;
             SizeGripStyle = SizeGripStyle.Hide;
             StartPosition = FormStartPosition.Manual;
             MaximizeBox = false;
             MinimizeBox = false;
+            ShowIcon = false;
             ShowInTaskbar = false;
+            FormBorderStyle = FormBorderStyle.None;
 
+            SetStyle(ControlStyles.Selectable, false);
+            
             this.Opacity = 0.5f;
             this.BackColor = Color.FromArgb(255, 254, 254, 254);
             this.TransparencyKey = this.BackColor;
