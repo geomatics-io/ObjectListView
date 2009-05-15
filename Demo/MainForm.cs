@@ -590,7 +590,7 @@ namespace ObjectListViewDemo
             this.olvColumnAttributes.AspectGetter = delegate(object x) {
                 return ((FileSystemInfo)x).Attributes;
             };
-            FlagRenderer<FileAttributes> attributesRenderer = new FlagRenderer<FileAttributes>();
+            FlagRenderer attributesRenderer = new FlagRenderer();
             attributesRenderer.Add(FileAttributes.Archive, "archive");
             attributesRenderer.Add(FileAttributes.ReadOnly, "readonly");
             attributesRenderer.Add(FileAttributes.System, "system");
@@ -667,7 +667,7 @@ namespace ObjectListViewDemo
             this.treeColumnAttributes.AspectGetter = delegate(object x) {
                 return ((FileSystemInfo)x).Attributes;
             };
-            FlagRenderer<FileAttributes> attributesRenderer = new FlagRenderer<FileAttributes>();
+            FlagRenderer attributesRenderer = new FlagRenderer();
             attributesRenderer.Add(FileAttributes.Archive, "archive");
             attributesRenderer.Add(FileAttributes.ReadOnly, "readonly");
             attributesRenderer.Add(FileAttributes.System, "system");
@@ -1783,6 +1783,14 @@ namespace ObjectListViewDemo
         private TextOverlay nagOverlay;
 
         private void button28_Click_1(object sender, EventArgs e) {
+            // Test to make sure that RefreshObject() refreshes the object itself
+            //DirectoryInfo di = this.treeListView.SelectedObject as DirectoryInfo;
+            //if (di != null) {
+            //    if ((di.Attributes & FileAttributes.Archive) == FileAttributes.Archive)
+            //        di.Attributes = di.Attributes & ~FileAttributes.Archive;
+            //    else
+            //        di.Attributes = di.Attributes | FileAttributes.Archive;
+            //}
             this.treeListView.RefreshObjects(this.treeListView.SelectedObjects);
         }
 
