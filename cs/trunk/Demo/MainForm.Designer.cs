@@ -2664,6 +2664,7 @@ namespace ObjectListViewDemo
             this.treeListView.ShowGroups = false;
             this.treeListView.ShowImagesOnSubItems = true;
             this.treeListView.Size = new System.Drawing.Size(774, 395);
+            this.treeListView.SmallImageList = this.imageList1;
             this.treeListView.TabIndex = 13;
             this.treeListView.UseCompatibleStateImageBehavior = false;
             this.treeListView.UseHotItem = true;
