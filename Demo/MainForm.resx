@@ -1538,17 +1538,35 @@
         AR8C/wHAAQMB/wH8AQABfwb/AfgBPwL/AfgBHwL/AYES/ws=
 </value>
   </data>
+  <data name="label2.Text" xml:space="preserve">
+    <value>This list view shows what is possible. It shows: owner drawn rendering (check out owner drawing in Tile view!); alternate line colouring; specialised group item counts (the 'Cooking Skill' and 'Birthday' columns); adding extra information to the 'Tile' view; dynamic tool tips for cells (hold down Control key to see); full drag and drop handling (drop someone on some else to "marry" them).</value>
+  </data>
+  <metadata name="cookingSkillRenderer.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>271, 48</value>
+  </metadata>
+  <data name="label12.Text" xml:space="preserve">
+    <value>The ListViewPrinter class makes printing a ListView ridiciously easy. The format of the report can be easily customised: the styles Minimal, Modern and Too Much! are just some examples. N.B The preview below is not a full print previewer -- it only shows the first two pages of the report.</value>
+  </data>
+  <metadata name="listViewPrinter1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>577, 17</value>
+  </metadata>
   <data name="label1.Text" xml:space="preserve">
     <value>This list view shows what is possible using only IDE configuration. Each column has been told which aspect to display. The birthday and hourly rate column have been given format strings. The Person and Occupation columns have minimum and maximum widths, Year of birth column is fixed width and Comments is free space filler. The Comments header shows a tool tip. All of this configuration -- even the overlay image -- can be done within the IDE.</value>
   </data>
   <metadata name="hotItemStyle1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
-  <data name="label2.Text" xml:space="preserve">
-    <value>This list view shows what is possible. It shows: owner drawn rendering (check out owner drawing in Tile view!); alternate line colouring; specialised group item counts (the 'Cooking Skill' and 'Birthday' columns); adding extra information to the 'Tile' view; dynamic tool tips for cells (hold down Control key to see); full drag and drop handling (drop someone on some else to "marry" them).</value>
-  </data>
   <metadata name="cookingSkillRenderer.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>271, 48</value>
+  </metadata>
+  <metadata name="salaryRenderer.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 54</value>
+  </metadata>
+  <metadata name="heightRenderer.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>850, 17</value>
+  </metadata>
+  <metadata name="imageRenderer1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>138, 48</value>
   </metadata>
   <metadata name="salaryRenderer.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 54</value>
@@ -1568,12 +1586,6 @@
   <data name="label5.Text" xml:space="preserve">
     <value>This is a simple file system explorer. It is *not* a namespace explorer -- it only handles files and directories. One interesting bit is accessing the Shell icon and type descriptions for files. If you choose an empty folder, you will see an example of an empty list message. Right clicking on the header will let you choose which columns are visible. The 'Attributes' column is an example of a FlagRenderer. You can save the current state of the view and restore it latter. </value>
   </data>
-  <data name="label12.Text" xml:space="preserve">
-    <value>The ListViewPrinter class makes printing a ListView ridiciously easy. The format of the report can be easily customised: the styles Minimal, Modern and Too Much! are just some examples. N.B The preview below is not a full print previewer -- it only shows the first two pages of the report.</value>
-  </data>
-  <metadata name="listViewPrinter1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>577, 17</value>
-  </metadata>
   <data name="label26.Text" xml:space="preserve">
     <value>This is a FastObjectListView, named because it trades functionality for speed. It does not support grouping; it cannot be put into Tile view, but otherwise it acts just like a normal ObjectListView -- only much faster!</value>
   </data>
@@ -1586,9 +1598,6 @@
   <data name="label29.Text" xml:space="preserve">
     <value>This is a simple file system explorer. It is *not* a namespace explorer -- it only handles files and directories. One interesting bit is accessing the Shell icon and type descriptions for files. If you choose an empty folder, you will see an example of an empty list message. Right clicking on the header will let you choose which columns are visible. The 'Attributes' column is an example of a FlagRenderer. You can save the current state of the view and restore it latter. </value>
   </data>
-  <metadata name="blockFormat1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>458, 17</value>
-  </metadata>
   <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>93</value>
   </metadata>
