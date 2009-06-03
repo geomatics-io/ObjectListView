@@ -2415,12 +2415,4 @@ namespace BrightIdeasSoftware
         private List<Int32> keysInOrder = new List<Int32>();
         private Dictionary<Int32, Object> imageMap = new Dictionary<Int32, object>();
     }
-
-    /// <summary>
-    /// Typed version of FlagRenderer. Kept only for backwards compatibility
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class FlagRenderer<T> : FlagRenderer
-    {
-    }
 }
