@@ -417,6 +417,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         public override void BuildList(bool shouldPreserveSelection)
         {
+            this.UpdateVirtualListSize();
             this.ClearCachedInfo();
             this.Invalidate();
         }
