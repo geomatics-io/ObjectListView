@@ -5,12 +5,13 @@
  * Date: 25/11/2008 17:15 
  *
  * Change log:
+ * 2009-06-01  JPP  - ModelObjectComparer would crash if secondary sort column was null.
  * 2008-12-20  JPP  - Fixed bug with group comparisons when a group key was null (SF#2445761)
  * 2008-11-25  JPP  Initial version
  *
  * TO DO:
  *
- * Copyright (C) 2006-2008 Phillip Piper
+ * Copyright (C) 2006-2009 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -163,7 +164,7 @@ namespace BrightIdeasSoftware
             : this(col, order)
         {
             // There is no point in secondary sorting on the same column
-            if (col != col2)
+            if (col != col2 && col2 != null && order2 != SortOrder.None)
                 this.secondComparer = new ModelObjectComparer(col2, order2);
         }
 
