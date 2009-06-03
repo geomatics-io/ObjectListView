@@ -1,10 +1,12 @@
-﻿/*
+/*
  * Overlays - Decorations that can be rendered over the top of a ListView
  *
  * Author: Phillip Piper
  * Date: 14/04/2009 4:36 PM
  *
  * Change log:
+ * v2.2
+ * 2009-06-01   JPP  - Make sure that TintedColumnDecoration reaches to the last item in group view
  * 2009-05-05   JPP  - Unified BillboardOverlay text rendering with that of TextOverlay
  * 2009-04-30   JPP  - Added TintedColumnDecoration
  * 2009-04-14   JPP  - Initial version
@@ -30,10 +32,10 @@
  */
 
 using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.ComponentModel;
 
 namespace BrightIdeasSoftware
 {
@@ -85,7 +87,7 @@ namespace BrightIdeasSoftware
         [Category("Appearance - ObjectListView"),
          Description("Where within the content rectangle of the listview the overlay will be drawn"),
          DefaultValue(System.Drawing.ContentAlignment.BottomRight),
-          RefreshProperties(RefreshProperties.Repaint)]
+         RefreshProperties(RefreshProperties.Repaint)]
         public System.Drawing.ContentAlignment Alignment {
             get { return this.overlayImageAlignment; }
             set { this.overlayImageAlignment = value; }
@@ -101,10 +103,10 @@ namespace BrightIdeasSoftware
          DefaultValue(20),
          NotifyParentProperty(true)]
         public int InsetX {
-            get { return this.insetx; }
-            set { this.insetx = Math.Max(0, value); }
+            get { return this.insetX; }
+            set { this.insetX = Math.Max(0, value); }
         }
-        private int insetx = 20;
+        private int insetX = 20;
 
         /// <summary>
         /// Gets or sets the number of pixels that this overlay will be inset from the vertical edges of the
@@ -115,14 +117,14 @@ namespace BrightIdeasSoftware
          DefaultValue(20),
          NotifyParentProperty(true)]
         public int InsetY {
-            get { return this.insety; }
-            set { this.insety = Math.Max(0, value); }
+            get { return this.insetY; }
+            set { this.insetY = Math.Max(0, value); }
         }
-        private int insety = 20;
+        private int insetY = 20;
 
         /// <summary>
         /// Gets or sets the degree of rotation by which the graphic will be transformed.
-        /// The centre of rotation will be the point indicated by Alignment.
+        /// The centre of rotation will be the center point of the graphic.
         /// </summary>
         [Category("Appearance - ObjectListView"),
          Description("The degree of rotation that will be applied to the graphic."),
@@ -754,7 +756,7 @@ namespace BrightIdeasSoftware
             Rectangle columnBounds = new Rectangle(sides.X, r.Top, sides.Y - sides.X, r.Bottom);
 
             // Find the bottom of the last item
-            Rectangle lastItemBounds = olv.GetItem(olv.GetItemCount() - 1).Bounds;
+            Rectangle lastItemBounds = olv.GetLastItemInDisplayOrder().Bounds;
             if (lastItemBounds.Bottom < columnBounds.Bottom)
                 columnBounds.Height = lastItemBounds.Bottom - columnBounds.Top;
             g.FillRectangle(this.tintBrush, columnBounds);
