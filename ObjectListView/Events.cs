@@ -5,6 +5,8 @@
  * Date: 17/10/2008 9:15 PM
  *
  * Change log:
+ * 2009-06-01   JPP  - Added ColumnToGroupBy and GroupByOrder to sorting events
+                     - Gave all event descriptions
  * 2009-04-23   JPP  - Added drag drop events
  * v2.1
  * 2009-01-18   JPP  - Moved SelectionChanged event to this file
@@ -13,7 +15,7 @@
  * 2008-12-01   JPP  - Added secondary sort information to Before/AfterSorting events
  * 2008-10-17   JPP  - Separated from ObjectListView.cs
  * 
- * Copyright (C) 2006-2008 Phillip Piper
+ * Copyright (C) 2006-2009 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +49,7 @@ namespace BrightIdeasSoftware
     /// cell editing event code from v1.x.
     /// </remarks>
     public delegate void CellEditEventHandler(object sender, CellEditEventArgs e);
-    
+
     partial class ObjectListView
     {
         //-----------------------------------------------------------------------------------
@@ -56,13 +58,15 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Triggered after a ObjectListView has been searched by the user typing into the list
         /// </summary>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered after the control has done a search-by-typing action.")]
         public event EventHandler<AfterSearchingEventArgs> AfterSearching;
 
         /// <summary>
         /// Triggered after a ObjectListView has been sorted
         /// </summary>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered after the items in the list have been sorted.")]
         public event EventHandler<AfterSortingEventArgs> AfterSorting;
 
         /// <summary>
@@ -72,7 +76,8 @@ namespace BrightIdeasSoftware
         /// Set Cancelled to true to prevent the searching from taking place.
         /// Changing StringToFind or StartSearchFrom will change the subsequent search.
         /// </remarks>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered before the control does a search-by-typing action.")]
         public event EventHandler<BeforeSearchingEventArgs> BeforeSearching;
 
         /// <summary>
@@ -82,7 +87,8 @@ namespace BrightIdeasSoftware
         /// Set Cancelled to true to prevent the sort from taking place.
         /// Changing ColumnToSort or SortOrder will change the subsequent sort.
         /// </remarks>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered before the items in the list are sorted.")]
         public event EventHandler<BeforeSortingEventArgs> BeforeSorting;
 
         /// <summary>
@@ -91,9 +97,11 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>
         /// Handlers for this event should set the Effect argument and optionally the
-        /// InfoMsg property.
+        /// InfoMsg property. They can also change any of the DropTarget* setttings to change
+        /// the target of the drop.
         /// </remarks>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("Can the user drop the currently dragged items at the current mouse location?")]
         public event EventHandler<OlvDropEventArgs> CanDrop;
 
         /// <summary>
@@ -101,8 +109,10 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>If Cancel is already true, the user is cancelling the edit operation.
         /// Set Cancel to true to prevent the value from the cell being written into the model.
-        /// You cannot prevent the editing from finishing.</remarks>
-        [Category("Behavior - ObjectListView")]
+        /// You cannot prevent the editing from finishing within this event -- you need
+        /// the CellEditValidating event for that.</remarks>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered cell edit operation is finishing.")]
         public event CellEditEventHandler CellEditFinishing;
 
         /// <summary>
@@ -110,7 +120,8 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>Set Cancel to true to prevent the cell being edited.
         /// You can change the the Control to be something completely different.</remarks>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when cell edit is about to begin.")]
         public event CellEditEventHandler CellEditStarting;
 
         /// <summary>
@@ -119,32 +130,37 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// If this event is cancelled, focus will remain on the cell editor.
         /// </remarks>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when a cell editor is about to lose focus and its new contents need to be validated.")]
         public event CellEditEventHandler CellEditValidating;
 
         /// <summary>
         /// Triggered when a column header is right clicked.
         /// </summary>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when the user right clicks a column header.")]
         public event ColumnRightClickEventHandler ColumnRightClick;
 
         /// <summary>
         /// This event is triggered when the user releases a drag over an ObjectListView that
         /// has a SimpleDropSink installed as the drop handler.
         /// </summary>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when the user dropped items onto the control.")]
         public event EventHandler<OlvDropEventArgs> Dropped;
 
         /// <summary>
         /// Some new objects are about to be added to an ObjectListView.
         /// </summary>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when objects are about to be added to the control")]
         public event EventHandler<ItemsAddingEventArgs> ItemsAdding;
 
         /// <summary>
         /// The contents of the ObjectListView has changed.
         /// </summary>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when the contents of the control have changed.")]
         public event EventHandler<ItemsChangedEventArgs> ItemsChanged;
 
         /// <summary>
@@ -153,13 +169,15 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// <para>Set Cancelled to true to prevent the contents of the list changing. This does not work with virtual lists.</para>
         /// </remarks>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when the contents of the control changes.")]
         public event EventHandler<ItemsChangingEventArgs> ItemsChanging;
 
         /// <summary>
         /// Some objects are about to be removed from an ObjectListView.
         /// </summary>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when objects are removed from the control.")]
         public event EventHandler<ItemsRemovingEventArgs> ItemsRemoving;
 
         /// <summary>
@@ -169,9 +187,11 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>
         /// Handlers for this event should set the Effect argument and optionally the
-        /// InfoMsg property.
+        /// InfoMsg property. They can also change any of the DropTarget* setttings to change
+        /// the target of the drop.
         /// </remarks>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("Can the dragged collection of model objects be dropped at the current mouse location")]
         public event EventHandler<ModelDropEventArgs> ModelCanDrop;
 
         /// <summary>
@@ -179,7 +199,8 @@ namespace BrightIdeasSoftware
         /// has a SimpleDropSink installed as the drop handler and when the source control
         /// for the drag was an ObjectListView.
         /// </summary>
-        [Category("Behavior - ObjectListView")]
+        [Category("Behavior - ObjectListView"),
+        Description("A collection of model objects from a ObjectListView has been dropped on this control")]
         public event EventHandler<ModelDropEventArgs> ModelDropped;
 
         /// <summary>
@@ -189,7 +210,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
         Description("This event is triggered once per user action that changes the selection state of one or more rows.")]
         public event EventHandler SelectionChanged;
-        
+
         /// <summary>
         /// This event is triggered when the contents of the ObjectListView has scrolled.
         /// </summary>
@@ -197,31 +218,41 @@ namespace BrightIdeasSoftware
         Description("This event is triggered when the contents of the ObjectListView has scrolled.")]
         public event EventHandler<ScrollEventArgs> Scroll;
 
+        /// <summary>
+        /// This event is triggered when a cell needs a tool tip.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when a cell needs a tool tip.")]
+        public event EventHandler<ToolTipShowingEventArgs> CellToolTipShowing;
+
+        /// <summary>
+        /// This event is triggered when a header needs a tool tip.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when a header needs a tool tip.")]
+        public event EventHandler<ToolTipShowingEventArgs> HeaderToolTipShowing;
+
         #endregion
-        
+
         //-----------------------------------------------------------------------------------
         #region OnEvents
 
-        protected virtual void OnAfterSearching(AfterSearchingEventArgs e)
-        {
+        protected virtual void OnAfterSearching(AfterSearchingEventArgs e) {
             if (this.AfterSearching != null)
                 this.AfterSearching(this, e);
         }
 
-        protected virtual void OnAfterSorting(AfterSortingEventArgs e)
-        {
+        protected virtual void OnAfterSorting(AfterSortingEventArgs e) {
             if (this.AfterSorting != null)
                 this.AfterSorting(this, e);
         }
 
-        protected virtual void OnBeforeSearching(BeforeSearchingEventArgs e)
-        {
+        protected virtual void OnBeforeSearching(BeforeSearchingEventArgs e) {
             if (this.BeforeSearching != null)
                 this.BeforeSearching(this, e);
         }
 
-        protected virtual void OnBeforeSorting(BeforeSortingEventArgs e)
-        {
+        protected virtual void OnBeforeSorting(BeforeSortingEventArgs e) {
             if (this.BeforeSorting != null)
                 this.BeforeSorting(this, e);
         }
@@ -231,8 +262,12 @@ namespace BrightIdeasSoftware
                 this.CanDrop(this, args);
         }
 
-        protected virtual void OnColumnRightClick(ColumnClickEventArgs e)
-        {
+        protected virtual void OnCellToolTip(ToolTipShowingEventArgs args) {
+            if (this.CellToolTipShowing != null)
+                this.CellToolTipShowing(this, args);
+        }
+
+        protected virtual void OnColumnRightClick(ColumnClickEventArgs e) {
             if (this.ColumnRightClick != null)
                 this.ColumnRightClick(this, e);
         }
@@ -242,26 +277,27 @@ namespace BrightIdeasSoftware
                 this.Dropped(this, args);
         }
 
-        protected virtual void OnItemsAdding(ItemsAddingEventArgs e)
-        {
+        protected virtual void OnHeaderToolTip(ToolTipShowingEventArgs args) {
+            if (this.HeaderToolTipShowing != null)
+                this.HeaderToolTipShowing(this, args);
+        }
+
+        protected virtual void OnItemsAdding(ItemsAddingEventArgs e) {
             if (this.ItemsAdding != null)
                 this.ItemsAdding(this, e);
         }
 
-        protected virtual void OnItemsChanged(ItemsChangedEventArgs e)
-        {
+        protected virtual void OnItemsChanged(ItemsChangedEventArgs e) {
             if (this.ItemsChanged != null)
                 this.ItemsChanged(this, e);
         }
 
-        protected virtual void OnItemsChanging(ItemsChangingEventArgs e)
-        {
+        protected virtual void OnItemsChanging(ItemsChangingEventArgs e) {
             if (this.ItemsChanging != null)
                 this.ItemsChanging(this, e);
         }
 
-        protected virtual void OnItemsRemoving(ItemsRemovingEventArgs e)
-        {
+        protected virtual void OnItemsRemoving(ItemsRemovingEventArgs e) {
             if (this.ItemsRemoving != null)
                 this.ItemsRemoving(this, e);
         }
@@ -276,14 +312,12 @@ namespace BrightIdeasSoftware
                 this.ModelDropped(this, args);
         }
 
-        protected virtual void OnSelectionChanged(EventArgs e)
-        {
+        protected virtual void OnSelectionChanged(EventArgs e) {
             if (this.SelectionChanged != null)
                 this.SelectionChanged(this, e);
         }
 
-        protected virtual void OnScroll(ScrollEventArgs e)
-        {
+        protected virtual void OnScroll(ScrollEventArgs e) {
             if (this.Scroll != null)
                 this.Scroll(this, e);
         }
@@ -291,8 +325,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Tell the world when a cell is about to be edited.
         /// </summary>
-        protected virtual void OnCellEditStarting(CellEditEventArgs e)
-        {
+        protected virtual void OnCellEditStarting(CellEditEventArgs e) {
             if (this.CellEditStarting != null)
                 this.CellEditStarting(this, e);
         }
@@ -300,8 +333,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Tell the world when a cell is about to finish being edited.
         /// </summary>
-        protected virtual void OnCellEditorValidating(CellEditEventArgs e)
-        {
+        protected virtual void OnCellEditorValidating(CellEditEventArgs e) {
             // Hack. ListView is an imperfect control container. It does not manage validation
             // perfectly. If the ListView is part of a TabControl, and the cell editor loses
             // focus by the user clicking on another tab, the TabControl processes the click
@@ -335,8 +367,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Tell the world when a cell is about to finish being edited.
         /// </summary>
-        protected virtual void OnCellEditFinishing(CellEditEventArgs e)
-        {
+        protected virtual void OnCellEditFinishing(CellEditEventArgs e) {
             if (this.CellEditFinishing != null)
                 this.CellEditFinishing(this, e);
         }
@@ -360,8 +391,7 @@ namespace BrightIdeasSoftware
         /// <param name="r"></param>
         /// <param name="item"></param>
         /// <param name="subItemIndex"></param>
-        public CellEditEventArgs(OLVColumn column, Control control, Rectangle r, OLVListItem item, int subItemIndex)
-        {
+        public CellEditEventArgs(OLVColumn column, Control control, Rectangle r, OLVListItem item, int subItemIndex) {
             this.Control = control;
             this.column = column;
             this.cellBounds = r;
@@ -395,8 +425,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// The column of the cell that is going to be or has been edited.
         /// </summary>
-        public OLVColumn Column
-        {
+        public OLVColumn Column {
             get { return this.column; }
         }
         private OLVColumn column;
@@ -404,8 +433,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// The model object of the row of the cell that is going to be or has been edited.
         /// </summary>
-        public Object RowObject
-        {
+        public Object RowObject {
             get { return this.rowObject; }
         }
         private Object rowObject;
@@ -413,8 +441,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// The listview item of the cell that is going to be or has been edited.
         /// </summary>
-        public OLVListItem ListViewItem
-        {
+        public OLVListItem ListViewItem {
             get { return this.listViewItem; }
         }
         private OLVListItem listViewItem;
@@ -422,8 +449,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// The index of the cell that is going to be or has been edited.
         /// </summary>
-        public int SubItemIndex
-        {
+        public int SubItemIndex {
             get { return this.subItemIndex; }
         }
         private int subItemIndex;
@@ -431,8 +457,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// The data value of the cell before the edit operation began.
         /// </summary>
-        public Object Value
-        {
+        public Object Value {
             get { return this.value; }
         }
         private Object value;
@@ -440,8 +465,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// The bounds of the cell that is going to be or has been edited.
         /// </summary>
-        public Rectangle CellBounds
-        {
+        public Rectangle CellBounds {
             get { return this.cellBounds; }
         }
         private Rectangle cellBounds;
@@ -457,14 +481,31 @@ namespace BrightIdeasSoftware
 
     public class BeforeSortingEventArgs : CancellableEventArgs
     {
-        public BeforeSortingEventArgs(OLVColumn column, SortOrder order, OLVColumn column2, SortOrder order2)
-        {
+        public BeforeSortingEventArgs(OLVColumn column, SortOrder order, OLVColumn column2, SortOrder order2) {
+            this.ColumnToGroupBy = column;
+            this.GroupByOrder = order;
             this.ColumnToSort = column;
             this.SortOrder = order;
             this.SecondaryColumnToSort = column2;
             this.SecondarySortOrder = order2;
         }
 
+        public BeforeSortingEventArgs(OLVColumn groupColumn, SortOrder groupOrder, OLVColumn column, SortOrder order, OLVColumn column2, SortOrder order2) {
+            this.ColumnToGroupBy = groupColumn;
+            this.GroupByOrder = groupOrder;
+            this.ColumnToSort = column;
+            this.SortOrder = order;
+            this.SecondaryColumnToSort = column2;
+            this.SecondarySortOrder = order2;
+        }
+
+        /// <summary>
+        /// Did the event handler already do the sorting for us?
+        /// </summary>
+        public bool Handled;
+
+        public OLVColumn ColumnToGroupBy;
+        public SortOrder GroupByOrder;
         public OLVColumn ColumnToSort;
         public SortOrder SortOrder;
         public OLVColumn SecondaryColumnToSort;
@@ -473,34 +514,50 @@ namespace BrightIdeasSoftware
 
     public class AfterSortingEventArgs : EventArgs
     {
-        public AfterSortingEventArgs(OLVColumn column, SortOrder order, OLVColumn column2, SortOrder order2)
-        {
+        public AfterSortingEventArgs(OLVColumn groupColumn, SortOrder groupOrder, OLVColumn column, SortOrder order, OLVColumn column2, SortOrder order2) {
+            this.columnToGroupBy = groupColumn;
+            this.groupByOrder = groupOrder;
             this.columnToSort = column;
             this.sortOrder = order;
             this.secondaryColumnToSort = column2;
             this.secondarySortOrder = order2;
         }
 
-        public OLVColumn ColumnToSort
-        {
+        public AfterSortingEventArgs(BeforeSortingEventArgs args) {
+            this.columnToGroupBy = args.ColumnToGroupBy;
+            this.groupByOrder = args.GroupByOrder;
+            this.columnToSort = args.ColumnToSort;
+            this.sortOrder = args.SortOrder;
+            this.secondaryColumnToSort = args.SecondaryColumnToSort;
+            this.secondarySortOrder = args.SecondarySortOrder;
+        }
+
+        public OLVColumn ColumnToGroupBy {
+            get { return columnToGroupBy; }
+        }
+        private OLVColumn columnToGroupBy;
+
+        public SortOrder GroupByOrder {
+            get { return groupByOrder; }
+        }
+        private SortOrder groupByOrder;
+
+        public OLVColumn ColumnToSort {
             get { return columnToSort; }
         }
         private OLVColumn columnToSort;
 
-        public SortOrder SortOrder
-        {
+        public SortOrder SortOrder {
             get { return sortOrder; }
         }
         private SortOrder sortOrder;
 
-        public OLVColumn SecondaryColumnToSort
-        {
+        public OLVColumn SecondaryColumnToSort {
             get { return secondaryColumnToSort; }
         }
         private OLVColumn secondaryColumnToSort;
 
-        public SortOrder SecondarySortOrder
-        {
+        public SortOrder SecondarySortOrder {
             get { return secondarySortOrder; }
         }
         private SortOrder secondarySortOrder;
@@ -512,8 +569,7 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class ItemsChangedEventArgs : EventArgs
     {
-        public ItemsChangedEventArgs()
-        {
+        public ItemsChangedEventArgs() {
         }
 
         /// <summary>
@@ -521,20 +577,17 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="oldObjectCount"></param>
         /// <param name="newObjectCount"></param>
-        public ItemsChangedEventArgs(int oldObjectCount, int newObjectCount)
-        {
+        public ItemsChangedEventArgs(int oldObjectCount, int newObjectCount) {
             this.oldObjectCount = oldObjectCount;
             this.newObjectCount = newObjectCount;
         }
 
-        public int OldObjectCount
-        {
+        public int OldObjectCount {
             get { return oldObjectCount; }
         }
         private int oldObjectCount;
 
-        public int NewObjectCount
-        {
+        public int NewObjectCount {
             get { return newObjectCount; }
         }
         private int newObjectCount;
@@ -545,8 +598,7 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class ItemsAddingEventArgs : CancellableEventArgs
     {
-        public ItemsAddingEventArgs(ICollection objectsToAdd)
-        {
+        public ItemsAddingEventArgs(ICollection objectsToAdd) {
             this.ObjectsToAdd = objectsToAdd;
         }
 
@@ -561,14 +613,12 @@ namespace BrightIdeasSoftware
     /// </remarks>
     public class ItemsChangingEventArgs : CancellableEventArgs
     {
-        public ItemsChangingEventArgs(IEnumerable oldObjects, IEnumerable newObjects)
-        {
+        public ItemsChangingEventArgs(IEnumerable oldObjects, IEnumerable newObjects) {
             this.oldObjects = oldObjects;
             this.NewObjects = newObjects;
         }
 
-        public IEnumerable OldObjects
-        {
+        public IEnumerable OldObjects {
             get { return oldObjects; }
         }
         private IEnumerable oldObjects;
@@ -581,8 +631,7 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class ItemsRemovingEventArgs : CancellableEventArgs
     {
-        public ItemsRemovingEventArgs(ICollection objectsToRemove)
-        {
+        public ItemsRemovingEventArgs(ICollection objectsToRemove) {
             this.ObjectsToRemove = objectsToRemove;
         }
 
@@ -594,25 +643,18 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class AfterSearchingEventArgs : EventArgs
     {
-        public AfterSearchingEventArgs(string stringToFind, int indexSelected)
-        {
+        public AfterSearchingEventArgs(string stringToFind, int indexSelected) {
             this.stringToFind = stringToFind;
             this.indexSelected = indexSelected;
         }
 
-        public string StringToFind
-        {
-            get {
-                return this.stringToFind;
-            }
+        public string StringToFind {
+            get { return this.stringToFind; }
         }
         private string stringToFind;
 
-        public int IndexSelected
-        {
-            get {
-                return this.indexSelected;
-            }
+        public int IndexSelected {
+            get { return this.indexSelected; }
         }
         private int indexSelected;
     }
@@ -622,8 +664,7 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class BeforeSearchingEventArgs : CancellableEventArgs
     {
-        public BeforeSearchingEventArgs(string stringToFind, int startSearchFrom)
-        {
+        public BeforeSearchingEventArgs(string stringToFind, int startSearchFrom) {
             this.StringToFind = stringToFind;
             this.StartSearchFrom = startSearchFrom;
         }
