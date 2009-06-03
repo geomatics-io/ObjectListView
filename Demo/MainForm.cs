@@ -203,15 +203,6 @@ namespace ObjectListViewDemo
 				return ((TimeSpan)aspect).Days.ToString();
 			};
 
-            // Show a long tooltip over cells when the control key is down
-            this.listViewComplex.CellToolTipGetter = delegate(OLVColumn col, Object x) {
-                if (Control.ModifierKeys == Keys.Control) {
-                    return String.Format("Tool tip for '{0}', column '{1}'\r\nValue shown: '{2}'", 
-                        ((Person)x).Name, col.Text, col.GetStringValue(x));
-                } else
-                    return null;
-            };
-
             // Install a custom renderer that draws the Tile view in a special way
             this.listViewComplex.ItemRenderer = new BusinessCardRenderer();
 
@@ -249,6 +240,13 @@ namespace ObjectListViewDemo
                 e.ListView.RefreshObject(e.TargetModel);
                 e.ListView.RefreshObjects(e.SourceModels);
             });
+
+            // Make the tooltips look somewhat different
+            this.listViewComplex.CellToolTip.BackColor = Color.Black;
+            this.listViewComplex.CellToolTip.ForeColor = Color.AntiqueWhite;
+            this.listViewComplex.HeaderToolTip.BackColor = Color.AntiqueWhite;
+            this.listViewComplex.HeaderToolTip.ForeColor = Color.Black;
+            this.listViewComplex.HeaderToolTip.IsBalloon = true;
 
             comboBox1.SelectedIndex = 4;
             comboBox5.SelectedIndex = 0;
@@ -1796,6 +1794,41 @@ namespace ObjectListViewDemo
 
         private void listViewSimple_Scroll(object sender, ScrollEventArgs e) {
             //System.Diagnostics.Debug.WriteLine(String.Format("{0}, {1}, {2}", e.OldValue, e.NewValue, e.ScrollOrientation));
+        }
+
+        private void listViewComplex_CellToolTip(object sender, ToolTipShowingEventArgs e) {
+            // Show a long tooltip over cells when the control key is down
+            if (Control.ModifierKeys != Keys.Control)
+                return;
+
+            string stringValue = e.Column.GetStringValue(e.Model);
+            if (stringValue.StartsWith("m", StringComparison.InvariantCultureIgnoreCase)) {
+                e.IsBalloon = true;
+                e.ToolTipControl.SetMaxWidth(400);
+                e.Title = "WARNING";
+                e.StandardIcon = ToolTipControl.StandardIcons.Warning;
+                e.BackColor = Color.AliceBlue;
+                e.ForeColor = Color.IndianRed;
+                e.AutoPopDelay = 15000;
+                e.Font = new Font("Tahoma", 12.0f);
+                e.Text = "THIS VALUE BEGINS WITH A DANGEROUS LETTER!\r\n\r\n" +
+                    "On no account should members of the public attempt to pronounce this word without " +
+                    "the assistance of trained vocalization specialists.";
+            } else {
+                e.Text = String.Format("Tool tip for '{0}', column '{1}'\r\nValue shown: '{2}'",
+                    ((Person)e.Model).Name, e.Column.Text, stringValue);
+            }
+        }
+
+        private void listViewComplex_HeaderToolTipShowing(object sender, ToolTipShowingEventArgs e) {
+            if (Control.ModifierKeys != Keys.Control)
+                return;
+
+            e.Title = "Information";
+            e.StandardIcon = ToolTipControl.StandardIcons.Info;
+            e.AutoPopDelay = 10000;
+            e.Text = String.Format("More details about the '{0}' column\r\n\r\nThis only shows when the control key is down.",
+                e.Column.Text);
         }
     }
         
