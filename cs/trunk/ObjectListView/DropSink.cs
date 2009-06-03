@@ -5,6 +5,9 @@
  * Date: 2009-03-17 5:15 PM
  *
  * Change log:
+ * v2.2
+ * 2009-05-17   JPP  - Added a Handled flag to OlvDropEventArgs
+ *                   - Tweaked the appearance of the drop-on-background feedback
  * 2009-04-15   JPP  - Separated DragDrop.cs into DropSink.cs
  * 2009-03-17   JPP  - Initial version
  * 
@@ -103,7 +106,7 @@ namespace BrightIdeasSoftware
 
     /// <summary>
     /// This is a do-nothing implementation of IDropSink that is a useful
-    /// base class for more sophisicated implementations.
+    /// base class for more sophisticated implementations.
     /// </summary>
     public class AbstractDropSink : IDropSink
     {
@@ -234,6 +237,9 @@ namespace BrightIdeasSoftware
     {
         #region Life and death
 
+        /// <summary>
+        /// Make a new drop sink
+        /// </summary>
         public SimpleDropSink() {
             this.timer = new Timer();
             this.timer.Interval = 250;
@@ -253,7 +259,7 @@ namespace BrightIdeasSoftware
         #region Public properties
 
         /// <summary>
-        /// Get or set the locations where a drop is allowed to occur
+        /// Get or set the locations where a drop is allowed to occur (OR-ed together)
         /// </summary>
         public DropTargetLocation AcceptableLocations {
             get { return this.acceptableLocations; }
@@ -262,7 +268,7 @@ namespace BrightIdeasSoftware
         private DropTargetLocation acceptableLocations;
 
         /// <summary>
-        /// Gets or sets whether the ListView should scroll when the user drags
+        /// Gets or sets whether the ObjectListView should scroll when the user drags
         /// something near to the top or bottom rows.
         /// </summary>
         public bool AutoScroll {
@@ -273,9 +279,9 @@ namespace BrightIdeasSoftware
 
         /// <summary>
         /// Gets the billboard overlay that will be used to display feedback
-        /// messages during a drag operation. Set this to null to stop the
-        /// feedback.
+        /// messages during a drag operation. 
         /// </summary>
+        /// <remarks>Set this to null to stop the feedback.</remarks>
         public BillboardOverylay Billboard {
             get { return this.billboard; }
             set { this.billboard = value; }
@@ -492,8 +498,11 @@ namespace BrightIdeasSoftware
 
         #region DropSink Interface
 
+        /// <summary>
+        /// Cleanup the drop sink when the mouse has left the control or 
+        /// the drag has finished.
+        /// </summary>
         protected override void Cleanup() {
-            //System.Diagnostics.Debug.WriteLine("Cleanup");
             this.DropTargetLocation = DropTargetLocation.None;
             this.ListView.FullRowSelect = this.originalFullRowSelect;
             this.Billboard.Text = null;
@@ -537,9 +546,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="args"></param>
         public override void Drop(DragEventArgs args) {
-            //System.Diagnostics.Debug.WriteLine("Drop");
             this.TriggerDroppedEvent(args);
-
             this.timer.Stop();
             this.Cleanup();
         }
@@ -595,37 +602,15 @@ namespace BrightIdeasSoftware
         
         #region Events
 
-        protected virtual void TriggerCanDropEvent(Point pt) {
-            // If the source is an ObjectListView, trigger the ModelCanDrop event
-        }
-
-        /// <summary>
-        /// Update the state of our sink to reflect the information that 
-        /// may have been written into the drop event args.
-        /// </summary>
-        /// <param name="args"></param>
-        protected virtual void UpdateAfterCanDropEvent(OlvDropEventArgs args) {
-            this.DropTargetIndex = args.DropTargetIndex;
-            this.DropTargetLocation = args.DropTargetLocation;
-            this.DropTargetSubItemIndex = args.DropTargetSubItemIndex;
-
-            if (this.Billboard != null) {
-                Point pt = args.MouseLocation;
-                pt.Offset(5, 5);
-                if (this.Billboard.Text != this.dropEventArgs.InfoMessage || this.Billboard.Location != pt) {
-                    this.Billboard.Text = this.dropEventArgs.InfoMessage;
-                    this.Billboard.Location = pt;
-                    this.ListView.Invalidate();
-                }
-            }
-        }
-
         protected virtual void TriggerDroppedEvent(DragEventArgs args) {
+            this.dropEventArgs.Handled = false;
+
             // If the source is an ObjectListView, trigger the ModelDropped event
-            if (this.dropEventArgs.SourceListView != null) {
+            if (this.dropEventArgs.SourceListView != null) 
                 this.OnModelDropped(this.dropEventArgs);
-            }
-            this.OnDropped(this.dropEventArgs);
+
+            if (!this.dropEventArgs.Handled)
+                this.OnDropped(this.dropEventArgs);
         }
 
         protected virtual void OnCanDrop(OlvDropEventArgs args) {
@@ -754,11 +739,15 @@ namespace BrightIdeasSoftware
 
             this.dropEventArgs.MouseLocation = pt;
             this.dropEventArgs.InfoMessage = null;
+            this.dropEventArgs.Handled = false;
+
             if (this.dropEventArgs.SourceListView != null) {
                 this.dropEventArgs.TargetModel = this.ListView.GetModelObject(this.DropTargetIndex);
                 this.OnModelCanDrop(this.dropEventArgs);
             }
-            this.OnCanDrop(this.dropEventArgs);
+
+            if (!this.dropEventArgs.Handled)
+                this.OnCanDrop(this.dropEventArgs);
 
             this.UpdateAfterCanDropEvent(this.dropEventArgs);
 
@@ -813,6 +802,27 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Update the state of our sink to reflect the information that 
+        /// may have been written into the drop event args.
+        /// </summary>
+        /// <param name="args"></param>
+        protected virtual void UpdateAfterCanDropEvent(OlvDropEventArgs args) {
+            this.DropTargetIndex = args.DropTargetIndex;
+            this.DropTargetLocation = args.DropTargetLocation;
+            this.DropTargetSubItemIndex = args.DropTargetSubItemIndex;
+
+            if (this.Billboard != null) {
+                Point pt = args.MouseLocation;
+                pt.Offset(5, 5);
+                if (this.Billboard.Text != this.dropEventArgs.InfoMessage || this.Billboard.Location != pt) {
+                    this.Billboard.Text = this.dropEventArgs.InfoMessage;
+                    this.Billboard.Location = pt;
+                    this.ListView.Invalidate();
+                }
+            }
+        }
+
         #endregion
 
         #region Rendering
@@ -823,9 +833,13 @@ namespace BrightIdeasSoftware
         /// <param name="g"></param>
         /// <param name="bounds"></param>
         protected virtual void DrawFeedbackBackgroundTarget(Graphics g, Rectangle bounds) {
+            float penWidth = 12.0f;
             Rectangle r = bounds;
-            using (Pen p = new Pen(this.FeedbackColor, 15.0f)) {
-                g.DrawRectangle(p, r);
+            r.Inflate((int)-penWidth / 2, (int)-penWidth / 2);
+            using (Pen p = new Pen(Color.FromArgb(128, this.FeedbackColor), penWidth)) {
+                using (GraphicsPath path = this.GetRoundedRect(r, 30.0f)) {
+                    g.DrawPath(p, path);
+                }
             }
         }
 
@@ -1022,6 +1036,11 @@ namespace BrightIdeasSoftware
         private bool acceptExternal = false;
 
         protected override void OnModelCanDrop(ModelDropEventArgs args) {
+            base.OnModelCanDrop(args);
+
+            if (args.Handled)
+                return;
+
             args.Effect = DragDropEffects.Move;
 
             // Don't allow drops from other list, if that's what's configured
@@ -1039,7 +1058,10 @@ namespace BrightIdeasSoftware
         }
 
         protected override void OnModelDropped(ModelDropEventArgs args) {
-            this.RearrangeModels(args);
+            base.OnModelDropped(args);
+
+            if (!args.Handled)
+                this.RearrangeModels(args);
         }
 
         /// <summary>
@@ -1146,6 +1168,15 @@ namespace BrightIdeasSoftware
             set { this.effect = value; }
         }
         private DragDropEffects effect;
+
+        /// <summary>
+        /// Get or set if this event was handled. No further processing will be done for a handled event.
+        /// </summary>
+        public bool Handled {
+            get { return this.handled; }
+            set { this.handled = value; }
+        }
+        private bool handled;
 
         /// <summary>
         /// Get or set the feedback message for this operation
