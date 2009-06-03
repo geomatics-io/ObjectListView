@@ -5,6 +5,12 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2009-06-02  JPP  - BeforeSortingEventArgs now has a Handled property to let event handlers do
+ *                    the item sorting themselves.
+ *                  - AlwaysGroupByColumn works again, as does SortGroupItemsByPrimaryColumn and all their
+ *                    various permutations.
+ *                  - SecondarySortOrder and SecondarySortColumn are now "null" by default
+ * 2009-05-15  JPP  - Fixed bug so that KeyPress events are again triggered
  * 2009-05-10  JPP  - Removed all unsafe code
  * 2009-05-07  JPP  - Don't use glass panel for overlays when in design mode. It's too confusing.
  * 2009-05-05  JPP  - Added Scroll event (thanks to Christophe Hosten for the complete patch to implement this)
@@ -376,12 +382,6 @@ namespace BrightIdeasSoftware
             // Setup the overlays that will be controlled by the IDE settings
             this.InitializeStandardOverlays();
             this.InitializeEmptyListMsgOverlay();
-
-            this.KeyPress += new KeyPressEventHandler(ObjectListView_KeyPress);
-        }
-
-        void ObjectListView_KeyPress(object sender, KeyPressEventArgs e) {
-            System.Diagnostics.Debug.WriteLine("keypress");
         }
 
         #region Public properties
@@ -521,6 +521,19 @@ namespace BrightIdeasSoftware
         private CellEditActivateMode cellEditActivation = CellEditActivateMode.None;
 
         /// <summary>
+        /// Gets the tool tip that shows tips for the cells
+        /// </summary>
+        public ToolTipControl CellToolTip {
+            get {
+                if (this.cellToolTip == null) {
+                    this.CreateCellToolTip();
+                }
+                return this.cellToolTip;
+            }
+        }
+        private ToolTipControl cellToolTip;
+
+        /// <summary>
         /// Should this list show checkboxes?
         /// </summary>
         public new bool CheckBoxes {
@@ -641,9 +654,9 @@ namespace BrightIdeasSoftware
                 Rectangle r = this.ClientRectangle;
 
                 // If the listview has a header control, remove the header from the control area
-                if (this.View == View.Details && this.hdrCtrl != null) {
+                if (this.View == View.Details && this.HeaderControl != null) {
                     Rectangle hdrBounds = new Rectangle();
-                    NativeMethods.GetClientRect(this.hdrCtrl.Handle, ref hdrBounds);
+                    NativeMethods.GetClientRect(this.HeaderControl.Handle, ref hdrBounds);
                     r.Y = hdrBounds.Height;
                     r.Height = r.Height - hdrBounds.Height;
                 }
@@ -725,7 +738,7 @@ namespace BrightIdeasSoftware
         private IDropSink dropSink;
 
         // Forward events from the drop sink to the control itself
-        void dropSink_CanDrop(object sender, OlvDropEventArgs e) { this.OnCanDrop( e); }
+        void dropSink_CanDrop(object sender, OlvDropEventArgs e) { this.OnCanDrop(e); }
         void dropSink_Dropped(object sender, OlvDropEventArgs e) { this.OnDropped(e); }
         void dropSink_ModelCanDrop(object sender, ModelDropEventArgs e) { this.OnModelCanDrop(e); }
         void dropSink_ModelDropped(object sender, ModelDropEventArgs e) { this.OnModelDropped(e); }
@@ -939,6 +952,15 @@ namespace BrightIdeasSoftware
                 return (this.Overlays.Count > 2 ||
                     this.imageOverlay.Image != null ||
                     !String.IsNullOrEmpty(this.textOverlay.Text));
+            }
+        }
+
+        /// <summary>
+        /// Gets the tool tip that shows tips for the column headers
+        /// </summary>
+        public ToolTipControl HeaderToolTip {
+            get {
+                return this.HeaderControl.ToolTip;
             }
         }
 
@@ -1308,23 +1330,12 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Get/set the column that will be used to resolve comparisons that are equal when sorting.
         /// </summary>
-        /// <remarks>There is no user interface for this setting. It must be set programmatically.
-        /// The default is the first column.</remarks>
+        /// <remarks>There is no user interface for this setting. It must be set programmatically.</remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual OLVColumn SecondarySortColumn {
-            get {
-                if (this.secondarySortColumn == null) {
-                    if (this.Columns.Count > 0)
-                        return this.GetColumn(0);
-                    else
-                        return null;
-                } else
-                    return this.secondarySortColumn;
-            }
-            set {
-                this.secondarySortColumn = value;
-            }
+            get { return this.secondarySortColumn; }
+            set { this.secondarySortColumn = value; }
         }
         private OLVColumn secondarySortColumn;
 
@@ -1337,7 +1348,7 @@ namespace BrightIdeasSoftware
             get { return this.secondarySortOrder; }
             set { this.secondarySortOrder = value; }
         }
-        private SortOrder secondarySortOrder = SortOrder.Ascending;
+        private SortOrder secondarySortOrder = SortOrder.None;
 
         /// <summary>
         /// When the user right clicks on the column headers, should a menu be presented which will allow
@@ -1366,11 +1377,16 @@ namespace BrightIdeasSoftware
         private bool selectColumnsMenuStaysOpen = true;
 
         /// <summary>
-        /// Gets or sets the column that is drawn with a bluish-tint. 
+        /// Gets or sets the column that is drawn with a slight tint. 
         /// </summary>
         /// <remarks>
+        /// <para>
         /// If TintSortColumn is true, the sort column will automatically
         /// be made the selected column.
+        /// </para>
+        /// <para>
+        /// The colour of the tint is controlled by SelectedColumnTint.
+        /// </para>
         /// </remarks>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -1397,15 +1413,14 @@ namespace BrightIdeasSoftware
         /// (i.e. alpha = 255), it will be changed to have a reasonable alpha value.
         /// </remarks>
         [Category("Appearance - ObjectListView"),
-        Description("The color that will be used to tint the selected column"),
+         Description("The color that will be used to tint the selected column"),
          DefaultValue(typeof(Color), "")]
         public virtual Color SelectedColumnTint {
             get { return selectedColumnTint; }
             set {
-                Color newTint = value;
-                if (newTint.A == 255)
-                    newTint = Color.FromArgb(15, newTint);
-                this.selectedColumnTint = newTint;
+                this.selectedColumnTint = value;
+                if (this.selectedColumnTint.A == 255)
+                    this.selectedColumnTint = Color.FromArgb(15, value);
                 this.selectedColumnOverlay.Tint = this.selectedColumnTint;
             }
         }
@@ -1576,7 +1591,7 @@ namespace BrightIdeasSoftware
         private bool sortGroupItemsByPrimaryColumn = true;
 
         /// <summary>
-        /// Should the sort column show a slight bluish tinge?
+        /// Should the sort column show a slight tinge?
         /// </summary>
         [Category("Appearance - ObjectListView"),
          Description("Should the sort column show a slight tinting?"),
@@ -1624,7 +1639,7 @@ namespace BrightIdeasSoftware
         /// </para>
         /// <para>
         /// The reason that it does not work when showing groups is that, when groups are enabled,
-        /// the Windows m LVM_GETTOPINDEX always returns 0, regardless of the
+        /// the Windows msg LVM_GETTOPINDEX always returns 0, regardless of the
         /// scroll position.
         /// </para>
         /// </remarks>
@@ -1783,14 +1798,7 @@ namespace BrightIdeasSoftware
          DefaultValue(false)]
         public bool UseHotItem {
             get { return this.useHotItem; }
-            set {
-                this.useHotItem = value;
-
-                //if (this.useHotItem && !this.DesignMode)
-                //    this.tickler.Start();
-                //else
-                //    this.tickler.Stop();
-            }
+            set { this.useHotItem = value; }
         }
         private bool useHotItem;
 
@@ -2036,11 +2044,17 @@ namespace BrightIdeasSoftware
         /// <para>The model object for the row can be found through the RowObject property of the OLVListItem object.</para>
         /// <para>All subitems normally have the same style as list item, so setting the forecolor on one
         /// subitem changes the forecolor of all subitems.
-        /// To allow subitems to have different attributes, do this:<code>myListViewItem.UseItemStyleForSubItems = false;</code>.
+        /// To allow subitems to have different attributes, do this:
+        /// <code>myListViewItem.UseItemStyleForSubItems = false;</code>.
         /// </para>
         /// <para>If UseAlternatingBackColors is true, the backcolor of the listitem will be calculated
-        /// by the control and cannot be controlled by the RowFormatter delegate. In general, trying to use a RowFormatter
-        /// when UseAlternatingBackColors is true does not work well.</para></remarks>
+        /// by the control and cannot be controlled by the RowFormatter delegate. 
+        /// In general, trying to use a RowFormatter
+        /// when UseAlternatingBackColors is true does not work well.</para>
+        /// <para>As it says in the summary, this is called <b>before</b> the item is added to the control.
+        /// Many properties of the OLVListItem itself are not available at that point, including:
+        /// Index, Selected, Focused, Bounds, Checked, DisplayIndex.</para>
+        /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual RowFormatterDelegate RowFormatter {
@@ -2128,7 +2142,8 @@ namespace BrightIdeasSoftware
                 if (args.Canceled)
                     return;
                 modelObjects = args.ObjectsToAdd;
-
+                
+                this.ListViewItemSorter = null;
                 this.ListViewItemSorter = null;
                 this.TakeOwnershipOfObjects();
                 ArrayList ourObjects = (ArrayList)this.Objects;
@@ -2165,7 +2180,7 @@ namespace BrightIdeasSoftware
         /// if there is no last sort column
         /// </summary>
         public virtual void BuildGroups() {
-            this.BuildGroups(this.LastSortColumn);
+            this.BuildGroups(this.LastSortColumn, this.LastSortOrder == SortOrder.None ? SortOrder.Ascending : this.LastSortOrder);
         }
 
         /// <summary>
@@ -2180,22 +2195,35 @@ namespace BrightIdeasSoftware
         /// <para>This method triggers sorting events: BeforeSorting and AfterSorting.</para>
         /// </remarks>
         /// <param name="column">The column whose values should be used for sorting.</param>
-        public virtual void BuildGroups(OLVColumn column) {
-            SortOrder order = this.LastSortOrder;
-            if (order == SortOrder.None)
-                order = this.Sorting;
-            OLVColumn secondaryColumn = this.SecondarySortColumn;
-            SortOrder secondaryOrder = this.SecondarySortOrder;
-            this.RationalizeColumnForGrouping(ref column, ref order, ref secondaryColumn, ref secondaryOrder);
-
-            BeforeSortingEventArgs args = new BeforeSortingEventArgs(column, order, secondaryColumn, secondaryOrder);
+        public virtual void BuildGroups(OLVColumn column, SortOrder order) {
+            BeforeSortingEventArgs args = this.BuildBeforeSortingEventArgs(column, order);
             this.OnBeforeSorting(args);
             if (args.Canceled)
                 return;
 
-            this.BuildGroups(args.ColumnToSort, args.SortOrder, args.SecondaryColumnToSort, args.SecondarySortOrder);
+            this.BuildGroups(args.ColumnToGroupBy, args.GroupByOrder, 
+                args.ColumnToSort, args.SortOrder, args.SecondaryColumnToSort, args.SecondarySortOrder);
 
-            this.OnAfterSorting(new AfterSortingEventArgs(args.ColumnToSort, args.SortOrder, args.SecondaryColumnToSort, args.SecondarySortOrder));
+            this.OnAfterSorting(new AfterSortingEventArgs(args));
+        }
+
+        private BeforeSortingEventArgs BuildBeforeSortingEventArgs(OLVColumn column, SortOrder order) {
+            OLVColumn groupBy = this.AlwaysGroupByColumn ?? column ?? this.GetColumn(0);
+            SortOrder groupByOrder = this.AlwaysGroupBySortOrder;
+            if (order == SortOrder.None) {
+                order = this.Sorting;
+                if (order == SortOrder.None)
+                    order = SortOrder.Ascending;
+            }
+            if (groupByOrder == SortOrder.None)
+                groupByOrder = order;
+
+            BeforeSortingEventArgs args = new BeforeSortingEventArgs(
+                groupBy, groupByOrder,
+                column, order,
+                this.SecondarySortColumn ?? this.GetColumn(0),
+                this.SecondarySortOrder == SortOrder.None ? order : this.SecondarySortOrder);
+            return args;
         }
 
         /// <summary>
@@ -2206,9 +2234,10 @@ namespace BrightIdeasSoftware
         /// <param name="secondaryColumn">When the values from 'column' are equal, use the values provided by this column</param>
         /// <param name="order">How will the secondary values be sorted</param>
         /// <remarks>This method does not trigger sorting events. Use BuildGroups() to do that</remarks>
-        public virtual void BuildGroups(OLVColumn column, SortOrder order, OLVColumn secondaryColumn, SortOrder secondaryOrder) {
+        public virtual void BuildGroups(OLVColumn groupByColumn, SortOrder groupByOrder, 
+            OLVColumn column, SortOrder order, OLVColumn secondaryColumn, SortOrder secondaryOrder) {
             // Sanity checks
-            if (column == null || order == SortOrder.None)
+            if (groupByColumn == null)
                 return;
 
             this.Groups.Clear();
@@ -2221,9 +2250,7 @@ namespace BrightIdeasSoftware
             // Separate the list view items into groups, using the group key as the descrimanent
             NullableDictionary<object, List<OLVListItem>> map = new NullableDictionary<object, List<OLVListItem>>();
             foreach (OLVListItem olvi in this.Items) {
-                object key = column.GetGroupKey(olvi.RowObject);
-                //if (key == null)
-                //    key = key; // null can't be used as the key for a dictionary
+                object key = groupByColumn.GetGroupKey(olvi.RowObject);
                 if (!map.ContainsKey(key))
                     map[key] = new List<OLVListItem>();
                 map[key].Add(olvi);
@@ -2232,23 +2259,23 @@ namespace BrightIdeasSoftware
             // Make a list of the required groups
             List<ListViewGroup> groups = new List<ListViewGroup>();
             foreach (object key in map.Keys) {
-                ListViewGroup lvg = new ListViewGroup(column.ConvertGroupKeyToTitle(key));
+                ListViewGroup lvg = new ListViewGroup(groupByColumn.ConvertGroupKeyToTitle(key));
                 lvg.Tag = key;
                 groups.Add(lvg);
             }
 
             // Sort the groups
-            groups.Sort(new ListViewGroupComparer(order));
+            groups.Sort(new ListViewGroupComparer(groupByOrder));
 
             // Put each group into the list view, and give each group its member items.
             // The order of statements is important here:
             // - the header must be calculate before the group is added to the list view,
             //   otherwise changing the header causes a nasty redraw (even in the middle of a BeginUpdate...EndUpdate pair)
             // - the group must be added before it is given items, otherwise an exception is thrown (is this documented?)
-            string fmt = column.GroupWithItemCountFormatOrDefault;
-            string singularFmt = column.GroupWithItemCountSingularFormatOrDefault;
-            ColumnComparer itemSorter = new ColumnComparer((this.SortGroupItemsByPrimaryColumn ? this.GetColumn(0) : column),
-                                                           order, secondaryColumn, secondaryOrder);
+            string fmt = groupByColumn.GroupWithItemCountFormatOrDefault;
+            string singularFmt = groupByColumn.GroupWithItemCountSingularFormatOrDefault;
+            ColumnComparer itemSorter = new ColumnComparer(
+                (this.SortGroupItemsByPrimaryColumn ? this.GetColumn(0) : column), order, secondaryColumn, secondaryOrder);
             foreach (ListViewGroup group in groups) {
                 if (this.ShowItemCountOnGroups) {
                     int count = map[group.Tag].Count;
@@ -2256,6 +2283,7 @@ namespace BrightIdeasSoftware
                 }
                 this.Groups.Add(group);
                 // If there is no sort order, don't sort since the sort isn't stable
+                // THINK: Can order ever be None here?
                 if (order != SortOrder.None)
                     map[group.Tag].Sort(itemSorter);
                 group.Items.AddRange(map[group.Tag].ToArray());
@@ -2472,6 +2500,25 @@ namespace BrightIdeasSoftware
                     return null;
                 return this.GetItem(itemToFind.Index + 1);
             }
+        }
+
+        /// <summary>
+        /// Return the last item in the order they are shown to the user.
+        /// If the control is not grouped, the display order is the same as the
+        /// sorted list order. But if the list is grouped, the display order is different.
+        /// </summary>
+        /// <returns></returns>
+        public virtual OLVListItem GetLastItemInDisplayOrder() {
+            if (!this.ShowGroups)
+                return this.GetItem(this.GetItemCount() - 1);
+
+            if (this.Groups.Count > 0) {
+                ListViewGroup lastGroup = this.Groups[this.Groups.Count - 1];
+                if (lastGroup.Items.Count > 0)
+                    return (OLVListItem)lastGroup.Items[lastGroup.Items.Count - 1];
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -2843,13 +2890,6 @@ namespace BrightIdeasSoftware
             this.OnItemsChanged(new ItemsChangedEventArgs());
         }
 
-        /// <summary>
-        /// Sort the items by the last sort column
-        /// </summary>
-        new public void Sort() {
-            this.Sort(this.LastSortColumn);
-        }
-
         #endregion
 
         #region Save/Restore State
@@ -2979,12 +3019,57 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void Application_Idle(object sender, EventArgs e) {
+        protected virtual void HandleApplicationIdle(object sender, EventArgs e) {
             // Remove the handler before triggering the event
-            Application.Idle -= new EventHandler(Application_Idle);
+            Application.Idle -= new EventHandler(HandleApplicationIdle);
             this.hasIdleHandler = false;
 
             this.OnSelectionChanged(new EventArgs());
+        }
+
+        /// <summary>
+        /// The cell tooltip control wants information about the tool tip that it should show.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected virtual void HandleCellToolTipShowing(object sender, ToolTipShowingEventArgs e) {
+            e.Location = this.PointToClient(Cursor.Position);
+            ListViewHitTestInfo info = this.HitTest(e.Location);
+            if (info.Item != null && info.SubItem != null) {
+                e.RowIndex = info.Item.Index;
+                e.Model = this.GetModelObject(e.RowIndex);
+                e.ColumnIndex = info.Item.SubItems.IndexOf(info.SubItem);
+                e.Column = this.GetColumn(e.ColumnIndex);
+                e.Text = this.GetCellToolTip(e.ColumnIndex, e.RowIndex);
+
+                this.OnCellToolTip(e);
+            }
+        }
+
+        /// <summary>
+        /// Allow the HeaderControl to call back into HandleHeaderToolTipShowing without making that method public
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        internal void headerToolTip_Showing(object sender, ToolTipShowingEventArgs e) {
+            this.HandleHeaderToolTipShowing(sender, e);
+        }
+
+        /// <summary>
+        /// The header tooltip control wants information about the tool tip that it should show.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected virtual void HandleHeaderToolTipShowing(object sender, ToolTipShowingEventArgs e) {
+            e.ColumnIndex = this.HeaderControl.ColumnIndexUnderCursor;
+            if (e.ColumnIndex < 0)
+                return;
+
+            e.RowIndex = -1;
+            e.Model = null;
+            e.Column = this.GetColumn(e.ColumnIndex);
+            e.Text = this.GetHeaderToolTip(e.ColumnIndex);
+            this.OnHeaderToolTip(e);
         }
 
         /// <summary>
@@ -2995,15 +3080,10 @@ namespace BrightIdeasSoftware
                 return;
 
             // Toggle the sorting direction on successive clicks on the same column
-            // We use lastClickedSortOrder rather than lastSortOrder so that column clicks always
-            // toggle sorting order, regardless of any playing with lastSortOrder that external code might do
-            if (this.LastSortColumn != null && e.Column == this.lastClickedColumnIndex)
-                this.lastClickedSortOrder = (this.lastClickedSortOrder == SortOrder.Descending ? SortOrder.Ascending : SortOrder.Descending);
+            if (this.LastSortColumn != null && e.Column == this.LastSortColumn.Index)
+                this.LastSortOrder = (this.LastSortOrder == SortOrder.Descending ? SortOrder.Ascending : SortOrder.Descending);
             else
-                this.lastClickedSortOrder = SortOrder.Ascending;
-
-            this.lastClickedColumnIndex = e.Column;
-            this.LastSortOrder = this.lastClickedSortOrder;
+                this.LastSortOrder = SortOrder.Ascending;
 
             this.BeginUpdate();
             try {
@@ -3013,8 +3093,6 @@ namespace BrightIdeasSoftware
                 this.EndUpdate();
             }
         }
-        private int lastClickedColumnIndex = -1;
-        private SortOrder lastClickedSortOrder = SortOrder.None;
 
         #endregion
 
@@ -3043,14 +3121,12 @@ namespace BrightIdeasSoftware
                         base.WndProc(ref m);
                     break;
                 case 0x0100: // WM_KEY_DOWN
-                    if (!this.HandleKeyDown(ref m)) {
+                    if (!this.HandleKeyDown(ref m)) 
                         base.WndProc(ref m);
-                    }
                     break;
                 case 0x0102: // WM_CHAR
-                    if (!this.HandleChar(ref m)) {
+                    if (!this.HandleChar(ref m)) 
                         base.WndProc(ref m);
-                    }
                     break;
                 case 0x0201: // WM_LBUTTONDOWN
                     if (this.PossibleFinishCellEditing() && !this.HandleLButtonDown(ref m))
@@ -3066,15 +3142,13 @@ namespace BrightIdeasSoftware
                     break;
                 case 0x114: // WM_HSCROLL:
                 case 0x115: // WM_VSCROLL:
-                    if (this.PossibleFinishCellEditing()) {
+                    if (this.PossibleFinishCellEditing()) 
                         base.WndProc(ref m);
-                    }
                     break;
                 case 0x20A: // WM_MOUSEWHEEL:
                 case 0x20E: // WM_MOUSEHWHEEL:
-                    if (this.PossibleFinishCellEditing()) {
+                    if (this.PossibleFinishCellEditing()) 
                         base.WndProc(ref m);
-                    }
                     break;
                 case 0x7B: // WM_CONTEXTMENU
                     if (!this.HandleContextMenu(ref m))
@@ -3082,14 +3156,12 @@ namespace BrightIdeasSoftware
                     break;
                 case 0x1000 + 145: // LVM_INSERTGROUP     = LVM_FIRST + 145;
                     // Add the collapsible feature if needed
-                    if (!this.HandleInsertGroup(ref m)) {
+                    if (!this.HandleInsertGroup(ref m)) 
                         base.WndProc(ref m);
-                    }
                     break;
                 case 0x202:  /*WM_LBUTTONUP*/
-                    if (ObjectListView.IsVista && this.HasCollapsibleGroups) {
+                    if (ObjectListView.IsVista && this.HasCollapsibleGroups) 
                         base.DefWndProc(ref m);
-                    }
                     base.WndProc(ref m);
                     break;
 
@@ -3109,6 +3181,9 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Is the program running on Vista or later?
+        /// </summary>
         static public bool IsVista {
             get {
                 if (!ObjectListView.isVista.HasValue)
@@ -3124,6 +3199,12 @@ namespace BrightIdeasSoftware
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the m has been handled</returns>
         protected virtual bool HandleChar(ref Message m) {
+
+            // Trigger a normal KeyPress event, which listeners can handle if they want.
+            // Handling the event stops ObjectListView's fancy search-by-typing.
+            if (this.ProcessKeyEventArgs(ref m))
+                return true;
+
             const int MILLISECONDS_BETWEEN_KEYPRESSES = 1000;
 
             // What character did the user type and was it part of a longer string?
@@ -3214,14 +3295,14 @@ namespace BrightIdeasSoftware
 
             // If the context menu came from somewhere other than the header control,
             // we also don't want to ignore it
-            if (m.WParam != this.hdrCtrl.Handle)
+            if (m.WParam != this.HeaderControl.Handle)
                 return false;
 
             // OK. Looks like a right click in the header
             if (!this.PossibleFinishCellEditing())
                 return true;
 
-            int columnIndex = this.hdrCtrl.ColumnIndexUnderCursor;
+            int columnIndex = this.HeaderControl.ColumnIndexUnderCursor;
             return this.HandleHeaderRightClick(columnIndex);
         }
 
@@ -3249,7 +3330,7 @@ namespace BrightIdeasSoftware
             const int CDRF_NOTIFYPOSTERASE = 0x40; 
 
             NativeMethods.NMLVCUSTOMDRAW nmcustomdraw = (NativeMethods.NMLVCUSTOMDRAW)m.GetLParam(typeof(NativeMethods.NMLVCUSTOMDRAW));
-            //System.Diagnostics.Debug.WriteLine(String.Format("cd: {0:x}", lParam->nmcd.dwDrawStage));
+            //System.Diagnostics.Debug.WriteLine(String.Format("cd: {0:x}", nmcustomdraw.nmcd.dwDrawStage));
 
             // There is a bug in owner drawn virtual lists which causes lots of custom draw messages
             // to be sent to the control *outside* of a WmPaint event. AFAIK, these custom draw events
@@ -3719,8 +3800,6 @@ namespace BrightIdeasSoftware
             const int HDN_TRACKA = (HDN_FIRST - 8);
             const int HDN_TRACKW = (HDN_FIRST - 28);
 
-            const int TTN_GETDISPINFO = -530;
-
             // Handle the notification, remembering to handle both ANSI and Unicode versions
             //NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
             NativeMethods.NMHEADER nmheader = (NativeMethods.NMHEADER)m.GetLParam(typeof(NativeMethods.NMHEADER));
@@ -3804,29 +3883,33 @@ namespace BrightIdeasSoftware
                     }
                     break;
 
-                case TTN_GETDISPINFO:
-                    ListViewHitTestInfo info = this.HitTest(this.PointToClient(Cursor.Position));
-                    if (info.Item != null && info.SubItem != null) {
-                        int columnIndex = info.Item.SubItems.IndexOf(info.SubItem);
-                        String tip = this.GetCellToolTip(columnIndex, info.Item.Index);
-                        if (!String.IsNullOrEmpty(tip)) {
-                            // HeaderControl has almost identical code. Is there some way to unify?
-                            NativeMethods.SendMessage(nmheader.nhdr.hwndFrom, 0x418, 0, SystemInformation.MaxWindowTrackSize.Width);
-                            NativeMethods.TOOLTIPTEXT ttt = (NativeMethods.TOOLTIPTEXT)m.GetLParam(typeof(NativeMethods.TOOLTIPTEXT));
-                            ttt.lpszText = tip;
-                            if (this.RightToLeft == RightToLeft.Yes)
-                                ttt.uFlags |= 4;
-                            Marshal.StructureToPtr(ttt, m.LParam, false);
-                            isMsgHandled = true;
-                        }
-                    }
+                case ToolTipControl.TTN_SHOW:
+                    //System.Diagnostics.Debug.WriteLine("olv TTN_SHOW");
+                    System.Diagnostics.Trace.Assert(this.CellToolTip.Handle == nmheader.nhdr.hwndFrom);
+                    isMsgHandled = this.CellToolTip.HandleShow(ref m);
                     break;
 
-                default:
+                case ToolTipControl.TTN_POP:
+                    //System.Diagnostics.Debug.WriteLine("olv TTN_POP");
+                    System.Diagnostics.Trace.Assert(this.CellToolTip.Handle == nmheader.nhdr.hwndFrom);
+                    isMsgHandled = this.CellToolTip.HandlePop(ref m);
+                    break;
+
+                case ToolTipControl.TTN_GETDISPINFO:
+                    //System.Diagnostics.Debug.WriteLine("olv TTN_GETDISPINFO");
+                    System.Diagnostics.Trace.Assert(this.CellToolTip.Handle == nmheader.nhdr.hwndFrom);
+                    isMsgHandled = this.CellToolTip.HandleGetDispInfo(ref m);
                     break;
             }
 
             return isMsgHandled;
+        }
+
+        protected virtual void CreateCellToolTip() {
+            this.cellToolTip = new ToolTipControl();
+            this.cellToolTip.AssignHandle(NativeMethods.GetTooltipControl(this));
+            this.cellToolTip.Showing += new EventHandler<ToolTipShowingEventArgs>(HandleCellToolTipShowing);
+            this.cellToolTip.SetMaxWidth();
         }
 
         /// <summary>
@@ -3902,14 +3985,14 @@ namespace BrightIdeasSoftware
 
         #region Column header clicking, column hiding and resizing
 
-        protected void CreateHeaderControl() {
-#if !MONO
-            this.hdrCtrl = new HeaderControl(this);
-#endif
+        protected HeaderControl HeaderControl {
+            get {
+                if (this.headerControl == null)
+                    this.headerControl = new HeaderControl(this);
+                return this.headerControl;
+            }
         }
-#if !MONO
-        internal HeaderControl hdrCtrl = null;
-#endif
+        private HeaderControl headerControl;
 
         /// <summary>
         /// The user has right clicked on the column headers. Do whatever is required
@@ -4662,112 +4745,116 @@ namespace BrightIdeasSoftware
         #region Column Sorting
 
         /// <summary>
-        /// Sort the items in the list view by the values in the given column.
-        /// If ShowGroups is true, the rows will be grouped by the given column,
-        /// otherwise, it will be a straight sort.
+        /// Sort the items by the last sort column and order
         /// </summary>
-        /// <param name="columnToSortName">The name of the column whose values will be used for the sorting</param>
-        public virtual void Sort(string columnToSortName) {
-            this.Sort(this.GetColumn(columnToSortName));
+        new public void Sort() {
+            this.Sort(this.LastSortColumn, this.LastSortOrder);
         }
 
         /// <summary>
-        /// Sort the items in the list view by the values in the given column.
-        /// If ShowGroups is true, the rows will be grouped by the given column,
-        /// otherwise, it will be a straight sort.
+        /// Sort the items in the list view by the values in the given column and the last sort order
+        /// </summary>
+        /// <param name="columnToSortName">The name of the column whose values will be used for the sorting</param>
+        public virtual void Sort(string columnToSortName) {
+            this.Sort(this.GetColumn(columnToSortName), this.LastSortOrder);
+        }
+
+        /// <summary>
+        /// Sort the items in the list view by the values in the given column and the last sort order
         /// </summary>
         /// <param name="columnToSortIndex">The index of the column whose values will be used for the sorting</param>
         public virtual void Sort(int columnToSortIndex) {
             if (columnToSortIndex >= 0 && columnToSortIndex < this.Columns.Count)
-                this.Sort(this.GetColumn(columnToSortIndex));
+                this.Sort(this.GetColumn(columnToSortIndex), this.LastSortOrder);
         }
 
         /// <summary>
-        /// Sort the items in the list view by the values in the given column.
-        /// If ShowGroups is true, the rows will be grouped by the given column,
-        /// otherwise, it will be a straight sort.
+        /// Sort the items in the list view by the values in the given column and the last sort order
         /// </summary>
         /// <param name="columnToSort">The column whose values will be used for the sorting</param>
         public virtual void Sort(OLVColumn columnToSort) {
             if (this.InvokeRequired) {
                 this.Invoke((MethodInvoker)delegate { this.Sort(columnToSort); });
-                return;
+            } else {
+                this.Sort(columnToSort, this.LastSortOrder);
             }
-
-            SortOrder order = this.LastSortOrder;
-            if (order == SortOrder.None)
-                order = this.Sorting;
-
-            this.Sort(columnToSort, order);
         }
 
         /// <summary>
-        /// Sort the items in the list view by the values in the given column.
-        /// If ShowGroups is true, the rows will be grouped by the given column,
-        /// otherwise, it will be a straight sort.
+        /// Sort the items in the list view by the values in the given column and by the given order.
         /// </summary>
-        /// <param name="columnToSort">The column whose values will be used for the sorting</param>
-        /// <remarks>If ShowGroups is true and the AlwaysGroupByColumn property is not null,
-        /// the list view items will be grouped by that column,
-        /// and the columnToSort parameter will be ignored.</remarks>
+        /// <param name="columnToSort">The column whose values will be used for the sorting.
+        /// If null, the first column will be used.</param>
+        /// <param name="order">The ordering to be used for sorting. If this is None,
+        /// this.Sorting and then SortOrder.Ascending will be used</param>
+        /// <remarks>If ShowGroups is true, the rows will be grouped by the given column.
+        /// If AlwaysGroupsByColumn is not null, the rows will be grouped by that column,
+        /// and the rows within each group will be sorted by the given column.</remarks>
         public virtual void Sort(OLVColumn columnToSort, SortOrder order) {
             if (this.InvokeRequired) {
                 this.Invoke((MethodInvoker)delegate { this.Sort(columnToSort, order); });
                 return;
             }
 
-            this.ClearHotItem();
+            // Sanity checks
+            if (this.GetItemCount() == 0 || this.Columns.Count == 0)
+                return;
 
-            // If we are showing groups, there are some options that can override these settings
-            OLVColumn secondaryColumn = this.SecondarySortColumn;
-            SortOrder secondaryOrder = this.SecondarySortOrder;
-            if (this.ShowGroups)
-                this.RationalizeColumnForGrouping(ref columnToSort, ref order, ref secondaryColumn, ref secondaryOrder);
+            // Fill in default values, if the parameters don't make sense
+            if (this.ShowGroups) {
+                columnToSort = columnToSort ?? this.GetColumn(0);
+                if (order == SortOrder.None) {
+                    order = this.Sorting;
+                    if (order == SortOrder.None)
+                        order = SortOrder.Ascending;
+                }
+            }
 
             // Give the world a chance to fiddle with or completely avoid the sorting process
-            BeforeSortingEventArgs args = new BeforeSortingEventArgs(columnToSort, order, secondaryColumn, secondaryOrder);
+            BeforeSortingEventArgs args = this.BuildBeforeSortingEventArgs(columnToSort, order);
             this.OnBeforeSorting(args);
             if (args.Canceled)
                 return;
 
-            // The event handler may have changed the sorting pattern
-            columnToSort = args.ColumnToSort;
-            order = args.SortOrder;
-            secondaryColumn = args.SecondaryColumnToSort;
-            secondaryOrder = args.SecondarySortOrder;
-
             // Sanity checks
-            if (columnToSort == null || order == SortOrder.None || this.Columns.Count < 1)
+            if (args.ColumnToSort == null || args.SortOrder == SortOrder.None)
                 return;
 
             // Virtual lists don't preserve selection, so we have to do it specifically
+            // THINK: Do we need to preserve focus too?
             IList selection = new ArrayList();
             if (this.VirtualMode)
                 selection = this.SelectedObjects;
 
-            // Finally, do the work of sorting
-            if (this.ShowGroups)
-                this.BuildGroups(columnToSort, order, secondaryColumn, secondaryOrder);
-            else if (this.CustomSorter != null)
-                this.CustomSorter(columnToSort, order);
-            else
-                this.ListViewItemSorter = new ColumnComparer(columnToSort, order, secondaryColumn, secondaryOrder);
+            this.ClearHotItem();
+
+            // Finally, do the work of sorting, unless an event handler has already done the sorting for us
+            if (!args.Handled) {
+                if (this.ShowGroups)
+                    this.BuildGroups(args.ColumnToGroupBy, args.GroupByOrder, args.ColumnToSort, args.SortOrder,
+                        args.SecondaryColumnToSort, args.SecondarySortOrder);
+                else if (this.CustomSorter != null)
+                    this.CustomSorter(columnToSort, order);
+                else
+                    this.ListViewItemSorter = new ColumnComparer(args.ColumnToSort, args.SortOrder,
+                        args.SecondaryColumnToSort, args.SecondarySortOrder);
+            }
 
             if (this.ShowSortIndicators)
-                this.ShowSortIndicator(columnToSort, order);
+                this.ShowSortIndicator(args.ColumnToSort, args.SortOrder);
 
             if (this.UseAlternatingBackColors && this.View == View.Details)
-                PrepareAlternateBackColors();
+                this.PrepareAlternateBackColors();
 
-            this.LastSortColumn = columnToSort;
-            this.LastSortOrder = order;
+            this.LastSortColumn = args.ColumnToSort;
+            this.LastSortOrder = args.SortOrder;
 
             if (selection.Count > 0)
                 this.SelectedObjects = selection;
 
             this.RefreshHotItem();
 
-            this.OnAfterSorting(new AfterSortingEventArgs(columnToSort, order, secondaryColumn, secondaryOrder));
+            this.OnAfterSorting(new AfterSortingEventArgs(args));
         }
 
         /// <summary>
@@ -4777,9 +4864,9 @@ namespace BrightIdeasSoftware
         /// <param name="columnToSort"></param>
         /// <param name="order"></param>
         private void RationalizeColumnForGrouping(ref OLVColumn columnToSort, ref SortOrder order,
-            ref OLVColumn secondarycolumn, ref SortOrder secondaryOrder) {
+            ref OLVColumn secondaryColumn, ref SortOrder secondaryOrder) {
             if (this.AlwaysGroupByColumn != null) {
-                secondarycolumn = columnToSort;
+                secondaryColumn = columnToSort;
                 secondaryOrder = order;
                 columnToSort = this.AlwaysGroupByColumn;
             }
@@ -5416,14 +5503,6 @@ namespace BrightIdeasSoftware
         #region OnEvent Handling
 
         /// <summary>
-        /// When the control is created capture the messages for the header.
-        /// </summary>
-        protected override void OnCreateControl() {
-            base.OnCreateControl();
-            this.BeginInvoke(new MethodInvoker(this.CreateHeaderControl));
-        }
-
-        /// <summary>
         /// We need the click count in the mouse up event, but that is always 1.
         /// So we have to remember the click count from the preceding mouse down event.
         /// </summary>
@@ -5505,7 +5584,7 @@ namespace BrightIdeasSoftware
             // user action have finished before triggering the event.
             if (!this.hasIdleHandler) {
                 this.hasIdleHandler = true;
-                Application.Idle += new EventHandler(Application_Idle);
+                Application.Idle += new EventHandler(HandleApplicationIdle);
             }
         }
 
@@ -6283,7 +6362,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// A decoration scrolls with the listview. An overlay stays fixed in place.
         /// </remarks>
-        public void AddDecoration(IOverlay decoration) {
+        public virtual void AddDecoration(IOverlay decoration) {
             this.Decorations.Add(decoration);
             this.Invalidate();
         }
@@ -6292,7 +6371,7 @@ namespace BrightIdeasSoftware
         /// Add the given overlay to those on this list and make it appear
         /// </summary>
         /// <param name="overlay">The overlay</param>
-        public void AddOverlay(IOverlay overlay) {
+        public virtual void AddOverlay(IOverlay overlay) {
             this.Overlays.Add(overlay);
             this.RefreshOverlays();
         }
@@ -6301,7 +6380,7 @@ namespace BrightIdeasSoftware
         /// Draw all the decorations
         /// </summary>
         /// <param name="g">A Graphics</param>
-        internal void DrawAllDecorations(Graphics g) {
+        protected virtual void DrawAllDecorations(Graphics g) {
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             g.SmoothingMode = SmoothingMode.HighQuality;
 
@@ -6345,7 +6424,7 @@ namespace BrightIdeasSoftware
         /// Is the given overlay showne on this list
         /// </summary>
         /// <param name="overlay">The overlay</param>
-        public bool HasDecoration(IOverlay overlay) {
+        public virtual bool HasDecoration(IOverlay overlay) {
             return this.Decorations.Contains(overlay);
         }
 
@@ -6353,7 +6432,7 @@ namespace BrightIdeasSoftware
         /// Is the given overlay shown on this list?
         /// </summary>
         /// <param name="overlay">The overlay</param>
-        public bool HasOverlay(IOverlay overlay) {
+        public virtual bool HasOverlay(IOverlay overlay) {
             return this.Overlays.Contains(overlay);
         }
 
@@ -6364,7 +6443,7 @@ namespace BrightIdeasSoftware
         /// This is only a temporary hiding -- the overlays will be shown
         /// the next time the ObjectListView redraws.
         /// </remarks>
-        public void HideOverlays() {
+        public virtual void HideOverlays() {
             if (this.glassPanel != null)
                 this.glassPanel.HideGlass();
         }
@@ -6396,7 +6475,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Make sure that any overlays are visible.
         /// </summary>
-        public void ShowOverlays() {
+        public virtual void ShowOverlays() {
             // If we are in design mode or there are no overlays, don't use a glass panel
             if (this.DesignMode || !this.HasOverlays)
                 return;
@@ -6412,7 +6491,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Refresh the display of the overlays
         /// </summary>
-        public void RefreshOverlays() {
+        public virtual void RefreshOverlays() {
             if (this.glassPanel != null) {
                 this.glassPanel.Invalidate();
             }
@@ -6422,7 +6501,7 @@ namespace BrightIdeasSoftware
         /// Remove the given decoration from this list
         /// </summary>
         /// <param name="overlay">The overlay</param>
-        public void RemoveDecoration(IOverlay overlay) {
+        public virtual void RemoveDecoration(IOverlay overlay) {
             this.Decorations.Remove(overlay);
             this.Invalidate();
         }
@@ -6431,7 +6510,7 @@ namespace BrightIdeasSoftware
         /// Remove the given overlay to those on this list
         /// </summary>
         /// <param name="overlay">The overlay</param>
-        public void RemoveOverlay(IOverlay overlay) {
+        public virtual void RemoveOverlay(IOverlay overlay) {
             this.Overlays.Remove(overlay);
             this.RefreshOverlays();
         }
