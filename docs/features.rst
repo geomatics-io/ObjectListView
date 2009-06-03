@@ -68,6 +68,7 @@ If `ShowGroups` is true, the control will automatically create groups and
 partition the rows into those groups.
 
 This grouping can be customised in several ways:
+
 * the way a row is assigned to a group can be changed by installing a `GroupKeyGetter` on the column.
 * the name for a groups can be changed by installing a `GroupKeyToTitleConverter` on the oolumn
 

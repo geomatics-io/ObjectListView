@@ -78,6 +78,8 @@ Bug fixes (not a complete list)
 * Double-clicking on a checkbox no longer confuses the checkbox.
 * Correctly renderer checkboxes when `RowHeight` is non-standard.
 * Checkboxes are now visible even when the `ObjectListView` does not have a `SmallImageList`.
+* `AlwaysGroupByColumn` and `SortGroupItemsByPrimaryColumn` now work correctly (without messing
+  up the column header sort indicators).
 * Several Vista-only bugs were fixed
 
 3 February 2009 - Version 2.1

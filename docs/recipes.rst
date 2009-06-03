@@ -157,8 +157,9 @@ This really needs a page to itself: :ref:`Cell Editing in an ObjectListView <cel
 
 There are a couple of ways to change the standard sorting behavior:
 
-* You can listen for the `BeforeSorting` event, do whatever you like, and then set
-  `Cancelled` to true on the event so that no standard processing is done.
+* You can listen for the `BeforeSorting` event, do whatever sorting you like, and then set
+  `Handled` to `true` on the event so that no standard sorting is done. If you want
+  to prevent sorting, you can set `Canceled` to `true`.
 
 * If you are using an `ObjectListView` or a `DataListView`, you can install a
   `CustomSorter` delegate.
@@ -702,31 +703,55 @@ The `ListView` default behavior is to only use tool tips to show truncated cell
 values (even then only when `FullRowSelect` is `True`). But with an `ObjectListView`,
 you are not so limited.
 
-To show a different tooltip when the mouse is over a cell, you need to install a
-delegate (no prizes for guessing that one). The tool tip for cells is controlled
-by the `CellToolTipGetter` delegate. If this returns null, the tool tip behaves as
-normal, but if it returns a string, that string will be shown while the mouse
-hovers over that cell. Inserting "\r\n" sequences into the string gives a
-multiline tool tip.
+To show a different tooltip when the mouse is over a cell, you should listen for
+the `CellToolTipShowing` event. The parameter block for this event tells where
+the mouse was, what cell it was over, the model for that row, and the value
+that is shown in the cell.
 
-The example below shows a multiline tool tip only if the
-Control key is held down::
+Within that event handler, you can set various properties on the parameter block
+to change the tool tip that will be displayed:
 
-    // Show a long tooltip over cells only when the control key is down
-    this.olv.CellToolTipGetter = delegate(OLVColumn col, Object x) {
+* `Text` is the string that will be displayed in the tooltip. If this is null or
+  empty, the tool tip will not be shown. Inserting "\\r\\n" sequences into the
+  string gives a multiline tool tip.
+
+* `Font`, `ForeColor` and `BackColor` control the font of the text,
+  the text colour and background colour of the tooltip.
+
+* `IsBalloon` allows the tooltip to be shown as a balloon style.
+
+* `Title` and `StandardIcon` allow a title and icon to be shown above the
+  tool tip text.
+
+With a very little bit of work, you can display tool tips like this:
+
+.. image:: images/blog2-balloon2.png
+
+Example::
+
+    this.olv.CellToolTipShowing += new EventHandler<ToolTipShowingEventArgs>(olv_CellToolTipShowing);
+    ...
+    void olv_CellToolTipShowing(object sender, ToolTipShowingEventArgs e) {
+        // Show a long tooltip over cells only when the control key is down
         if (Control.ModifierKeys == Keys.Control) {
             Song s = (Song)x;
-            return String.Format("{0}\r\n{1}\r\n{2}", s.Title, s.Artist, s.Album);
-        } else
-            return null;
+            e.Text = String.Format("{0}\r\n{1}\r\n{2}", s.Title, s.Artist, s.Album);
+        }
     };
 
-Similarly, the column headers can show their own tool tips, this time via the
-`HeaderToolTipGetter` delegate. Instead of installing a delegate, you can set
-the `ToolTipText` property on a column. This is useful if the tool tips for the
-column headers don't change. If you install a `HeaderToolTipGetter` delegate, it
-takes precendence over the `ToolTipText` property, which will be ignored.
+If you change the properties in the parameter block, those properties will only
+affect that one showing of a tooltip. If you want to change all tooltips, you
+would set the properties of `ObjectListView.CellToolTipControl.` So, if you
+want all tooltips to be shown in Tahoma 14 point, you would do this::
 
+    this.olv.CellToolTipControl.Font = new Font("Tahoma", 14);
+
+Similarly, to show a tooltip for a column header, you listen for a
+`HeaderToolTipShowing` event.
+
+Previous versions used delegates to provide a subset of this functionality.
+These delegates -- `CellToolTipGetter` and `HeaderToolTipGetter` delegates --
+still function, but the events provide much great scope for customisation.
 
 .. _recipe-hottracking:
 
@@ -748,7 +773,7 @@ instance, you can assign it to the `HotTrackingStyle` property of the
 19. How can I put an image (or some text) over the top of the ListView?
 -----------------------------------------------------------------------
 
-This is called an "overlay." A normal ObjectList comes pre-equipped with
+This is called an "overlay." A normal `ObjectListView` comes pre-equipped with
 two overlays ready to use: `OverlayImage` and `OverlayText`. These can be
 configured from within the IDE, controlling what image (or text) is displayed,
 the corner in which the overlay is shown, and its inset from the control edge.
@@ -767,14 +792,14 @@ can implement the `IOverlay` interface. This interface is very simple::
 
 Within the `Draw()` method, your implementation can draw whatever it likes.
 
-Once you have implemented this interface, you add it to an `ObjectlistView`
+Once you have implemented this interface, you add it to an `ObjectListView`
 via the `AddOverlay()` method::
 
     MyFantasticOverlay myOverlay = new MyFantasticOverlay();
     myOverlay.ConfigureToDoAmazingThings();
     this.objectListView1.AddOverlay(myOverlay);
 
-Overlays are actually quite tricky to implement. If you use your ObjectListView
+Overlays are actually quite tricky to implement. If you use your `ObjectListView`
 in a "normal" way (design your interface through the IDE using normal WinForm
 controls), they will work flawlessly.
 

@@ -9,6 +9,8 @@ Change Log
 
 Version Index
 -------------
+* `v2.2 beta2 - 03 June 2009`_
+* `v2.2 beta - 15 May 2009`_
 * `v2.2 alpha2 - 12 May 2009`_
 * `v2.2 alpha - 07 May 2009`_
 * `v2.1 - 26 February 2009`_
@@ -28,8 +30,103 @@ Version Index
 * `Previous versions - 04 April 2007`_
 
 
+v2.2 beta2 - 03 June 2009
+-------------------------
+
+2009-06-03 11:43 (#623) - ObjectListView/Events.cs
+  - BeforeSortingEventArgs now has a Handled property to let event handlers do the item sorting themselves.
+
+2009-06-03 11:42 (#622) - ObjectListView/ObjectListView.cs
+  - BeforeSortingEventArgs now has a Handled property to let event handlers do the item sorting themselves.
+  - AlwaysGroupByColumn works again, as does SortGroupItemsByPrimaryColumn and all their various permutations.
+  - SecondarySortOrder and SecondarySortColumn are now "null" by default
+
+2009-06-03 11:08 (#621) - ObjectListView/Events.cs
+  - Added ColumnToGroupBy and GroupByOrder to sorting events
+
+2009-06-03 11:07 (#620) - ObjectListView/Comparers.cs
+  - Fixed bug where ModelObjectComparer would crash if secondary sort column was null.
+
+2009-06-01 12:24 (#619) - ObjectListView/ObjectListView.cs, ObjectListView/Overlays.cs
+  - Added GetLastItemInDisplayOrder()
+  - TintedColumnDecoration now uses GetLastItemInDisplayOrder()
+
+2009-06-01 12:24 (#618) - ObjectListView/ObjectListView.csproj
+  - Added ToolTipControl.cs
+
+2009-06-01 11:41 (#617) - Demo/MainForm.Designer.cs, Demo/MainForm.resx
+  - Simple tab now uses tristate checkbox
+  - Resized to be 800x600
+
+2009-06-01 11:39 (#616) - ObjectListView/Renderers.cs
+  - Removed FlagRenderer<T>
+
+2009-06-01 11:39 (#615) - ObjectListView/Overlays.cs
+  - Make sure that TintedColumnDecoration reaches to the last item in group view
+
+2009-06-01 11:38 (#614) - ObjectListView/NativeMethods.cs
+  - Updated docs
+
+2009-06-01 11:38 (#613) - ObjectListView/HeaderControl.cs
+  - Updated docs
+
+2009-06-01 11:38 (#612) - ObjectListView/Events.cs
+  - Updated docs
+
+2009-06-01 11:38 (#611) - ObjectListView/DropSink.cs
+  - Updated docs
+
+2009-05-30 12:07 (#608) - docs/features.rst, docs/whatsnew.rst, docs/blog.rst, docs/blog1.rst, docs/overlays.rst, docs/blog2.rst, docs/.templates/layout.html, docs/index.rst, docs/Sitemap.xml, docs/recipes.rst, docs/.static/blog1-icon.png, docs/.static/overlays-icon.png, docs/images/blog2-balloon1.png, docs/.static/blog2-icon.png, docs/images/blog2-balloon2.png
+  - Added docs about tooltip customisation
+  - Added blog
+  - Update features
+
+2009-05-21 09:11 (#602) - Demo/MainForm.Designer.cs, Demo/MainForm.cs
+  - KeyPress testing
+
+2009-05-21 09:09 (#600) - ObjectListView/ObjectListView.csproj
+  - Removed GlassPanelForm dependants
+
+2009-05-21 09:08 (#599) - ObjectListView/ObjectListView.cs
+  - Fixed bug so that KeyPress events are again fired
+  - Made overlay methods virtual
+
+2009-05-20 23:20 (#597) - ObjectListView/DropSink.cs
+  - Added a Handled flag to OlvDropEventArgs
+  - Tweaked the appearance of the drop-on-background feedback
+
+
+
+v2.2 beta - 15 May 2009
+-----------------------
+
+2009-05-15 14:36 (#592) - ObjectListView/GlassPanelForm.Designer.cs, ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs, ObjectListView/ObjectListView2008.csproj, ObjectListView/GlassPanelForm.resx
+  - Simplified GlassPanelForm
+  - Added subitem stuff to custom draw
+
+
+
 v2.2 alpha2 - 12 May 2009
 -------------------------
+
+2009-05-12 22:08 (#590) - docs/whatsnew.rst
+  - Added new TreeListView features
+
+2009-05-12 22:08 (#589) - Tests/Program.cs, Tests/TestTreeView.cs
+  - Added tests for tree traversal operations
+  - Use DiscardAllState() between tests
+
+2009-05-12 22:07 (#588) - ObjectListView/TreeListView.cs
+  - Added tree traverse operations: GetParent and GetChildren.
+  - Added DiscardAllState() to completely reset the TreeListView.
+
+2009-05-12 14:47 (#587) - Demo/MainForm.Designer.cs, Demo/MainForm.cs
+  - "Remove" on Simple tab removes all selected objects
+
+2009-05-12 14:46 (#586) - docs/.static/download-icon.png, docs/whatsnew.rst, docs/blog.rst, docs/overlays.rst, docs/.templates/layout.html, docs/download.rst, docs/changelog.rst, docs/index.rst
+  - Added download page
+  - Added Google analytics code
+  - Refined whatsnew.rst for v2.2 release
 
 2009-05-10 22:40 (#582) - ObjectListView/ObjectListView.cs, ObjectListView/ObjectListView2008.csproj, ObjectListView/TreeListView.cs, ObjectListView/HeaderControl.cs
   - Removed all unsafe code. The project no longer requires unsafe code
