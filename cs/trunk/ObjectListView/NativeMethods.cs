@@ -48,6 +48,7 @@ namespace BrightIdeasSoftware
         private const int LVM_SETITEMSTATE = LVM_FIRST + 43;
         private const int LVM_SETEXTENDEDLISTVIEWSTYLE = LVM_FIRST + 54;
         private const int LVM_SETITEM = LVM_FIRST + 76;
+        private const int LVM_GETTOOLTIPS = 0x1000 + 78;
         private const int LVM_GETCOLUMN = LVM_FIRST + 95;
         private const int LVM_SETCOLUMN = LVM_FIRST + 96;
         private const int LVM_SETSELECTEDCOLUMN = LVM_FIRST + 140;
@@ -202,15 +203,11 @@ namespace BrightIdeasSoftware
             [MarshalAs(UnmanagedType.LPTStr)]
             public string pszHeader;
             public int cchHeader;
-
             [MarshalAs(UnmanagedType.LPTStr)]
             public string pszFooter;
             public int cchFooter;
-
             public int iGroupId;
-
             public int stateMask;
-
             public int state;
             public int uAlign;
         }
@@ -384,6 +381,8 @@ namespace BrightIdeasSoftware
         // Various flavours of SendMessage: plain vanilla, and passing references to various structures
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, int lParam);
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
         private static extern IntPtr SendMessageLVItem(IntPtr hWnd, int msg, int wParam, ref LVITEM lvi);
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
@@ -398,6 +397,11 @@ namespace BrightIdeasSoftware
         public static extern IntPtr SendMessageTOOLINFO(IntPtr hWnd, int Msg, int wParam, NativeMethods.TOOLINFO lParam);
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessageLVBKIMAGE(IntPtr hWnd, int Msg, int wParam, ref NativeMethods.LVBKIMAGE lParam);
+        [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessageString(IntPtr hWnd, int Msg, int wParam, string lParam);
+
+        [DllImport("gdi32.dll")]
+        public static extern bool DeleteObject(IntPtr objectHandle); 
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         public static extern bool GetClientRect(IntPtr hWnd, ref Rectangle r);
@@ -417,6 +421,18 @@ namespace BrightIdeasSoftware
         [DllImport("user32.dll")]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
             int X, int Y, int cx, int cy, uint uFlags);
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowLong", CharSet = CharSet.Auto)]
+        public static extern IntPtr GetWindowLong32(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr", CharSet = CharSet.Auto)]
+        public static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", EntryPoint = "SetWindowLong", CharSet = CharSet.Auto)]
+        public static extern IntPtr SetWindowLongPtr32(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr", CharSet = CharSet.Auto)]
+        public static extern IntPtr SetWindowLongPtr64(IntPtr hWnd, int nIndex, int dwNewLong);
 
         [DllImport("user32.dll")]
         public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
@@ -739,9 +755,27 @@ namespace BrightIdeasSoftware
         /// This method works, but it prevents subitems in the given column from having
         /// back colors. 
         /// </remarks>
-        static public void SetSelectedColumn(ObjectListView objectListView, OLVColumn value) {
+        static public void SetSelectedColumn(ListView objectListView, ColumnHeader value) {
             NativeMethods.SendMessage(objectListView.Handle, 
                 LVM_SETSELECTEDCOLUMN, (value == null) ? -1 : value.Index, 0);
+        }
+
+        static public IntPtr GetTooltipControl(ListView lv) {
+            return SendMessage(lv.Handle, LVM_GETTOOLTIPS, 0, 0);
+        }
+ 
+        public static int GetWindowLong(IntPtr hWnd, int nIndex) {
+            if (IntPtr.Size == 4)
+                return (int)GetWindowLong32(hWnd, nIndex);
+            else
+                return (int)GetWindowLongPtr64(hWnd, nIndex);
+        }
+
+        public static int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong) {
+            if (IntPtr.Size == 4)
+                return (int)SetWindowLongPtr32(hWnd, nIndex, dwNewLong);
+            else
+                return (int)SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
         }
     }
 }
