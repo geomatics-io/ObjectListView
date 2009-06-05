@@ -119,7 +119,17 @@ namespace BrightIdeasSoftware
         private const int ILD_IMAGE = 0x00000020;
         private const int ILD_BLEND25 = 0x00000002;
         private const int ILD_BLEND50 = 0x00000004;
-        
+
+        const int SWP_NOSIZE = 1;
+        const int SWP_NOMOVE = 2;
+        const int SWP_NOZORDER = 4;
+        const int SWP_NOREDRAW = 8;
+        const int SWP_NOACTIVATE = 16;
+        const int SWP_FRAMECHANGED = 32;
+
+        const int SWP_zOrderOnly = SWP_NOSIZE | SWP_NOMOVE | SWP_NOREDRAW | SWP_NOACTIVATE;
+        const int SWP_updateFrame = SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_FRAMECHANGED;
+
         #endregion
 
         #region Structures
@@ -726,15 +736,18 @@ namespace BrightIdeasSoftware
         /// <param name="before"></param>
         /// <param name="after"></param>
         /// <returns></returns>
-        public static bool ChangeZOrder(Control before, Control after) {
-            const int SWP_NOSIZE = 1;
-            const int SWP_NOMOVE = 2;
-            //const int SWP_NOZORDER = 4;
-            const int SWP_NOREDRAW = 8;
-            const int SWP_NOACTIVATE = 16;
+        public static bool ChangeZOrder(IWin32Window toBeMoved, IWin32Window reference) {
+            return NativeMethods.SetWindowPos(toBeMoved.Handle, reference.Handle, 0, 0, 0, 0, SWP_zOrderOnly);
+        }
 
-            const int zOrderOnly = SWP_NOSIZE | SWP_NOMOVE | SWP_NOREDRAW | SWP_NOACTIVATE;
-            return NativeMethods.SetWindowPos(after.Handle, before.Handle, 0, 0, 0, 0, zOrderOnly);
+        /// <summary>
+        /// Make the given control/window a topmost window
+        /// </summary>
+        /// <param name="toBeMoved"></param>
+        /// <returns></returns>
+        public static bool MakeTopMost(IWin32Window toBeMoved) {
+            IntPtr HWND_TOPMOST = (IntPtr)(-1);
+            return NativeMethods.SetWindowPos(toBeMoved.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_zOrderOnly);
         }
 
         /// <summary>
