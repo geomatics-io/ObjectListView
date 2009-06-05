@@ -6,6 +6,7 @@
  * Date: 14/04/2009 4:36 PM
  *
  * Change log:
+ * 2009-06-05   JPP  - Handle when owning window is a topmost window
  * 2009-04-14   JPP  - Initial version
  *
  * To do:
@@ -105,6 +106,11 @@ namespace BrightIdeasSoftware
                 this.Owner.LocationChanged += new EventHandler(Owner_LocationChanged);
                 this.Owner.ResizeBegin += new EventHandler(Owner_ResizeBegin);
                 this.Owner.ResizeEnd += new EventHandler(Owner_ResizeEnd);
+                if (this.Owner.TopMost) {
+                    // We can't do this.TopMost = true; since that will activate the panel,
+                    // taking focus away from the owner of the listview
+                    NativeMethods.MakeTopMost(this);
+                }
             }
 
             this.UpdateTransparency();
