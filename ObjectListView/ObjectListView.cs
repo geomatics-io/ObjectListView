@@ -3910,6 +3910,7 @@ namespace BrightIdeasSoftware
             this.cellToolTip.AssignHandle(NativeMethods.GetTooltipControl(this));
             this.cellToolTip.Showing += new EventHandler<ToolTipShowingEventArgs>(HandleCellToolTipShowing);
             this.cellToolTip.SetMaxWidth();
+            NativeMethods.MakeTopMost(this.cellToolTip);
         }
 
         /// <summary>
