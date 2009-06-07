@@ -241,13 +241,6 @@ namespace ObjectListViewDemo
                 e.ListView.RefreshObjects(e.SourceModels);
             });
 
-            // Make the tooltips look somewhat different
-            this.listViewComplex.CellToolTip.BackColor = Color.Black;
-            this.listViewComplex.CellToolTip.ForeColor = Color.AntiqueWhite;
-            this.listViewComplex.HeaderToolTip.BackColor = Color.AntiqueWhite;
-            this.listViewComplex.HeaderToolTip.ForeColor = Color.Black;
-            this.listViewComplex.HeaderToolTip.IsBalloon = true;
-
             comboBox1.SelectedIndex = 4;
             comboBox5.SelectedIndex = 0;
             listViewComplex.SetObjects(list);
@@ -789,13 +782,13 @@ namespace ObjectListViewDemo
         #region Form event handlers
 
         private void MainForm_Load(object sender, EventArgs e) {
-            //this.BeginInvoke(new MethodInvoker(delegate() {
-            //    this.testForm = new Form1();
-            //    this.testForm.Attach(this.listViewSimple);
-            //    this.testForm.Show(this.listViewSimple.TopLevelControl);
-            //}));
+            // Make the tooltips look somewhat different
+            this.listViewComplex.CellToolTip.BackColor = Color.Black;
+            this.listViewComplex.CellToolTip.ForeColor = Color.AntiqueWhite;
+            this.listViewComplex.HeaderToolTip.BackColor = Color.AntiqueWhite;
+            this.listViewComplex.HeaderToolTip.ForeColor = Color.Black;
+            this.listViewComplex.HeaderToolTip.IsBalloon = true;
         }
-        //Form1 testForm;
 
         #endregion
 
@@ -1803,10 +1796,10 @@ namespace ObjectListViewDemo
 
             string stringValue = e.Column.GetStringValue(e.Model);
             if (stringValue.StartsWith("m", StringComparison.InvariantCultureIgnoreCase)) {
-                e.IsBalloon = true;
+                e.IsBalloon = !ObjectListView.IsVista; // balloons don't work reliably on vista
                 e.ToolTipControl.SetMaxWidth(400);
                 e.Title = "WARNING";
-                e.StandardIcon = ToolTipControl.StandardIcons.Warning;
+                e.StandardIcon = ToolTipControl.StandardIcons.InfoLarge;
                 e.BackColor = Color.AliceBlue;
                 e.ForeColor = Color.IndianRed;
                 e.AutoPopDelay = 15000;
