@@ -128,6 +128,7 @@ namespace BrightIdeasSoftware
         const int SWP_FRAMECHANGED = 32;
 
         const int SWP_zOrderOnly = SWP_NOSIZE | SWP_NOMOVE | SWP_NOREDRAW | SWP_NOACTIVATE;
+        const int SWP_sizeOnly = SWP_NOMOVE | SWP_NOREDRAW | SWP_NOZORDER | SWP_NOACTIVATE;
         const int SWP_updateFrame = SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_FRAMECHANGED;
 
         #endregion
@@ -362,14 +363,17 @@ namespace BrightIdeasSoftware
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        public struct TOOLTIPTEXT
+        public struct NMTTDISPINFO
         {
             public NativeMethods.NMHDR hdr;
+            [MarshalAs(UnmanagedType.LPTStr)]
             public string lpszText;
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
             public string szText;
             public IntPtr hinst;
             public int uFlags;
+            public IntPtr lParam;
+            //public int hbmp; This is documented but doesn't work
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -389,14 +393,14 @@ namespace BrightIdeasSoftware
         #region Entry points
 
         // Various flavours of SendMessage: plain vanilla, and passing references to various structures
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError=true)]
         public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, int lParam);
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
-        private static extern IntPtr SendMessageLVItem(IntPtr hWnd, int msg, int wParam, ref LVITEM lvi);
+        public static extern IntPtr SendMessageLVItem(IntPtr hWnd, int msg, int wParam, ref LVITEM lvi);
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
-        private static extern IntPtr SendMessageRECT(IntPtr hWnd, int msg, int wParam, ref RECT r);
+        public static extern IntPtr SendMessageRECT(IntPtr hWnd, int msg, int wParam, ref RECT r);
         //[DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
         //private static extern IntPtr SendMessageLVColumn(IntPtr hWnd, int m, int wParam, ref LVCOLUMN lvc);
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
@@ -748,6 +752,10 @@ namespace BrightIdeasSoftware
         public static bool MakeTopMost(IWin32Window toBeMoved) {
             IntPtr HWND_TOPMOST = (IntPtr)(-1);
             return NativeMethods.SetWindowPos(toBeMoved.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_zOrderOnly);
+        }
+
+        public static bool ChangeSize(IWin32Window toBeMoved, int width, int height) {
+            return NativeMethods.SetWindowPos(toBeMoved.Handle, IntPtr.Zero, 0, 0, width, height, SWP_sizeOnly);
         }
 
         /// <summary>
