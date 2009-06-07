@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-06-06   JPP  - Tweaked text rendering so that column 0 isn't ellipsed unnecessarily.
  * 2009-05-05   JPP  - Added Unfocused foreground and background colors 
  *                     (thanks to Christophe Hosten)
  * 2009-04-21   JPP  - Fixed off-by-1 error when calculating text widths. This caused
@@ -893,8 +894,8 @@ namespace BrightIdeasSoftware
 
             // Adjust the first columns rectangle to match the padding used by the native mode of the ListView
             if (this.Column.Index == 0) {
-                r.X += 4;
-                r.Width -= 4;
+                r.X += 3;
+                r.Width -= 1;
             }
             this.DrawAlignedImageAndText(g, r);
         }
