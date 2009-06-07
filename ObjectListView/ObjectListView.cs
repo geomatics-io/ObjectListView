@@ -6239,9 +6239,11 @@ namespace BrightIdeasSoftware
         }
 
         protected virtual void UnapplyHotItemStyle(OLVListItem olvi) {
-            olvi.UseItemStyleForSubItems = true;
-            this.RefreshItem(olvi);
-            //this.FillInValues(olvi, olvi.RowObject);
+            if (olvi != null) {
+                olvi.UseItemStyleForSubItems = true;
+                this.RefreshItem(olvi);
+                //this.FillInValues(olvi, olvi.RowObject);
+            }
         }
 
         //Dictionary<int, TransitionState> transitionStateMap = new Dictionary<int, TransitionState>();
