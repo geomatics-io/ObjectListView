@@ -17,6 +17,7 @@ can use it when the need arises.
 * `Automatic sorting`_
 * `Automatically create the ListView from model objects`_
 * `Checkboxes in any column`_
+* `Collapsible groups`_
 * `Copy selected rows to clipboard`_
 * `Custom row formatting`_
 * `Custom selection colours`_
@@ -79,6 +80,16 @@ Groups normally change according to the sort column. You can "lock" the groups t
 particular column via the `AlwaysGroupByColumn` property.
 
 See :ref:`grouping-label` for more details.
+
+
+Collapsible groups
+------------------
+
+This is the most requested feature ever. Under Vista, groups are now collapsible.
+This is enabled by default. If you don't want your groups to be collapsible, set
+`HasCollapsibleGroups` to `false`.
+
+Under XP, groups cannot be collapsed.
 
 
 Automatic sorting

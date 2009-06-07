@@ -52,6 +52,10 @@ Learning to cook
 
     :ref:`recipe-columntinting`
 
+    :ref:`recipe-imageonlycolumn`
+
+    :ref:`recipe-rightclickmenu`
+
 .. _recipe-flavour:
 
 1. What flavour of ObjectListView do I want to use?
@@ -716,9 +720,12 @@ to change the tool tip that will be displayed:
   string gives a multiline tool tip.
 
 * `Font`, `ForeColor` and `BackColor` control the font of the text,
-  the text colour and background colour of the tooltip.
+  the text colour and background colour of the tooltip. (NOTE: The color
+  settings do not work under Vista)
 
-* `IsBalloon` allows the tooltip to be shown as a balloon style.
+* `IsBalloon` allows the tooltip to be shown as a balloon style. (NOTE:
+  changing this during an event does not work reliably under Vista.
+  Setting it outside of an event works fine).
 
 * `Title` and `StandardIcon` allow a title and icon to be shown above the
   tool tip text.
@@ -834,3 +841,66 @@ column that you want to color::
 
 This latter option lets you tint more than one column.
 
+.. _recipe-imageonlycolumn:
+
+22. How do I make a column that shows just an image?
+----------------------------------------------------
+
+    *I want to show a meetings room's availablity as an icon, without any text.
+    What's the best way to do that?*
+
+To show only an image in a column, do this::
+
+   this.meetingColumn.AspectGetter = delegate(object x) {
+       return ((MeetingRoom)x).Availability;
+   };
+   this.meetingColumn.AspectToStringConverter = delegate(object x) {
+       return String.Empty;
+   };
+   this.meetingColumn.ImageConverter = delegate(object x) {
+       switch (((MeetingRoom)x).Availability) {
+           case RoomAvailability.Free: return "free";
+           case RoomAvailability.InUse: return "inuse";
+           case RoomAvailability.Booked: return "booked";
+       }
+       return "unexpected";
+   };
+
+By returning an aspect, sorting and grouping will still work. By forcing
+`AspectToStringConverter` to return an empty string, no string will be drawn,
+only the image.
+
+This works in both owner drawn or non-owner drawn lists.
+
+
+.. _recipe-rightclickmenu:
+
+23. How do I show a menu when the user right clicks on the ObjectListView?
+--------------------------------------------------------------------------
+
+If you want to show the same menu, regardless of where the user clicks,
+you can simply assign that menu to the `ContextMenuStrip` property of the `ObjectListView`
+(this is standard .NET, nothing specific to an `ObjectListView`).
+
+If you want to show a context menu specific to the object clicked,
+you need to listen for `OnMouseClick` event and do something like this::
+
+    private void olv_MouseClick(object sender, MouseEventArgs e) {
+        if (e.Button != MouseButtons.Right)
+            return;
+
+        ObjectListView olv = (ObjectListView)sender;
+        OlvListViewHitTestInfo hitTest = olv.OlvHitTest(e.X, e.Y);
+        ContextMenuStrip ms = this.DecideRightClickMenu(hitTest.RowObject, hitTest.Column);
+        if (ms != null)
+            ms.Show(olv, e.X, e.Y);
+    }
+
+This finds the model object under the mouse click and the column that was clicked too.
+Using those, you can decide what menu to show: `DecideRightClickMenu()` is obviously
+something you have to implement yourself.
+
+It's entirely reasonable for `hitTest.RowObject` to be `null`. That means the user clicked
+on the list background.
+
+[It's probable that I will provide an event sometime in the future.]

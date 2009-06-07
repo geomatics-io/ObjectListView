@@ -43,6 +43,7 @@ OK, here's the bullet point feature list:
 * Easily enable :ref:`drag and drop <dragdrop-label>`.
 * Supports all ListView views (report, list, large and small icons).
 * Supports automatic grouping.
+* Supports collapsible groups (Vista only).
 * Columns can be fixed-width, have a minimum and/or maximum width, or be space-filling (:ref:`Column Widths <recipe-column-width>`)
 * Displays a :ref:`"list is empty" message <recipe-emptymsg>` when the list is empty (obviously).
 * Supports :ref:`tooltips <recipe-tooltips>` for cells and for headers
@@ -99,22 +100,25 @@ phillip_piper@bigfoot.com.
 Technical details
 -----------------
 
-I've started keeping a technical blog documenting some of the efforts that were required to
+I've started keeping a :ref:`technical blog <blog>` documenting some of the efforts that were required to
 solve some of the problem encountered within the ObjectListView.
 
-:ref:`This long article <blog-overlays>` talks about the problems and solutions encountered when developing the
-overlay feature of v2.2.
+* :ref:`This long article <blog-overlays>` talks about the problems and solutions encountered when developing the
+  overlay feature of v2.2.
+
+* :ref:`This article <blog-tooltip>` talks about the problems of trying to use a standard `ToolTip` class on a
+  `ListView`.
 
 What people have said about ObjectListView
 ------------------------------------------
 
 When thinking about using some new code, it's always interesting to hear what others have said about it.
 
-.. pull-quote:: I have been watching this control since 2007 and just checked the new features you've added recently and in the last couple of months. This gotta be the best list control out there. You've done a brilliant job with this and I'm sure many others appreciate your work. Well done and keep it up!
+.. pull-quote:: I have been watching this control since 2007 and just checked the new features you've added recently and in the last couple of months. This has gotta be the best list control out there. You've done a brilliant job with this and I'm sure many others appreciate your work. Well done and keep it up!
 
    -- `Hakan <http://www.codeproject.com/Messages/3034884/feedback-about-this-control.aspx>`_
 
-.. pull-quote:: I second that. This should be brought into the next version of the framework, it's brill. work!
+.. pull-quote:: I second that. This should be brought into the next version of the framework, it's brillant work!
 
    -- `id2008 <http://www.codeproject.com/Messages/3034969/Re-feedback-about-this-control.aspx>`_
 
