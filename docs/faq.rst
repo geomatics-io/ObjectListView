@@ -58,7 +58,7 @@ Nothing. That's what it is supposed to do.
 The `ObjectListView` knows nothing about your model objects. It does not
 know when they have been changed. Only you know that. When you know that a model object
 has changed and needs to be updated, you can either call `RefreshObject()` to
-update just one object, or you can call `RepopulateList()` to rebuild everything at once.
+update just one object, or you can call `BuildList()` to rebuild everything at once.
 
 `DataListView` is the exception to this rule. Any change you make to your `DataSource` should be
 immediately reflected in the `DataListView`.
