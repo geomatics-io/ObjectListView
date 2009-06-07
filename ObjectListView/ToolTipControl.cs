@@ -9,6 +9,7 @@
  * Date: 2009-05-17 7:22PM 
  *
  * Change log:
+ * 2009-06-06  JPP  - Fixed some Vista specific problems
  * 2009-05-17  JPP  - Initial version
  *
  * TO DO:
@@ -67,7 +68,9 @@ namespace BrightIdeasSoftware
         const int WS_EX_TOPMOST = 8;
 
         const int TTM_ADDTOOL = 0x432;
+        const int TTM_ADJUSTRECT = 0x400 + 31;
         const int TTM_DELTOOL = 0x433;
+        const int TTM_GETBUBBLESIZE = 0x400 + 30;
         const int TTM_GETCURRENTTOOL = 0x400 + 59;
         const int TTM_GETTIPBKCOLOR = 0x400 + 22;
         const int TTM_GETTIPTEXTCOLOR = 0x400 + 23;
@@ -135,13 +138,17 @@ namespace BrightIdeasSoftware
                 int windowStyle = this.WindowStyle;
                 if (value) {
                     windowStyle |= (TTS_BALLOON | TTS_USEVISUALSTYLE);
-                    windowStyle &= ~WS_BORDER; // makes the ballon look wrong
+                    // On XP, a border makes the ballon look wrong
+                    if (!ObjectListView.IsVista)
+                        windowStyle &= ~WS_BORDER; 
                 } else {
                     windowStyle &= ~(TTS_BALLOON | TTS_USEVISUALSTYLE);
-                    if (this.hasBorder)
-                        windowStyle |= WS_BORDER;
-                    else
-                        windowStyle &= ~WS_BORDER;
+                    if (!ObjectListView.IsVista) {
+                        if (this.hasBorder)
+                            windowStyle |= WS_BORDER;
+                        else
+                            windowStyle &= ~WS_BORDER;
+                    }
                 }
                 this.WindowStyle = windowStyle;
             }
@@ -176,8 +183,13 @@ namespace BrightIdeasSoftware
                 return ColorTranslator.FromWin32(color);
             }
             set {
-                int color = ColorTranslator.ToWin32(value);
-                NativeMethods.SendMessage(this.Handle, TTM_SETTIPBKCOLOR, color, 0);
+                // For some reason, setting the color fails on Vista and messes up later ops.
+                // So we don't even try to set it.
+                if (!ObjectListView.IsVista) {
+                    int color = ColorTranslator.ToWin32(value);
+                    NativeMethods.SendMessage(this.Handle, TTM_SETTIPBKCOLOR, color, 0);
+                    //int x2 = Marshal.GetLastWin32Error();
+                }
             }
         }
 
@@ -190,8 +202,12 @@ namespace BrightIdeasSoftware
                 return ColorTranslator.FromWin32(color);
             }
             set {
-                int color = ColorTranslator.ToWin32(value);
-                NativeMethods.SendMessage(this.Handle, TTM_SETTIPTEXTCOLOR, color, 0);
+                // For some reason, setting the color fails on Vista and messes up later ops.
+                // So we don't even try to set it.
+                if (!ObjectListView.IsVista) {
+                    int color = ColorTranslator.ToWin32(value);
+                    NativeMethods.SendMessage(this.Handle, TTM_SETTIPTEXTCOLOR, color, 0);
+                }
             }
         }
 
@@ -376,6 +392,21 @@ namespace BrightIdeasSoftware
             NativeMethods.SendMessage(this.Handle, TTM_POP, 0, 0);
         }
 
+        //public void Munge() {
+        //    NativeMethods.TOOLINFO tool = new NativeMethods.TOOLINFO();
+        //    IntPtr result = NativeMethods.SendMessageTOOLINFO(this.Handle, TTM_GETCURRENTTOOL, 0, tool);
+        //    System.Diagnostics.Trace.WriteLine("-");
+        //    System.Diagnostics.Trace.WriteLine(result);
+        //    result = NativeMethods.SendMessageTOOLINFO(this.Handle, TTM_GETBUBBLESIZE, 0, tool);
+        //    System.Diagnostics.Trace.WriteLine(String.Format("{0} {1}", result.ToInt32() >> 16, result.ToInt32() & 0xFFFF));
+        //    NativeMethods.ChangeSize(this, result.ToInt32() & 0xFFFF, result.ToInt32() >> 16);
+        //    //NativeMethods.RECT r = new NativeMethods.RECT();
+        //    //r.right 
+        //    //IntPtr x = NativeMethods.SendMessageRECT(this.Handle, TTM_ADJUSTRECT, true, ref r);
+
+        //    //System.Diagnostics.Trace.WriteLine(String.Format("{0} {1} {2} {3}", r.left, r.top, r.right, r.bottom));
+        //}
+
         /// <summary>
         /// Remove the given window from those managed by this tooltip
         /// </summary>
@@ -384,23 +415,6 @@ namespace BrightIdeasSoftware
             NativeMethods.TOOLINFO lParam = this.MakeToolInfoStruct(window);
             NativeMethods.SendMessageTOOLINFO(this.Handle, TTM_DELTOOL, 0, lParam);
         }
-
-        /// <summary>
-        /// Remove the given window from those managed by this tooltip
-        /// </summary>
-        /// <param name="window"></param>
-        //public void ChangeCurrentToolRect(Rectangle r) {
-        //    NativeMethods.TOOLINFO tool = new NativeMethods.TOOLINFO();
-        //    IntPtr result = NativeMethods.SendMessageTOOLINFO(this.Handle, TTM_GETCURRENTTOOL, 0, tool);
-        //    if (result != IntPtr.Zero) {
-        //        System.Diagnostics.Debug.WriteLine(String.Format("{0}, {1}, {2}, {3}",
-        //        tool.rect.left,
-        //        tool.rect.top,
-        //        tool.rect.right,
-        //        tool.rect.bottom));
-        //        //result = NativeMethods.SendMessageTOOLINFO(this.Handle, TTM_NEWTOOLRECT, 0, tool);
-        //    }
-        //}
 
         /// <summary>
         /// Set the maximum width of a tooltip string.
@@ -430,7 +444,7 @@ namespace BrightIdeasSoftware
 
             NativeMethods.TOOLINFO toolinfo_tooltip = new NativeMethods.TOOLINFO();
             toolinfo_tooltip.hwnd = window.Handle;
-            toolinfo_tooltip.uFlags = TTF_IDISHWND | TTF_SUBCLASS | TTF_PARSELINKS;
+            toolinfo_tooltip.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
             toolinfo_tooltip.uId = window.Handle;
             toolinfo_tooltip.lpszText = (IntPtr)(-1); // LPSTR_TEXTCALLBACK
 
@@ -444,21 +458,14 @@ namespace BrightIdeasSoftware
         /// <returns>True if the message has been handled</returns>
         protected virtual bool HandleNotify(ref Message msg) {
 
-            NativeMethods.NMHEADER nmheader = (NativeMethods.NMHEADER)msg.GetLParam(typeof(NativeMethods.NMHEADER));
-            switch (nmheader.nhdr.code) {
-                case TTN_SHOW:
-                    System.Diagnostics.Debug.WriteLine("in TTN_SHOW");
-                    break;
-                case TTN_POP:
-                    System.Diagnostics.Debug.WriteLine("in TTN_POP");
-                    break;
-                case TTN_LINKCLICK:
-                    System.Diagnostics.Debug.WriteLine("in TTN_LINKCLICK");
-                    break;
-                case TTN_GETDISPINFO:
-                    System.Diagnostics.Debug.WriteLine("in TTN_GETDISPINFO");
-                    break;
-            }
+            //THINK: What do we have to do here? Nothing it seems :)
+
+            //NativeMethods.NMHEADER nmheader = (NativeMethods.NMHEADER)msg.GetLParam(typeof(NativeMethods.NMHEADER));
+            //System.Diagnostics.Trace.WriteLine("HandleNotify");
+            //System.Diagnostics.Trace.WriteLine(nmheader.nhdr.code);
+
+            //switch (nmheader.nhdr.code) {
+            //}
 
             return false;
         }
@@ -469,6 +476,7 @@ namespace BrightIdeasSoftware
         /// <param name="msg">The msg</param>
         /// <returns>True if the message has been handled</returns>
         public virtual bool HandleGetDispInfo(ref Message msg) {
+            System.Diagnostics.Trace.WriteLine("HandleGetDispInfo");
             this.SetMaxWidth();
             ToolTipShowingEventArgs args = new ToolTipShowingEventArgs();
             args.ToolTipControl = this;
@@ -477,11 +485,13 @@ namespace BrightIdeasSoftware
                 return false;
 
             this.ApplyEventFormatting(args);
-            NativeMethods.TOOLTIPTEXT ttt = (NativeMethods.TOOLTIPTEXT)msg.GetLParam(typeof(NativeMethods.TOOLTIPTEXT));
-            ttt.lpszText = args.Text;
+
+            NativeMethods.NMTTDISPINFO dispInfo = (NativeMethods.NMTTDISPINFO)msg.GetLParam(typeof(NativeMethods.NMTTDISPINFO));
+            dispInfo.lpszText = args.Text;
+            dispInfo.hinst = IntPtr.Zero;
             if (args.RightToLeft == RightToLeft.Yes)
-                ttt.uFlags |= TTF_RTLREADING;
-            Marshal.StructureToPtr(ttt, msg.LParam, false);
+                dispInfo.uFlags |= TTF_RTLREADING;
+            Marshal.StructureToPtr(dispInfo, msg.LParam, false);
 
             return true;
         }
@@ -518,7 +528,9 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="msg">The msg</param>
         /// <returns>True if the message has been handled</returns>
+        /// <remarks>This cannot call base.WndProc() since the msg may have come from another control.</remarks>
         public virtual bool HandleLinkClick(ref Message msg) {
+            System.Diagnostics.Trace.WriteLine("HandleLinkClick");
             return false;
         }
 
@@ -527,8 +539,9 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="msg">The msg</param>
         /// <returns>True if the message has been handled</returns>
+        /// <remarks>This cannot call base.WndProc() since the msg may have come from another control.</remarks>
         public virtual bool HandlePop(ref Message msg) {
-            base.WndProc(ref msg);
+            System.Diagnostics.Trace.WriteLine("HandlePop");
             this.PopSettings();
             return true;
         }
@@ -538,7 +551,9 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="msg">The msg</param>
         /// <returns>True if the message has been handled</returns>
+        /// <remarks>This cannot call base.WndProc() since the msg may have come from another control.</remarks>
         public virtual bool HandleShow(ref Message msg) {
+            System.Diagnostics.Trace.WriteLine("HandleShow");
             return false;
         }
 
@@ -552,22 +567,22 @@ namespace BrightIdeasSoftware
             NativeMethods.NMHEADER nmheader = (NativeMethods.NMHEADER)msg.GetLParam(typeof(NativeMethods.NMHEADER));
             switch (nmheader.nhdr.code) {
                 case TTN_SHOW:
-                    //System.Diagnostics.Debug.WriteLine("reflect TTN_SHOW");
+                    System.Diagnostics.Trace.WriteLine("reflect TTN_SHOW");
                     if (this.HandleShow(ref msg))
                         return true;
                     break;
                 case TTN_POP:
-                    //System.Diagnostics.Debug.WriteLine("reflect TTN_POP");
+                    System.Diagnostics.Trace.WriteLine("reflect TTN_POP");
                     if (this.HandlePop(ref msg))
                         return true;
                     break;
                 case TTN_LINKCLICK:
-                    //System.Diagnostics.Debug.WriteLine("reflect TTN_LINKCLICK");
+                    System.Diagnostics.Trace.WriteLine("reflect TTN_LINKCLICK");
                     if (this.HandleLinkClick(ref msg))
                         return true;
                     break;
                 case TTN_GETDISPINFO:
-                    //System.Diagnostics.Debug.WriteLine("reflect TTN_GETDISPINFO");
+                    System.Diagnostics.Trace.WriteLine("reflect TTN_GETDISPINFO");
                     if (this.HandleGetDispInfo(ref msg))
                         return true;
                     break;
@@ -581,7 +596,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="msg"></param>
         override protected void WndProc(ref Message msg) {
-            //System.Diagnostics.Debug.WriteLine(String.Format("xx {0:x}", msg.Msg));
+            //System.Diagnostics.Trace.WriteLine(String.Format("xx {0:x}", msg.Msg));
             switch (msg.Msg) {
                 case 0x4E: // WM_NOTIFY
                     if (!this.HandleNotify(ref msg))
