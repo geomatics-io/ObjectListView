@@ -789,14 +789,14 @@ namespace BrightIdeasSoftware
             if (IntPtr.Size == 4)
                 return (int)GetWindowLong32(hWnd, nIndex);
             else
-                return (int)GetWindowLongPtr64(hWnd, nIndex);
+                return (int)(long)GetWindowLongPtr64(hWnd, nIndex);
         }
 
         public static int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong) {
             if (IntPtr.Size == 4)
                 return (int)SetWindowLongPtr32(hWnd, nIndex, dwNewLong);
             else
-                return (int)SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
+                return (int)(long)SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
         }
     }
 }
