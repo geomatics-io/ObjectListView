@@ -5,6 +5,9 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2009-07-02  JPP  - Fixed bug with tooltips when the underlying Windows control was destroyed.
+ *                  - CellToolTipShowing events are now triggered in all views.
+ * v2.2
  * 2009-06-02  JPP  - BeforeSortingEventArgs now has a Handled property to let event handlers do
  *                    the item sorting themselves.
  *                  - AlwaysGroupByColumn works again, as does SortGroupItemsByPrimaryColumn and all their
@@ -542,6 +545,7 @@ namespace BrightIdeasSoftware
             }
             set {
                 base.CheckBoxes = value;
+
                 // Initialize the state image list so we can display indetermined values.
                 this.InitializeStateImageList();
             }
@@ -1835,22 +1839,21 @@ namespace BrightIdeasSoftware
                 if (this.Frozen) {
                     base.View = value;
                     this.SetupBaseImageList();
-                    return;
+                } else {
+                    this.Freeze();
+
+                    // If we are switching to a Detail or Tile view, setup the columns needed for that view
+                    if (value == View.Details || value == View.Tile) {
+                        this.ChangeToFilteredColumns(value);
+
+                        if (value == View.Tile)
+                            this.CalculateReasonableTileSize();
+                    }
+
+                    base.View = value;
+                    this.SetupBaseImageList();
+                    this.Unfreeze();
                 }
-
-                this.Freeze();
-
-                // If we are switching to a Detail or Tile view, setup the columns needed for that view
-                if (value == View.Details || value == View.Tile) {
-                    this.ChangeToFilteredColumns(value);
-
-                    if (value == View.Tile)
-                        this.CalculateReasonableTileSize();
-                }
-
-                base.View = value;
-                this.SetupBaseImageList();
-                this.Unfreeze();
             }
         }
 
@@ -3035,13 +3038,19 @@ namespace BrightIdeasSoftware
         protected virtual void HandleCellToolTipShowing(object sender, ToolTipShowingEventArgs e) {
             e.Location = this.PointToClient(Cursor.Position);
             ListViewHitTestInfo info = this.HitTest(e.Location);
-            if (info.Item != null && info.SubItem != null) {
+            if (info.Item != null) {
+                e.ListView = this;
                 e.RowIndex = info.Item.Index;
                 e.Model = this.GetModelObject(e.RowIndex);
-                e.ColumnIndex = info.Item.SubItems.IndexOf(info.SubItem);
-                e.Column = this.GetColumn(e.ColumnIndex);
+                if (info.SubItem == null) {
+                    e.ColumnIndex = -1;
+                    e.Column = null;
+                } else {
+                    e.ColumnIndex = info.Item.SubItems.IndexOf(info.SubItem);
+                    e.Column = this.GetColumn(e.ColumnIndex);
+                }
                 e.Text = this.GetCellToolTip(e.ColumnIndex, e.RowIndex);
-
+                
                 this.OnCellToolTip(e);
             }
         }
@@ -3069,6 +3078,7 @@ namespace BrightIdeasSoftware
             e.Model = null;
             e.Column = this.GetColumn(e.ColumnIndex);
             e.Text = this.GetHeaderToolTip(e.ColumnIndex);
+            e.ListView = this;
             this.OnHeaderToolTip(e);
         }
 
@@ -3165,6 +3175,10 @@ namespace BrightIdeasSoftware
                     base.WndProc(ref m);
                     break;
 
+                case 2: // WM_DESTROY
+                    if (!this.HandleDestroy(ref m))
+                        base.WndProc(ref m);
+                    break;
                 //case 0x1000 + 20:
                 //    System.Diagnostics.Debug.WriteLine("LVM_SCROLL");
                 //    base.WndProc(ref m);
@@ -3445,6 +3459,27 @@ namespace BrightIdeasSoftware
         bool isAfterItemPaint;
 
         /// <summary>
+        /// Handle the underlying control being destroyed
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
+        protected virtual bool HandleDestroy(ref Message m) {
+            //System.Diagnostics.Debug.WriteLine("WM_DESTROY");
+            if (this.cellToolTip == null)
+                return false;
+
+            // When the underlying control is destroyed, we need to recreate
+            // and reconfigure its tooltip
+            this.cellToolTip.PushSettings();
+            base.WndProc(ref m);
+            this.BeginInvoke((MethodInvoker)delegate {
+                this.UpdateCellToolTipHandle();
+                this.cellToolTip.PopSettings();
+            });
+            return true;
+        }
+
+        /// <summary>
         /// Handle the search for item m if possible.
         /// </summary>
         /// <param name="m">The m to be processed</param>
@@ -3674,7 +3709,6 @@ namespace BrightIdeasSoftware
 
             bool isMsgHandled = false;
 
-            //NativeMethods.NMHDR* nmhdr = (NativeMethods.NMHDR*)m.LParam;
             NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
             //System.Diagnostics.Debug.WriteLine(String.Format("rn: {0}", nmhdr->code));
 
@@ -3682,7 +3716,6 @@ namespace BrightIdeasSoftware
                 case LVN_BEGINSCROLL:
                     //System.Diagnostics.Debug.WriteLine("LVN_BEGINSCROLL");
 
-                    //NativeMethods.NMLVSCROLL* nmlistviewPtr3 = (NativeMethods.NMLVSCROLL*)m.LParam;
                     NativeMethods.NMLVSCROLL nmlvscroll = (NativeMethods.NMLVSCROLL)m.GetLParam(typeof(NativeMethods.NMLVSCROLL));
                     if (nmlvscroll.dx != 0) {
                         int scrollPositionH = NativeMethods.GetScrollPosition(this, true);
@@ -3801,9 +3834,7 @@ namespace BrightIdeasSoftware
             const int HDN_TRACKW = (HDN_FIRST - 28);
 
             // Handle the notification, remembering to handle both ANSI and Unicode versions
-            //NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
             NativeMethods.NMHEADER nmheader = (NativeMethods.NMHEADER)m.GetLParam(typeof(NativeMethods.NMHEADER));
-            //NativeMethods.NMHDR* nmhdr = (NativeMethods.NMHDR*)m.LParam;
             //System.Diagnostics.Debug.WriteLine(String.Format("not: {0}", nmhdr->code));
 
             //if (nmhdr.code < HDN_FIRST)
@@ -3853,9 +3884,7 @@ namespace BrightIdeasSoftware
 
                 case HDN_TRACKA:
                 case HDN_TRACKW:
-                    //nmheader = (NativeMethods.NMHEADER)m.GetLParam(typeof(NativeMethods.NMHEADER));
                     if (nmheader.iItem >= 0 && nmheader.iItem < this.Columns.Count) {
-                        //NativeMethods.HDITEM* hditem = (NativeMethods.HDITEM*)nmheader.pHDITEM;
                         NativeMethods.HDITEM hditem = (NativeMethods.HDITEM)Marshal.PtrToStructure(nmheader.pHDITEM, typeof(NativeMethods.HDITEM));
                         OLVColumn column = this.GetColumn(nmheader.iItem);
                         if (hditem.cxy < column.MinimumWidth)
@@ -3905,12 +3934,24 @@ namespace BrightIdeasSoftware
             return isMsgHandled;
         }
 
+        /// <summary>
+        /// Create a ToolTipControl to manage the tooltip control used by the listview control
+        /// </summary>
         protected virtual void CreateCellToolTip() {
             this.cellToolTip = new ToolTipControl();
             this.cellToolTip.AssignHandle(NativeMethods.GetTooltipControl(this));
             this.cellToolTip.Showing += new EventHandler<ToolTipShowingEventArgs>(HandleCellToolTipShowing);
             this.cellToolTip.SetMaxWidth();
             NativeMethods.MakeTopMost(this.cellToolTip);
+        }
+
+        /// <summary>
+        /// Update the handle used by our cell tooltip to be the tooltip used by
+        /// the underlying Windows listview control.
+        /// </summary>
+        protected virtual void UpdateCellToolTipHandle() {
+            if (this.cellToolTip != null && this.cellToolTip.Handle == IntPtr.Zero) 
+                this.cellToolTip.AssignHandle(NativeMethods.GetTooltipControl(this));
         }
 
         /// <summary>
