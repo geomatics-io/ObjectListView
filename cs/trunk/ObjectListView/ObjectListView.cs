@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log:
+ * 2009-07-04  JPP  - Space bar now properly toggles checkedness of selected rows
  * 2009-07-02  JPP  - Fixed bug with tooltips when the underlying Windows control was destroyed.
  *                  - CellToolTipShowing events are now triggered in all views.
  * v2.2
@@ -3222,17 +3223,24 @@ namespace BrightIdeasSoftware
             const int MILLISECONDS_BETWEEN_KEYPRESSES = 1000;
 
             // What character did the user type and was it part of a longer string?
-            char character = (char)m.WParam; //TODO: Will this work on 64 bit or MBCS?
-            if (character == 8) {
+            char character = (char)m.WParam.ToInt32(); //TODO: Will this work on 64 bit or MBCS?
+            if (character == (char)Keys.Back) {
                 // Backspace forces the next key to be considered the start of a new search
                 this.timeLastCharEvent = 0;
                 return true;
             }
-
+            
             if (System.Environment.TickCount < (this.timeLastCharEvent + MILLISECONDS_BETWEEN_KEYPRESSES))
                 this.lastSearchString += character;
             else
                 this.lastSearchString = character.ToString();
+
+            // If this control is showing checkboxes, we want to ignore single space presses,
+            // since they are used to toggle the selected checkboxes.
+            if (this.CheckBoxes && this.lastSearchString == " ") {
+                this.timeLastCharEvent = 0;
+                return true;
+            }
 
             // Where should the search start?
             int start = 0;
@@ -3587,6 +3595,12 @@ namespace BrightIdeasSoftware
         /// <returns>True if the msg has been handled</returns>
         protected virtual bool HandleKeyDown(ref Message m) {
 
+            // If this is a checkbox list, toggle the selected rows when the user presses Space
+            if (this.CheckBoxes && m.WParam.ToInt32() == (int)Keys.Space && this.SelectedIndices.Count > 0) {
+                this.ToggleSelectedRows();
+                return true;
+            }
+
             // Remember the scroll position so we can decide if the listview has scrolled in the 
             // handling of the event.
             int scrollPositionH = NativeMethods.GetScrollPosition(this, true);
@@ -3609,6 +3623,18 @@ namespace BrightIdeasSoftware
             }
 
             return true;
+        }
+
+        private void ToggleSelectedRows() {
+            // This doesn't actually toggle all rows. It toggles the first row, and
+            // all other rows get the check state of that first row.
+            Object primaryModel = this.GetItem(this.SelectedIndices[0]).RowObject;
+            this.ToggleCheckObject(primaryModel);
+            CheckState? state = this.GetCheckState(primaryModel);
+            if (state.HasValue) {
+                foreach (Object x in this.SelectedObjects)
+                    this.SetObjectCheckedness(x, state.Value);
+            }
         }
 
         /// <summary>
@@ -3657,9 +3683,11 @@ namespace BrightIdeasSoftware
             // If they change the checkbox of a selecte row, all the rows in the selection
             // should be given the same state
             if (hti.Item.Selected) {
-                CheckState state = this.ModelToItem(hti.RowObject).CheckState;
-                foreach (Object x in this.SelectedObjects)
-                    this.SetObjectCheckedness(x, state);
+                CheckState? state = this.GetCheckState(hti.RowObject);
+                if (state.HasValue) {
+                    foreach (Object x in this.SelectedObjects)
+                        this.SetObjectCheckedness(x, state.Value);
+                }
             }
 
             return true;
