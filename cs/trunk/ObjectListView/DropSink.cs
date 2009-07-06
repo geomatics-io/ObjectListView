@@ -5,6 +5,7 @@
  * Date: 2009-03-17 5:15 PM
  *
  * Change log:
+ * 2007-07-06   JPP  - Added StandardDropActionFromKeys property to OlvDropEventArgs
  * v2.2
  * 2009-05-17   JPP  - Added a Handled flag to OlvDropEventArgs
  *                   - Tweaked the appearance of the drop-on-background feedback
@@ -742,7 +743,7 @@ namespace BrightIdeasSoftware
             this.dropEventArgs.Handled = false;
 
             if (this.dropEventArgs.SourceListView != null) {
-                this.dropEventArgs.TargetModel = this.ListView.GetModelObject(this.DropTargetIndex);
+                this.dropEventArgs.TargetModel = this.ListView.GetModelObject(this.dropEventArgs.DropTargetIndex);
                 this.OnModelCanDrop(this.dropEventArgs);
             }
 
@@ -1208,6 +1209,15 @@ namespace BrightIdeasSoftware
             internal set { this.mouseLocation = value; }
         }
         private Point mouseLocation;
+
+        /// <summary>
+        /// Get the drop action indicated solely by the state of the modifier keys
+        /// </summary>
+        public DragDropEffects StandardDropActionFromKeys {
+            get {
+                return this.DropSink.CalculateStandardDropActionFromKeys();
+            }
+        }
 
         #endregion
     }
