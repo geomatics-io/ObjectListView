@@ -5,6 +5,8 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-07-03   JPP  - Standardized code format
+ * v2.2
  * 2009-04-06   JPP  - ClearObjects() now works again
  * v2.1
  * 2009-02-24   JPP  - Removed redundant OnMouseDown() since checkbox
@@ -73,18 +75,17 @@ namespace BrightIdeasSoftware
         /// Create a VirtualObjectListView
         /// </summary>
         public VirtualObjectListView()
-            : base()
-        {
+            : base() {
             this.ShowGroups = false; // virtual lists can never show groups
             this.VirtualMode = true; // Virtual lists have to be virtual -- no prizes for guessing that :)
 
             this.CacheVirtualItems += new CacheVirtualItemsEventHandler(this.HandleCacheVirtualItems);
             this.RetrieveVirtualItem += new RetrieveVirtualItemEventHandler(this.HandleRetrieveVirtualItem);
             this.SearchForVirtualItem += new SearchForVirtualItemEventHandler(this.HandleSearchForVirtualItem);
-            
+
             // At the moment, we don't need to handle this event. But we'll keep this comment to remind us about it.
             //this.VirtualItemsSelectionRangeChanged += new ListViewVirtualItemsSelectionRangeChangedEventHandler(VirtualObjectListView_VirtualItemsSelectionRangeChanged);
-            
+
             this.DataSource = new VirtualListVersion1DataSource(this);
         }
 
@@ -115,8 +116,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public override IList CheckedObjects
-        {
+        public override IList CheckedObjects {
             get {
                 ArrayList objects = new ArrayList();
 
@@ -133,7 +133,7 @@ namespace BrightIdeasSoftware
                 return objects;
             }
             set {
-                if (!this.CheckBoxes) 
+                if (!this.CheckBoxes)
                     return;
 
                 if (value == null)
@@ -142,7 +142,7 @@ namespace BrightIdeasSoftware
                 Object[] keys = new Object[this.checkStateMap.Count];
                 this.checkStateMap.Keys.CopyTo(keys, 0);
                 foreach (Object key in keys) {
-                    if (value.Contains(key)) 
+                    if (value.Contains(key))
                         this.SetObjectCheckedness(key, CheckState.Checked);
                     else
                         this.SetObjectCheckedness(key, CheckState.Unchecked);
@@ -159,8 +159,7 @@ namespace BrightIdeasSoftware
         /// <remarks>Setting this will cause the list to redraw.</remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual IVirtualListDataSource DataSource
-        {
+        public virtual IVirtualListDataSource DataSource {
             get {
                 return this.dataSource;
             }
@@ -182,8 +181,7 @@ namespace BrightIdeasSoftware
         /// <remarks>Only use this property if you are not using a DataSource.</remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual RowGetterDelegate RowGetter
-        {
+        public virtual RowGetterDelegate RowGetter {
             get { return ((VirtualListVersion1DataSource)this.dataSource).RowGetter; }
             set { ((VirtualListVersion1DataSource)this.dataSource).RowGetter = value; }
         }
@@ -196,8 +194,7 @@ namespace BrightIdeasSoftware
         /// Return the number of items in the list
         /// </summary>
         /// <returns>the number of items in the list</returns>
-        public override int GetItemCount()
-        {
+        public override int GetItemCount() {
             return this.VirtualListSize;
         }
 
@@ -206,9 +203,8 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="index">Index of the model object to be returned</param>
         /// <returns>A model object</returns>
-        public override object GetModelObject(int index)
-        {
-            if (this.DataSource != null)
+        public override object GetModelObject(int index) {
+            if (this.DataSource != null && index >= 0)
                 return this.DataSource.GetNthObject(index);
             else
                 return null;
@@ -220,8 +216,7 @@ namespace BrightIdeasSoftware
         /// <param name="modelObject">The modelObject whose item is to be found</param>
         /// <returns>The OLVListItem that displays the model, or null</returns>
         /// <remarks>This method has O(n) performance.</remarks>
-        public override OLVListItem ModelToItem(object modelObject)
-        {
+        public override OLVListItem ModelToItem(object modelObject) {
             if (this.DataSource == null || modelObject == null)
                 return null;
 
@@ -246,9 +241,8 @@ namespace BrightIdeasSoftware
         /// <para>No check is performed to see if any of the objects are already in the ListView.</para>
         /// <para>Null objects are silently ignored.</para>
         /// </remarks>
-        public override void AddObjects(ICollection modelObjects)
-        {
-            if (this.DataSource == null) 
+        public override void AddObjects(ICollection modelObjects) {
+            if (this.DataSource == null)
                 return;
 
             // Give the world a chance to cancel or change the added objects
@@ -267,11 +261,10 @@ namespace BrightIdeasSoftware
         /// Remove all items from this list
         /// </summary>
         /// <remark>This method can safely be called from background threads.</remark>
-        public override void ClearObjects()
-        {
+        public override void ClearObjects() {
             if (this.InvokeRequired)
                 this.Invoke(new MethodInvoker(this.ClearObjects));
-            else 
+            else
                 this.SetObjects(new ArrayList());
         }
 
@@ -279,8 +272,7 @@ namespace BrightIdeasSoftware
         /// Update the rows that are showing the given objects
         /// </summary>
         /// <remarks>This method does not resort the items.</remarks>
-        public override void RefreshObjects(IList modelObjects)
-        {
+        public override void RefreshObjects(IList modelObjects) {
             if (this.InvokeRequired) {
                 this.Invoke((MethodInvoker)delegate { this.RefreshObjects(modelObjects); });
                 return;
@@ -310,9 +302,8 @@ namespace BrightIdeasSoftware
         /// the vertical scroll bar will become confused and the control will draw one or more
         /// blank lines at the top of the list. </para>
         /// </remarks>
-        public override void RemoveObjects(ICollection modelObjects)
-        {
-            if (this.DataSource == null) 
+        public override void RemoveObjects(ICollection modelObjects) {
+            if (this.DataSource == null)
                 return;
 
             // Give the world a chance to cancel or change the removed objects
@@ -330,8 +321,7 @@ namespace BrightIdeasSoftware
         /// Select the row that is displaying the given model object. All other rows are deselected.
         /// </summary>
         /// <param name="setFocus">Should the object be focused as well?</param>
-        public override void SelectObject(object modelObject, bool setFocus)
-        {
+        public override void SelectObject(object modelObject, bool setFocus) {
             // Without a data source, we can't do this.
             if (this.DataSource == null)
                 return;
@@ -358,8 +348,7 @@ namespace BrightIdeasSoftware
         /// <param name="modelObjects">A collection of model objects</param>
         /// <remarks>This method has O(n) performance where n is the number of model objects passed.
         /// Do not use this to select all the rows in the list -- use SelectAll() for that.</remarks>
-        public override void SelectObjects(IList modelObjects)
-        {
+        public override void SelectObjects(IList modelObjects) {
             // Without a data source, we can't do this.
             if (this.DataSource == null)
                 return;
@@ -381,8 +370,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="collection"></param>
         /// <remark>This method can safely be called from background threads.</remark>
-        public override void SetObjects(IEnumerable collection)
-        {
+        public override void SetObjects(IEnumerable collection) {
             if (this.InvokeRequired) {
                 this.Invoke((MethodInvoker)delegate { this.SetObjects(collection); });
                 return;
@@ -392,7 +380,7 @@ namespace BrightIdeasSoftware
                 return;
 
             this.BeginUpdate();
-            try {            
+            try {
                 // Give the world a chance to cancel or change the assigned collection
                 ItemsChangingEventArgs args = new ItemsChangingEventArgs(null, collection);
                 this.OnItemsChanging(args);
@@ -415,8 +403,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Invalidate any cached information when we rebuild the list.
         /// </summary>
-        public override void BuildList(bool shouldPreserveSelection)
-        {
+        public override void BuildList(bool shouldPreserveSelection) {
             this.UpdateVirtualListSize();
             this.ClearCachedInfo();
             this.Invalidate();
@@ -425,8 +412,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Clear any cached info this list may have been using
         /// </summary>
-        public virtual void ClearCachedInfo()
-        {
+        public virtual void ClearCachedInfo() {
             this.lastRetrieveVirtualItemIndex = -1;
         }
 
@@ -436,8 +422,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="modelObject"></param>
         /// <returns></returns>
-        protected override CheckState? GetCheckState(object modelObject)
-        {
+        protected override CheckState? GetCheckState(object modelObject) {
             if (this.CheckStateGetter != null)
                 return base.GetCheckState(modelObject);
 
@@ -452,8 +437,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="itemIndex">The index of the row that is needed</param>
         /// <returns>An OLVListItem</returns>
-        public virtual OLVListItem MakeListViewItem(int itemIndex)
-        {
+        public virtual OLVListItem MakeListViewItem(int itemIndex) {
             OLVListItem olvi = new OLVListItem(this.GetModelObject(itemIndex));
             this.FillInValues(olvi, olvi.RowObject);
             if (this.UseAlternatingBackColors) {
@@ -464,7 +448,7 @@ namespace BrightIdeasSoftware
 
                 this.CorrectSubItemColors(olvi);
             }
-            
+
             if (this.UseHotItem && this.HotItemIndex == itemIndex)
                 this.ApplyHotItemStyle(olvi);
 
@@ -480,8 +464,7 @@ namespace BrightIdeasSoftware
         /// <param name="state"></param>
         /// <returns>The check state that was recorded and that should be used to update
         /// the control.</returns>
-        protected override CheckState PutCheckState(object modelObject, CheckState state)
-        {
+        protected override CheckState PutCheckState(object modelObject, CheckState state) {
             state = base.PutCheckState(modelObject, state);
             this.checkStateMap[modelObject] = state;
             return state;
@@ -492,8 +475,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>Alternate colored backrows can't be handle in the same way as our base class.
         /// With virtual lists, they are handled at RetrieveVirtualItem time.</remarks>
-        protected override void PrepareAlternateBackColors()
-        {
+        protected override void PrepareAlternateBackColors() {
             // do nothing
         }
 
@@ -501,8 +483,7 @@ namespace BrightIdeasSoftware
         /// Refresh the given item in the list
         /// </summary>
         /// <param name="olvi">The item to refresh</param>
-        public override void RefreshItem(OLVListItem olvi)
-        {
+        public override void RefreshItem(OLVListItem olvi) {
             this.ClearCachedInfo();
             this.RedrawItems(olvi.Index, olvi.Index, false);
         }
@@ -511,8 +492,7 @@ namespace BrightIdeasSoftware
         /// Change the size of the list
         /// </summary>
         /// <param name="newSize"></param>
-        protected virtual void SetVirtualListSize(int newSize)
-        {
+        protected virtual void SetVirtualListSize(int newSize) {
             if (newSize < 0 || this.VirtualListSize == newSize)
                 return;
 
@@ -561,15 +541,13 @@ namespace BrightIdeasSoftware
         /// VirtualObjectListViews always own their collections, so this is a no-op.
         /// </para>
         /// </remarks>
-        protected override void TakeOwnershipOfObjects()
-        {
+        protected override void TakeOwnershipOfObjects() {
         }
 
         /// <summary>
         /// Change the size of the virtual list so that it matches its data source
         /// </summary>
-        public virtual void UpdateVirtualListSize()
-        {
+        public virtual void UpdateVirtualListSize() {
             if (this.DataSource != null)
                 this.SetVirtualListSize(this.DataSource.GetObjectCount());
         }
@@ -583,8 +561,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void HandleCacheVirtualItems(object sender, CacheVirtualItemsEventArgs e)
-        {
+        protected virtual void HandleCacheVirtualItems(object sender, CacheVirtualItemsEventArgs e) {
             if (this.DataSource != null)
                 this.DataSource.PrepareCache(e.StartIndex, e.EndIndex);
         }
@@ -607,8 +584,7 @@ namespace BrightIdeasSoftware
         /// is the slowest part of sorting the list.
         /// </para>
         /// </remarks>
-        protected override void HandleColumnClick(object sender, ColumnClickEventArgs e)
-        {
+        protected override void HandleColumnClick(object sender, ColumnClickEventArgs e) {
             if (!this.PossibleFinishCellEditing())
                 return;
 
@@ -631,8 +607,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void HandleRetrieveVirtualItem(object sender, RetrieveVirtualItemEventArgs e)
-        {
+        protected virtual void HandleRetrieveVirtualItem(object sender, RetrieveVirtualItemEventArgs e) {
             // .NET 2.0 seems to generate a lot of these events. Before drawing *each* sub-item,
             // this event is triggered 4-8 times for the same index. So we save lots of CPU time
             // by caching the last result.
@@ -648,8 +623,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void HandleSearchForVirtualItem(object sender, SearchForVirtualItemEventArgs e)
-        {
+        protected virtual void HandleSearchForVirtualItem(object sender, SearchForVirtualItemEventArgs e) {
             // The event has e.IsPrefixSearch, but as far as I can tell, this is always false (maybe that's different under Vista)
             // So we ignore IsPrefixSearch and IsTextSearch and always to a case insensitve prefix match.
 
@@ -687,8 +661,7 @@ namespace BrightIdeasSoftware
         /// <param name="last"></param>
         /// <param name="column"></param>
         /// <returns>The index of the matched row, or -1</returns>
-        protected override int FindMatchInRange(string text, int first, int last, OLVColumn column)
-        {
+        protected override int FindMatchInRange(string text, int first, int last, OLVColumn column) {
             return this.DataSource.SearchText(text, first, last, column);
         }
 
@@ -786,8 +759,7 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class AbstractVirtualListDataSource : IVirtualListDataSource
     {
-        public AbstractVirtualListDataSource(VirtualObjectListView listView)
-        {
+        public AbstractVirtualListDataSource(VirtualObjectListView listView) {
             this.listView = listView;
         }
 
@@ -796,44 +768,35 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected VirtualObjectListView listView;
 
-        public virtual object GetNthObject(int n)
-        {
+        public virtual object GetNthObject(int n) {
             return null;
         }
 
-        public virtual int GetObjectCount()
-        {
+        public virtual int GetObjectCount() {
             return -1;
         }
 
-        public virtual int GetObjectIndex(object model)
-        {
+        public virtual int GetObjectIndex(object model) {
             return -1;
         }
 
-        public virtual void PrepareCache(int from, int to)
-        {
+        public virtual void PrepareCache(int from, int to) {
         }
 
-        public virtual int SearchText(string value, int first, int last, OLVColumn column)
-        {
+        public virtual int SearchText(string value, int first, int last, OLVColumn column) {
             return -1;
         }
 
-        public virtual void Sort(OLVColumn column, SortOrder order)
-        {
+        public virtual void Sort(OLVColumn column, SortOrder order) {
         }
 
-        public virtual void AddObjects(ICollection modelObjects)
-        {
+        public virtual void AddObjects(ICollection modelObjects) {
         }
 
-        public virtual void RemoveObjects(ICollection modelObjects)
-        {
+        public virtual void RemoveObjects(ICollection modelObjects) {
         }
 
-        public virtual void SetObjects(IEnumerable collection)
-        {
+        public virtual void SetObjects(IEnumerable collection) {
         }
 
         /// <summary>
@@ -846,8 +809,7 @@ namespace BrightIdeasSoftware
         /// <param name="column"></param>
         /// <param name="source"></param>
         /// <returns></returns>
-        static public int DefaultSearchText(string value, int first, int last, OLVColumn column, IVirtualListDataSource source)
-        {
+        static public int DefaultSearchText(string value, int first, int last, OLVColumn column, IVirtualListDataSource source) {
             if (first <= last) {
                 for (int i = first; i <= last; i++) {
                     string data = column.GetStringValue(source.GetNthObject(i));
@@ -871,8 +833,8 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class VirtualListVersion1DataSource : AbstractVirtualListDataSource
     {
-        public VirtualListVersion1DataSource(VirtualObjectListView listView) : base (listView)
-        {
+        public VirtualListVersion1DataSource(VirtualObjectListView listView)
+            : base(listView) {
         }
 
         #region Public properties
@@ -880,8 +842,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// How will the n'th object of the data source be fetched?
         /// </summary>
-        public RowGetterDelegate RowGetter
-        {
+        public RowGetterDelegate RowGetter {
             get { return rowGetter; }
             set { rowGetter = value; }
         }
@@ -891,16 +852,14 @@ namespace BrightIdeasSoftware
 
         #region IVirtualListDataSource implementation
 
-        public override object GetNthObject(int n)
-        {
+        public override object GetNthObject(int n) {
             if (this.RowGetter == null)
                 return null;
             else
                 return this.RowGetter(n);
         }
 
-        public override int SearchText(string value, int first, int last, OLVColumn column)
-        {
+        public override int SearchText(string value, int first, int last, OLVColumn column) {
             return DefaultSearchText(value, first, last, column, this);
         }
 
