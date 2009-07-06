@@ -7,6 +7,9 @@
  * Date: 2009-03-17 5:15 PM
  *
  * Change log:
+ * 2009-07-06   JPP  - Make sure Link is acceptable as an drop effect by default
+ *                     (since MS didn't make it part of the 'All' value)
+ * v2.2
  * 2009-04-15   JPP  - Separated DragSource.cs into DropSink.cs
  * 2009-03-17   JPP  - Initial version
  * 
@@ -97,7 +100,7 @@ namespace BrightIdeasSoftware
         }
 
         public virtual DragDropEffects GetAllowedEffects(Object data) {
-            return DragDropEffects.All;
+            return DragDropEffects.All | DragDropEffects.Link; // why didn't MS include 'Link' in 'All'??
         }
 
         public virtual void EndDrag(Object dragObject, DragDropEffects effect) {
