@@ -9,6 +9,8 @@
  * Date: 2009-05-17 7:22PM 
  *
  * Change log:
+ * 2009-06-13  JPP  - Moved ToolTipShowingEventArgs to Events.cs
+ * v2.2
  * 2009-06-06  JPP  - Fixed some Vista specific problems
  * 2009-05-17  JPP  - Initial version
  *
@@ -632,25 +634,4 @@ namespace BrightIdeasSoftware
         #endregion
     }
 
-    public class ToolTipShowingEventArgs : EventArgs
-    {
-        public ObjectListView ListView;
-        public object Model;
-        public int RowIndex;
-        public int ColumnIndex;
-        public OLVColumn Column;
-        public Point Location;
-        public ToolTipControl ToolTipControl;
-
-        public string Text;
-        public RightToLeft RightToLeft;
-
-        public bool? IsBalloon;
-        public Color? BackColor;
-        public Color? ForeColor;
-        public string Title;
-        public ToolTipControl.StandardIcons? StandardIcon;
-        public int? AutoPopDelay;
-        public Font Font;
-    }
 }
