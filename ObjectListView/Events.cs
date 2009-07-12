@@ -5,6 +5,10 @@
  * Date: 17/10/2008 9:15 PM
  *
  * Change log:
+ * 2009-06-13   JPP  - Added Cell events
+ *                   - Moved all event parameter blocks to this file.
+ *                   - Added Handled property to AfterSearchEventArgs
+ * v2.2
  * 2009-06-01   JPP  - Added ColumnToGroupBy and GroupByOrder to sorting events
                      - Gave all event descriptions
  * 2009-04-23   JPP  - Added drag drop events
@@ -135,6 +139,34 @@ namespace BrightIdeasSoftware
         public event CellEditEventHandler CellEditValidating;
 
         /// <summary>
+        /// Triggered when a cell is left clicked.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when the user left clicks a cell.")]
+        public event EventHandler<CellClickEventArgs> CellClick;
+
+        /// <summary>
+        /// Triggered when the mouse is above a cell.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when the mouse is over a cell.")]
+        public event EventHandler<CellOverEventArgs> CellOver;
+
+        /// <summary>
+        /// Triggered when a cell is right clicked.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when the user right clicks a cell.")]
+        public event EventHandler<CellRightClickEventArgs> CellRightClick;
+
+        /// <summary>
+        /// This event is triggered when a cell needs a tool tip.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when a cell needs a tool tip.")]
+        public event EventHandler<ToolTipShowingEventArgs> CellToolTipShowing;
+
+        /// <summary>
         /// Triggered when a column header is right clicked.
         /// </summary>
         [Category("Behavior - ObjectListView"),
@@ -148,6 +180,13 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
         Description("This event is triggered when the user dropped items onto the control.")]
         public event EventHandler<OlvDropEventArgs> Dropped;
+
+        /// <summary>
+        /// This event is triggered when a header needs a tool tip.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when a header needs a tool tip.")]
+        public event EventHandler<ToolTipShowingEventArgs> HeaderToolTipShowing;
 
         /// <summary>
         /// Some new objects are about to be added to an ObjectListView.
@@ -218,20 +257,6 @@ namespace BrightIdeasSoftware
         Description("This event is triggered when the contents of the ObjectListView has scrolled.")]
         public event EventHandler<ScrollEventArgs> Scroll;
 
-        /// <summary>
-        /// This event is triggered when a cell needs a tool tip.
-        /// </summary>
-        [Category("Behavior - ObjectListView"),
-        Description("This event is triggered when a cell needs a tool tip.")]
-        public event EventHandler<ToolTipShowingEventArgs> CellToolTipShowing;
-
-        /// <summary>
-        /// This event is triggered when a header needs a tool tip.
-        /// </summary>
-        [Category("Behavior - ObjectListView"),
-        Description("This event is triggered when a header needs a tool tip.")]
-        public event EventHandler<ToolTipShowingEventArgs> HeaderToolTipShowing;
-
         #endregion
 
         //-----------------------------------------------------------------------------------
@@ -260,6 +285,21 @@ namespace BrightIdeasSoftware
         protected virtual void OnCanDrop(OlvDropEventArgs args) {
             if (this.CanDrop != null)
                 this.CanDrop(this, args);
+        }
+
+        protected virtual void OnCellClick(CellClickEventArgs args) {
+            if (this.CellClick != null)
+                this.CellClick(this, args);
+        }
+
+        protected virtual void OnCellOver(CellOverEventArgs args) {
+            if (this.CellOver != null)
+                this.CellOver(this, args);
+        }
+
+        protected virtual void OnCellRightClick(CellRightClickEventArgs args) {
+            if (this.CellRightClick != null)
+                this.CellRightClick(this, args);
         }
 
         protected virtual void OnCellToolTip(ToolTipShowingEventArgs args) {
@@ -648,11 +688,23 @@ namespace BrightIdeasSoftware
             this.indexSelected = indexSelected;
         }
 
+        /// <summary>
+        /// Gets the string that was actually searched for
+        /// </summary>
         public string StringToFind {
             get { return this.stringToFind; }
         }
         private string stringToFind;
 
+        /// <summary>
+        /// Gets or sets whether an the event handler already handled this event
+        /// </summary>
+        public bool Handled;
+
+        /// <summary>
+        /// Gets the index of the row that was selected by the search.
+        /// -1 means that no row was matched
+        /// </summary>
         public int IndexSelected {
             get { return this.indexSelected; }
         }
@@ -669,8 +721,233 @@ namespace BrightIdeasSoftware
             this.StartSearchFrom = startSearchFrom;
         }
 
+        /// <summary>
+        /// Gets or sets the string that will be found by the search routine
+        /// </summary>
+        /// <remarks>Modifying this value does not modify the memory of what the user has typed. 
+        /// When the user next presses a character, the search string will revert to what 
+        /// the user has actually typed.</remarks>
         public string StringToFind;
+
+        /// <summary>
+        /// Gets or sets the index of the first row that will be considered to matching.
+        /// </summary>
         public int StartSearchFrom;
+    }
+
+    /// <summary>
+    /// The parameter block when telling the world about a cell based event
+    /// </summary>
+    public class CellEventArgs : EventArgs
+    {
+        /// <summary>
+        /// Gets the ObjectListView that is the source of the event
+        /// </summary>
+        public ObjectListView ListView {
+            get { return this.listView; }
+            internal set { this.listView = value; }
+        }
+        private ObjectListView listView;
+
+        /// <summary>
+        /// Gets the model object under the cell
+        /// </summary>
+        /// <remarks>This is null for events triggered by the header.</remarks>
+        public object Model {
+            get { return this.model; }
+            internal set { this.model = value; }
+        }
+        private object model;
+
+        /// <summary>
+        /// Gets the row index of the cell
+        /// </summary>
+        /// <remarks>This is -1 for events triggered by the header.</remarks>
+        public int RowIndex {
+            get { return this.rowIndex; }
+            internal set { this.rowIndex = value; }
+        }
+        private int rowIndex = -1;
+
+        /// <summary>
+        /// Gets the column index of the cell
+        /// </summary>
+        /// <remarks>This is -1 when the view is not in details view.</remarks>
+        public int ColumnIndex {
+            get { return this.columnIndex; }
+            internal set { this.columnIndex = value; }
+        }
+        private int columnIndex = -1;
+
+        /// <summary>
+        /// Gets the column of the cell 
+        /// </summary>
+        /// <remarks>This is null when the view is not in details view.</remarks>
+        public OLVColumn Column {
+            get { return this.column; }
+            internal set { this.column = value; }
+        }
+        private OLVColumn column;
+
+        /// <summary>
+        /// Gets the location of the mouse at the time of the event
+        /// </summary>
+        public Point Location {
+            get { return this.location; }
+            internal set { this.location = value; }
+        }
+        private Point location;
+
+        /// <summary>
+        /// Gets the state of the modifier keys at the time of the event
+        /// </summary>
+        public Keys ModifierKeys {
+            get { return this.modifierKeys; }
+            internal set { this.modifierKeys = value; }
+        }
+        private Keys modifierKeys;
+
+        /// <summary>
+        /// Gets the item of the cell
+        /// </summary>
+        public OLVListItem Item {
+            get { return item; }
+            internal set { this.item = value; }
+        }
+        private OLVListItem item;
+
+        /// <summary>
+        /// Gets the subitem of the cell
+        /// </summary>
+        /// <remarks>This is null when the view is not in details view and 
+        /// for event triggered by the header</remarks>
+        public ListViewItem.ListViewSubItem SubItem {
+            get { return subItem; }
+            internal set { this.subItem = value; }
+        }
+        private ListViewItem.ListViewSubItem subItem;
+
+        /// <summary>
+        /// Gets the HitTest object that determined which cell was hit
+        /// </summary>
+        public OlvListViewHitTestInfo HitTest {
+            get { return hitTest; }
+            internal set { hitTest = value;  }
+        }
+        private OlvListViewHitTestInfo hitTest;
+    }
+
+    /// <summary>
+    /// Tells the world that a cell was clicked
+    /// </summary>
+    public class CellClickEventArgs : CellEventArgs
+    {
+        /// <summary>
+        /// Gets or set if this event completelely handled. If it was, no further processing
+        /// will be done for it.
+        /// </summary>
+        public bool Handled;
+
+        /// <summary>
+        /// Gets or sets the number of clicks associated with this event
+        /// </summary>
+        public int ClickCount {
+            get { return this.clickCount; }
+            set { this.clickCount = value; }
+        }
+        private int clickCount;
+    }
+
+    /// <summary>
+    /// Tells the world that a cell was right clicked
+    /// </summary>
+    public class CellRightClickEventArgs : CellEventArgs
+    {
+        /// <summary>
+        /// Gets or set if this event completelely handled. If it was, no further processing
+        /// will be done for it.
+        /// </summary>
+        public bool Handled;
+
+        /// <summary>
+        /// Gets or sets the menu that should be displayed as a result of this event.
+        /// </summary>
+        /// <remarks>The menu will be positioned at Location, so changing that property changes
+        /// where the menu will be displayed.</remarks>
+        public ContextMenuStrip MenuStrip;
+    }
+
+    public class CellHoverEventArgs : CellEventArgs
+    {
+    }
+
+    public class CellOverEventArgs : CellEventArgs
+    {
+    }
+
+    /// <summary>
+    /// The parameter block when telling the world that a tool tip is about to be shown.
+    /// </summary>
+    public class ToolTipShowingEventArgs : CellEventArgs
+    {
+        /// <summary>
+        /// Gets the tooltip control that is triggering the tooltip event
+        /// </summary>
+        public ToolTipControl ToolTipControl {
+            get { return this.toolTipControl; }
+            internal set { this.toolTipControl = value; }
+        }
+        private ToolTipControl toolTipControl;
+
+        /// <summary>
+        /// Gets or sets the text should be shown on the tooltip for this event
+        /// </summary>
+        /// <remarks>Setting this to empty or null prevents any tooltip from showing</remarks>
+        public string Text;
+
+        /// <summary>
+        /// In what direction should the text for this tooltip be drawn?
+        /// </summary>
+        public RightToLeft RightToLeft;
+
+        /// <summary>
+        /// Should the tooltip for this event been shown in bubble style?
+        /// </summary>
+        /// <remarks>This doesn't work reliable under Vista</remarks>
+        public bool? IsBalloon;
+
+        /// <summary>
+        /// What color should be used for the background of the tooltip
+        /// </summary>
+        /// <remarks>Setting this does nothing under Vista</remarks>
+        public Color? BackColor;
+
+        /// <summary>
+        /// What color should be used for the foreground of the tooltip
+        /// </summary>
+        /// <remarks>Setting this does nothing under Vista</remarks>
+        public Color? ForeColor;
+
+        /// <summary>
+        /// What string should be used as the title for the tooltip for this event?
+        /// </summary>
+        public string Title;
+
+        /// <summary>
+        /// Which standard icon should be used for the tooltip for this event
+        /// </summary>
+        public ToolTipControl.StandardIcons? StandardIcon;
+
+        /// <summary>
+        /// How many milliseconds should the tooltip remain before it automatically
+        /// disappears.
+        /// </summary>
+        public int? AutoPopDelay;
+
+        /// <summary>
+        /// What font should be used to draw the text of the tooltip?
+        /// </summary>
+        public Font Font;
     }
 
     #endregion
