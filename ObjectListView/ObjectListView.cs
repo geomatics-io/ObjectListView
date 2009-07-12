@@ -4,7 +4,14 @@
  * Author: Phillip Piper
  * Date: 9/10/2006 11:15 AM
  *
- * Change log:
+ * Change log
+ * 2009-07-11  JPP  - CalculateCellBounds() messed with the FullRowSelect property, which confused the
+ *                    tooltip handling on the underlying control. It no longer does this.
+ *                  - If the user clicks/double clicks on a cell, an edit operation will begin only if
+ *                    the clicks were on the image or text.
+ *                  - The cell edit rectangle is now correctly calculated for owner-drawn, non-Details views.
+ * 2009-07-08  JPP  - Added Cell events
+ *                  - Made BuildList(), AddObject() and RemoveObject() thread-safe
  * 2009-07-04  JPP  - Space bar now properly toggles checkedness of selected rows
  * 2009-07-02  JPP  - Fixed bug with tooltips when the underlying Windows control was destroyed.
  *                  - CellToolTipShowing events are now triggered in all views.
@@ -1841,21 +1848,21 @@ namespace BrightIdeasSoftware
                     base.View = value;
                     this.SetupBaseImageList();
                 } else {
-                    this.Freeze();
+                this.Freeze();
 
-                    // If we are switching to a Detail or Tile view, setup the columns needed for that view
-                    if (value == View.Details || value == View.Tile) {
-                        this.ChangeToFilteredColumns(value);
+                // If we are switching to a Detail or Tile view, setup the columns needed for that view
+                if (value == View.Details || value == View.Tile) {
+                    this.ChangeToFilteredColumns(value);
 
-                        if (value == View.Tile)
-                            this.CalculateReasonableTileSize();
-                    }
-
-                    base.View = value;
-                    this.SetupBaseImageList();
-                    this.Unfreeze();
+                    if (value == View.Tile)
+                        this.CalculateReasonableTileSize();
                 }
+
+                base.View = value;
+                this.SetupBaseImageList();
+                this.Unfreeze();
             }
+        }
         }
 
         #endregion
@@ -2077,7 +2084,10 @@ namespace BrightIdeasSoftware
         /// <param name="modelObject">The model object to be displayed</param>
         /// <remarks>See AddObjects() for more details</remarks>
         public virtual void AddObject(object modelObject) {
-            this.AddObjects(new object[] { modelObject });
+            if (this.InvokeRequired)
+                this.Invoke((MethodInvoker)delegate() { this.AddObject(modelObject); });
+            else 
+                this.AddObjects(new object[] { modelObject });
         }
 
         /// <summary>
@@ -2091,92 +2101,13 @@ namespace BrightIdeasSoftware
         /// <para>Null objects are silently ignored.</para>
         /// </remarks>
         public virtual void AddObjects(ICollection modelObjects) {
+            if (this.InvokeRequired) {
+                this.Invoke((MethodInvoker)delegate() { this.AddObjects(modelObjects); });
+                return;
+            }
             this.InsertObjects(this.GetItemCount(), modelObjects);
             this.Sort(this.LastSortColumn, this.LastSortOrder);
 
-        }
-
-        /// <summary>
-        /// Move the given collection of objects to the given index.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="modelObjects"></param>
-        public virtual void MoveObjects(int index, ICollection modelObjects) {
-
-            // We are going to remove all the given objects from our list
-            // and then insert them at the given location
-            this.TakeOwnershipOfObjects();
-            ArrayList ourObjects = (ArrayList)this.Objects;
-
-            List<int> indicesToRemove = new List<int>();
-            foreach (object modelObject in modelObjects) {
-                if (modelObject != null) {
-                    int i = this.IndexOf(modelObject);
-                    if (i >= 0) {
-                        indicesToRemove.Add(i);
-                        ourObjects.Remove(modelObject);
-                        if (i <= index)
-                            index--;
-                    }
-                }
-            }
-            indicesToRemove.Sort();
-            indicesToRemove.Reverse();
-            try {
-                this.BeginUpdate();
-                foreach (int i in indicesToRemove) {
-                    this.Items.RemoveAt(i);
-                }
-                this.InsertObjects(index, modelObjects);
-            }
-            finally {
-                this.EndUpdate();
-            }
-        }
-
-        public virtual void InsertObjects(int index, ICollection modelObjects) {
-            if (modelObjects == null)
-                return;
-
-            this.BeginUpdate();
-            try {
-                // Give the world a chance to cancel or change the added objects
-                ItemsAddingEventArgs args = new ItemsAddingEventArgs(modelObjects);
-                this.OnItemsAdding(args);
-                if (args.Canceled)
-                    return;
-                modelObjects = args.ObjectsToAdd;
-                
-                this.ListViewItemSorter = null;
-                this.ListViewItemSorter = null;
-                this.TakeOwnershipOfObjects();
-                ArrayList ourObjects = (ArrayList)this.Objects;
-                index = Math.Max(0, Math.Min(index, this.GetItemCount()));
-                int i = index;
-                foreach (object modelObject in modelObjects) {
-                    if (modelObject != null) {
-                        ourObjects.Insert(i, modelObject);
-                        OLVListItem lvi = new OLVListItem(modelObject);
-                        this.FillInValues(lvi, modelObject);
-                        this.Items.Insert(i, lvi);
-                        i++;
-                    }
-                }
-
-                for (i = index; i < this.GetItemCount(); i++) {
-                    OLVListItem lvi = this.GetItem(i);
-                    this.SetSubItemImages(lvi.Index, lvi);
-                }
-
-                if (this.LastSortColumn == null && this.UseAlternatingBackColors && this.View == View.Details)
-                    this.PrepareAlternateBackColors();
-
-                // Tell the world that the list has changed
-                this.OnItemsChanged(new ItemsChangedEventArgs());
-            }
-            finally {
-                this.EndUpdate();
-            }
         }
 
         /// <summary>
@@ -2298,7 +2229,10 @@ namespace BrightIdeasSoftware
         /// Build/rebuild all the list view items in the list
         /// </summary>
         public virtual void BuildList() {
-            this.BuildList(true);
+            if (this.InvokeRequired)
+                this.Invoke(new MethodInvoker(this.BuildList));
+            else
+                this.BuildList(true);
         }
 
         /// <summary>
@@ -2428,7 +2362,7 @@ namespace BrightIdeasSoftware
         /// <remark>This method can safely be called from background threads.</remark>
         public virtual void ClearObjects() {
             if (this.InvokeRequired)
-                this.Invoke(new MethodInvoker(ClearObjects));
+                this.Invoke(new MethodInvoker(this.ClearObjects));
             else
                 this.SetObjects(null);
         }
@@ -2661,6 +2595,69 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Insert the given collection of objects before the given position
+        /// </summary>
+        /// <param name="index">Where to insert the objects</param>
+        /// <param name="modelObjects">The objects to be inserted</param>
+        /// <remarks>
+        /// <para>
+        /// This operation only makes sense of non-sorted, non-grouped
+        /// lists, since any subsequent sort/group operation will rearrange
+        /// the list.
+        /// </para> 
+        /// <para>This method only works on ObjectListViews and FastObjectListViews.</para>
+        ///</remarks>
+        public virtual void InsertObjects(int index, ICollection modelObjects) {
+            if (this.InvokeRequired) {
+                this.Invoke((MethodInvoker)delegate() {
+                    this.InsertObjects(index, modelObjects);
+                });
+                return;
+            }
+            if (modelObjects == null)
+                return;
+
+            this.BeginUpdate();
+            try {
+                // Give the world a chance to cancel or change the added objects
+                ItemsAddingEventArgs args = new ItemsAddingEventArgs(modelObjects);
+                this.OnItemsAdding(args);
+                if (args.Canceled)
+                    return;
+                modelObjects = args.ObjectsToAdd;
+
+                this.ListViewItemSorter = null;
+                this.TakeOwnershipOfObjects();
+                ArrayList ourObjects = (ArrayList)this.Objects;
+                index = Math.Max(0, Math.Min(index, this.GetItemCount()));
+                int i = index;
+                foreach (object modelObject in modelObjects) {
+                    if (modelObject != null) {
+                        ourObjects.Insert(i, modelObject);
+                        OLVListItem lvi = new OLVListItem(modelObject);
+                        this.FillInValues(lvi, modelObject);
+                        this.Items.Insert(i, lvi);
+                        i++;
+                    }
+                }
+
+                for (i = index; i < this.GetItemCount(); i++) {
+                    OLVListItem lvi = this.GetItem(i);
+                    this.SetSubItemImages(lvi.Index, lvi);
+                }
+
+                if (this.LastSortColumn == null && this.UseAlternatingBackColors && this.View == View.Details)
+                    this.PrepareAlternateBackColors();
+
+                // Tell the world that the list has changed
+                this.OnItemsChanged(new ItemsChangedEventArgs());
+            }
+            finally {
+                this.EndUpdate();
+            }
+        }
+
+        /// <summary>
         /// Return true if the row representing the given model is selected
         /// </summary>
         /// <param name="model">The model object to look for</param>
@@ -2679,22 +2676,48 @@ namespace BrightIdeasSoftware
         /// <param name="dx">Horizontal delta</param>
         /// <param name="dy">Vertical delta</param>
         internal void LowLevelScroll(int dx, int dy) {
-            // We have to hide any overlays during scrolling since
-            // we don't want them to scroll too.
+            NativeMethods.Scroll(this, dx, dy);
+        }
 
-            // I don't think we need to do anything special here
-            // since it is handled in the LVM_*SCROLL msgs
-            // JPP 23/4/20009
+        /// <summary>
+        /// Move the given collection of objects to the given index.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="modelObjects"></param>
+        public virtual void MoveObjects(int index, ICollection modelObjects) {
 
-            //if (this.HasOverlays) {
-            //    this.ShouldDrawOverlays = false;
-            //    this.Invalidate();
-            //    NativeMethods.Scroll(this, dx, dy);
-            //    this.ShouldDrawOverlays = true;
-            //    this.Invalidate();
-            //} else {
-                NativeMethods.Scroll(this, dx, dy);
-            //}
+            // We are going to remove all the given objects from our list
+            // and then insert them at the given location
+            this.TakeOwnershipOfObjects();
+            ArrayList ourObjects = (ArrayList)this.Objects;
+
+            List<int> indicesToRemove = new List<int>();
+            foreach (object modelObject in modelObjects) {
+                if (modelObject != null) {
+                    int i = this.IndexOf(modelObject);
+                    if (i >= 0) {
+                        indicesToRemove.Add(i);
+                        ourObjects.Remove(modelObject);
+                        if (i <= index)
+                            index--;
+                    }
+                }
+            }
+
+            // Remove the objects in reverse order so earlier
+            // deletes don't change the index of later ones
+            indicesToRemove.Sort();
+            indicesToRemove.Reverse();
+            try {
+                this.BeginUpdate();
+                foreach (int i in indicesToRemove) {
+                    this.Items.RemoveAt(i);
+                }
+                this.InsertObjects(index, modelObjects);
+            }
+            finally {
+                this.EndUpdate();
+            }
         }
 
         /// <summary>
@@ -2705,12 +2728,24 @@ namespace BrightIdeasSoftware
         /// <param name="y"></param>
         /// <returns>An information block about what is under the point</returns>
         public virtual OlvListViewHitTestInfo OlvHitTest(int x, int y) {
+            return this.OlvHitTest(x, y, true);
+        }
+
+        /// <summary>
+        /// What is under the given point? This takes the various parts of a cell into accout, including
+        /// any custom parts that a custom renderer might use
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="useFullRowSelect">Force the hit test to be done as if full row select is true</param>
+        /// <returns>An information block about what is under the point</returns>
+        public virtual OlvListViewHitTestInfo OlvHitTest(int x, int y, bool useFullRowSelect) {
             // This horrible sequence finds what item is under the given position.
             // We want to find the item under the point, even if the point is not
             // actually over the icon or label. HitTest() will only do that
             // when FullRowSelect is true.
             ListViewHitTestInfo hitTestInfo = null;
-            if (this.FullRowSelect)
+            if (this.FullRowSelect || !useFullRowSelect)
                 hitTestInfo = this.HitTest(x, y);
             else {
                 this.FullRowSelect = true;
@@ -2801,8 +2836,9 @@ namespace BrightIdeasSoftware
         /// Rebuild the columns based upon its current view and column visibility settings
         /// </summary>
         public virtual void RebuildColumns() {
-            if (this.UseCustomSelectionColors)
-                this.EnableCustomSelectionColors();
+            // THINK: Do we need this here? 2009/06/12
+            //if (this.UseCustomSelectionColors)
+            //    this.EnableCustomSelectionColors();
 
             this.ChangeToFilteredColumns(this.View);
         }
@@ -2813,7 +2849,10 @@ namespace BrightIdeasSoftware
         /// <param name="modelObject">The model to be removed</param>
         /// <remarks>See RemoveObjects() for more details</remarks>
         public virtual void RemoveObject(object modelObject) {
-            this.RemoveObjects(new object[] { modelObject });
+            if (this.InvokeRequired) 
+                this.Invoke((MethodInvoker)delegate() { this.RemoveObject(modelObject); });
+            else
+                this.RemoveObjects(new object[] { modelObject });
         }
 
         /// <summary>
@@ -2824,6 +2863,10 @@ namespace BrightIdeasSoftware
         /// <para>Nulls and model objects that are not in the ListView are silently ignored.</para>
         /// </remarks>
         public virtual void RemoveObjects(ICollection modelObjects) {
+            if (this.InvokeRequired) {
+                this.Invoke((MethodInvoker)delegate() { this.RemoveObjects(modelObjects); });
+                return;
+            }
             if (modelObjects == null)
                 return;
 
@@ -3037,21 +3080,24 @@ namespace BrightIdeasSoftware
         /// <param name="sender"></param>
         /// <param name="e"></param>
         protected virtual void HandleCellToolTipShowing(object sender, ToolTipShowingEventArgs e) {
-            e.Location = this.PointToClient(Cursor.Position);
-            ListViewHitTestInfo info = this.HitTest(e.Location);
-            if (info.Item != null) {
-                e.ListView = this;
-                e.RowIndex = info.Item.Index;
-                e.Model = this.GetModelObject(e.RowIndex);
-                if (info.SubItem == null) {
-                    e.ColumnIndex = -1;
-                    e.Column = null;
-                } else {
-                    e.ColumnIndex = info.Item.SubItems.IndexOf(info.SubItem);
-                    e.Column = this.GetColumn(e.ColumnIndex);
-                }
+            //e.Location = this.PointToClient(Cursor.Position);
+            //OlvListViewHitTestInfo info = this.OlvHitTest(e.Location.X, e.Location.Y);
+            //if (info.Item != null) {
+            //    e.ListView = this;
+            //    e.Item = (OLVListItem)info.Item;
+            //    e.SubItem = info.SubItem;
+            //    e.RowIndex = info.Item.Index;
+            //    e.Model = this.GetModelObject(e.RowIndex);
+            //    if (info.SubItem == null) {
+            //        e.ColumnIndex = -1;
+            //        e.Column = null;
+            //    } else {
+            //        e.ColumnIndex = info.Item.SubItems.IndexOf(info.SubItem);
+            //        e.Column = this.GetColumn(e.ColumnIndex);
+            //    }
+            this.BuildCellEvent(e, this.PointToClient(Cursor.Position), false);
+            if (e.Item != null) {
                 e.Text = this.GetCellToolTip(e.ColumnIndex, e.RowIndex);
-                
                 this.OnCellToolTip(e);
             }
         }
@@ -3264,14 +3310,12 @@ namespace BrightIdeasSoftware
                 return true;
 
             // The parameters of the search may have been changed
-            this.lastSearchString = args.StringToFind;
+            string searchString = args.StringToFind;
             start = args.StartSearchFrom;
 
             // Do the actual search
-            int found = this.FindMatchingRow(this.lastSearchString, start, SearchDirectionHint.Down);
-            if (found < 0)
-                System.Media.SystemSounds.Beep.Play();
-            else {
+            int found = this.FindMatchingRow(searchString, start, SearchDirectionHint.Down);
+            if (found >= 0) {
                 // Select and focus on the found item
                 this.BeginUpdate();
                 try {
@@ -3287,8 +3331,12 @@ namespace BrightIdeasSoftware
             }
 
             // Tell the world that a search has occurred
-            AfterSearchingEventArgs args2 = new AfterSearchingEventArgs(this.lastSearchString, found);
+            AfterSearchingEventArgs args2 = new AfterSearchingEventArgs(searchString, found);
             this.OnAfterSearching(args2);
+            if (!args2.Handled) {
+                if (found < 0)
+                    System.Media.SystemSounds.Beep.Play();
+            }
 
             // When did this event occur?
             this.timeLastCharEvent = System.Environment.TickCount;
@@ -3685,9 +3733,9 @@ namespace BrightIdeasSoftware
             if (hti.Item.Selected) {
                 CheckState? state = this.GetCheckState(hti.RowObject);
                 if (state.HasValue) {
-                    foreach (Object x in this.SelectedObjects)
+                foreach (Object x in this.SelectedObjects)
                         this.SetObjectCheckedness(x, state.Value);
-                }
+            }
             }
 
             return true;
@@ -3729,7 +3777,7 @@ namespace BrightIdeasSoftware
             const int NM_CUSTOMDRAW = -12;
             const int NM_RELEASEDCAPTURE = -16;
             const int LVN_ITEMCHANGED = -101;
-            const int LVN_ITEMCHANGING = -100;
+            const int LVN_ITEMCHANGING = -100; 
             const int LVN_MARQUEBEGIN = -156;
             const int LVN_BEGINSCROLL = -180;
             const int LVN_ENDSCROLL = -181;
@@ -5572,6 +5620,7 @@ namespace BrightIdeasSoftware
 
         #region OnEvent Handling
 
+
         /// <summary>
         /// We need the click count in the mouse up event, but that is always 1.
         /// So we have to remember the click count from the preceding mouse down event.
@@ -5616,6 +5665,11 @@ namespace BrightIdeasSoftware
         protected override void OnMouseUp(MouseEventArgs e) {
             base.OnMouseUp(e);
 
+            if (e.Button == MouseButtons.Right) {
+                this.OnRightMouseUp(e);
+                return;
+            }
+
             // What event should we listen for to start cell editing?
             // ------------------------------------------------------
             //
@@ -5627,17 +5681,56 @@ namespace BrightIdeasSoftware
             // lose focus when mouse up happens.
             //
 
-            // If it was an unmodified left click, check to see if we should start editing
-            if (this.ShouldStartCellEdit(e)) {
-                ListViewHitTestInfo info = this.HitTest(e.Location);
-                if (info.Item != null && info.SubItem != null) {
-                    int subItemIndex = info.Item.SubItems.IndexOf(info.SubItem);
+            // Tell the world about a cell click. If someone handles it, don't do anything else
+            CellClickEventArgs args = new CellClickEventArgs();
+            this.BuildCellEvent(args, e.Location, true);
+            args.ClickCount = this.lastMouseDownClickCount;
+            this.OnCellClick(args);
+            if (args.Handled)
+                return;
 
-                    // We don't edit the primary column by single clicks -- only subitems.
-                    if (this.CellEditActivation != CellEditActivateMode.SingleClick || subItemIndex > 0)
-                        this.EditSubItem((OLVListItem)info.Item, subItemIndex);
+            // No one handled it so check to see if we should start editing.
+            // We only start the edit if the user clicked on the image or text.
+            if (this.ShouldStartCellEdit(e) &&
+                (args.HitTest.HitTestLocation == HitTestLocation.Text ||
+                 args.HitTest.HitTestLocation == HitTestLocation.Image)) {
+                // In non-details views, ColumnIndex will be -1
+                int columnIndex = Math.Max(0, args.ColumnIndex);
+
+                // We don't edit the primary column by single clicks -- only subitems.
+                if (this.CellEditActivation != CellEditActivateMode.SingleClick || columnIndex > 0)
+                    this.EditSubItem(args.Item, columnIndex);
+            }
+        }
+        
+        /// <summary>
+        /// The user right clicked on the control
+        /// </summary>
+        /// <param name="e"></param>
+        protected virtual void OnRightMouseUp(MouseEventArgs e) {
+            CellRightClickEventArgs args = new CellRightClickEventArgs();
+            this.BuildCellEvent(args, e.Location, true);
+            this.OnCellRightClick(args);
+            if (!args.Handled) {
+                if (args.MenuStrip != null) {
+                    args.MenuStrip.Show(this, args.Location);
                 }
             }
+        }
+
+        private void BuildCellEvent(CellEventArgs args, Point location, bool useFullRowSelect) {
+            OlvListViewHitTestInfo hitTest = this.OlvHitTest(location.X, location.Y, useFullRowSelect);
+            args.HitTest = hitTest;
+            args.ListView = this;
+            args.Location = location;
+            args.Item = hitTest.Item;
+            args.SubItem = hitTest.SubItem;
+            args.Model = hitTest.RowObject;
+            args.ColumnIndex = hitTest.ColumnIndex;
+            args.Column = hitTest.Column;
+            if (hitTest.Item != null)
+                args.RowIndex = hitTest.Item.Index;
+            args.ModifierKeys = Control.ModifierKeys;
         }
 
         /// <summary>
@@ -5663,7 +5756,7 @@ namespace BrightIdeasSoftware
         #region Cell editing
 
         /// <summary>
-        /// Should we start editing the cell?
+        /// Should we start editing the cell in response to the given mouse button event?
         /// </summary>
         /// <param name="e"></param>
         /// <returns></returns>
@@ -5822,8 +5915,16 @@ namespace BrightIdeasSoftware
         }
 
         protected Rectangle CalculateCellEditorBoundsOwnerDrawn(OLVListItem item, int subItemIndex, Rectangle r) {
-            IRenderer renderer = this.GetColumn(subItemIndex).Renderer ?? this.DefaultRenderer;
-            return renderer.GetEditRectangle(this.CreateGraphics(), r, item, subItemIndex);
+            IRenderer renderer = null;
+            if (this.View == View.Details)
+                renderer = this.GetColumn(subItemIndex).Renderer ?? this.DefaultRenderer;
+            else
+                renderer = this.ItemRenderer;
+
+            if (renderer == null)
+                return r;
+            else
+                return renderer.GetEditRectangle(this.CreateGraphics(), r, item, subItemIndex);
         }
 
         protected Rectangle CalculateCellEditorBoundsStandard(OLVListItem item, int subItemIndex, Rectangle cellBounds) {
@@ -5842,8 +5943,8 @@ namespace BrightIdeasSoftware
                 offset += this.StateImageList.ImageSize.Width + 2;
             }
 
-            // Allow for indent
-            if (item.IndentCount > 0) {
+            // Allow for indent (first column only)
+            if (subItemIndex == 0 && item.IndentCount > 0) {
                 offset += (this.SmallImageSize.Width * item.IndentCount);
             }
 
@@ -6000,24 +6101,17 @@ namespace BrightIdeasSoftware
             if (this.View != View.Details)
                 return r;
 
-            // If we are in details view with full row select, GetItemRect does not work correctly
-            // So we temporarily disable full row select.
-            if (this.FullRowSelect) {
-                this.FullRowSelect = false;
-                r = this.GetItemRect(item.Index, portion);
-                this.FullRowSelect = true;
-            }
-
             // Finding the bounds of cell 0 should not be a difficult task, but it is.
             // I wonder if I am missing something.
 
-            // OK, first problem: SubItem.Bounds of subitem 0 is always the full bounds of the entire row.
-            // So we use GetItemRect() to get the bounds of the text. 
+            // OK, first problem: item.SubItem[0].Bounds is always the full bounds of the entire row, not just cell 0.
+            // So we have to use the bounds given by GetItemRect(). The second problem is when column 0 has been
+            // dragged to some other position. If it hasn't, we slightly fudge the rectangle returned by GetItemRect().
             int displayIndex = this.GetColumn(0).DisplayIndex;
             if (displayIndex == 0)
                 return new Rectangle(4, r.Y, r.X + r.Width - 5, r.Height);
 
-            // Second problem is that if column 0 has been dragged to some other position,
+            // However, if column 0 has been dragged to some other position,
             // there is no direct way to discover the location of the left edge of the cell.
             // So, to find the left edge of cell 0 is, we find the subitem that appears
             // before it, and takes its right edge.
@@ -7766,21 +7860,33 @@ namespace BrightIdeasSoftware
 
         #region Public read-only properties
 
+        /// <summary>
+        /// Gets the item that was hit
+        /// </summary>
         public OLVListItem Item {
             get { return item; }
         }
         private OLVListItem item;
 
+        /// <summary>
+        /// Gets the subitem that was hit
+        /// </summary>
         public ListViewItem.ListViewSubItem SubItem {
             get { return subItem; }
         }
         private ListViewItem.ListViewSubItem subItem;
 
+        /// <summary>
+        /// Gets the part of the subitem that was hit
+        /// </summary>
         public ListViewHitTestLocations Location {
             get { return location; }
         }
         private ListViewHitTestLocations location;
 
+        /// <summary>
+        /// Gets the ObjectListView that was tested
+        /// </summary>
         public ObjectListView ListView {
             get {
                 if (this.Item == null)
@@ -7790,6 +7896,9 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Gets the model object that was hit
+        /// </summary>
         public Object RowObject {
             get {
                 if (this.Item == null)
@@ -7799,11 +7908,24 @@ namespace BrightIdeasSoftware
             }
         }
 
-        public OLVColumn Column {
+        /// <summary>
+        /// Gets the index of the column under the hit point
+        /// </summary>
+        public int ColumnIndex {
             get {
                 if (this.Item == null || this.SubItem == null)
-                    return null;
-                int index = this.Item.SubItems.IndexOf(this.SubItem);
+                    return -1;
+                else
+                    return this.Item.SubItems.IndexOf(this.SubItem);
+            }
+        }
+
+        /// <summary>
+        /// Gets the column that was hit
+        /// </summary>
+        public OLVColumn Column {
+            get {
+                int index = this.ColumnIndex;
                 if (index < 0)
                     return null;
                 else
