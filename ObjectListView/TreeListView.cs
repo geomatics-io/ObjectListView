@@ -5,6 +5,8 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2009-07-14  JPP  - Clicks to the left of the expander in tree cells are now ignored.
+ * v2.2
  * 2009-05-12  JPP  - Added tree traverse operations: GetParent and GetChildren.
  *                  - Added DiscardAllState() to completely reset the TreeListView.
  * 2009-05-10  JPP  - Removed all unsafe code
@@ -1335,6 +1337,12 @@ namespace BrightIdeasSoftware
                     r.Width = PIXELS_PER_LEVEL;
                     if (r.Contains(x, y)) {
                         hti.HitTestLocation = HitTestLocation.ExpandButton;
+                        return;
+                    }
+
+                    // Ignore events left of the expand button
+                    if (x < r.Left) {
+                        hti.HitTestLocation = HitTestLocation.Nothing;
                         return;
                     }
                 }
