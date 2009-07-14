@@ -5,10 +5,12 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2009-07-14  JPP  - If the user clicks/double clicks on a tree list cell, an edit operation will not begin
+ *                    if the click was to the left of the expander. This is implemented in such a way that
+ *                    other renderers can have similar "dead" zones.
+ * 2009-07-12  JPP  - Added CellOver event
  * 2009-07-11  JPP  - CalculateCellBounds() messed with the FullRowSelect property, which confused the
  *                    tooltip handling on the underlying control. It no longer does this.
- *                  - If the user clicks/double clicks on a cell, an edit operation will begin only if
- *                    the clicks were on the image or text.
  *                  - The cell edit rectangle is now correctly calculated for owner-drawn, non-Details views.
  * 2009-07-08  JPP  - Added Cell events
  *                  - Made BuildList(), AddObject() and RemoveObject() thread-safe
@@ -2728,7 +2730,7 @@ namespace BrightIdeasSoftware
         /// <param name="y"></param>
         /// <returns>An information block about what is under the point</returns>
         public virtual OlvListViewHitTestInfo OlvHitTest(int x, int y) {
-            return this.OlvHitTest(x, y, true);
+            return this.OlvHitTest(x, y, false);
         }
 
         /// <summary>
@@ -3080,22 +3082,7 @@ namespace BrightIdeasSoftware
         /// <param name="sender"></param>
         /// <param name="e"></param>
         protected virtual void HandleCellToolTipShowing(object sender, ToolTipShowingEventArgs e) {
-            //e.Location = this.PointToClient(Cursor.Position);
-            //OlvListViewHitTestInfo info = this.OlvHitTest(e.Location.X, e.Location.Y);
-            //if (info.Item != null) {
-            //    e.ListView = this;
-            //    e.Item = (OLVListItem)info.Item;
-            //    e.SubItem = info.SubItem;
-            //    e.RowIndex = info.Item.Index;
-            //    e.Model = this.GetModelObject(e.RowIndex);
-            //    if (info.SubItem == null) {
-            //        e.ColumnIndex = -1;
-            //        e.Column = null;
-            //    } else {
-            //        e.ColumnIndex = info.Item.SubItems.IndexOf(info.SubItem);
-            //        e.Column = this.GetColumn(e.ColumnIndex);
-            //    }
-            this.BuildCellEvent(e, this.PointToClient(Cursor.Position), false);
+            this.BuildCellEvent(e, this.PointToClient(Cursor.Position));
             if (e.Item != null) {
                 e.Text = this.GetCellToolTip(e.ColumnIndex, e.RowIndex);
                 this.OnCellToolTip(e);
@@ -3701,7 +3688,7 @@ namespace BrightIdeasSoftware
             int x = m.LParam.ToInt32() & 0xFFFF;
             int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
 
-            OlvListViewHitTestInfo hti = this.OlvHitTest(x, y);
+            OlvListViewHitTestInfo hti = this.OlvHitTest(x, y, true);
             return this.ProcessLButtonDown(hti);
         }
 
@@ -5656,6 +5643,10 @@ namespace BrightIdeasSoftware
         protected override void OnMouseMove(MouseEventArgs e) {
             base.OnMouseMove(e);
             this.UpdateHotItem(e.Location);
+
+            CellOverEventArgs args = new CellOverEventArgs();
+            this.BuildCellEvent(args, e.Location);
+            this.OnCellOver(args);
         }
 
         /// <summary>
@@ -5683,7 +5674,7 @@ namespace BrightIdeasSoftware
 
             // Tell the world about a cell click. If someone handles it, don't do anything else
             CellClickEventArgs args = new CellClickEventArgs();
-            this.BuildCellEvent(args, e.Location, true);
+            this.BuildCellEvent(args, e.Location);
             args.ClickCount = this.lastMouseDownClickCount;
             this.OnCellClick(args);
             if (args.Handled)
@@ -5692,8 +5683,7 @@ namespace BrightIdeasSoftware
             // No one handled it so check to see if we should start editing.
             // We only start the edit if the user clicked on the image or text.
             if (this.ShouldStartCellEdit(e) &&
-                (args.HitTest.HitTestLocation == HitTestLocation.Text ||
-                 args.HitTest.HitTestLocation == HitTestLocation.Image)) {
+                args.HitTest.HitTestLocation != HitTestLocation.Nothing) {
                 // In non-details views, ColumnIndex will be -1
                 int columnIndex = Math.Max(0, args.ColumnIndex);
 
@@ -5709,7 +5699,7 @@ namespace BrightIdeasSoftware
         /// <param name="e"></param>
         protected virtual void OnRightMouseUp(MouseEventArgs e) {
             CellRightClickEventArgs args = new CellRightClickEventArgs();
-            this.BuildCellEvent(args, e.Location, true);
+            this.BuildCellEvent(args, e.Location);
             this.OnCellRightClick(args);
             if (!args.Handled) {
                 if (args.MenuStrip != null) {
@@ -5718,8 +5708,8 @@ namespace BrightIdeasSoftware
             }
         }
 
-        private void BuildCellEvent(CellEventArgs args, Point location, bool useFullRowSelect) {
-            OlvListViewHitTestInfo hitTest = this.OlvHitTest(location.X, location.Y, useFullRowSelect);
+        private void BuildCellEvent(CellEventArgs args, Point location) {
+            OlvListViewHitTestInfo hitTest = this.OlvHitTest(location.X, location.Y);
             args.HitTest = hitTest;
             args.ListView = this;
             args.Location = location;
