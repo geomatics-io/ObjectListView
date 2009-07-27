@@ -5,7 +5,11 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
- * 2009-07-14  JPP  - If the user clicks/double clicks on a tree list cell, an edit operation will not begin
+ * 2009-07-26  JPP  - Avoided bug in .NET framework involving column 0 of owner drawn listviews not being
+ *                    redrawn when the listview was scrolled horizontally.
+ *                  - The cell edit rectangle is now correctly calculated when the listview is scrolled 
+ *                    horizontally.
+ * 2009-07-14  JPP  - If the user clicks/double clicks on a tree list cell, an edit operation will no longer begin
  *                    if the click was to the left of the expander. This is implemented in such a way that
  *                    other renderers can have similar "dead" zones.
  * 2009-07-12  JPP  - Added CellOver event
@@ -3470,8 +3474,57 @@ namespace BrightIdeasSoftware
                     break;
 
                 case CDDS_SUBITEMPREPAINT:
-                    //System.Diagnostics.Debug.WriteLine("CDDS_SUBITEMPREPAINT");
-                    break;
+                    //System.Diagnostics.Debug.WriteLine(String.Format("CDDS_SUBITEMPREPAINT ({0},{1})", (int)nmcustomdraw.nmcd.dwItemSpec, nmcustomdraw.iSubItem));
+
+                    // There is a bug in the .NET framework which appears when column 0 of an owner drawn listview
+                    // is dragged to another column position.
+                    // The bounds calculation always returns the left edge of column 0 as being 0.
+                    // The effects of this bug become apparent 
+                    // when the listview is scrolled horizontally: the control can think that column 0
+                    // is no longer visible (the horizontal scroll position is subtracted from the bounds, giving a
+                    // rectangle that is offscreen). In those circumstances, column 0 is not redraw because 
+                    // the control thinks it is not visible and so does not trigger a DrawSubItem event.
+                    
+                    // To fix this problem, we have to detected the situation -- owner drawing column 0 in any column except 0 --
+                    // trigger our own DrawSubItem, and then prevent the default processing from occuring.
+
+                    if (!this.OwnerDraw)
+                        return false;
+
+                    int columnIndex = nmcustomdraw.iSubItem;
+                    if (columnIndex != 0)
+                        return false;
+
+                    int displayIndex = this.Columns[0].DisplayIndex;
+                    if (displayIndex == 0)
+                        return false;
+
+                    // Trigger an event to draw column 0 when it is not at display index 0
+                    int rowIndex = (int)nmcustomdraw.nmcd.dwItemSpec;
+                    OLVListItem item = this.GetItem(rowIndex);
+                    if (item == null)
+                        return false;
+
+                    // Correctly calculate the bounds of cell 0
+                    Rectangle r = this.GetItemRect(rowIndex, ItemBoundsPortion.Entire);
+                    Point sides = NativeMethods.GetScrolledColumnSides(this, 0);
+                    r.X = sides.X + 1;
+                    r.Width = sides.Y - sides.X;
+
+                    // Finally, trigger the DrawSubItem event for column 0
+                    using (Graphics g = Graphics.FromHdc(nmcustomdraw.nmcd.hdc)) {
+                        // We can hardcode "0" here since we know we are only doing this for column 0
+                        DrawListViewSubItemEventArgs args = new DrawListViewSubItemEventArgs(g, r, item, item.SubItems[0], rowIndex, 0,
+                            this.Columns[0], (ListViewItemStates)nmcustomdraw.nmcd.uItemState);
+                        this.OnDrawSubItem(args);
+
+                        // If the event handler wants to do the default processing (i.e. DrawDefault = true), we are stuck.
+                        // There is no way we can force the default drawing because of the bug in .NET we are trying to get around.
+                        System.Diagnostics.Trace.Assert(!args.DrawDefault, "Default drawing is impossible in this situation");
+                    }
+                    m.Result = (IntPtr)4;
+
+                    return true;
 
                 case CDDS_SUBITEMPOSTPAINT:
                     //System.Diagnostics.Debug.WriteLine("CDDS_SUBITEMPOSTPAINT");
@@ -5537,13 +5590,12 @@ namespace BrightIdeasSoftware
                 base.OnDrawItem(e);
         }
 
-        int[] columnRightEdge = new int[256]; // will anyone ever want more than 256 columns??
-
         /// <summary>
         /// Owner draw a single subitem
         /// </summary>
         /// <param name="e"></param>
         protected override void OnDrawSubItem(DrawListViewSubItemEventArgs e) {
+            //System.Diagnostics.Debug.WriteLine(String.Format("OnDrawSubItem ({0}, {1})", e.ItemIndex, e.ColumnIndex));
             // Don't try to do owner drawing at design time
             if (this.DesignMode) {
                 e.DrawDefault = true;
@@ -5551,28 +5603,12 @@ namespace BrightIdeasSoftware
             }
 
             // Calculate where the subitem should be drawn
-            // It should be as simple as 'e.Bounds', but it isn't :-(
-
-            // There seems to be a bug in .NET where the left edge of the bounds of subitem 0
-            // is always 0. This is normally what is required, but it's wrong when
-            // someone drags column 0 to somewhere else in the listview. We could
-            // drop down into Windows-ville and use LVM_GETSUBITEMRECT, but just to be different
-            // we keep track of the right edge of all columns, and when subitem 0
-            // isn't being shown at column 0, we make its left edge to be the right
-            // edge of the previous column plus a little bit.
-            // NOTE: I considered replacing this with LVM_GETSUBITEMRECT, but apparently that has exactly
-            // same erroneous behavior.
             Rectangle r = e.Bounds;
-            if (e.ColumnIndex == 0 && e.Header.DisplayIndex != 0) {
-                r.X = this.columnRightEdge[e.Header.DisplayIndex - 1] + 1;
-            } else
-                this.columnRightEdge[e.Header.DisplayIndex] = e.Bounds.Right;
-#if !MONO
+
             // Optimize drawing by only redrawing subitems that touch the area that was damaged
-            if (!r.IntersectsWith(this.lastUpdateRectangle)) {
+            if (!r.IntersectsWith(this.lastUpdateRectangle)) 
                 return;
-            }
-#endif
+
             // Get the special renderer for this column. If there isn't one, use the default draw mechanism.
             OLVColumn column = this.GetColumn(e.ColumnIndex);
             IRenderer renderer = column.Renderer ?? this.DefaultRenderer;
@@ -5586,13 +5622,12 @@ namespace BrightIdeasSoftware
             // Except with Mono, which doesn't seem to handle double buffering at all :-(
             Graphics g = e.Graphics;
             BufferedGraphics buffer = null;
-#if !MONO
             bool avoidFlickerMode = true; // set this to false to see the problems with flicker
             if (avoidFlickerMode) {
                 buffer = BufferedGraphicsManager.Current.Allocate(e.Graphics, r);
                 g = buffer.Graphics;
             }
-#endif
+
             // Finally, give the renderer a chance to draw something
             e.DrawDefault = !renderer.RenderSubItem(e, g, r, ((OLVListItem)e.Item).RowObject);
 
@@ -5606,7 +5641,6 @@ namespace BrightIdeasSoftware
         #endregion
 
         #region OnEvent Handling
-
 
         /// <summary>
         /// We need the click count in the mouse up event, but that is always 1.
@@ -6091,28 +6125,16 @@ namespace BrightIdeasSoftware
             if (this.View != View.Details)
                 return r;
 
-            // Finding the bounds of cell 0 should not be a difficult task, but it is.
-            // I wonder if I am missing something.
+            // Finding the bounds of cell 0 should not be a difficult task, but it is. Problems:
+            // 1) item.SubItem[0].Bounds is always the full bounds of the entire row, not just cell 0.
+            // 2) if column 0 has been dragged to some other position, the bounds always has a left edge of 0.
 
-            // OK, first problem: item.SubItem[0].Bounds is always the full bounds of the entire row, not just cell 0.
-            // So we have to use the bounds given by GetItemRect(). The second problem is when column 0 has been
-            // dragged to some other position. If it hasn't, we slightly fudge the rectangle returned by GetItemRect().
-            int displayIndex = this.GetColumn(0).DisplayIndex;
-            if (displayIndex == 0)
-                return new Rectangle(4, r.Y, r.X + r.Width - 5, r.Height);
+            // We avoid both these problems by using the position of sides the column header to calculate
+            // the sides of the cell
+            Point sides = NativeMethods.GetScrolledColumnSides(this, 0);
+            r.X = sides.X + 4;
+            r.Width = sides.Y - sides.X - 5;
 
-            // However, if column 0 has been dragged to some other position,
-            // there is no direct way to discover the location of the left edge of the cell.
-            // So, to find the left edge of cell 0 is, we find the subitem that appears
-            // before it, and takes its right edge.
-            foreach (OLVColumn column in this.Columns) {
-                if (column.DisplayIndex == displayIndex - 1) {
-                    int columnZeroLeftEdge = item.SubItems[column.Index].Bounds.Right + 1;
-                    return new Rectangle(columnZeroLeftEdge + 4, r.Y, r.X + r.Width - columnZeroLeftEdge - 5, r.Height);
-                }
-            }
-
-            // We really should never reach here, but just in case
             return r;
         }
 
