@@ -5,6 +5,8 @@
  * Date: 14/04/2009 4:36 PM
  *
  * Change log:
+ * 200-07-24    JPP  - TintedColumnDecoration now works when last item is a member of a collapsed
+ *                     group (well, it no longer crashes).
  * v2.2
  * 2009-06-01   JPP  - Make sure that TintedColumnDecoration reaches to the last item in group view
  * 2009-05-05   JPP  - Unified BillboardOverlay text rendering with that of TextOverlay
@@ -756,9 +758,12 @@ namespace BrightIdeasSoftware
             Rectangle columnBounds = new Rectangle(sides.X, r.Top, sides.Y - sides.X, r.Bottom);
 
             // Find the bottom of the last item
-            Rectangle lastItemBounds = olv.GetLastItemInDisplayOrder().Bounds;
-            if (lastItemBounds.Bottom < columnBounds.Bottom)
-                columnBounds.Height = lastItemBounds.Bottom - columnBounds.Top;
+            OLVListItem lastItem = olv.GetLastItemInDisplayOrder();
+            if (lastItem != null) {
+                Rectangle lastItemBounds = lastItem.Bounds;
+                if (lastItemBounds.Bottom < columnBounds.Bottom)
+                    columnBounds.Height = lastItemBounds.Bottom - columnBounds.Top;
+            }
             g.FillRectangle(this.tintBrush, columnBounds);
         }
 
