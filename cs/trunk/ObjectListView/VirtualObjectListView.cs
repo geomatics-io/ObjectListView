@@ -5,6 +5,8 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-07-24   JPP  - Added specialised version of RefreshSelectedObjects() which works efficiently with virtual lists
+ *                     (thanks to chriss85 for finding this bug)
  * 2009-07-03   JPP  - Standardized code format
  * v2.2
  * 2009-04-06   JPP  - ClearObjects() now works again
@@ -288,6 +290,15 @@ namespace BrightIdeasSoftware
                 if (index >= 0)
                     this.RedrawItems(index, index, true);
             }
+        }
+
+        /// <summary>
+        /// Update the rows that are selected
+        /// </summary>
+        /// <remarks>This method does not resort or regroup the view.</remarks>
+        public override void RefreshSelectedObjects() {
+            foreach (int index in this.SelectedIndices)
+                this.RedrawItems(index, index, true);
         }
 
         /// <summary>
