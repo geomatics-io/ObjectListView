@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-07-24   JPP  - Try to honour CanWrap setting when GDI rendering text.
  * 2009-07-11   JPP  - Correctly calculate edit rectangle for subitems of a tree view
  *                     (previously subitems were indented in the same way as the primary column)
  * v2.2
@@ -548,7 +549,7 @@ namespace BrightIdeasSoftware
             } else {
                 StringFormat fmt = new StringFormat();
                 fmt.Trimming = StringTrimming.EllipsisCharacter;
-                return 1 + (int)g.MeasureString(txt, font, int.MaxValue, fmt).Width;
+                return 1 + (int)g.MeasureString(txt, this.Font, int.MaxValue, fmt).Width;
             }
         }
 
@@ -1183,14 +1184,9 @@ namespace BrightIdeasSoftware
 
             TextFormatFlags flags = TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix |
                 TextFormatFlags.VerticalCenter | TextFormatFlags.PreserveGraphicsTranslateTransform;
-            //switch (this.Column.TextAlign) {
-            //    case HorizontalAlignment.Center:
-            //        flags |= TextFormatFlags.HorizontalCenter;
-            //        break;
-            //    case HorizontalAlignment.Right:
-            //        flags |= TextFormatFlags.Right;
-            //        break;
-            //}
+            if (!this.CanWrap)
+                flags |= TextFormatFlags.SingleLine;
+
             TextRenderer.DrawText(g, txt, this.Font, r, this.GetForegroundColor(), backColor, flags);
         }
 
