@@ -49,6 +49,7 @@ namespace BrightIdeasSoftware
         private const int LVM_SETEXTENDEDLISTVIEWSTYLE = LVM_FIRST + 54;
         private const int LVM_SETITEM = LVM_FIRST + 76;
         private const int LVM_GETTOOLTIPS = 0x1000 + 78;
+        private const int LVM_SETTOOLTIPS = 0x1000 + 74;
         private const int LVM_GETCOLUMN = LVM_FIRST + 95;
         private const int LVM_SETCOLUMN = LVM_FIRST + 96;
         private const int LVM_SETSELECTEDCOLUMN = LVM_FIRST + 140;
@@ -397,6 +398,8 @@ namespace BrightIdeasSoftware
         public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, int lParam);
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, IntPtr lParam);
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessageLVItem(IntPtr hWnd, int msg, int wParam, ref LVITEM lvi);
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
@@ -666,21 +669,33 @@ namespace BrightIdeasSoftware
         /// <param name="columnIndex"></param>
         /// <returns>A Point holding the left and right co-ords of the column.
         /// -1 means that the sides could not be retrieved.</returns>
-        public static Point GetColumnSides(ListView lv, int columnIndex) {
+        public static Point GetColumnSides(ObjectListView lv, int columnIndex) {
             Point sides = new Point(-1, -1);
             IntPtr hdr = NativeMethods.GetHeaderControl(lv);
             if (hdr == IntPtr.Zero)
-                return sides;
+                return new Point(-1, -1);
+
+            RECT r = new RECT();
+            NativeMethods.SendMessageRECT(hdr, HDM_GETITEMRECT, columnIndex, ref r);
+            return new Point(r.left, r.right);
+        }
+
+        /// <summary>
+        /// Return the edges of the given column.
+        /// </summary>
+        /// <param name="lv"></param>
+        /// <param name="columnIndex"></param>
+        /// <returns>A Point holding the left and right co-ords of the column.
+        /// -1 means that the sides could not be retrieved.</returns>
+        public static Point GetScrolledColumnSides(ObjectListView lv, int columnIndex) {
+            IntPtr hdr = NativeMethods.GetHeaderControl(lv);
+            if (hdr == IntPtr.Zero)
+                return new Point(-1, -1);
 
             RECT r = new RECT();
             IntPtr result = NativeMethods.SendMessageRECT(hdr, HDM_GETITEMRECT, columnIndex, ref r);
-            if (result != IntPtr.Zero) {
-                int scrollH = 0;
-                //NativeMethods.GetScrollPosition(lv.Handle, true);
-                sides.X = r.left - scrollH;
-                sides.Y = r.right - scrollH;
-            }
-            return sides;
+            int scrollH = NativeMethods.GetScrollPosition(lv, true);
+            return new Point(r.left - scrollH, r.right - scrollH);
         }
 
         /// <summary>
@@ -783,6 +798,10 @@ namespace BrightIdeasSoftware
 
         static public IntPtr GetTooltipControl(ListView lv) {
             return SendMessage(lv.Handle, LVM_GETTOOLTIPS, 0, 0);
+        }
+
+        static public IntPtr SetTooltipControl(ListView lv, ToolTipControl tooltip) {
+            return SendMessage(lv.Handle, LVM_SETTOOLTIPS, 0, tooltip.Handle);
         }
  
         public static int GetWindowLong(IntPtr hWnd, int nIndex) {
