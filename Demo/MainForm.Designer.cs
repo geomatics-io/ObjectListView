@@ -146,6 +146,7 @@ namespace ObjectListViewDemo
             this.olvColumn9 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn10 = new BrightIdeasSoftware.OLVColumn();
             this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.checkBox19 = new System.Windows.Forms.CheckBox();
             this.buttonSaveState = new System.Windows.Forms.Button();
             this.buttonRestoreState = new System.Windows.Forms.Button();
             this.button13 = new System.Windows.Forms.Button();
@@ -282,6 +283,11 @@ namespace ObjectListViewDemo
             this.checkBox16 = new System.Windows.Forms.CheckBox();
             this.checkBox17 = new System.Windows.Forms.CheckBox();
             this.label29 = new System.Windows.Forms.Label();
+            this.contextMenuStrip2 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.menuOfCommandsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.appropriateToTheClickedFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.whichOnlyAppearsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.whenYouClickOnColumn0ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.objectListView1 = new BrightIdeasSoftware.ObjectListView();
             this.olvColumn35 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn36 = new BrightIdeasSoftware.OLVColumn();
@@ -334,6 +340,7 @@ namespace ObjectListViewDemo
             ((System.ComponentModel.ISupportInitialize)(this.olvGeeks)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.olvFroods)).BeginInit();
             this.statusStrip1.SuspendLayout();
+            this.contextMenuStrip2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.objectListView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -613,7 +620,6 @@ namespace ObjectListViewDemo
             this.olvColumn34});
             this.listViewSimple.ContextMenuStrip = this.contextMenuStrip1;
             this.listViewSimple.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.listViewSimple.FullRowSelect = true;
             this.listViewSimple.HideSelection = false;
             this.listViewSimple.HotItemStyle = this.hotItemStyle1;
             this.listViewSimple.IsSimpleDragSource = true;
@@ -634,6 +640,8 @@ namespace ObjectListViewDemo
             this.listViewSimple.UseHotItem = true;
             this.listViewSimple.View = System.Windows.Forms.View.Details;
             this.listViewSimple.Scroll += new System.EventHandler<System.Windows.Forms.ScrollEventArgs>(this.listViewSimple_Scroll);
+            this.listViewSimple.CellClick += new System.EventHandler<BrightIdeasSoftware.CellClickEventArgs>(this.listViewSimple_CellClick);
+            this.listViewSimple.CellOver += new System.EventHandler<BrightIdeasSoftware.CellOverEventArgs>(this.listViewSimple_CellOver);
             this.listViewSimple.SelectedIndexChanged += new System.EventHandler(this.ListViewSelectedIndexChanged);
             // 
             // columnHeader11
@@ -924,7 +932,6 @@ namespace ObjectListViewDemo
             this.listViewComplex.TabIndex = 0;
             this.listViewComplex.UseAlternatingBackColors = true;
             this.listViewComplex.UseCompatibleStateImageBehavior = false;
-            this.listViewComplex.UseHotItem = true;
             this.listViewComplex.UseSubItemCheckBoxes = true;
             this.listViewComplex.View = System.Windows.Forms.View.Details;
             this.listViewComplex.CellEditFinishing += new BrightIdeasSoftware.CellEditEventHandler(this.listViewComplex_CellEditFinishing);
@@ -932,7 +939,9 @@ namespace ObjectListViewDemo
             this.listViewComplex.CellEditValidating += new BrightIdeasSoftware.CellEditEventHandler(this.listViewComplex_CellEditValidating);
             this.listViewComplex.CellToolTipShowing += new System.EventHandler<BrightIdeasSoftware.ToolTipShowingEventArgs>(this.listViewComplex_CellToolTip);
             this.listViewComplex.HeaderToolTipShowing += new System.EventHandler<BrightIdeasSoftware.ToolTipShowingEventArgs>(this.listViewComplex_HeaderToolTipShowing);
+            this.listViewComplex.CellRightClick += new System.EventHandler<BrightIdeasSoftware.CellRightClickEventArgs>(this.listViewComplex_CellRightClick);
             this.listViewComplex.MouseClick += new System.Windows.Forms.MouseEventHandler(this.listViewComplex_MouseClick);
+            this.listViewComplex.CellOver += new System.EventHandler<BrightIdeasSoftware.CellOverEventArgs>(this.listViewComplex_CellOver);
             this.listViewComplex.SelectedIndexChanged += new System.EventHandler(this.ListViewSelectedIndexChanged);
             // 
             // personColumn
@@ -1520,6 +1529,7 @@ namespace ObjectListViewDemo
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.listViewVirtual.CellEditActivation = BrightIdeasSoftware.ObjectListView.CellEditActivateMode.DoubleClick;
+            this.listViewVirtual.CheckBoxes = true;
             this.listViewVirtual.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.olvColumn4,
             this.olvColumn12,
@@ -1601,6 +1611,7 @@ namespace ObjectListViewDemo
             // 
             // tabPage5
             // 
+            this.tabPage5.Controls.Add(this.checkBox19);
             this.tabPage5.Controls.Add(this.buttonSaveState);
             this.tabPage5.Controls.Add(this.buttonRestoreState);
             this.tabPage5.Controls.Add(this.button13);
@@ -1622,6 +1633,19 @@ namespace ObjectListViewDemo
             this.tabPage5.TabIndex = 4;
             this.tabPage5.Text = "File Explorer";
             this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // checkBox19
+            // 
+            this.checkBox19.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.checkBox19.Checked = true;
+            this.checkBox19.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox19.Location = new System.Drawing.Point(268, 477);
+            this.checkBox19.Name = "checkBox19";
+            this.checkBox19.Size = new System.Drawing.Size(65, 19);
+            this.checkBox19.TabIndex = 14;
+            this.checkBox19.Text = "Tooltips";
+            this.checkBox19.UseVisualStyleBackColor = true;
+            this.checkBox19.CheckedChanged += new System.EventHandler(this.checkBox19_CheckedChanged_1);
             // 
             // buttonSaveState
             // 
@@ -1703,7 +1727,7 @@ namespace ObjectListViewDemo
             // 
             this.label9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(303, 479);
+            this.label9.Location = new System.Drawing.Point(331, 479);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(33, 13);
             this.label9.TabIndex = 8;
@@ -1720,9 +1744,9 @@ namespace ObjectListViewDemo
             "List",
             "Tile",
             "Details"});
-            this.comboBox4.Location = new System.Drawing.Point(337, 474);
+            this.comboBox4.Location = new System.Drawing.Point(365, 474);
             this.comboBox4.Name = "comboBox4";
-            this.comboBox4.Size = new System.Drawing.Size(114, 21);
+            this.comboBox4.Size = new System.Drawing.Size(86, 21);
             this.comboBox4.TabIndex = 9;
             this.comboBox4.SelectedIndexChanged += new System.EventHandler(this.ComboBox4SelectedIndexChanged);
             // 
@@ -1731,7 +1755,7 @@ namespace ObjectListViewDemo
             this.checkBox10.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.checkBox10.Checked = true;
             this.checkBox10.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox10.Location = new System.Drawing.Point(218, 477);
+            this.checkBox10.Location = new System.Drawing.Point(182, 477);
             this.checkBox10.Name = "checkBox10";
             this.checkBox10.Size = new System.Drawing.Size(90, 19);
             this.checkBox10.TabIndex = 7;
@@ -1742,11 +1766,11 @@ namespace ObjectListViewDemo
             // checkBox11
             // 
             this.checkBox11.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.checkBox11.Location = new System.Drawing.Point(101, 474);
+            this.checkBox11.Location = new System.Drawing.Point(98, 474);
             this.checkBox11.Name = "checkBox11";
-            this.checkBox11.Size = new System.Drawing.Size(111, 24);
+            this.checkBox11.Size = new System.Drawing.Size(81, 24);
             this.checkBox11.TabIndex = 6;
-            this.checkBox11.Text = "Show Item &Count";
+            this.checkBox11.Text = "Item &Count";
             this.checkBox11.UseVisualStyleBackColor = true;
             this.checkBox11.CheckedChanged += new System.EventHandler(this.CheckBox11CheckedChanged);
             // 
@@ -1803,12 +1827,16 @@ namespace ObjectListViewDemo
             this.listViewFiles.OwnerDraw = true;
             this.listViewFiles.RowHeight = 20;
             this.listViewFiles.ShowGroups = false;
+            this.listViewFiles.ShowItemToolTips = true;
             this.listViewFiles.Size = new System.Drawing.Size(748, 385);
             this.listViewFiles.SmallImageList = this.imageList1;
             this.listViewFiles.TabIndex = 13;
             this.listViewFiles.UseCompatibleStateImageBehavior = false;
             this.listViewFiles.View = System.Windows.Forms.View.Details;
             this.listViewFiles.ItemActivate += new System.EventHandler(this.listViewFiles_ItemActivate);
+            this.listViewFiles.CellToolTipShowing += new System.EventHandler<BrightIdeasSoftware.ToolTipShowingEventArgs>(this.listViewFiles_CellToolTipShowing);
+            this.listViewFiles.CellClick += new System.EventHandler<BrightIdeasSoftware.CellClickEventArgs>(this.listViewFiles_CellClick);
+            this.listViewFiles.CellRightClick += new System.EventHandler<BrightIdeasSoftware.CellRightClickEventArgs>(this.listViewFiles_CellRightClick);
             // 
             // olvColumnFileName
             // 
@@ -2654,6 +2682,7 @@ namespace ObjectListViewDemo
             this.treeListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
+            this.treeListView.CellEditActivation = BrightIdeasSoftware.ObjectListView.CellEditActivateMode.DoubleClick;
             this.treeListView.CheckBoxes = true;
             this.treeListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.treeColumnName,
@@ -2664,13 +2693,17 @@ namespace ObjectListViewDemo
             this.treeColumnAttributes});
             this.treeListView.EmptyListMsg = "This folder is completely empty!";
             this.treeListView.EmptyListMsgFont = new System.Drawing.Font("Comic Sans MS", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.treeListView.FullRowSelect = true;
             this.treeListView.HideSelection = false;
+            this.treeListView.IsSimpleDragSource = true;
+            this.treeListView.IsSimpleDropSink = true;
             this.treeListView.Location = new System.Drawing.Point(6, 55);
             this.treeListView.Name = "treeListView";
             this.treeListView.OverlayImage.Image = global::ObjectListViewDemo.Resource1.limeleaf;
             this.treeListView.OwnerDraw = true;
             this.treeListView.ShowGroups = false;
             this.treeListView.ShowImagesOnSubItems = true;
+            this.treeListView.ShowItemToolTips = true;
             this.treeListView.Size = new System.Drawing.Size(748, 413);
             this.treeListView.SmallImageList = this.imageList1;
             this.treeListView.TabIndex = 13;
@@ -2678,7 +2711,9 @@ namespace ObjectListViewDemo
             this.treeListView.UseHotItem = true;
             this.treeListView.View = System.Windows.Forms.View.Details;
             this.treeListView.VirtualMode = true;
+            this.treeListView.ModelDropped += new System.EventHandler<BrightIdeasSoftware.ModelDropEventArgs>(this.treeListView_ModelDropped);
             this.treeListView.ItemActivate += new System.EventHandler(this.treeListView_ItemActivate);
+            this.treeListView.ModelCanDrop += new System.EventHandler<BrightIdeasSoftware.ModelDropEventArgs>(this.treeListView_ModelCanDrop);
             this.treeListView.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.treeListView_ItemChecked);
             this.treeListView.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.treeListView_ItemCheck);
             // 
@@ -3277,6 +3312,40 @@ namespace ObjectListViewDemo
             this.label29.TabIndex = 6;
             this.label29.Text = resources.GetString("label29.Text");
             // 
+            // contextMenuStrip2
+            // 
+            this.contextMenuStrip2.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuOfCommandsToolStripMenuItem,
+            this.appropriateToTheClickedFileToolStripMenuItem,
+            this.whichOnlyAppearsToolStripMenuItem,
+            this.whenYouClickOnColumn0ToolStripMenuItem});
+            this.contextMenuStrip2.Name = "contextMenuStrip2";
+            this.contextMenuStrip2.Size = new System.Drawing.Size(226, 92);
+            // 
+            // menuOfCommandsToolStripMenuItem
+            // 
+            this.menuOfCommandsToolStripMenuItem.Name = "menuOfCommandsToolStripMenuItem";
+            this.menuOfCommandsToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+            this.menuOfCommandsToolStripMenuItem.Text = "Menu of commands";
+            // 
+            // appropriateToTheClickedFileToolStripMenuItem
+            // 
+            this.appropriateToTheClickedFileToolStripMenuItem.Name = "appropriateToTheClickedFileToolStripMenuItem";
+            this.appropriateToTheClickedFileToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+            this.appropriateToTheClickedFileToolStripMenuItem.Text = "Appropriate to the clicked file";
+            // 
+            // whichOnlyAppearsToolStripMenuItem
+            // 
+            this.whichOnlyAppearsToolStripMenuItem.Name = "whichOnlyAppearsToolStripMenuItem";
+            this.whichOnlyAppearsToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+            this.whichOnlyAppearsToolStripMenuItem.Text = "Which only appears";
+            // 
+            // whenYouClickOnColumn0ToolStripMenuItem
+            // 
+            this.whenYouClickOnColumn0ToolStripMenuItem.Name = "whenYouClickOnColumn0ToolStripMenuItem";
+            this.whenYouClickOnColumn0ToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+            this.whenYouClickOnColumn0ToolStripMenuItem.Text = "When you click on column 0";
+            // 
             // objectListView1
             // 
             this.objectListView1.AllColumns.Add(this.olvColumn35);
@@ -3489,6 +3558,7 @@ namespace ObjectListViewDemo
             ((System.ComponentModel.ISupportInitialize)(this.olvFroods)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
+            this.contextMenuStrip2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.objectListView1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -3752,6 +3822,12 @@ namespace ObjectListViewDemo
         private ComboBox comboBoxNagLevel;
         private Label label36;
         private Button button28;
+        private CheckBox checkBox19;
+        private ContextMenuStrip contextMenuStrip2;
+        private ToolStripMenuItem menuOfCommandsToolStripMenuItem;
+        private ToolStripMenuItem appropriateToTheClickedFileToolStripMenuItem;
+        private ToolStripMenuItem whichOnlyAppearsToolStripMenuItem;
+        private ToolStripMenuItem whenYouClickOnColumn0ToolStripMenuItem;
 
 	}
 }

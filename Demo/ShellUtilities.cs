@@ -4,8 +4,8 @@
  * Date: 1 May 2007 7:44 PM
  * 
  * CHANGE LOG:
- * when who what
- * 1 May 2007 JPP  Initial Version
+ * 2009-07-08  JPP  Don't cache the image collections
+ * 1 May 2007  JPP  Initial Version
  */
 
 using System;
@@ -28,6 +28,24 @@ namespace ObjectListViewDemo
         {
         }
 
+        protected ImageList.ImageCollection SmallImageCollection {
+            get {
+                if (this.listView != null)
+                    return this.listView.SmallImageList.Images;
+                if (this.treeView != null)
+                    return this.treeView.ImageList.Images;
+                return null;
+            }
+        }
+
+        protected ImageList.ImageCollection LargeImageCollection {
+            get {
+                if (this.listView != null)
+                    return this.listView.LargeImageList.Images;
+                return null;
+            }
+        }
+
         /// <summary>
         /// Create a SysImageListHelper that will fetch images for the given tree control
         /// </summary>
@@ -38,8 +56,9 @@ namespace ObjectListViewDemo
                 treeView.ImageList = new ImageList();
                 treeView.ImageList.ImageSize = new Size(16, 16);
             }
-            this.smallImageCollection = treeView.ImageList.Images;
+            this.treeView = treeView;
         }
+        protected TreeView treeView;
 
         /// <summary>
         /// Create a SysImageListHelper that will fetch images for the given listview control.
@@ -64,9 +83,9 @@ namespace ObjectListViewDemo
             //if (listView.SmallImageList.Images.Count != listView.LargeImageList.Images.Count)
             //    throw new ArgumentException("Small and large image lists must have the same number of items.");
 
-            this.smallImageCollection = listView.SmallImageList.Images;
-            this.largeImageCollection = listView.LargeImageList.Images;
+            this.listView = listView;
         }
+        protected ListView listView;
 
         /// <summary>
         /// Return the index of the image that has the Shell Icon for the given file/directory.
@@ -81,22 +100,19 @@ namespace ObjectListViewDemo
                 if (System.IO.Path.HasExtension(path))
                     path = System.IO.Path.GetExtension(path);
 
-            if (this.smallImageCollection.ContainsKey(path))
-                return this.smallImageCollection.IndexOfKey(path);
+            if (this.SmallImageCollection.ContainsKey(path))
+                return this.SmallImageCollection.IndexOfKey(path);
 
             try {
-                this.smallImageCollection.Add(path, ShellUtilities.GetFileIcon(path, true, true));
-                if (this.largeImageCollection != null)
-                    this.largeImageCollection.Add(path, ShellUtilities.GetFileIcon(path, false, true));
+                this.SmallImageCollection.Add(path, ShellUtilities.GetFileIcon(path, true, true));
+                if (this.LargeImageCollection != null)
+                    this.LargeImageCollection.Add(path, ShellUtilities.GetFileIcon(path, false, true));
             } catch (ArgumentNullException) {
                 return -1;
             }
 
-            return this.smallImageCollection.IndexOfKey(path);
+            return this.SmallImageCollection.IndexOfKey(path);
         }
-
-        private ImageList.ImageCollection smallImageCollection = null;
-        private ImageList.ImageCollection largeImageCollection = null;
     }
 	
 	/// <summary>

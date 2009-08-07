@@ -5,6 +5,8 @@
  * Date: 15/10/2006 11:15 AM
  *
  * Change log:
+ * 2009-07-04  JPP  Added ExampleVirtualDataSource for virtual list demo
+ * [lots of stuff]
  * 2006-10-20  JPP  Added DataSet tab page
  * 2006-10-15  JPP  Initial version
  */
@@ -207,10 +209,14 @@ namespace ObjectListViewDemo
             this.listViewComplex.ItemRenderer = new BusinessCardRenderer();
 
             // Drag and drop support
+            // You can set up drag and drop explicitly (like this) or, in the IDE, you can set
+            // IsSimpleDropSource and IsSimpleDragSource and respond to CanDrop and Dropped events
+
             this.listViewComplex.DragSource = new SimpleDragSource();
             SimpleDropSink dropSink = new SimpleDropSink();
             this.listViewComplex.DropSink = dropSink;
             dropSink.CanDropOnItem = true;
+            //dropSink.CanDropOnSubItem = true;
             dropSink.FeedbackColor = Color.IndianRed; // just to be different
 
             dropSink.ModelCanDrop += new EventHandler<ModelDropEventArgs>(delegate(object sender, ModelDropEventArgs e) {
@@ -461,6 +467,43 @@ namespace ObjectListViewDemo
             }
         }
 
+        /// <summary>
+        /// This hacked data source makes a small list of model objects act like a much bigger list
+        /// of model objects. This forces some comprises (like sorting doesn't sort the whole list,
+        /// only the given list), but it is just to show what sort of thing needs to happen.
+        /// </summary>
+        class ExampleVirtualDataSource : AbstractVirtualListDataSource
+        {
+            public ExampleVirtualDataSource(VirtualObjectListView listView, List<Person> objectList) :
+                base(listView) {
+                this.Objects = objectList;
+            }
+
+            public override int GetObjectIndex(object model) {
+                return this.Objects.IndexOf((Person)model);
+            }
+
+            public override object GetNthObject(int n) {
+                Person p = (Person)this.Objects[n % this.Objects.Count];
+                p.serialNumber = n;
+                return p;
+            }
+
+            public override int GetObjectCount() {
+                return 10000000;
+            }
+
+            public override void Sort(OLVColumn column, SortOrder order) {
+                this.Objects.Sort (new MasterListSorter(column, order));
+            }
+
+            public override int SearchText(string value, int first, int last, OLVColumn column) {
+                return DefaultSearchText(value, first, last, column, this);
+            }
+
+            List<Person> Objects;
+        }
+
 		void InitializeVirtualListExample ()
 		{
             this.listViewVirtual.BooleanCheckStateGetter = delegate(object x) {
@@ -470,12 +513,7 @@ namespace ObjectListViewDemo
                 ((Person)x).IsActive = newValue;
                 return newValue;
             };
-            this.listViewVirtual.VirtualListSize = 10000000;
-			this.listViewVirtual.RowGetter = delegate (int i) {
-				Person p = masterList[i % masterList.Count];
-				p.serialNumber = i;
-				return p;
-			};
+            this.listViewVirtual.DataSource = new ExampleVirtualDataSource(this.listViewVirtual, this.masterList);
 
             // Install a custom sorter, just to show how it could be done. We don't
             // have a backing store that can sort all 10 million items, so we have to be
@@ -673,7 +711,6 @@ namespace ObjectListViewDemo
                     roots.Add(new DirectoryInfo(di.Name));
             }
             this.treeListView.Roots = roots;
-            this.treeListView.CellEditActivation = ObjectListView.CellEditActivateMode.F2Only;
         }
 
         void InitializeListPrinting()
@@ -1515,7 +1552,7 @@ namespace ObjectListViewDemo
 
         private void button15_Click(object sender, EventArgs e)
         {
-            this.olvFastList.SetObjects(null);
+            this.olvFastList.ClearObjects();
             this.HandleSelectionChanged(this.olvFastList);
         }
 
@@ -1618,35 +1655,28 @@ namespace ObjectListViewDemo
 
         private void listViewComplex_MouseClick(object sender, MouseEventArgs e)
         {
-            if (e.Button != MouseButtons.Right) 
-                return;
+            //if (e.Button != MouseButtons.Right) 
+            //    return;
 
-            ContextMenuStrip ms = new ContextMenuStrip();
-            ms.ItemClicked += new ToolStripItemClickedEventHandler(ms_ItemClicked);
+            //ContextMenuStrip ms = new ContextMenuStrip();
+            //ms.ItemClicked += new ToolStripItemClickedEventHandler(ms_ItemClicked);
 
-            ObjectListView olv = (ObjectListView)sender;
-            if (olv.ShowGroups) {
-                foreach (ListViewGroup lvg in olv.Groups) {
-                    ToolStripMenuItem mi = new ToolStripMenuItem(String.Format("Jump to group '{0}'", lvg.Header));
-                    mi.Tag = lvg;
-                    ms.Items.Add(mi);
-                }
-            } else {
-                ToolStripMenuItem mi = new ToolStripMenuItem("Turn on 'Show Groups' to see this context menu in action");
-                mi.Enabled = false;
-                ms.Items.Add(mi);
-            }
+            //ObjectListView olv = (ObjectListView)sender;
+            //if (olv.ShowGroups) {
+            //    foreach (ListViewGroup lvg in olv.Groups) {
+            //        ToolStripMenuItem mi = new ToolStripMenuItem(String.Format("Jump to group '{0}'", lvg.Header));
+            //        mi.Tag = lvg;
+            //        ms.Items.Add(mi);
+            //    }
+            //} else {
+            //    ToolStripMenuItem mi = new ToolStripMenuItem("Turn on 'Show Groups' to see this context menu in action");
+            //    mi.Enabled = false;
+            //    ms.Items.Add(mi);
+            //}
 
-            ms.Show((Control)sender, e.X, e.Y);
+            //ms.Show((Control)sender, e.X, e.Y);
         }
 
-        void ms_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
-        {
-            ToolStripMenuItem mi = (ToolStripMenuItem)e.ClickedItem;
-            ListViewGroup lvg = (ListViewGroup)mi.Tag;
-            ObjectListView olv = (ObjectListView)lvg.ListView;
-            olv.EnsureGroupVisible(lvg);
-        }
         /*
         private static void BlendBitmaps(Graphics g, Bitmap b1, Bitmap b2, float transition)
         {
@@ -1794,7 +1824,8 @@ namespace ObjectListViewDemo
             if (Control.ModifierKeys != Keys.Control)
                 return;
 
-            string stringValue = e.Column.GetStringValue(e.Model);
+            OLVColumn col = e.Column ?? e.ListView.GetColumn(0);
+            string stringValue = col.GetStringValue(e.Model);
             if (stringValue.StartsWith("m", StringComparison.InvariantCultureIgnoreCase)) {
                 e.IsBalloon = !ObjectListView.IsVista; // balloons don't work reliably on vista
                 e.ToolTipControl.SetMaxWidth(400);
@@ -1809,7 +1840,7 @@ namespace ObjectListViewDemo
                     "the assistance of trained vocalization specialists.";
             } else {
                 e.Text = String.Format("Tool tip for '{0}', column '{1}'\r\nValue shown: '{2}'",
-                    ((Person)e.Model).Name, e.Column.Text, stringValue);
+                    ((Person)e.Model).Name, (col == null ? "none" : col.Text), stringValue);
             }
         }
 
@@ -1822,6 +1853,95 @@ namespace ObjectListViewDemo
             e.AutoPopDelay = 10000;
             e.Text = String.Format("More details about the '{0}' column\r\n\r\nThis only shows when the control key is down.",
                 e.Column.Text);
+        }
+
+        private void listViewFiles_CellToolTipShowing(object sender, ToolTipShowingEventArgs e) {
+            if (!this.showToolTipsOnFiles)
+                return;
+
+            if (e.Column == null) {
+                // non-details view
+                e.Text = String.Format("Tool tip for '{0}'", e.Model);
+            } else {
+                e.Text = String.Format("Tool tip for '{0}', column '{1}'\r\nValue shown: '{2}'",
+                    e.Model, e.Column.Text, e.SubItem.Text);
+            }
+        }
+
+        private void checkBox19_CheckedChanged_1(object sender, EventArgs e) {
+            this.showToolTipsOnFiles = !this.showToolTipsOnFiles;
+        }
+        bool showToolTipsOnFiles = true;
+
+        private void listViewFiles_CellClick(object sender, CellClickEventArgs e) {
+            System.Diagnostics.Trace.WriteLine(String.Format("clicked ({0}, {1}). model {2}. click count: {3}", 
+                e.RowIndex, e.ColumnIndex, e.Model, e.ClickCount));
+        }
+
+        private void listViewFiles_CellRightClick(object sender, CellRightClickEventArgs e) {
+            System.Diagnostics.Trace.WriteLine(String.Format("right clicked {0}, {1}). model {2}", e.RowIndex, e.ColumnIndex, e.Model));
+            // Show a menu if the click was on first column (ColumnIndex will be -1 if the list isn't in details view,
+            // in which case we also want to show the menu)
+            if (e.ColumnIndex <= 0)
+                e.MenuStrip = this.contextMenuStrip2;
+        }
+
+        private void treeListView_ModelCanDrop(object sender, ModelDropEventArgs e) {
+            e.Effect = DragDropEffects.None;
+            if (e.TargetModel != null) {
+                if (e.TargetModel is DirectoryInfo)
+                    e.Effect = e.StandardDropActionFromKeys;
+                else
+                    e.InfoMessage = "Can only drop on directories";
+            }
+        }
+
+        private void treeListView_ModelDropped(object sender, ModelDropEventArgs e) {
+            String msg = String.Format("{2} items were dropped on '{1}' as a {0} operation.", 
+                e.Effect, ((DirectoryInfo)e.TargetModel).Name, e.SourceModels.Count);
+            MessageBox.Show(msg, "OLV Demo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void listViewSimple_CellClick(object sender, CellClickEventArgs e) {
+            System.Diagnostics.Trace.WriteLine(String.Format("clicked ({0}, {1}). model {2}. click count: {3}",
+                e.RowIndex, e.ColumnIndex, e.Model, e.ClickCount));
+        }
+
+        private void listViewComplex_CellRightClick(object sender, CellRightClickEventArgs e) {
+            ContextMenuStrip ms = new ContextMenuStrip();
+            ms.ItemClicked += new ToolStripItemClickedEventHandler(ms_ItemClicked);
+
+            ObjectListView olv = e.ListView;
+            if (olv.ShowGroups) {
+                foreach (ListViewGroup lvg in olv.Groups) {
+                    ToolStripMenuItem mi = new ToolStripMenuItem(String.Format("Jump to group '{0}'", lvg.Header));
+                    mi.Tag = lvg;
+                    ms.Items.Add(mi);
+                }
+            } else {
+                ToolStripMenuItem mi = new ToolStripMenuItem("Turn on 'Show Groups' to see this context menu in action");
+                mi.Enabled = false;
+                ms.Items.Add(mi);
+            }
+
+            e.MenuStrip = ms;
+        }
+
+        void ms_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
+            ToolStripMenuItem mi = (ToolStripMenuItem)e.ClickedItem;
+            ListViewGroup lvg = (ListViewGroup)mi.Tag;
+            ObjectListView olv = (ObjectListView)lvg.ListView;
+            olv.EnsureGroupVisible(lvg);
+        }
+
+        private void listViewSimple_CellOver(object sender, CellOverEventArgs e) {
+            //System.Diagnostics.Trace.WriteLine(String.Format("over ({0}, {1}). model {2}",
+            //    e.RowIndex, e.ColumnIndex, e.Model));
+        }
+
+        private void listViewComplex_CellOver(object sender, CellOverEventArgs e) {
+            //System.Diagnostics.Trace.WriteLine(String.Format("over ({0}, {1}). model {2}",
+            //    e.RowIndex, e.ColumnIndex, e.Model));
         }
     }
         
