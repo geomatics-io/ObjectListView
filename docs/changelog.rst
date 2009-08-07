@@ -9,10 +9,9 @@ Change Log
 
 Version Index
 -------------
-* `v2.2 beta2 - 03 June 2009`_
+* `v2.2.1 - 08 August 2009`_
+* `v2.2 - 08 June 2009`_
 * `v2.2 beta - 15 May 2009`_
-* `v2.2 alpha2 - 12 May 2009`_
-* `v2.2 alpha - 07 May 2009`_
 * `v2.1 - 26 February 2009`_
 * `v2.1a - 07 February 2009`_
 * `v2.0.1 - 10 January 2009`_
@@ -30,8 +29,172 @@ Version Index
 * `Previous versions - 04 April 2007`_
 
 
-v2.2 beta2 - 03 June 2009
--------------------------
+v2.2.1 - 08 August 2009
+-----------------------
+
+2009-08-05 09:28 (#722) - ObjectListView/ObjectListView.cs, ObjectListView/Overlays.cs
+  - Add Bounds property to OLVListItem, which handles the case of the list item belonging to a collapsed group
+
+2009-08-04 18:12 (#718) - ObjectListView/ObjectListView.cs
+  - Subitem edit rectangles always allowed for an image in the cell, even if there was none. Now they only allow for an image when there actually is one.
+  - Update documentation in several places
+
+2009-08-04 18:10 (#716) - ObjectListView/TreeListView.cs
+  - Ignore events left of the expand button, even for rows that don't have an expand button
+
+2009-08-04 18:06 (#714) - docs/features.rst, docs/whatsnew.rst, docs/blog.rst, docs/conf.py, docs/changelog.rst, docs/recipes.rst
+  - Documented cell events
+  - Updated for v2.2.1 release
+
+2009-08-02 22:53 (#713) - docs/.templates/layout.html
+  - Removed Donate link
+
+2009-08-02 22:52 (#712) - docs/images/blog3-listview3.png, docs/images/blog3-listview4.png, docs/blog.rst, docs/blog3.rst, docs/index.rst, docs/images/blog3-listview1.png, docs/.static/blog3-icon.png, docs/images/blog3-listview1a.png, docs/images/blog3-listview2.png
+  - Added blog entry to ListViewSubItem.Bounds bug
+
+2009-07-27 00:22 (#703) - ObjectListView/ObjectListView.cs
+  - The cell edit rectangle is now correctly calculated when the listview is scrolled horizontally.
+
+2009-07-27 00:20 (#702) - ObjectListView/Renderers.cs
+  - Try to honour CanWrap setting when GDI rendering text.
+
+2009-07-27 00:19 (#701) - ObjectListView/VirtualObjectListView.cs
+  - Added specialised version of RefreshSelectedObjects() which works efficiently with virtual lists
+
+2009-07-26 23:23 (#700) - ObjectListView/Overlays.cs
+  - TintedColumnDecoration now works when last item is a member of a collapsed group (well, it no longer crashes).
+
+2009-07-26 23:16 (#699) - ObjectListView/NativeMethods.cs
+  - Added GetScrolledColumnSides()
+
+2009-07-26 23:16 (#698) - ObjectListView/ObjectListView.cs
+  - Avoided bug in .NET framework involving column 0 of owner drawn listviews not being redrawn when the listview was scrolled horizontally.
+
+2009-07-14 22:55 (#690) - ObjectListView/TreeListView.cs
+  - Clicks to the left of the expander in tree cells are now ignored.
+
+2009-07-14 22:54 (#689) - ObjectListView/ObjectListView.cs
+  - If the user clicks/double clicks on a tree list cell, an edit operation will not begin if the click was to the left of the expander. This is implemented in such a way that other renderers can have similar "dead" zones.
+
+2009-07-12 20:46 (#685) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Added code to test CellOver events
+
+2009-07-12 14:36 (#683) - ObjectListView/ObjectListView.cs
+  - Added CellOver event
+
+2009-07-11 23:43 (#681) - ObjectListView/ObjectListView.cs
+  - CalculateCellBounds() messed with the FullRowSelect property, which confused the tooltip handling on the underlying control. It no longer does this.
+  - If the user clicks/double clicks on a cell, an edit operation will begin only if the clicks were on the image or text.
+  - The cell edit rectangle is now correctly calculated for owner-drawn, non-Details views.
+
+2009-07-11 23:42 (#680) - ObjectListView/Events.cs
+  - Added HitTest property to CellEventArgs
+
+2009-07-11 12:36 (#679) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/ShellUtilities.cs, Demo/MainForm.resx
+  - Added Cell events
+  - Demo drag and drop in tree list view
+  - SysImageHelper no longer caches images
+
+2009-07-11 12:35 (#678) - ObjectListView/ObjectListView.cs
+  - Added Cell events
+  - Made BuildList(), AddObject() and RemoveObject() thread-safe
+  - AfterSearchingEventArgs events can now be Handled
+
+2009-07-11 12:31 (#677) - ObjectListView/ToolTipControl.cs
+  - Moved ToolTipShowingEventArgs to Events.cs
+
+2009-07-11 12:30 (#676) - ObjectListView/Renderers.cs
+  - Correctly calculate edit rectangle for subitems of a tree view (previously subitems were indented in the same way as the primary column)
+
+2009-07-11 12:30 (#675) - ObjectListView/Events.cs
+  - Added Cell events
+  - Moved all event parameter blocks to this file.
+  - Added Handled property to AfterSearchEventArgs
+
+2009-07-11 10:49 (#669) - docs/recipes.rst
+  - Updated description of how to use a RowFormatter
+
+2009-07-06 22:37 (#656) - ObjectListView/VirtualObjectListView.cs
+  - Don't try to fetch objects in GetModelObject when the index is negative
+
+2009-07-06 22:36 (#655) - ObjectListView/DropSink.cs
+  - Added StandardDropActionFromKeys property to OlvDropEventArgs
+
+2009-07-06 22:36 (#654) - ObjectListView/DragSource.cs
+  - Make sure Link is acceptable as an drop effect by default
+
+2009-07-06 22:36 (#653) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Give example of using simple drag and drop in tree list view
+
+2009-07-04 12:15 (#652) - ObjectListView/NativeMethods.cs
+  - Added SetTooltipControl()
+
+2009-07-04 12:12 (#651) - ObjectListView/ObjectListView.cs
+  - Space bar now properly toggles checkedness of selected rows
+
+2009-07-04 12:09 (#650) - ObjectListView/VirtualObjectListView.cs
+  - Standardized code format
+
+2009-07-03 14:36 (#649) - docs/download.rst, docs/ownerDraw.rst
+  - Update version info on downloads page
+  - Rewrote some parts of owner drawn
+
+2009-07-03 13:33 (#648) - docs/.templates/layout.html
+  - Added tracer template
+
+2009-07-03 08:25 (#647) - ObjectListView/ObjectListView.cs
+  - Fixed bug with tooltips when the underlying Windows control was destroyed.
+  - CellToolTipShowing events are now triggered in all views.
+
+
+
+v2.2 - 08 June 2009
+-------------------
+
+2009-06-08 15:57 (#643) - ObjectListView/NativeMethods.cs
+  - Fixed bug in GetWindowLong/SetWindowLong that appears on 64-bit OSes
+
+2009-06-07 23:29 (#640) - docs/changelog.rst
+  - Update change log for v2.2 release
+
+2009-06-07 15:58 (#638) - docs/recipes.rst
+  - Added two new recipes
+
+2009-06-07 15:58 (#637) - docs/features.rst, docs/blog2.rst, docs/index.rst
+  - Added information about collapsible groups and blogs
+
+2009-06-07 12:10 (#636) - docs/blog2.rst, docs/faq.rst, docs/recipes.rst
+  - Updated tooltips docs to reflect vista situation
+
+2009-06-07 12:09 (#635) - Demo/MainForm.cs
+  - Don't use balloon tooltips under Vista
+
+2009-06-07 12:08 (#634) - ObjectListView/ObjectListView2008.csproj
+  - Undefined TRACE constant from project
+
+2009-06-07 12:07 (#633) - ObjectListView/ToolTipControl.cs
+  - Added change log entry
+
+2009-06-07 14:40 (#631) - ObjectListView/NativeMethods.cs
+  - Renamed TOOLTIPTEXT to NMTTDISPINFO
+
+2009-06-07 14:39 (#630) - ObjectListView/ObjectListView.cs
+  - Fixed rare bug in UnapplyHotItemStyle()
+
+2009-06-07 14:38 (#629) - ObjectListView/Renderers.cs
+  - Tweaked text rendering so that column 0 isn't ellipsed unnecessarily.
+
+2009-06-07 14:37 (#628) - ObjectListView/ToolTipControl.cs
+  - Fixed some vista specific problems
+
+2009-06-05 16:55 (#627) - ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs, ObjectListView/NativeMethods.cs
+  - Overlays and tooltips now work on TopMost forms
+
+2009-06-03 16:30 (#626) - docs/whatsnew.rst, docs/.templates/layout.html, docs/blog2.rst, docs/conf.py, docs/changelog.rst, docs/recipes.rst
+  - v2.2 documentation complete
+
+2009-06-03 12:44 (#625) - ObjectListView/VirtualObjectListView.cs
+  - BuildList() now also updates the Virtual list size
 
 2009-06-03 11:43 (#623) - ObjectListView/Events.cs
   - BeforeSortingEventArgs now has a Handled property to let event handlers do the item sorting themselves.
@@ -104,11 +267,6 @@ v2.2 beta - 15 May 2009
   - Simplified GlassPanelForm
   - Added subitem stuff to custom draw
 
-
-
-v2.2 alpha2 - 12 May 2009
--------------------------
-
 2009-05-12 22:08 (#590) - docs/whatsnew.rst
   - Added new TreeListView features
 
@@ -162,11 +320,6 @@ v2.2 alpha2 - 12 May 2009
 2009-05-08 22:55 (#571) - ObjectListView/DropSink.cs
   - Use SmallImageSize property whenever possible
   - Updated docs
-
-
-
-v2.2 alpha - 07 May 2009
-------------------------
 
 2009-05-07 23:06 (#569) - ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs, ObjectListView/HeaderControl.cs, ObjectListView/NativeMethods.cs
   - Don't show glass panel in design mode
