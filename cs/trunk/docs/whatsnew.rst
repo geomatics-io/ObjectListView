@@ -7,6 +7,43 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
+4 August - Version 2.2.1
+------------------------
+
+This is primarily a bug fix release.
+
+New features
+^^^^^^^^^^^^
+
+* Added cell events (`CellClicked`, `CellOver`, `CellRightClicked`).
+
+* Made `BuildList()`, `AddObject()` and `RemoveObject()` thread-safe.
+
+Bug fixes
+^^^^^^^^^
+
+* Avoided bug in .NET framework involving column 0 of owner drawn listviews not
+  being redrawn when the listview was scrolled horizontally (this was a *lot* of
+  work to track down and fix!)
+
+* Subitem edit rectangles always allowed for an image in the cell, even if there was none. Now they only allow for an image when there actually is one.
+
+* The cell edit rectangle is now correctly calculated when the listview is scrolled horizontally.
+
+* If the user clicks/double clicks on a tree list cell, an edit operation will
+  no longer begin if the click was to the left of the expander. This is
+  implemented in such a way that other renderers can have similar "dead" zones.
+
+* `CalculateCellBounds()` messed with the `FullRowSelect` property, which confused the tooltip handling on the underlying control. It no longer does this.
+
+* The cell edit rectangle is now correctly calculated for owner-drawn, non-Details views.
+
+* Space bar now properly toggles checkedness of selected rows.
+
+* Fixed bug with tooltips when the underlying Windows control was destroyed.
+
+* `CellToolTipShowing` events are now triggered in all views.
+
 May 2009 - Version 2.2
 ----------------------
 

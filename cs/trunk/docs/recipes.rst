@@ -332,10 +332,21 @@ This code doesn't assume a position for the credit column but finds it each
 time. This is conservative and it could be replaced with a constant -- if you
 can guarantee that no other fool is going to move or remove it :-)
 
-The other important thing to note is the *olvi.UseItemStyleForSubItems = false*.
+Also pay attention to *olvi.UseItemStyleForSubItems = false*.
 By default, all subitems have the same formatting as the listitem itself. To
 indicate that you want subitems have their own formatting, you must set
 `UseItemStyleForSubItems` to `False`.
+
+One important thing to know about `RowFormatters` is that they are called
+before the row is added to the control. This means that many of the properties
+of the `OLVListItem` object do not yet have sensible values. For example, you
+cannot use the `Index` property to try and figure out where the item is in
+the control, because the item doesn't yet belong to any control.
+
+One final thing: `UseAlternateBackColors` and `RowFormatters` that change the
+`BackColor` of rows do not play well together. The `UseAlternateBackColors` assumes
+that it owns the background color, and it will override any setting made by
+a `RowFormatter.`
 
 
 .. _recipe-listviewprinter:
@@ -634,6 +645,8 @@ A side benefit of a `TypedObjectListView` is that it can automatically generate 
 the IDE, and then call `tlist.GenerateAspectGetters()`. This can (should?) handle
 aspects of arbitrary complexity, like "Parent.HomeAddress.Phone.AreaCode".
 
+This allows the convience of reflection, but the speed of hand-written `AspectGetters`.
+
 .. _recipe-treelistview:
 
 15. How do I use a TreeListView?
@@ -677,9 +690,21 @@ the same thing. To add or remove these top level
 branches, you can call `AddObjects()` and `RemoveObjects()`, since in a tree view,
 these operate on the top level branches.
 
-The TreeListView caches the list of children under each branch. This is helpful
+The `TreeListView` caches the list of children under each branch. This is helpful
 when the list of children is expensive to calculate. To force the `TreeListView`
 to refetch the list of children, call `RefreshObject()` on the parent.
+
+Notes
+^^^^^
+
+Do not try to use a `TreeListView` like a standard `TreeView`. A `TreeListView`
+does not have `TreeNodes` that you have to create and then pass to the view.
+That's just one more level of unnecessary boiler-plate code -- exactly the
+things that `ObjectListView` was written to avoid. Instead of creating node,
+think in terms of your data model. Can this "thing" be unrolled? When it is
+unrolled, what list of "things" should be shown?
+
+`CanExpandGetter` is called often! It should be efficient.
 
 .. _recipe-search:
 
@@ -883,6 +908,19 @@ you can simply assign that menu to the `ContextMenuStrip` property of the `Objec
 (this is standard .NET, nothing specific to an `ObjectListView`).
 
 If you want to show a context menu specific to the object clicked,
+you can listen for `CellRightClick` events (if you have v2.2.1 or later.
+For earlier versions, see below)::
+
+    private void olv_CellRightClick(object sender, CellRightClickEventArgs e) {
+        e.MenuStrip = this.DecideRightClickMenu(e.Model, e.Column);
+    }
+
+If `MenuStrip` is not null, it will be shown where the mouse was clicked.
+
+It's entirely reasonable for `e.Model` to be `null`. That means the user clicked
+on the list background.
+
+If you have v2.2 or earlier,
 you need to listen for `OnMouseClick` event and do something like this::
 
     private void olv_MouseClick(object sender, MouseEventArgs e) {
@@ -902,5 +940,3 @@ something you have to implement yourself.
 
 It's entirely reasonable for `hitTest.RowObject` to be `null`. That means the user clicked
 on the list background.
-
-[It's probable that I will provide an event sometime in the future.]

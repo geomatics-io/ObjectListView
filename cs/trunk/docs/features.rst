@@ -17,6 +17,7 @@ can use it when the need arises.
 * `Automatic sorting`_
 * `Automatically create the ListView from model objects`_
 * `Checkboxes in any column`_
+* `Cell events`_
 * `Collapsible groups`_
 * `Copy selected rows to clipboard`_
 * `Custom row formatting`_
@@ -161,10 +162,10 @@ supports accepting drops from other sources including cross-application drops. S
 is provide for drops from other `ObjectListViews` in the same application.
 
 In many cases, an `ObjectListView` becomes a full drag source by setting
-*IsSimpleDragSource* to *true*.
+`IsSimpleDragSource` to `true`.
 
-Similarly, to accept drops, it is usually enough to set *IsSimpleDropSink* to *true*, and
-then handle the *CanDrop* and *Dropped* events (or the *ModelCanDrop* and *ModelDropped*
+Similarly, to accept drops, it is usually enough to set `IsSimpleDropSink` to `true`, and
+then handle the `CanDrop` and `Dropped` events (or the `ModelCanDrop` and `ModelDropped`
 events, if you only want to handle drops from other `ObjectListViews` in your application).
 
 See :ref:`dragdrop-label` for more information.
@@ -173,16 +174,16 @@ See :ref:`dragdrop-label` for more information.
 Supports all ListView views
 ---------------------------
 
-An ObjectListView supports all views: report, tile, list, large and small icons. All functions
+An `ObjectListView` supports all views: report, tile, list, large and small icons. All functions
 should work equally in all views: drag and drop, editing, check state, icons, selection.
 
-You can even owner draw the non-details views (through the *ItemRenderer* property).
+You can even owner draw the non-details views (through the `ItemRenderer` property).
 
 
 More control over column width
 ------------------------------
 
-An ObjectListView allows the programmer to have control over the width of columns after
+An `ObjectListView` allows the programmer to have control over the width of columns after
 the ListView is created.
 
 When a column is created, it is normally given a width in pixels. This is the width of the
@@ -211,7 +212,7 @@ Displays a "list is empty" message
 An empty ListView can be confusing to the user: did something go wrong?
 Do I need to wait longer and then something will appear?
 
-An ObjectListView can show a "this list is empty" message when there is nothing
+An `ObjectListView` can show a "this list is empty" message when there is nothing
 to show in the list, so that the user knows the control is supposed to be empty.
 You even have a fair
 
@@ -221,8 +222,9 @@ See this recipe: :ref:`recipe-emptymsg`
 Checkboxes in any column
 ------------------------
 
-An ObjectListView supports checkboxes on rows. In fact, it supports checkboxes in
-subitems, if you are really keen.
+An `ObjectListView` supports checkboxes on rows. In fact, it supports checkboxes in
+subitems, if you are really keen. These work even in virtual mode (which a normal
+ListView cannot do).
 
 See this recipe for more details: :ref:`recipe-checkbox`.
 
@@ -231,7 +233,7 @@ Alternate rows background colors
 --------------------------------
 
 Having subtly different row colours for even and odd rows can make a ListView easier
-for users to read. ObjectListView supports this alternating of background colours.
+for users to read. `ObjectListView` supports this alternating of background colours.
 It is enabled by setting `UseAlternateBackColors` to true (the default). The background
 of odd numbered rows will be `AlternateRowBackColor`.
 
@@ -239,7 +241,7 @@ of odd numbered rows will be `AlternateRowBackColor`.
 Custom row formatting
 ---------------------
 
-An ObjectListView allows rows and even cells to be formatted with custom colours and fonts. For example,
+An `ObjectListView` allows rows and even cells to be formatted with custom colours and fonts. For example,
 you could draw clients with debts in red, or big spending customers could be given a gold
 background. See here: :ref:`recipe-formatter`
 
@@ -247,7 +249,7 @@ background. See here: :ref:`recipe-formatter`
 Model object level operations
 -----------------------------
 
-The ObjectListView allows operations at the level that makes most sense to the
+The `ObjectListView` allows operations at the level that makes most sense to the
 application: at the level of model objects. Properties like `SelectedObjects` and
 `CheckedObjects` and operations like `RefreshObjects()` provide a high-level
 interface to the ListView.
@@ -259,7 +261,7 @@ Searching on the sort column
 When a user types into a normal ListView, the control tries to find the first row where
 the value in cell 0 begins with the character that the user typed.
 
-ObjectListView extends this idea so that the searching can be done on the column by which
+`ObjectListView` extends this idea so that the searching can be done on the column by which
 the control is sorted (the "sort column"). If your music collection is sorted by "Album"
 and the user presses "z", ObjectListView will move the selection to the first track of the
 "Zooropa" album, rather than find the next track whose title starts with "z".
@@ -272,7 +274,7 @@ Hot item tracking
 -----------------
 
 It sometimes useful to emphasis the row that the mouse is currently over. This is called
-"hot tracking." The normal ListView can underline the text of the hot item. In an ObjectListView,
+"hot tracking." The normal ListView can underline the text of the hot item. In an `ObjectListView`,
 the font, font style, text color, and background color can all be set for the hot item.
 
 See this recipe for details: :ref:`recipe-hottracking`
@@ -299,12 +301,12 @@ User-selection of visible columns
 ---------------------------------
 
 it is sometimes nice to let the user choose which columns they wish to see in a ListView.
-ObjectListView allows you to define many columns for a particular ListView but only
+`ObjectListView` allows you to define many columns for a particular ListView but only
 have some of them initially visible. The user can right click on the column headers
 and be presented with a menu of all defined columns from which they can choose which
 columns they wish to see.
 
-The programmer can also control which columns are visible, via the `IsVisible` property.
+The programmer can also control which columns are visible via the `IsVisible` property.
 To hide a column, set `IsVisible` to false and then call `RebuildColumns()` to
 make the change take effect.
 
@@ -325,10 +327,10 @@ rows are selected or deselected. This is normally far more convenient.
 Selected Column
 ---------------
 
-If you set the *SelectedColumn* property, that column will be lightly tinted to show
+If you set the `SelectedColumn` property, that column will be lightly tinted to show
 that it is selected.
 
-If you set the *TintSortColumn* property, the sort column will automatically be
+If you set the `TintSortColumn` property, the sort column will automatically be
 selected.
 
 Row height can be changed
@@ -389,3 +391,12 @@ See:
 * :ref:`recipe-overlays` for how to use them;
 * :ref:`overlays-label` for some gotchas
 * :ref:`blog-overlays` for the history of their development.
+
+Cell events
+-----------
+
+A normal `ListView` triggers mouse events for the list as a whole.
+`ObjectListView` can trigger events for cells:
+`CellClick`, `CellOver` and `CellRightClick`. These events allow you
+to easily know what the user clicked (or what the mouse is over), and
+then react appropriately.

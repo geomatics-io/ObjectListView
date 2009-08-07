@@ -12,23 +12,24 @@ OK. Now that you're interested, how do you actually get the code?
 Stable releases
 ---------------
 
-v2.1 released on 26 February 2009 is the most recent stable release.
+v2.2.1 released on 7 August 2009 is the most recent stable release.
 
-`Click here to download the full package`_, which includes the ObjectListView control, demos, documentation and unit tests (1039K).
+`Click here to download the full package`_, which includes the ObjectListView control, demos, documentation and unit tests (1.2 MB).
 
-.. _Click here to download the full package: https://sourceforge.net/project/downloading.php?group_id=225207&filename=ObjectListViewFull-2-1-0.zip&a=84007488
+.. _Click here to download the full package: http://sourceforge.net/projects/objectlistview/files/objectlistview/ObjectListViewDemo-2.2.1.zip
 
-`Click here`_ to download just the source code the ObjectListView project (156K).
+`Click here`_ to download just the source code the ObjectListView project (177 K).
 
-.. _Click here: https://sourceforge.net/project/downloading.php?group_id=225207&filename=ObjectListView-2-1-0.zip&a=37153033
+.. _Click here: http://sourceforge.net/projects/objectlistview/files/objectlistview/ObjectListView-2.2.1.zip
+
+`Click here to see all releases`_.
+
+.. _Click here to see all releases: http://sourceforge.net/projects/objectlistview/files
 
 Not-so-stable releases
 ----------------------
 
-v2.2a2 was committed to the SVN repository on 9 May 2009.
-
-v2.2 beta will relased on Friday, 15 May 2009. Barring major problems, the final release will be
-made before the end of May 2009.
+There are currently no alpha or beta releases available -- but there is always the bleeding edge repository (see below).
 
 Bleeding-edge source
 --------------------
