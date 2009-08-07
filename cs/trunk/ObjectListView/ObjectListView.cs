@@ -5,18 +5,21 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2009-08-03  JPP  - Subitem edit rectangles always allowed for an image in the cell, even if there was none.
+ *                    Now they only allow for an image when there actually is one.
+ *                  - Added Bounds property to OLVListItem which handles items being part of collapsed groups.
  * 2009-07-26  JPP  - Avoided bug in .NET framework involving column 0 of owner drawn listviews not being
- *                    redrawn when the listview was scrolled horizontally.
+ *                    redrawn when the listview was scrolled horizontally (this was a LOT of work to track
+ *                    down and fix!)
  *                  - The cell edit rectangle is now correctly calculated when the listview is scrolled 
  *                    horizontally.
  * 2009-07-14  JPP  - If the user clicks/double clicks on a tree list cell, an edit operation will no longer begin
  *                    if the click was to the left of the expander. This is implemented in such a way that
  *                    other renderers can have similar "dead" zones.
- * 2009-07-12  JPP  - Added CellOver event
  * 2009-07-11  JPP  - CalculateCellBounds() messed with the FullRowSelect property, which confused the
  *                    tooltip handling on the underlying control. It no longer does this.
  *                  - The cell edit rectangle is now correctly calculated for owner-drawn, non-Details views.
- * 2009-07-08  JPP  - Added Cell events
+ * 2009-07-08  JPP  - Added Cell events (CellClicked, CellOver, CellRightClicked)
  *                  - Made BuildList(), AddObject() and RemoveObject() thread-safe
  * 2009-07-04  JPP  - Space bar now properly toggles checkedness of selected rows
  * 2009-07-02  JPP  - Fixed bug with tooltips when the underlying Windows control was destroyed.
@@ -3488,6 +3491,7 @@ namespace BrightIdeasSoftware
                     // To fix this problem, we have to detected the situation -- owner drawing column 0 in any column except 0 --
                     // trigger our own DrawSubItem, and then prevent the default processing from occuring.
 
+                    // Are we owner drawing column 0 when it's in any column except 0?
                     if (!this.OwnerDraw)
                         return false;
 
@@ -3499,20 +3503,18 @@ namespace BrightIdeasSoftware
                     if (displayIndex == 0)
                         return false;
 
-                    // Trigger an event to draw column 0 when it is not at display index 0
                     int rowIndex = (int)nmcustomdraw.nmcd.dwItemSpec;
                     OLVListItem item = this.GetItem(rowIndex);
                     if (item == null)
                         return false;
 
-                    // Correctly calculate the bounds of cell 0
-                    Rectangle r = this.GetItemRect(rowIndex, ItemBoundsPortion.Entire);
-                    Point sides = NativeMethods.GetScrolledColumnSides(this, 0);
-                    r.X = sides.X + 1;
-                    r.Width = sides.Y - sides.X;
-
-                    // Finally, trigger the DrawSubItem event for column 0
+                    // OK. We have the error condition, so lets do what the .NET framework should do.
+                    // Trigger an event to draw column 0 when it is not at display index 0
                     using (Graphics g = Graphics.FromHdc(nmcustomdraw.nmcd.hdc)) {
+
+                        // Correctly calculate the bounds of cell 0
+                        Rectangle r = GetCellZeroBounds(rowIndex);
+
                         // We can hardcode "0" here since we know we are only doing this for column 0
                         DrawListViewSubItemEventArgs args = new DrawListViewSubItemEventArgs(g, r, item, item.SubItems[0], rowIndex, 0,
                             this.Columns[0], (ListViewItemStates)nmcustomdraw.nmcd.uItemState);
@@ -3553,6 +3555,14 @@ namespace BrightIdeasSoftware
             return false;
         }
         bool isAfterItemPaint;
+
+        private Rectangle GetCellZeroBounds(int rowIndex) {
+            Rectangle r = this.GetItemRect(rowIndex, ItemBoundsPortion.Entire);
+            Point sides = NativeMethods.GetScrolledColumnSides(this, 0);
+            r.X = sides.X + 1;
+            r.Width = sides.Y - sides.X;
+            return r;
+        }
 
         /// <summary>
         /// Handle the underlying control being destroyed
@@ -5715,7 +5725,7 @@ namespace BrightIdeasSoftware
                 return;
 
             // No one handled it so check to see if we should start editing.
-            // We only start the edit if the user clicked on the image or text.
+            // We only start the edit if the user clicked on something (not a dead zone).
             if (this.ShouldStartCellEdit(e) &&
                 args.HitTest.HitTestLocation != HitTestLocation.Nothing) {
                 // In non-details views, ColumnIndex will be -1
@@ -5928,8 +5938,12 @@ namespace BrightIdeasSoftware
         private Control cellEditor = null;
         private CellEditEventArgs cellEditEventArgs = null;
 
-        // There is probably a good case for making the following three methods at least protected virtual
-
+        /// <summary>
+        /// Calculate the bounds of the edit control for the given item/column
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="subItemIndex"></param>
+        /// <returns></returns>
         public Rectangle CalculateCellEditorBounds(OLVListItem item, int subItemIndex) {
             Rectangle r = this.CalculateCellBounds(item, subItemIndex);
             if (this.OwnerDraw)
@@ -5938,6 +5952,14 @@ namespace BrightIdeasSoftware
                 return CalculateCellEditorBoundsStandard(item, subItemIndex, r);
         }
 
+        /// <summary>
+        /// Calculate the bounds of the edit control for the given item/column, when the listview
+        /// is being owner drawn.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="subItemIndex"></param>
+        /// <param name="cellBounds"></param>
+        /// <returns>A rectangle that is the bounds of the cell editor</returns>
         protected Rectangle CalculateCellEditorBoundsOwnerDrawn(OLVListItem item, int subItemIndex, Rectangle r) {
             IRenderer renderer = null;
             if (this.View == View.Details)
@@ -5951,14 +5973,24 @@ namespace BrightIdeasSoftware
                 return renderer.GetEditRectangle(this.CreateGraphics(), r, item, subItemIndex);
         }
 
+        /// <summary>
+        /// Calculate the bounds of the edit control for the given item/column, when the listview
+        /// is not being owner drawn.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="subItemIndex"></param>
+        /// <param name="cellBounds"></param>
+        /// <returns>A rectangle that is the bounds of the cell editor</returns>
         protected Rectangle CalculateCellEditorBoundsStandard(OLVListItem item, int subItemIndex, Rectangle cellBounds) {
             if (this.View != View.Details)
-                return this.GetItemRect(item.Index, ItemBoundsPortion.Label);
+                return cellBounds;//            this.GetItemRect(item.Index, ItemBoundsPortion.Label);
 
-            // Allow for image
+            // Allow for image (if there is one)
             int offset = 0;
-            if (this.SmallImageList != null &&
-                this.GetColumn(subItemIndex).GetImage(item.RowObject) is int) {
+            object subItemImageSelector = item.ImageSelector;
+            if (subItemIndex > 0)
+                subItemImageSelector = ((OLVListSubItem)item.SubItems[subItemIndex]).ImageSelector;
+            if (this.GetActualImageIndex(subItemImageSelector) != -1) {
                 offset += this.SmallImageSize.Width + 2;
             }
 
@@ -6108,10 +6140,7 @@ namespace BrightIdeasSoftware
         /// <param name="item">The row to be edited</param>
         /// <param name="subItemIndex">The index of the cell to be edited</param>
         /// <returns>A Rectangle</returns>
-        public virtual Rectangle CalculateTightCellBounds(OLVListItem item, int subItemIndex) {
-            // We use ItemBoundsPortion.Label rather than ItemBoundsPortion.Item
-            // since Label extends to the right edge of the cell, whereas Item gives just the 
-            // current text width.
+        public virtual Rectangle CalculateCellTextBounds(OLVListItem item, int subItemIndex) {
             return this.CalculateCellBounds(item, subItemIndex, ItemBoundsPortion.ItemOnly);
         }
 
@@ -6338,11 +6367,17 @@ namespace BrightIdeasSoftware
             // Invalidate the old and new hot items so they are redrawn
             int oldHotItem = this.HotItemIndex;
             this.HotItemIndex = newHotItem;
-            if (oldHotItem != -1)
-                this.UnapplyHotItemStyle(oldHotItem);
+            this.BeginUpdate();
+            try {
+                if (oldHotItem != -1)
+                    this.UnapplyHotItemStyle(oldHotItem);
 
-            if (newHotItem != -1)
-                this.ApplyHotItemStyle(newHotItem);
+                if (newHotItem != -1)
+                    this.ApplyHotItemStyle(newHotItem);
+            }
+            finally {
+                this.EndUpdate();
+            }
         }
 
         protected virtual void ApplyHotItemStyle(int index) {
@@ -7743,6 +7778,21 @@ namespace BrightIdeasSoftware
             }
         }
         private CheckState checkState;
+
+        /// <summary>
+        /// Gets the bounding rectangle of the item, including all subitems
+        /// </summary>
+        new public Rectangle Bounds {
+            get {
+                try {
+                    return base.Bounds;
+                }
+                catch (System.ArgumentException) {
+                    // If the item is part of a collapsed group, Bounds will throw an exception
+                    return Rectangle.Empty;
+                }
+            }
+        }
     }
 
     /// <summary>
