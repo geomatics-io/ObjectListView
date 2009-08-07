@@ -80,10 +80,6 @@ It may even be possible that you might find some undocumented features in the
 code (also known as bugs). These "features" can be `reported here`_ and can be
 tracked on the project's `Issue Tracker`_.
 
-Finally, after you realise just how great the ObjectListView is, and how you
-really have come to love .NET's ListView, you will be moved with gratitude to
-`give a donation`_ to ensure the continued development of this code.
-
 If you would like to ask me a question or suggest an improvement, you can contact me here:
 phillip_piper@bigfoot.com.
 
@@ -95,13 +91,13 @@ phillip_piper@bigfoot.com.
 
 .. _Issue Tracker: https://sourceforge.net/tracker/?group_id=225207&atid=1064157
 
-.. _give a donation: https://sourceforge.net/donate/index.php?group_id=225207
-
 Technical details
 -----------------
 
 I've started keeping a :ref:`technical blog <blog>` documenting some of the efforts that were required to
 solve some of the problem encountered within the ObjectListView.
+
+* Surely :ref:`a little bug <blog-subitemboundsbug>` can't cause too much trouble?
 
 * :ref:`This long article <blog-overlays>` talks about the problems and solutions encountered when developing the
   overlay feature of v2.2.
@@ -125,6 +121,10 @@ When thinking about using some new code, it's always interesting to hear what ot
 .. pull-quote:: Superb job. Thanks for sharing this fantastic control.
 
    -- `Hamed Mosavi <http://www.codeproject.com/Messages/3018693/Superb-job.aspx>`_
+
+.. pull-quote:: Never think your work goes unappreciated. This is the best project on CodeProject, by far.
+
+   -- `dyster_ <http://www.codeproject.com/Messages/3136396/hypocrite.aspx>`_
 
 .. pull-quote:: ObjectListView has got to be one of the slickest controls out there - simple, quick and powerful.
 
@@ -152,7 +152,7 @@ When thinking about using some new code, it's always interesting to hear what ot
 
 .. pull-quote:: What can I say? I have a file verification program, and I just replaced the listview with yours, and 150 lines of code was made obsolete, and very few lines were added, it also improved performance massively. The light shine upon you, MS should send you some sort of gift for removing the largest headache .NET ever contrived.
 
-   -- `Member 3791472 <http://www.codeproject.com/script/Forums/View.aspx?fid=350107&msg=2536977>`_
+   -- `Johan Sonesson <http://www.codeproject.com/script/Forums/View.aspx?fid=350107&msg=2536977>`_
 
 .. pull-quote:: I've got to say, your code is amazing. It's the only time in my life that I've looked at code and thought it was better than mine. Thanks for your great work (on many levels) and for sharing it.
 
