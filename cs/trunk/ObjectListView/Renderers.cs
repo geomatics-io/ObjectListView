@@ -753,11 +753,13 @@ namespace BrightIdeasSoftware
 
             this.ListView = (ObjectListView)item.ListView;
             this.ListItem = item;
-            this.SubItem = item.SubItems[subItemIndex];
-            this.Column = this.ListView.GetColumn(subItemIndex);
             this.RowObject = item.RowObject;
-            this.IsItemSelected = this.ListItem.Selected;
+            this.IsItemSelected = item.Selected;
             this.Bounds = cellBounds;
+            if (subItemIndex >= 0 && subItemIndex < item.SubItems.Count) {
+                this.SubItem = item.SubItems[subItemIndex];
+                this.Column = this.ListView.GetColumn(subItemIndex);
+            }
 
             return this.HandleGetEditRectangle(g, cellBounds, item, subItemIndex);
         }
