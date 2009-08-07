@@ -919,7 +919,7 @@ namespace BrightIdeasSoftware
             if (subItem > 0)
                 return item.SubItems[subItem].Bounds;
             
-            Rectangle r = this.ListView.CalculateTightCellBounds(item, subItem);
+            Rectangle r = this.ListView.CalculateCellTextBounds(item, subItem);
 
             // Allow for indent
             if (item.IndentCount > 0) {
