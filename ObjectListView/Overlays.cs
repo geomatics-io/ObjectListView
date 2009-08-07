@@ -761,7 +761,7 @@ namespace BrightIdeasSoftware
             OLVListItem lastItem = olv.GetLastItemInDisplayOrder();
             if (lastItem != null) {
                 Rectangle lastItemBounds = lastItem.Bounds;
-                if (lastItemBounds.Bottom < columnBounds.Bottom)
+                if (!lastItemBounds.IsEmpty && lastItemBounds.Bottom < columnBounds.Bottom)
                     columnBounds.Height = lastItemBounds.Bottom - columnBounds.Top;
             }
             g.FillRectangle(this.tintBrush, columnBounds);
