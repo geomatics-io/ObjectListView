@@ -1339,19 +1339,19 @@ namespace BrightIdeasSoftware
                         hti.HitTestLocation = HitTestLocation.ExpandButton;
                         return;
                     }
-
-                    // Ignore events left of the expand button
-                    if (x < r.Left) {
-                        hti.HitTestLocation = HitTestLocation.Nothing;
-                        return;
-                    }
                 }
 
                 r = this.Bounds;
                 int indent = br.Level * PIXELS_PER_LEVEL;
                 r.X += indent;
                 r.Width -= indent;
-                this.StandardHitTest(g, hti, r, x, y);
+
+                // Ignore events in the indent zone
+                if (x < r.Left) {
+                    hti.HitTestLocation = HitTestLocation.Nothing;
+                } else {
+                    this.StandardHitTest(g, hti, r, x, y);
+                }
             }
 
             protected override Rectangle HandleGetEditRectangle(Graphics g, Rectangle cellBounds,
