@@ -5,6 +5,8 @@
  * Date: 2009-03-17 5:15 PM
  *
  * Change log:
+ * 2009-09-01   JPP  - Correctly handle case where RefreshObjects() is called for
+ *                     objects that were children but are now roots.
  * 2009-08-27   JPP  - Added ModelDropEventArgs.RefreshObjects() to simplify updating after
  *                     a drag-drop operation
  * 2009-08-19   JPP  - Changed to use OlvHitTest()
@@ -1249,9 +1251,20 @@ namespace BrightIdeasSoftware
         /// </summary>
         public IList SourceModels {
             get { return this.dragModels; }
-            internal set { this.dragModels = value; }
+            internal set { 
+                this.dragModels = value;
+                TreeListView tlv = this.SourceListView as TreeListView;
+                if (tlv != null) {
+                    foreach (object model in this.SourceModels) {
+                        object parent = tlv.GetParent(model);
+                        if (!toBeRefreshed.Contains(parent))
+                            toBeRefreshed.Add(parent);
+                    }
+                }
+            }
         }
         private IList dragModels;
+        private ArrayList toBeRefreshed = new ArrayList();
 
         /// <summary>
         /// Gets the ObjectListView that is the source of the dragged objects.
@@ -1277,7 +1290,6 @@ namespace BrightIdeasSoftware
         /// </summary>
         public void RefreshObjects() {
             TreeListView tlv = this.SourceListView as TreeListView;
-            ArrayList toBeRefreshed = new ArrayList();
             if (tlv != null) {
                 foreach (object model in this.SourceModels) {
                     object parent = tlv.GetParent(model);
