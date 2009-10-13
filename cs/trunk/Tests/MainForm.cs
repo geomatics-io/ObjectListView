@@ -8,12 +8,8 @@
  * 10/21/2008 JPP  Initial Version
  */
 
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Windows.Forms;
 
-using NUnit.Framework;
 
 namespace BrightIdeasSoftware.Tests
 {

@@ -64,7 +64,7 @@ namespace BrightIdeasSoftware
     /// </code>
     /// To iterate over the selected objects, you can write something elegant like this:
     /// <code>
-    /// foreach (Person x in tlist.SelectedObjects {
+    /// foreach (Person x in tlist.SelectedObjects) {
     ///     x.GrantSalaryIncrease();
     /// }
     /// </code>

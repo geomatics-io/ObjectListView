@@ -41,20 +41,22 @@ namespace BrightIdeasSoftware.Tests
             this.olvcName = new BrightIdeasSoftware.OLVColumn();
             this.olvcOccupation = new BrightIdeasSoftware.OLVColumn();
             this.olvcCulinaryColumn = new BrightIdeasSoftware.OLVColumn();
+            this.olvCanTellJokes = new BrightIdeasSoftware.OLVColumn();
             this.fastObjectListView1 = new BrightIdeasSoftware.FastObjectListView();
             this.folvcName = new BrightIdeasSoftware.OLVColumn();
             this.folvOccupation = new BrightIdeasSoftware.OLVColumn();
             this.folvCulinaryRating = new BrightIdeasSoftware.OLVColumn();
+            this.folvCanTellJokes = new BrightIdeasSoftware.OLVColumn();
             this.treeListView1 = new BrightIdeasSoftware.TreeListView();
             this.tlvcName = new BrightIdeasSoftware.OLVColumn();
             this.tlvcOccupation = new BrightIdeasSoftware.OLVColumn();
             this.tlvcCulinaryRating = new BrightIdeasSoftware.OLVColumn();
-            this.olvCanTellJokes = new BrightIdeasSoftware.OLVColumn();
-            this.folvCanTellJokes = new BrightIdeasSoftware.OLVColumn();
             this.tlvcCanTellJokes = new BrightIdeasSoftware.OLVColumn();
+            this.objectListView2 = new BrightIdeasSoftware.ObjectListView();
             ((System.ComponentModel.ISupportInitialize)(this.objectListView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.fastObjectListView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.treeListView1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.objectListView2)).BeginInit();
             this.SuspendLayout();
             // 
             // objectListView1
@@ -63,15 +65,12 @@ namespace BrightIdeasSoftware.Tests
             this.objectListView1.AllColumns.Add(this.olvcOccupation);
             this.objectListView1.AllColumns.Add(this.olvcCulinaryColumn);
             this.objectListView1.AllColumns.Add(this.olvCanTellJokes);
-            this.objectListView1.AlternateRowBackColor = System.Drawing.Color.Empty;
             this.objectListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.olvcName,
             this.olvcOccupation,
             this.olvcCulinaryColumn,
             this.olvCanTellJokes});
-            this.objectListView1.HighlightBackgroundColor = System.Drawing.Color.Empty;
-            this.objectListView1.HighlightForegroundColor = System.Drawing.Color.Empty;
-            this.objectListView1.IsSearchOnSortColumn = true;
+            this.objectListView1.Cursor = System.Windows.Forms.Cursors.Default;
             this.objectListView1.Location = new System.Drawing.Point(13, 13);
             this.objectListView1.Name = "objectListView1";
             this.objectListView1.ShowGroups = false;
@@ -83,20 +82,30 @@ namespace BrightIdeasSoftware.Tests
             // olvcName
             // 
             this.olvcName.AspectName = "Name";
+            this.olvcName.HeaderFont = null;
             this.olvcName.Text = "Name";
             this.olvcName.Width = 176;
             // 
             // olvcOccupation
             // 
             this.olvcOccupation.AspectName = "Occupation";
+            this.olvcOccupation.HeaderFont = null;
             this.olvcOccupation.Text = "Occupation";
             this.olvcOccupation.Width = 178;
             // 
             // olvcCulinaryColumn
             // 
             this.olvcCulinaryColumn.AspectName = "CulinaryRating";
+            this.olvcCulinaryColumn.HeaderFont = null;
             this.olvcCulinaryColumn.Text = "Culinary Rating";
             this.olvcCulinaryColumn.Width = 116;
+            // 
+            // olvCanTellJokes
+            // 
+            this.olvCanTellJokes.AspectName = "CanTellJokes";
+            this.olvCanTellJokes.HeaderFont = null;
+            this.olvCanTellJokes.Text = "CanTellJokes";
+            this.olvCanTellJokes.Width = 117;
             // 
             // fastObjectListView1
             // 
@@ -104,15 +113,11 @@ namespace BrightIdeasSoftware.Tests
             this.fastObjectListView1.AllColumns.Add(this.folvOccupation);
             this.fastObjectListView1.AllColumns.Add(this.folvCulinaryRating);
             this.fastObjectListView1.AllColumns.Add(this.folvCanTellJokes);
-            this.fastObjectListView1.AlternateRowBackColor = System.Drawing.Color.Empty;
             this.fastObjectListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.folvcName,
             this.folvOccupation,
             this.folvCulinaryRating,
             this.folvCanTellJokes});
-            this.fastObjectListView1.HighlightBackgroundColor = System.Drawing.Color.Empty;
-            this.fastObjectListView1.HighlightForegroundColor = System.Drawing.Color.Empty;
-            this.fastObjectListView1.IsSearchOnSortColumn = true;
             this.fastObjectListView1.Location = new System.Drawing.Point(13, 198);
             this.fastObjectListView1.Name = "fastObjectListView1";
             this.fastObjectListView1.ShowGroups = false;
@@ -125,20 +130,30 @@ namespace BrightIdeasSoftware.Tests
             // folvcName
             // 
             this.folvcName.AspectName = "Name";
+            this.folvcName.HeaderFont = null;
             this.folvcName.Text = "Name";
             this.folvcName.Width = 160;
             // 
             // folvOccupation
             // 
             this.folvOccupation.AspectName = "Occupation";
+            this.folvOccupation.HeaderFont = null;
             this.folvOccupation.Text = "Occupation";
             this.folvOccupation.Width = 150;
             // 
             // folvCulinaryRating
             // 
             this.folvCulinaryRating.AspectName = "CulinaryRating";
+            this.folvCulinaryRating.HeaderFont = null;
             this.folvCulinaryRating.Text = "Culinary Rating";
             this.folvCulinaryRating.Width = 138;
+            // 
+            // folvCanTellJokes
+            // 
+            this.folvCanTellJokes.AspectName = "CanTellJokes";
+            this.folvCanTellJokes.HeaderFont = null;
+            this.folvCanTellJokes.Text = "CanTellJokes";
+            this.folvCanTellJokes.Width = 104;
             // 
             // treeListView1
             // 
@@ -146,15 +161,11 @@ namespace BrightIdeasSoftware.Tests
             this.treeListView1.AllColumns.Add(this.tlvcOccupation);
             this.treeListView1.AllColumns.Add(this.tlvcCulinaryRating);
             this.treeListView1.AllColumns.Add(this.tlvcCanTellJokes);
-            this.treeListView1.AlternateRowBackColor = System.Drawing.Color.Empty;
             this.treeListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.tlvcName,
             this.tlvcOccupation,
             this.tlvcCulinaryRating,
             this.tlvcCanTellJokes});
-            this.treeListView1.HighlightBackgroundColor = System.Drawing.Color.Empty;
-            this.treeListView1.HighlightForegroundColor = System.Drawing.Color.Empty;
-            this.treeListView1.IsSearchOnSortColumn = true;
             this.treeListView1.Location = new System.Drawing.Point(13, 395);
             this.treeListView1.Name = "treeListView1";
             this.treeListView1.OwnerDraw = true;
@@ -168,44 +179,47 @@ namespace BrightIdeasSoftware.Tests
             // tlvcName
             // 
             this.tlvcName.AspectName = "Name";
+            this.tlvcName.HeaderFont = null;
             this.tlvcName.Text = "Name";
             this.tlvcName.Width = 160;
             // 
             // tlvcOccupation
             // 
             this.tlvcOccupation.AspectName = "Occupation";
+            this.tlvcOccupation.HeaderFont = null;
             this.tlvcOccupation.Text = "Occupation";
             this.tlvcOccupation.Width = 160;
             // 
             // tlvcCulinaryRating
             // 
             this.tlvcCulinaryRating.AspectName = "CulinaryRating";
+            this.tlvcCulinaryRating.HeaderFont = null;
             this.tlvcCulinaryRating.Text = "Culinary Rating";
             this.tlvcCulinaryRating.Width = 146;
-            // 
-            // olvCanTellJokes
-            // 
-            this.olvCanTellJokes.AspectName = "CanTellJokes";
-            this.olvCanTellJokes.Text = "CanTellJokes";
-            this.olvCanTellJokes.Width = 117;
-            // 
-            // folvCanTellJokes
-            // 
-            this.folvCanTellJokes.AspectName = "CanTellJokes";
-            this.folvCanTellJokes.Text = "CanTellJokes";
-            this.folvCanTellJokes.Width = 104;
             // 
             // tlvcCanTellJokes
             // 
             this.tlvcCanTellJokes.AspectName = "CanTellJokes";
+            this.tlvcCanTellJokes.HeaderFont = null;
             this.tlvcCanTellJokes.Text = "CanTellJokes";
             this.tlvcCanTellJokes.Width = 121;
+            // 
+            // objectListView2
+            // 
+            this.objectListView2.Cursor = System.Windows.Forms.Cursors.Default;
+            this.objectListView2.Location = new System.Drawing.Point(13, 604);
+            this.objectListView2.Name = "objectListView2";
+            this.objectListView2.Size = new System.Drawing.Size(819, 97);
+            this.objectListView2.TabIndex = 3;
+            this.objectListView2.UseCompatibleStateImageBehavior = false;
+            this.objectListView2.View = System.Windows.Forms.View.Details;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(844, 610);
+            this.ClientSize = new System.Drawing.Size(844, 700);
+            this.Controls.Add(this.objectListView2);
             this.Controls.Add(this.treeListView1);
             this.Controls.Add(this.fastObjectListView1);
             this.Controls.Add(this.objectListView1);
@@ -214,6 +228,7 @@ namespace BrightIdeasSoftware.Tests
             ((System.ComponentModel.ISupportInitialize)(this.objectListView1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.fastObjectListView1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.treeListView1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.objectListView2)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -232,5 +247,6 @@ namespace BrightIdeasSoftware.Tests
         private OLVColumn olvCanTellJokes;
         private OLVColumn folvCanTellJokes;
         private OLVColumn tlvcCanTellJokes;
+        public ObjectListView objectListView2;
 	}
 }

@@ -5,6 +5,8 @@
  * Date: 20/10/2008 5:15 PM
  *
  * Change log:
+ * 2009-08-13   JPP  - Standardized code formatting
+ * v2.2.1
  * 2008-01-18   JPP  - Added special handling for enums
  * 2008-01-16   JPP  - Added EditorRegistry
  * v2.0.1
@@ -61,13 +63,11 @@ namespace BrightIdeasSoftware
     {
         #region Initializing
 
-        public EditorRegistry()
-        {
+        public EditorRegistry() {
             this.InitializeStandardTypes();
         }
 
-        private void InitializeStandardTypes()
-        {
+        private void InitializeStandardTypes() {
             this.Register(typeof(Boolean), typeof(BooleanCellEditor));
             this.Register(typeof(Int16), typeof(IntUpDown));
             this.Register(typeof(Int32), typeof(IntUpDown));
@@ -96,8 +96,7 @@ namespace BrightIdeasSoftware
         /// <example>
         /// ObjectListView.EditorRegistry.Register(typeof(Color), typeof(MySpecialColorEditor));
         /// </example>
-        public void Register(Type type, Type controlType)
-        {
+        public void Register(Type type, Type controlType) {
             this.Register(type, delegate(Object model, OLVColumn column, Object value) {
                 return controlType.InvokeMember("", BindingFlags.CreateInstance, null, null, null) as Control;
             });
@@ -117,8 +116,7 @@ namespace BrightIdeasSoftware
         ///     return new MySpecialColorEditor();
         /// }
         /// </example>
-        public void Register(Type type, EditorCreatorDelegate creator)
-        {
+        public void Register(Type type, EditorCreatorDelegate creator) {
             this.creatorMap[type] = creator;
         }
 
@@ -127,8 +125,7 @@ namespace BrightIdeasSoftware
         /// that have not been handled.
         /// </summary>
         /// <param name="creator">The delegate that will create a editor for all other types</param>
-        public void RegisterDefault(EditorCreatorDelegate creator)
-        {
+        public void RegisterDefault(EditorCreatorDelegate creator) {
             this.defaultCreator = creator;
         }
 
@@ -137,8 +134,7 @@ namespace BrightIdeasSoftware
         /// before any other option is considered.
         /// </summary>
         /// <param name="creator">The delegate that will create a control</param>
-        public void RegisterFirstChance(EditorCreatorDelegate creator)
-        {
+        public void RegisterFirstChance(EditorCreatorDelegate creator) {
             this.firstChanceCreator = creator;
         }
 
@@ -156,8 +152,7 @@ namespace BrightIdeasSoftware
         /// value for the column/model combination. It could be simply representative of
         /// the appropriate type of value.</param>
         /// <returns>A Control that can edit the given type of values</returns>
-        public Control GetEditor(Object model, OLVColumn column, Object value)
-        {
+        public Control GetEditor(Object model, OLVColumn column, Object value) {
             Control editor;
 
             if (this.firstChanceCreator != null) {
@@ -172,12 +167,12 @@ namespace BrightIdeasSoftware
                     return editor;
             }
 
-            if (this.defaultCreator != null) 
+            if (this.defaultCreator != null)
                 return this.defaultCreator(model, column, value);
 
-            if (value != null && value.GetType().IsEnum) 
+            if (value != null && value.GetType().IsEnum)
                 return this.CreateEnumEditor(value.GetType());
-            
+
             return null;
         }
 
@@ -185,11 +180,10 @@ namespace BrightIdeasSoftware
         /// Create and return an editor that will edit values of the given type
         /// </summary>
         /// <param name="type">A enum type</param>
-        protected Control CreateEnumEditor(Type type)
-        {
+        protected Control CreateEnumEditor(Type type) {
             return new EnumCellEditor(type);
         }
-        
+
         #endregion
 
         #region Private variables
@@ -197,30 +191,27 @@ namespace BrightIdeasSoftware
         private EditorCreatorDelegate firstChanceCreator;
         private EditorCreatorDelegate defaultCreator;
         private Dictionary<Type, EditorCreatorDelegate> creatorMap = new Dictionary<Type, EditorCreatorDelegate>();
-        
+
         #endregion
     }
-    
+
     /// <summary>
     /// These items allow combo boxes to remember a value and its description.
     /// </summary>
     internal class ComboBoxItem
     {
-        public ComboBoxItem(Object key, String description)
-        {
+        public ComboBoxItem(Object key, String description) {
             this.key = key;
             this.description = description;
         }
         private String description;
 
-        public Object Key
-        {
+        public Object Key {
             get { return key; }
         }
         private Object key;
 
-        public override string ToString()
-        {
+        public override string ToString() {
             return this.description;
         }
     }
@@ -240,8 +231,7 @@ namespace BrightIdeasSoftware
     [ToolboxItem(false)]
     public class AutoCompleteCellEditor : ComboBox
     {
-        public AutoCompleteCellEditor(ObjectListView lv, OLVColumn column)
-        {
+        public AutoCompleteCellEditor(ObjectListView lv, OLVColumn column) {
             this.DropDownStyle = ComboBoxStyle.DropDown;
 
             Dictionary<String, bool> alreadySeen = new Dictionary<string, bool>();
@@ -264,8 +254,7 @@ namespace BrightIdeasSoftware
     /// </summary>
     internal class EnumCellEditor : ComboBox
     {
-        public EnumCellEditor(Type type)
-        {
+        public EnumCellEditor(Type type) {
             this.DropDownStyle = ComboBoxStyle.DropDownList;
             this.ValueMember = "Key";
 
@@ -282,15 +271,13 @@ namespace BrightIdeasSoftware
     /// </summary>
     internal class IntUpDown : NumericUpDown
     {
-        public IntUpDown()
-        {
+        public IntUpDown() {
             this.DecimalPlaces = 0;
             this.Minimum = -9999999;
             this.Maximum = 9999999;
         }
 
-        new public int Value
-        {
+        new public int Value {
             get { return Decimal.ToInt32(base.Value); }
             set { base.Value = new Decimal(value); }
         }
@@ -301,15 +288,13 @@ namespace BrightIdeasSoftware
     /// </summary>
     internal class UintUpDown : NumericUpDown
     {
-        public UintUpDown()
-        {
+        public UintUpDown() {
             this.DecimalPlaces = 0;
             this.Minimum = 0;
             this.Maximum = 9999999;
         }
 
-        new public uint Value
-        {
+        new public uint Value {
             get { return Decimal.ToUInt32(base.Value); }
             set { base.Value = new Decimal(value); }
         }
@@ -320,8 +305,7 @@ namespace BrightIdeasSoftware
     /// </summary>
     internal class BooleanCellEditor : ComboBox
     {
-        public BooleanCellEditor()
-        {
+        public BooleanCellEditor() {
             this.DropDownStyle = ComboBoxStyle.DropDownList;
             this.ValueMember = "Key";
 
@@ -341,15 +325,13 @@ namespace BrightIdeasSoftware
     /// the number of decimal places.</remarks>
     internal class FloatCellEditor : NumericUpDown
     {
-        public FloatCellEditor()
-        {
+        public FloatCellEditor() {
             this.DecimalPlaces = 2;
             this.Minimum = -9999999;
             this.Maximum = 9999999;
         }
 
-        new public double Value
-        {
+        new public double Value {
             get { return Convert.ToDouble(base.Value); }
             set { base.Value = Convert.ToDecimal(value); }
         }

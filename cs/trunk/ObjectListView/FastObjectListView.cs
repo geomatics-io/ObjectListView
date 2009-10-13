@@ -5,6 +5,9 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-08-27   JPP  - Added GroupingStrategy
+ *                   - Added optimized Objects property
+ * v2.2.1
  * 2009-01-07   JPP  - Made all public and protected methods virtual
  * 2008-09-27   JPP  - Separated from ObjectListView.cs
  *
@@ -30,7 +33,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace BrightIdeasSoftware
@@ -60,15 +62,44 @@ namespace BrightIdeasSoftware
         public FastObjectListView()
         {
             this.DataSource = new FastObjectListDataSource(this);
+            this.GroupingStrategy = new FastListGroupingStrategy();
         }
 
+        /// <summary>
+        /// Get/set the collection of objects that this list will show
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The contents of the control will be updated immediately after setting this property.
+        /// </para>
+        /// <para>This method preserves selection, if possible. Use SetObjects() if
+        /// you do not want to preserve the selection. Preserving selection is the slowest part of this
+        /// code and performance is O(n) where n is the number of selected rows.</para>
+        /// <para>This method is not thread safe.</para>
+        /// </remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public override IEnumerable Objects {
+            get {
+                // This is much faster than the base method
+                return ((FastObjectListDataSource)this.DataSource).ObjectList; 
+            }
+            set { base.Objects = value; }
+        }
     }
 
+    /// <summary>
+    /// Provide a data source for a FastObjectListView
+    /// </summary>
     public class FastObjectListDataSource : AbstractVirtualListDataSource
     {
         public FastObjectListDataSource(FastObjectListView listView)
             : base(listView)
         {
+        }
+
+        internal ArrayList ObjectList {
+            get { return objectList; }
         }
 
         #region IVirtualListDataSource Members
@@ -156,7 +187,6 @@ namespace BrightIdeasSoftware
         private ArrayList objectList = new ArrayList();
 
         #endregion
-
 
         #region Implementation
 

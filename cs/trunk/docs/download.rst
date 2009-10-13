@@ -16,11 +16,11 @@ v2.2.1 released on 7 August 2009 is the most recent stable release.
 
 `Click here to download the full package`_, which includes the ObjectListView control, demos, documentation and unit tests (1.2 MB).
 
-.. _Click here to download the full package: http://sourceforge.net/projects/objectlistview/files/objectlistview/ObjectListViewDemo-2.2.1.zip
+.. _Click here to download the full package: http://sourceforge.net/projects/objectlistview/files/objectlistview/v2.2.1/ObjectListViewFull-2.2.1.zip/download
 
-`Click here`_ to download just the source code the ObjectListView project (177 K).
+`Click here`_ to download just the source code of the ObjectListView project (272 K).
 
-.. _Click here: http://sourceforge.net/projects/objectlistview/files/objectlistview/ObjectListView-2.2.1.zip
+.. _Click here: http://sourceforge.net/projects/objectlistview/files/objectlistview/v2.2.1/ObjectListView-2.2.1.zip/download
 
 `Click here to see all releases`_.
 
@@ -29,7 +29,21 @@ v2.2.1 released on 7 August 2009 is the most recent stable release.
 Not-so-stable releases
 ----------------------
 
-There are currently no alpha or beta releases available -- but there is always the bleeding edge repository (see below).
+v2.3 beta was made available on 22 September 2009. This is an interface stable release, meaning that only bugs
+will be fixed before version is offically released.
+
+There is a **lot** of new functionality in the v2.3 release.
+See `"What's new in 2.3"`__ for a description of what's new.
+
+.. __: http://objectlistview.sourceforge.net/cs/whatsnew.html#september-2009-version-2-3-beta
+
+This release can be download from here: `ObjectListView v2.3b`__
+
+.. __: https://sourceforge.net/projects/objectlistview/files/objectlistview/v2.3beta/ObjectListViewFull-2.3b.zip/download
+
+It also has its own branch in the repository, which will be updated as bugs are found and fixed::
+
+ svn co https://objectlistview.svn.sourceforge.net/svnroot/objectlistview/cs/branches/v2.3 objectlistview-v2.3b
 
 Bleeding-edge source
 --------------------

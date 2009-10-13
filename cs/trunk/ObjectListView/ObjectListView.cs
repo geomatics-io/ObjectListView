@@ -5,13 +5,45 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2009-09-30  JPP  - Addd Dispose() method to properly release resources
+ * 2009-09-16  JPP  - Added OwnerDrawnHeader, which you can set to true if you want to owner draw
+ *                    the header yourself.
+ * 2009-09-15  JPP  - Added UseExplorerTheme, which allow complete visual compliance with Vista explorer.
+ *                    But see property documentation for its many limitations.
+ *                  - Added ShowHeaderInAllViews. To make this work, Columns are no longer
+ *                    changed when switching to/from Tile view.
+ * 2009-09-11  JPP  - Added OLVColumn.AutoCompleteEditor to allow the autocomplete of cell editors
+ *                    to be disabled.
+ * 2009-09-01  JPP  - Added ObjectListView.TextRendereringHint property which controls the
+ *                    text rendering hint of all drawn text.
+ * 2009-08-28  JPP  - [BIG] Added group formatting to supercharge what is possible with groups
+ *                  - [BIG] Virtual groups now work
+ *                  - Extended MakeGroupies() to handle more aspects of group creation
+ * 2009-08-19  JPP  - Added ability to show basic column commands when header is right clicked
+ *                  - Added SelectedRowDecoration, UseTranslucentSelection and UseTranslucentHotItem.
+ *                  - Added PrimarySortColumn and PrimarySortOrder
+ * 2009-08-15  JPP  - Correct problems with standard hit test and subitems
+ * 2009-08-14  JPP  - [BIG] Support Decorations
+ *                  - [BIG] Added header formatting capabilities: font, color, word wrap
+ *                  - Gave ObjectListView its own designer to hide unwanted properties
+ *                  - Separated design time stuff into separate file
+ *                  - Added FormatRow and FormatCell events
+ * 2009-08-09  JPP  - Get around bug in HitTest when not FullRowSelect
+ *                  - Added OLVListItem.GetSubItemBounds() method which works correctly
+ *                    for all columns including column 0
+ * 2009-08-07  JPP  - Added Hot* properties that track where the mouse is
+ *                  - Added HotItemChanged event
+ *                  - Overrode TextAlign on columns so that column 0 can have something other
+ *                    than just left alignment. This is only honored when owner drawn.
+ * v2.2.1
  * 2009-08-03  JPP  - Subitem edit rectangles always allowed for an image in the cell, even if there was none.
  *                    Now they only allow for an image when there actually is one.
  *                  - Added Bounds property to OLVListItem which handles items being part of collapsed groups.
+ * 2009-07-29  JPP  - Added GetSubItem() methods to ObjectListView and OLVListItem
  * 2009-07-26  JPP  - Avoided bug in .NET framework involving column 0 of owner drawn listviews not being
  *                    redrawn when the listview was scrolled horizontally (this was a LOT of work to track
  *                    down and fix!)
- *                  - The cell edit rectangle is now correctly calculated when the listview is scrolled 
+ *                  - The cell edit rectangle is now correctly calculated when the listview is scrolled
  *                    horizontally.
  * 2009-07-14  JPP  - If the user clicks/double clicks on a tree list cell, an edit operation will no longer begin
  *                    if the click was to the left of the expander. This is implemented in such a way that
@@ -304,7 +336,8 @@
  * 2006-10-09  JPP  Initial version
  *
  * TO DO:
- * - Drag and drop support
+ * - Support undocumented group features: subseted groups, group footer items
+ * - Complete custom designer
  *
  * Copyright (C) 2006-2009 Phillip Piper
  *
@@ -329,16 +362,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
-
-using System.Drawing.Imaging;
-using System.Drawing.Drawing2D;
 
 namespace BrightIdeasSoftware
 {
@@ -383,13 +413,13 @@ namespace BrightIdeasSoftware
     /// </list>
     /// </para>
     /// </remarks>
+    //[Designer("BrightIdeasSoftware.Design.ObjectListViewDesigner")] // Uncomment this if you are feeling brave :)
     public partial class ObjectListView : ListView, ISupportInitialize
     {
         /// <summary>
         /// Create an ObjectListView
         /// </summary>
-        public ObjectListView()
-            : base() {
+        public ObjectListView() {
             this.ColumnClick += new ColumnClickEventHandler(this.HandleColumnClick);
             this.Layout += new LayoutEventHandler(this.HandleLayout);
             this.ColumnWidthChanging += new ColumnWidthChangingEventHandler(this.HandleColumnWidthChanging);
@@ -404,7 +434,60 @@ namespace BrightIdeasSoftware
             this.InitializeEmptyListMsgOverlay();
         }
 
+        /// <summary>
+        /// Dispose of any resources this instance has been using
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected override void Dispose(bool disposing) {
+            base.Dispose(disposing);
+
+            if (disposing) {
+                foreach (GlassPanelForm glassPanel in this.glassPanels) {
+                    glassPanel.Unbind();
+                    glassPanel.Dispose();
+                }
+                this.glassPanels.Clear();
+            }
+        }
+
+        #region Static properties
+
+        /// <summary>
+        /// Gets whether the program running on Vista or later?
+        /// </summary>
+        static public bool IsVista {
+            get {
+                if (!ObjectListView.isVista.HasValue)
+                    ObjectListView.isVista = Environment.OSVersion.Version.Major >= 6;
+                return ObjectListView.isVista.Value;
+            }
+        }
+        static private bool? isVista;
+
+        /// <summary>
+        /// Gets or sets how should text be renderered?
+        /// </summary>
+        static public System.Drawing.Text.TextRenderingHint TextRendereringHint {
+            get { return ObjectListView.textRendereringHint; }
+            set { ObjectListView.textRendereringHint = value; }
+        }
+        static private System.Drawing.Text.TextRenderingHint textRendereringHint =
+            System.Drawing.Text.TextRenderingHint.SystemDefault;
+
+        #endregion
+
         #region Public properties
+
+        /// <summary>
+        /// Gets or sets the decoration that will be drawn on all selected rows
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual IDecoration SelectedRowDecoration {
+            get { return this.selectedRowDecoration; }
+            set { this.selectedRowDecoration = value; }
+        }
+        private IDecoration selectedRowDecoration;
 
         /// <summary>
         /// Get or set all the columns that this control knows about.
@@ -543,6 +626,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets the tool tip that shows tips for the cells
         /// </summary>
+        [Browsable(false)]
         public ToolTipControl CellToolTip {
             get {
                 if (this.cellToolTip == null) {
@@ -640,6 +724,17 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets Columns for this list. We hide the original so we can associate
+        /// a specialised editor with it.
+        /// </summary>
+        [Editor(typeof(BrightIdeasSoftware.Design.OLVColumnCollectionEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        new public ListView.ColumnHeaderCollection Columns {
+            get {
+                return base.Columns;
+            }
+        }
+
+        /// <summary>
         /// Get/set the list of columns that should be used when the list switches to tile view.
         /// </summary>
         [Browsable(false),
@@ -670,7 +765,7 @@ namespace BrightIdeasSoftware
         /// Get the area of the control that shows the list, minus any header control
         /// </summary>
         [Browsable(false)]
-        public Rectangle  ContentRectangle {
+        public Rectangle ContentRectangle {
             get {
                 Rectangle r = this.ClientRectangle;
 
@@ -685,7 +780,7 @@ namespace BrightIdeasSoftware
                 return r;
             }
         }
-
+        
         /// <summary>
         /// When owner drawing, this renderer will draw columns that do not have specific renderer
         /// given to them
@@ -869,7 +964,22 @@ namespace BrightIdeasSoftware
                 }
             }
         }
-        private int freezeCount = 0;
+        private int freezeCount;
+
+        /// <summary>
+        /// Gets or sets the image list from which group header will take their images
+        /// </summary>
+        [Category("Appearance - ObjectListView"),
+         Description("The image list from which group header will take their images"),
+         DefaultValue(null)]
+        public ImageList GroupImageList {
+            get { return this.groupImageList; }
+            set {
+                this.groupImageList = value;
+                NativeMethods.SetGroupImageList(this, value);
+            }
+        }
+        private ImageList groupImageList;
 
         /// <summary>
         /// When a group title has an item count, how should the lable be formatted?
@@ -951,10 +1061,10 @@ namespace BrightIdeasSoftware
          Description("Should the groups in this control be collapsible (Vista only)."),
          DefaultValue(true)]
         public bool HasCollapsibleGroups {
-            get { return hasCollapsibleGroup; }
-            set { hasCollapsibleGroup = value; }
+            get { return hasCollapsibleGroups; }
+            set { hasCollapsibleGroups = value; }
         }
-        private bool hasCollapsibleGroup = true;
+        private bool hasCollapsibleGroups = true;
 
         /// <summary>
         /// Does this listview have a m that should be drawn when the list is empty?
@@ -977,8 +1087,49 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets or sets the font in which the text of the column headers will be drawn
+        /// </summary>
+        /// <remarks>Individual columns can override this through their HeaderFont property.</remarks>
+        [Category("Appearance - ObjectListView"),
+         Description("What font will be used to draw the text of the column headers"),
+         DefaultValue(null)]
+        public Font HeaderFont {
+            get { return this.headerFont; }
+            set { this.headerFont = value; }
+        }
+        private Font headerFont;
+
+        /// <summary>
+        /// Gets or sets the whether the text in the header will be word wrapped.
+        /// </summary>
+        /// <remarks>
+        /// <para>THIS FEATURE IS EXPERIMENTAL (August 2009)</para>
+        /// <para>Line breaks will be applied between words. Words that are too long
+        /// will still be ellipsed.</para>
+        /// <para>
+        /// If this is set to true, the header
+        /// will not be properly themed, since themeing does not allow word wrapped text.
+        /// The effect of not being themed will be different from OS to OS. At
+        /// very least, the sort indicator will not be standard.
+        /// </para>
+        /// </remarks>
+        [Category("Appearance - ObjectListView"),
+         Description("Will the text of the column headers be word wrapped?"),
+         DefaultValue(false)]
+        public bool HeaderWordWrap {
+            get { return this.headerWordWrap; }
+            set {
+                this.headerWordWrap = value;
+                if (this.headerControl != null)
+                    this.headerControl.WordWrap = value;
+            }
+        }
+        private bool headerWordWrap;
+
+        /// <summary>
         /// Gets the tool tip that shows tips for the column headers
         /// </summary>
+        [Browsable(false)]
         public ToolTipControl HeaderToolTip {
             get {
                 return this.HeaderControl.ToolTip;
@@ -986,15 +1137,46 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// The index of the item that is 'hot', i.e. under the cursor. -1 means no item.
+        /// Gets the index of the row that the mouse is currently over
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual int HotItemIndex {
-            get { return hotItemIndex; }
-            set { hotItemIndex = value; }
+        public virtual int HotRowIndex {
+            get { return this.hotRowIndex; }
+            protected set { this.hotRowIndex = value; }
         }
-        private int hotItemIndex = -1;
+        private int hotRowIndex;
+
+        /// <summary>
+        /// Gets the index of the subitem that the mouse is currently over
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual int HotColumnIndex {
+            get { return this.hotColumnIndex; }
+            protected set { this.hotColumnIndex = value; }
+        }
+        private int hotColumnIndex;
+
+        /// <summary>
+        /// Gets the part of the item/subitem that the mouse is currently over
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual HitTestLocation HotCellHitLocation {
+            get { return this.hotCellHitLocation; }
+            protected set { this.hotCellHitLocation = value; }
+        }
+        private HitTestLocation hotCellHitLocation;
+
+        /// <summary>
+        /// The index of the item that is 'hot', i.e. under the cursor. -1 means no item.
+        /// </summary>
+        [Browsable(false),
+         Obsolete("Use HotRowIndex instead", false)]
+        public virtual int HotItemIndex {
+            get { return this.HotRowIndex; }
+        }
 
         /// <summary>
         /// What sort of formatting should be applied to the row under the cursor?
@@ -1005,9 +1187,27 @@ namespace BrightIdeasSoftware
          DefaultValue(null)]
         public virtual HotItemStyle HotItemStyle {
             get { return this.hotItemStyle; }
-            set { this.hotItemStyle = value; }
+            set {
+                if (this.HotItemStyle != null)
+                    this.RemoveOverlay(this.HotItemStyle.Overlay);
+                this.hotItemStyle = value;
+                if (this.HotItemStyle != null)
+                    this.AddOverlay(this.HotItemStyle.Overlay);
+            }
         }
         private HotItemStyle hotItemStyle;
+
+        /// <summary>
+        /// What sort of formatting should be applied to hyperlinks?
+        /// </summary>
+        [Category("Appearance - ObjectListView"),
+         Description("How should hyperlinks be drawn"),
+         DefaultValue(null)]
+        public virtual HyperlinkStyle HyperlinkStyle {
+            get { return this.hyperlinkStyle; }
+            set { this.hyperlinkStyle = value; }
+        }
+        private HyperlinkStyle hyperlinkStyle;
 
         /// <summary>
         /// What color should be used for the background of selected rows?
@@ -1146,29 +1346,89 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Which column did we last sort by
         /// </summary>
+        /// <remarks>This is an alias for PrimarySortColumn</remarks>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual OLVColumn LastSortColumn {
-            get { return this.lastSortColumn; }
+            get { return this.PrimarySortColumn; }
+            set { this.PrimarySortColumn = value; }
+        }
+
+        /// <summary>
+        /// Which direction did we last sort
+        /// </summary>
+        /// <remarks>This is an alias for PrimarySortOrder</remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual SortOrder LastSortOrder {
+            get { return this.PrimarySortOrder; }
+            set { this.PrimarySortOrder = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the user wants to owner draw the header control
+        /// themselves. If this is false (the default), ObjectListView will use
+        /// custom drawing to render the header, if needed.
+        /// </summary>
+        /// <remarks>
+        /// If you listen for the DrawColumnHeader event, you need to set this to true,
+        /// otherwise your event handler will not be called.
+        /// </remarks>
+        [Category("Behavior - ObjectListView"),
+         Description("Should the DrawColumnHeader event be triggered"),
+         DefaultValue(false)]
+        public bool OwnerDrawnHeader {
+            get { return ownerDrawnHeader; }
+            set { ownerDrawnHeader = value; }
+        }
+        private bool ownerDrawnHeader;
+
+        /// <summary>
+        /// Which column did we last sort by
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual OLVColumn PrimarySortColumn {
+            get { return this.primarySortColumn; }
             set {
-                this.lastSortColumn = value;
+                this.primarySortColumn = value;
                 if (this.TintSortColumn) {
                     this.SelectedColumn = value;
                 }
             }
         }
-        private OLVColumn lastSortColumn;
+        private OLVColumn primarySortColumn;
+
+        /// <summary>
+        /// Gets or sets the list of groups shown by the listview.
+        /// </summary>
+        /// <remarks>
+        /// This property does not work like the .NET Groups property. It should
+        /// be treated as a read-only property.
+        /// Changes made to the list are NOT reflected in the ListView itself -- it is pointless to add
+        /// or remove groups to/from this list. Such modifications will do nothing.
+        /// To do such things, you must listen for
+        /// BeforeCreatingGroups or AboutToCreateGroups events, and change the list of
+        /// groups in those events.
+        /// </remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public IList<OLVGroup> OLVGroups {
+            get { return this.olvGroups; }
+            set { this.olvGroups = value; }
+        }
+        private IList<OLVGroup> olvGroups;
 
         /// <summary>
         /// Which direction did we last sort
         /// </summary>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual SortOrder LastSortOrder {
-            get { return lastSortOrder; }
-            set { lastSortOrder = value; }
+        public virtual SortOrder PrimarySortOrder {
+            get { return primarySortOrder; }
+            set { primarySortOrder = value; }
         }
-        private SortOrder lastSortOrder;
+        private SortOrder primarySortOrder;
 
         /// <summary>
         /// Get/set the collection of objects that this list will show
@@ -1188,13 +1448,7 @@ namespace BrightIdeasSoftware
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual IEnumerable Objects {
             get {
-                if (this.VirtualMode) {
-                    ArrayList contents = new ArrayList(this.GetItemCount());
-                    for (int i = 0; i < this.GetItemCount(); i++)
-                        contents.Add(this.GetModelObject(i));
-                    return contents;
-                } else
-                    return this.objects;
+                return this.objects;
             }
             set {
                 this.BeginUpdate();
@@ -1215,12 +1469,19 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Category("Appearance - ObjectListView"),
          Description("The image that will be drawn over the top of the ListView"),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Content),
-         RefreshProperties(RefreshProperties.Repaint)]
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         public ImageOverlay OverlayImage {
             get { return this.imageOverlay; }
-            set { this.imageOverlay = value; }
+            set {
+                if (this.imageOverlay == value)
+                    return;
+
+                this.RemoveOverlay(this.imageOverlay);
+                this.imageOverlay = value;
+                this.AddOverlay(this.imageOverlay);
+            }
         }
+        private ImageOverlay imageOverlay;
 
         /// <summary>
         /// Gets or sets the text that will be drawn over the top of the ListView
@@ -1230,31 +1491,29 @@ namespace BrightIdeasSoftware
          DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         public TextOverlay OverlayText {
             get { return this.textOverlay; }
-            set { 
+            set {
+                if (this.textOverlay == value)
+                    return;
+
+                this.RemoveOverlay(this.textOverlay);
                 this.textOverlay = value;
-                
-                if (this.Created)
-                    this.Invalidate();
+                this.AddOverlay(this.textOverlay);
             }
         }
+        private TextOverlay textOverlay;
 
         /// <summary>
-        /// Gets or sets the transparency of all the overlays. 
+        /// Gets or sets the transparency of all the overlays.
         /// 0 is completely transparent, 255 is completely opaque.
         /// </summary>
         /// <remarks>
-        /// This is the default value, but individual overlays can ignore it if they wish.
+        /// This is obsolete. Use Transparency on each overlay.
         /// </remarks>
-        [Category("Appearance - ObjectListView"),
-        Description("How transparent should overlays be? 0 is completely transparent, 255 is completely opaque"),
-         DefaultValue(128)]
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int OverlayTransparency {
             get { return this.overlayTransparency; }
-            set { 
-                this.overlayTransparency = Math.Min(255, Math.Max(0, value));
-                if (this.glassPanel != null)
-                    this.glassPanel.UpdateTransparency();
-            }
+            set { this.overlayTransparency = Math.Min(255, Math.Max(0, value)); }
         }
         private int overlayTransparency = 128;
 
@@ -1262,7 +1521,7 @@ namespace BrightIdeasSoftware
         /// Gets the list of overlays that will be drawn on top of the ListView
         /// </summary>
         /// <remarks>
-        /// You can add new overlays and remove overlays that you have added, but 
+        /// You can add new overlays and remove overlays that you have added, but
         /// don't mess with the overlays that you didn't create.
         /// </remarks>
         [Browsable(false)]
@@ -1278,10 +1537,10 @@ namespace BrightIdeasSoftware
         /// A decoration scrolls with the list contents. An overlay is fixed in place.
         /// </remarks>
         [Browsable(false)]
-        protected IList<IOverlay> Decorations {
+        protected IList<IDecoration> Decorations {
             get { return this.decorations; }
         }
-        private List<IOverlay> decorations = new List<IOverlay>();
+        private List<IDecoration> decorations = new List<IDecoration>();
 
         /// <summary>
         /// Specify the height of each row in the control in pixels.
@@ -1398,7 +1657,7 @@ namespace BrightIdeasSoftware
         private bool selectColumnsMenuStaysOpen = true;
 
         /// <summary>
-        /// Gets or sets the column that is drawn with a slight tint. 
+        /// Gets or sets the column that is drawn with a slight tint.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -1416,15 +1675,15 @@ namespace BrightIdeasSoftware
             set {
                 this.selectedColumn = value;
                 if (value == null) {
-                    this.RemoveDecoration(this.selectedColumnOverlay);
+                    this.RemoveDecoration(this.selectedColumnDecoration);
                 } else {
-                    if (!this.HasDecoration(this.selectedColumnOverlay)) 
-                        this.AddDecoration(this.selectedColumnOverlay);
+                    if (!this.HasDecoration(this.selectedColumnDecoration))
+                        this.AddDecoration(this.selectedColumnDecoration);
                 }
             }
         }
         private OLVColumn selectedColumn;
-        private TintedColumnDecoration selectedColumnOverlay = new TintedColumnDecoration();
+        private TintedColumnDecoration selectedColumnDecoration = new TintedColumnDecoration();
 
         /// <summary>
         /// What color should be used to tint the selected column?
@@ -1439,10 +1698,11 @@ namespace BrightIdeasSoftware
         public virtual Color SelectedColumnTint {
             get { return selectedColumnTint; }
             set {
-                this.selectedColumnTint = value;
-                if (this.selectedColumnTint.A == 255)
+                if (value.A == 255)
                     this.selectedColumnTint = Color.FromArgb(15, value);
-                this.selectedColumnOverlay.Tint = this.selectedColumnTint;
+                else
+                    this.selectedColumnTint = value;
+                this.selectedColumnDecoration.Tint = this.selectedColumnTint;
             }
         }
         private Color selectedColumnTint = Color.Empty;
@@ -1509,6 +1769,30 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// When the user right clicks on the column headers, should a menu be presented which will allow
+        /// them to choose common tasks to perform on the listview?
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("When the user right clicks on the column headers, should a menu be presented which will allow them to perform common tasks on the listview?"),
+        DefaultValue(false)]
+        public virtual bool ShowCommandMenuOnRightClick {
+            get { return showCommandMenuOnRightClick; }
+            set { showCommandMenuOnRightClick = value; }
+        }
+        private bool showCommandMenuOnRightClick = false;
+
+        /// <summary>
+        /// Should this list show its items in groups?
+        /// </summary>
+        [Category("Appearance"),
+         Description("Should the list view show items in groups?"),
+         DefaultValue(true)]
+        new public virtual bool ShowGroups {
+            get { return base.ShowGroups; }
+            set { base.ShowGroups = value; }
+        }
+
+        /// <summary>
         /// Should the list view show a bitmap in the column header to show the sort direction?
         /// </summary>
         /// <remarks>
@@ -1530,21 +1814,16 @@ namespace BrightIdeasSoftware
         /// Should the list view show images on subitems?
         /// </summary>
         /// <remarks>
-        /// <para>Virtual lists have to be owner drawn in order to show images on subitems?</para>
+        /// <para>Virtual lists have to be owner drawn in order to show images on subitems</para>
         /// </remarks>
         [Category("Appearance - ObjectListView"),
          Description("Should the list view show images on subitems?"),
          DefaultValue(false)]
         public virtual bool ShowImagesOnSubItems {
-            get {
-#if MONO
-                return false;
-#else
-                return showImagesOnSubItems;
-#endif
-            }
+            get { return showImagesOnSubItems; }
             set {
                 showImagesOnSubItems = value;
+                this.ApplyExtendedStyles();
                 if (value && this.VirtualMode)
                     this.OwnerDraw = true;
             }
@@ -1567,6 +1846,22 @@ namespace BrightIdeasSoftware
         private bool showItemCountOnGroups;
 
         /// <summary>
+        /// Gets or sets whether the control will show column headers in all
+        /// views (true), or only in Details view (false)
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("Will the control will show column headers in all views?"),
+        DefaultValue(true)]
+        public bool ShowHeaderInAllViews {
+            get { return showHeaderInAllViews; }
+            set {
+                showHeaderInAllViews = value;
+                this.ApplyExtendedStyles();
+            }
+        }
+        private bool showHeaderInAllViews = true;
+
+        /// <summary>
         /// Override the SmallImageList property so we can correctly shadow its operations.
         /// </summary>
         /// <remarks><para>If you use the RowHeight property to specify the row height, the SmallImageList
@@ -1584,11 +1879,12 @@ namespace BrightIdeasSoftware
                 this.SetupBaseImageList();
             }
         }
-        private ImageList shadowedImageList = null;
+        private ImageList shadowedImageList;
 
         /// <summary>
         /// Return the size of the images in the small image list or a reasonable default
         /// </summary>
+        [Browsable(false)]
         public virtual Size SmallImageSize {
             get {
                 if (this.SmallImageList == null)
@@ -1612,6 +1908,19 @@ namespace BrightIdeasSoftware
         private bool sortGroupItemsByPrimaryColumn = true;
 
         /// <summary>
+        /// When the listview is grouped, how many pixels should exist between the end of one group and the
+        /// beginning of the next?
+        /// </summary>
+        [Category("Appearance - ObjectListView"),
+         Description("How many pixels of space will be between groups"),
+         DefaultValue(0)]
+        public virtual int SpaceBetweenGroups {
+            get { return this.spaceBetweenGroups; }
+            set { this.spaceBetweenGroups = value; }
+        }
+        private int spaceBetweenGroups;
+
+        /// <summary>
         /// Should the sort column show a slight tinge?
         /// </summary>
         [Category("Appearance - ObjectListView"),
@@ -1619,7 +1928,7 @@ namespace BrightIdeasSoftware
          DefaultValue(false)]
         public virtual bool TintSortColumn {
             get { return this.tintSortColumn; }
-            set { 
+            set {
                 this.tintSortColumn = value;
                 if (value && this.LastSortColumn != null)
                     this.SelectedColumn = this.LastSortColumn;
@@ -1747,7 +2056,7 @@ namespace BrightIdeasSoftware
                     return this.UnfocusedHighlightBackgroundColor;
             }
         }
- 
+
         /// <summary>
         /// What color should be used for the foreground of selected rows when the control doesn't have the focus?
         /// </summary>
@@ -1812,6 +2121,36 @@ namespace BrightIdeasSoftware
         private bool useCustomSelectionColors;
 
         /// <summary>
+        /// Gets or sets whether this listview should show hyperlinks in the cells.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+         Description("Should hyperlinks be shown on this control?"),
+         DefaultValue(false)]
+        public bool UseHyperlinks {
+            get { return this.useHyperlinks; }
+            set { 
+                this.useHyperlinks = value; 
+                if (value && this.HyperlinkStyle == null)
+                    this.HyperlinkStyle = new HyperlinkStyle();
+            }
+        }
+        private bool useHyperlinks;
+
+        /// <summary>
+        /// Should FormatCell events be called for each cell in the control?
+        /// </summary>
+        /// <remarks>Individual rows can decide whether to call FormatCell
+        /// events. This is simply the default behaviour.</remarks>
+        [Category("Behavior - ObjectListView"),
+         Description("Should FormatCell events be triggered to every cell that is built?"),
+         DefaultValue(false)]
+        public bool UseCellFormatEvents {
+            get { return useCellFormatEvents; }
+            set { useCellFormatEvents = value; }
+        }
+        private bool useCellFormatEvents;
+
+        /// <summary>
         /// Should the item under the cursor be formatted in a special way?
         /// </summary>
         [Category("Appearance - ObjectListView"),
@@ -1819,7 +2158,15 @@ namespace BrightIdeasSoftware
          DefaultValue(false)]
         public bool UseHotItem {
             get { return this.useHotItem; }
-            set { this.useHotItem = value; }
+            set {
+                this.useHotItem = value;
+                if (this.HotItemStyle != null) {
+                    if (value)
+                        this.AddOverlay(this.HotItemStyle.Overlay);
+                    else
+                        this.RemoveOverlay(this.HotItemStyle.Overlay);
+                }
+            }
         }
         private bool useHotItem;
 
@@ -1843,6 +2190,93 @@ namespace BrightIdeasSoftware
         private bool useSubItemCheckBoxes;
 
         /// <summary>
+        /// Gets or sets if the ObjectListView will use a translucent selection mechanism like Vista.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Unlike UseExplorerTheme, this Vista-like scheme works on XP and for both
+        /// owner and non-owner drawn lists.
+        /// </para>
+        /// <para>
+        /// This will replace any SelectedRowDecoration that has been installed.
+        /// </para>
+        /// </remarks>
+        [Category("Appearance - ObjectListView"),
+         Description("Should the list use a translucent selection mechanism (like Vista)"),
+         DefaultValue(false)]
+        public bool UseTranslucentSelection {
+            get { return useTranslucentSelection; }
+            set {
+                useTranslucentSelection = value;
+                if (value) {
+                    RowBorderDecoration rbd = new RowBorderDecoration();
+                    rbd.BorderPen = new Pen(Color.FromArgb(128, Color.Turquoise), 1);
+                    rbd.FillBrush = new SolidBrush(Color.FromArgb(64, Color.Turquoise));
+                    rbd.BoundsPadding = new Size(0, -1);
+                    rbd.CornerRounding = 12.0f;
+                    this.SelectedRowDecoration = rbd;
+                } else
+                    this.SelectedRowDecoration = null;
+            }
+        }
+        private bool useTranslucentSelection;
+
+        /// <summary>
+        /// Gets or sets whether this ObjectListView will use the same hot item and selection 
+        /// mechanism that Vista Explorer does.
+        /// </summary>
+        /// <remarks>This property has many imperfections:
+        /// <list type="unordered">
+        /// <item>This only works on Vista and later</item>
+        /// <item>It does nothing for owner drawn lists.
+        /// Owner drawn lists are (naturally) controlled by their renderers.</item>
+        /// <item>It does not work well with AlternateRowBackColors.</item>
+        /// <item>It does not play well with HotItemStyles.</item>
+        /// <item>It looks a little bit silly is FullRowSelect is false.</item>
+        /// </list>
+        /// But if you absolutely have to look like Vista, this is your property. 
+        /// Do not complain if settings this messes up other things.
+        /// </remarks>
+        [Category("Appearance - ObjectListView"),
+         Description("Should the list use the same hot item and selection mechanism as Vista?"),
+         DefaultValue(false)]
+        public bool UseExplorerTheme {
+            get { return useExplorerTheme; }
+            set { 
+                useExplorerTheme = value;
+                if (this.Created)
+                    NativeMethods.SetWindowTheme(this.Handle, value ? "explorer" : "", null);
+            }
+        }
+        private bool useExplorerTheme;
+        
+        /// <summary>
+        /// Gets or sets if the ObjectListView will use a translucent hot row highlighting mechanism like Vista.
+        /// </summary>
+        /// <remarks>Setting this will replace any HotItemStyle that has been </remarks>
+        [Category("Appearance - ObjectListView"),
+         Description("Should the list use a translucent hot row highlighting mechanism (like Vista)"),
+         DefaultValue(false)]
+        public bool UseTranslucentHotItem {
+            get { return useTranslucentHotItem; }
+            set {
+                useTranslucentHotItem = value;
+                if (value) {
+                    this.HotItemStyle = new HotItemStyle();
+                    RowBorderDecoration rbd = new RowBorderDecoration();
+                    rbd.BorderPen = new Pen(Color.FromArgb(128, Color.LightSeaGreen), 1);
+                    rbd.FillBrush = new SolidBrush(Color.FromArgb(48, Color.LightSeaGreen));
+                    rbd.BoundsPadding = new Size(0, 0);
+                    rbd.CornerRounding = 4.0f;
+                    this.HotItemStyle.Decoration = rbd;
+                } else
+                    this.HotItemStyle = null;
+                this.UseHotItem = value;
+            }
+        }
+        private bool useTranslucentHotItem;
+
+        /// <summary>
         /// Get/set the style of view that this listview is using
         /// </summary>
         /// <remarks>Switching to tile or details view installs the columns appropriate to that view.
@@ -1857,21 +2291,20 @@ namespace BrightIdeasSoftware
                     base.View = value;
                     this.SetupBaseImageList();
                 } else {
-                this.Freeze();
+                    this.Freeze();
 
-                // If we are switching to a Detail or Tile view, setup the columns needed for that view
-                if (value == View.Details || value == View.Tile) {
-                    this.ChangeToFilteredColumns(value);
+                    // If we are switching to a Detail or Tile view, setup the columns needed for that view
+                    //if (value == View.Details || value == View.Tile) {
+                    //    this.ChangeToFilteredColumns(value);
 
                     if (value == View.Tile)
                         this.CalculateReasonableTileSize();
-                }
 
-                base.View = value;
-                this.SetupBaseImageList();
-                this.Unfreeze();
+                    base.View = value;
+                    this.SetupBaseImageList();
+                    this.Unfreeze();
+                }
             }
-        }
         }
 
         #endregion
@@ -1925,6 +2358,16 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets whether or not this listview is capabale of showing groups
+        /// </summary>
+        [Browsable(false)]
+        public virtual bool CanShowGroups {
+            get {
+                return true;
+            }
+        }
+
+        /// <summary>
         /// This delegate is called when the list wants to show a tooltip for a particular cell.
         /// The delegate should return the text to display, or null to use the default behavior
         /// (which is to show the full text of truncated cell values).
@@ -1945,8 +2388,8 @@ namespace BrightIdeasSoftware
         /// The name of the property (or field) that holds whether or not a model is checked.
         /// </summary>
         /// <remarks>
-        /// <para>The property be modifiable. It must have a return type of bool or of bool? if
-        /// TriStateCheckBoxes is true.</para>
+        /// <para>The property be modifiable. It must have a return type of bool (or of bool? if
+        /// TriStateCheckBoxes is true).</para>
         /// <para>Setting this property replaces any CheckStateGetter or CheckStatePutter that have been installed.
         /// Conversely, later setting the CheckStateGetter or CheckStatePutter properties will take precedence
         /// over the behavior of this property.</para>
@@ -2068,7 +2511,7 @@ namespace BrightIdeasSoftware
         /// <code>myListViewItem.UseItemStyleForSubItems = false;</code>.
         /// </para>
         /// <para>If UseAlternatingBackColors is true, the backcolor of the listitem will be calculated
-        /// by the control and cannot be controlled by the RowFormatter delegate. 
+        /// by the control and cannot be controlled by the RowFormatter delegate.
         /// In general, trying to use a RowFormatter
         /// when UseAlternatingBackColors is true does not work well.</para>
         /// <para>As it says in the summary, this is called <b>before</b> the item is added to the control.
@@ -2095,7 +2538,7 @@ namespace BrightIdeasSoftware
         public virtual void AddObject(object modelObject) {
             if (this.InvokeRequired)
                 this.Invoke((MethodInvoker)delegate() { this.AddObject(modelObject); });
-            else 
+            else
                 this.AddObjects(new object[] { modelObject });
         }
 
@@ -2145,7 +2588,7 @@ namespace BrightIdeasSoftware
             if (args.Canceled)
                 return;
 
-            this.BuildGroups(args.ColumnToGroupBy, args.GroupByOrder, 
+            this.BuildGroups(args.ColumnToGroupBy, args.GroupByOrder,
                 args.ColumnToSort, args.SortOrder, args.SecondaryColumnToSort, args.SecondarySortOrder);
 
             this.OnAfterSorting(new AfterSortingEventArgs(args));
@@ -2178,60 +2621,106 @@ namespace BrightIdeasSoftware
         /// <param name="secondaryColumn">When the values from 'column' are equal, use the values provided by this column</param>
         /// <param name="order">How will the secondary values be sorted</param>
         /// <remarks>This method does not trigger sorting events. Use BuildGroups() to do that</remarks>
-        public virtual void BuildGroups(OLVColumn groupByColumn, SortOrder groupByOrder, 
+        public virtual void BuildGroups(OLVColumn groupByColumn, SortOrder groupByOrder,
             OLVColumn column, SortOrder order, OLVColumn secondaryColumn, SortOrder secondaryOrder) {
             // Sanity checks
             if (groupByColumn == null)
                 return;
-
-            this.Groups.Clear();
 
             // Getting the Count forces any internal cache of the ListView to be flushed. Without
             // this, iterating over the Items will not work correctly if the ListView handle
             // has not yet been created.
             int dummy = this.Items.Count;
 
+            // Collect all the information that governs the creation of groups
+            GroupingParameters parms = this.CollectGroupingParameters(groupByColumn, groupByOrder,
+                column, order, secondaryColumn, secondaryOrder);
+
+            // Trigger an event to let the world create groups if they want
+            CreateGroupsEventArgs args = new CreateGroupsEventArgs(parms);
+            this.OnBeforeCreatingGroups(args);
+            if (args.Canceled)
+                return;
+
+            // If the event didn't create them for us, use our default strategy
+            if (args.Groups == null) {
+                args.Groups = this.MakeGroups(parms);
+            }
+
+            // Give the world a chance to munge the groups before they are created
+            this.OnAboutToCreateGroups(args);
+            if (args.Canceled)
+                return;
+
+            // Create the groups now
+            this.OLVGroups = args.Groups;
+            this.CreateGroups(args.Groups);
+
+            // Tell the world that new groups have been created
+            this.OnAfterCreatingGroups(args);
+        }
+
+        /// <summary>
+        /// Collect and return all the variables that influence the creation of groups
+        /// </summary>
+        /// <returns></returns>
+        protected virtual GroupingParameters CollectGroupingParameters(OLVColumn groupByColumn, SortOrder groupByOrder,
+            OLVColumn column, SortOrder order, OLVColumn secondaryColumn, SortOrder secondaryOrder) {
+            string titleFormat = this.ShowItemCountOnGroups ? groupByColumn.GroupWithItemCountFormatOrDefault : null;
+            string titleSingularFormat = this.ShowItemCountOnGroups ? groupByColumn.GroupWithItemCountSingularFormatOrDefault : null;
+            GroupingParameters parms = new GroupingParameters(this, groupByColumn, groupByOrder,
+                column, order, secondaryColumn, secondaryOrder,
+                titleFormat, titleSingularFormat, this.SortGroupItemsByPrimaryColumn);
+            return parms;
+        }
+
+        /// <summary>
+        /// Make a list of groups that should be shown according to the given parameters
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <returns></returns>
+        protected virtual IList<OLVGroup> MakeGroups(GroupingParameters parms) {
             // Separate the list view items into groups, using the group key as the descrimanent
             NullableDictionary<object, List<OLVListItem>> map = new NullableDictionary<object, List<OLVListItem>>();
-            foreach (OLVListItem olvi in this.Items) {
-                object key = groupByColumn.GetGroupKey(olvi.RowObject);
+            foreach (OLVListItem olvi in parms.ListView.Items) {
+                object key = parms.GroupByColumn.GetGroupKey(olvi.RowObject);
                 if (!map.ContainsKey(key))
                     map[key] = new List<OLVListItem>();
                 map[key].Add(olvi);
             }
 
-            // Make a list of the required groups
-            List<ListViewGroup> groups = new List<ListViewGroup>();
+            // Sort the items within each group
+            OLVColumn primarySortColumn =
+                parms.SortItemsByPrimaryColumn ? parms.ListView.GetColumn(0) : parms.PrimarySort;
+            ColumnComparer itemSorter = new ColumnComparer(primarySortColumn, parms.PrimarySortOrder,
+                parms.SecondarySort, parms.SecondarySortOrder);
             foreach (object key in map.Keys) {
-                ListViewGroup lvg = new ListViewGroup(groupByColumn.ConvertGroupKeyToTitle(key));
-                lvg.Tag = key;
+                map[key].Sort(itemSorter);
+            }
+
+            // Make a list of the required groups
+            List<OLVGroup> groups = new List<OLVGroup>();
+            foreach (object key in map.Keys) {
+                string title = parms.GroupByColumn.ConvertGroupKeyToTitle(key);
+                if (!String.IsNullOrEmpty(parms.TitleFormat)) {
+                    int count = map[key].Count;
+                    title = String.Format((count == 1 ? parms.TitleSingularFormat : parms.TitleFormat), title, count);
+                }
+
+                OLVGroup lvg = new OLVGroup(title);
+                lvg.Collapsible = this.HasCollapsibleGroups;
+                lvg.Key = key;
+                lvg.SortValue = key as IComparable;
+                lvg.Items = map[key];
+                if (parms.GroupByColumn.GroupFormatter != null)
+                    parms.GroupByColumn.GroupFormatter(lvg, parms);
                 groups.Add(lvg);
             }
 
             // Sort the groups
-            groups.Sort(new ListViewGroupComparer(groupByOrder));
+            groups.Sort(new OLVGroupComparer(parms.PrimarySortOrder));
 
-            // Put each group into the list view, and give each group its member items.
-            // The order of statements is important here:
-            // - the header must be calculate before the group is added to the list view,
-            //   otherwise changing the header causes a nasty redraw (even in the middle of a BeginUpdate...EndUpdate pair)
-            // - the group must be added before it is given items, otherwise an exception is thrown (is this documented?)
-            string fmt = groupByColumn.GroupWithItemCountFormatOrDefault;
-            string singularFmt = groupByColumn.GroupWithItemCountSingularFormatOrDefault;
-            ColumnComparer itemSorter = new ColumnComparer(
-                (this.SortGroupItemsByPrimaryColumn ? this.GetColumn(0) : column), order, secondaryColumn, secondaryOrder);
-            foreach (ListViewGroup group in groups) {
-                if (this.ShowItemCountOnGroups) {
-                    int count = map[group.Tag].Count;
-                    group.Header = String.Format((count == 1 ? singularFmt : fmt), group.Header, count);
-                }
-                this.Groups.Add(group);
-                // If there is no sort order, don't sort since the sort isn't stable
-                // THINK: Can order ever be None here?
-                if (order != SortOrder.None)
-                    map[group.Tag].Sort(itemSorter);
-                group.Items.AddRange(map[group.Tag].ToArray());
-            }
+            return groups;
         }
 
         /// <summary>
@@ -2264,6 +2753,7 @@ namespace BrightIdeasSoftware
             if (this.Frozen)
                 return;
 
+            this.ApplyExtendedStyles();
             this.ClearHotItem();
             int previousTopIndex = this.TopItemIndex;
             IList previousSelection = new ArrayList();
@@ -2290,12 +2780,7 @@ namespace BrightIdeasSoftware
                         itemList.Add(lvi);
                     }
                     this.Items.AddRange(itemList.ToArray());
-                    this.SetAllSubItemImages();
                     this.Sort();
-
-                    // If the list isn't sorted, we might need to setup the background colors here
-                    if (this.LastSortColumn == null && this.UseAlternatingBackColors && this.View == View.Details)
-                        this.PrepareAlternateBackColors();
 
                     if (shouldPreserveState) {
                         this.SelectedObjects = previousSelection;
@@ -2318,6 +2803,37 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Apply all required extended styles to our control.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Whenever .NET code sets an extended style, it erases all other extended styles
+        /// that it doesn't use. So, we have to explicit reapply the styles that we have
+        /// added.
+        /// </para>
+        /// <para>
+        /// Normally, we would override CreateParms parameter and update
+        /// the ExStyle member, but when we set the LVS_EX_HEADERINALLVIEWS value, bad things happen.
+        /// </para>
+        /// </remarks>
+        protected virtual void ApplyExtendedStyles() {
+            const int LVS_EX_SUBITEMIMAGES = 0x00000002;
+            const int LVS_EX_TRANSPARENTBKGND = 0x00400000;
+            const int LVS_EX_HEADERINALLVIEWS = 0x02000000;
+
+            const int styleMask = LVS_EX_SUBITEMIMAGES | LVS_EX_TRANSPARENTBKGND | LVS_EX_HEADERINALLVIEWS;
+            int style = 0;
+
+            if (this.ShowImagesOnSubItems && !this.VirtualMode)
+                style ^= LVS_EX_SUBITEMIMAGES;
+
+            if (this.ShowHeaderInAllViews)
+                style ^= LVS_EX_HEADERINALLVIEWS;
+
+            NativeMethods.SetExtendedStyle(this, style, styleMask);
+        }
+
+        /// <summary>
         /// Give the listview a reasonable size of its tiles, based on the number of lines of
         /// information that each tile is going to display.
         /// </summary>
@@ -2325,8 +2841,12 @@ namespace BrightIdeasSoftware
             if (this.Columns.Count <= 0)
                 return;
 
+            List<OLVColumn> columns = this.AllColumns.FindAll(delegate(OLVColumn x) { 
+                return (x.Index == 0) || x.IsTileViewColumn; 
+            });
+
             int imageHeight = (this.LargeImageList == null ? 16 : this.LargeImageList.ImageSize.Height);
-            int dataHeight = (this.Font.Height + 1) * this.Columns.Count;
+            int dataHeight = (this.Font.Height + 1) * columns.Count;
             int tileWidth = (this.TileSize.Width == 0 ? 200 : this.TileSize.Width);
             int tileHeight = Math.Max(this.TileSize.Height, Math.Max(imageHeight, dataHeight));
             this.TileSize = new Size(tileWidth, tileHeight);
@@ -2374,6 +2894,13 @@ namespace BrightIdeasSoftware
                 this.Invoke(new MethodInvoker(this.ClearObjects));
             else
                 this.SetObjects(null);
+        }
+
+        /// <summary>
+        /// Reset the memory of which URLs have been visited
+        /// </summary>
+        public virtual void ClearUrlVisited() {
+            this.visitedUrlMap = new Dictionary<string, bool>();
         }
 
         /// <summary>
@@ -2547,63 +3074,6 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Update the list to reflect the contents of the given collection, without affecting
-        /// the scrolling position, selection or sort order.
-        /// </summary>
-        /// <param name="collection">The objects to be displayed</param>
-        /// <remarks>
-        /// <para>This method is about twice as slow as SetObjects().</para>
-        /// <para>This method is experimental -- it may disappear in later versions of the code.</para>
-        /// <para>There has to be a better way to do this! JPP 15/1/2008</para>
-        /// <para>In most situations, if you need this functionality, use a FastObjectListView instead. JPP 2/2/2008</para>
-        /// </remarks>
-        [Obsolete("Use a FastObjectListView instead of this method.", false)]
-        public virtual void IncrementalUpdate(IEnumerable collection) {
-            if (this.InvokeRequired) {
-                this.Invoke((MethodInvoker)delegate { this.IncrementalUpdate(collection); });
-                return;
-            }
-
-            this.BeginUpdate();
-
-            this.ListViewItemSorter = null;
-            IList previousSelection = this.SelectedObjects;
-
-            // Replace existing rows, creating new listviewitems if we get to the end of the list
-            List<OLVListItem> newItems = new List<OLVListItem>();
-            int rowIndex = 0;
-            int itemCount = this.Items.Count;
-            foreach (object model in collection) {
-                if (rowIndex < itemCount) {
-                    OLVListItem lvi = this.GetItem(rowIndex);
-                    lvi.RowObject = model;
-                    this.RefreshItem(lvi);
-                } else {
-                    OLVListItem lvi = new OLVListItem(model);
-                    this.FillInValues(lvi, model);
-                    newItems.Add(lvi);
-                }
-                rowIndex++;
-            }
-
-            // Delete any excess rows
-            int numRowsToDelete = itemCount - rowIndex;
-            for (int i = 0; i < numRowsToDelete; i++)
-                this.Items.RemoveAt(rowIndex);
-
-            this.Items.AddRange(newItems.ToArray());
-            this.Sort(this.LastSortColumn);
-
-            SetAllSubItemImages();
-
-            this.SelectedObjects = previousSelection;
-
-            this.EndUpdate();
-
-            this.objects = collection;
-        }
-
-        /// <summary>
         /// Insert the given collection of objects before the given position
         /// </summary>
         /// <param name="index">Where to insert the objects</param>
@@ -2613,7 +3083,7 @@ namespace BrightIdeasSoftware
         /// This operation only makes sense of non-sorted, non-grouped
         /// lists, since any subsequent sort/group operation will rearrange
         /// the list.
-        /// </para> 
+        /// </para>
         /// <para>This method only works on ObjectListViews and FastObjectListViews.</para>
         ///</remarks>
         public virtual void InsertObjects(int index, ICollection modelObjects) {
@@ -2680,12 +3150,30 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Has the given URL been visited?
+        /// </summary>
+        /// <param name="url">The string to be consider</param>
+        /// <returns>Has it been visited</returns>
+        public virtual bool IsUrlVisited(string url) {
+            return this.visitedUrlMap.ContainsKey(url);
+        }
+
+        /// <summary>
         /// Scroll the ListView by the given deltas.
         /// </summary>
         /// <param name="dx">Horizontal delta</param>
         /// <param name="dy">Vertical delta</param>
         internal void LowLevelScroll(int dx, int dy) {
             NativeMethods.Scroll(this, dx, dy);
+        }
+
+        /// <summary>
+        /// Remember that the given URL has been visited
+        /// </summary>
+        /// <param name="url">The url to be remembered</param>
+        /// <remarks>This does not cause the control be redrawn</remarks>
+        public virtual void MarkUrlVisited(string url) {
+            this.visitedUrlMap[url] = true;
         }
 
         /// <summary>
@@ -2730,14 +3218,20 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// What is under the given point? This takes the various parts of a cell into accout, including
-        /// any custom parts that a custom renderer might use
+        /// Calculate what item is under the given point?
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        /// <returns>An information block about what is under the point</returns>
-        public virtual OlvListViewHitTestInfo OlvHitTest(int x, int y) {
-            return this.OlvHitTest(x, y, false);
+        /// <returns></returns>
+        new public ListViewHitTestInfo HitTest(int x, int y) {
+            // Everything costs something. Playing with the layout of the header can cause problems
+            // with the hit testing. If the header shrinks
+            try {
+                return base.HitTest(x, y);
+            }
+            catch (ArgumentOutOfRangeException) {
+                return new ListViewHitTestInfo(null, null, ListViewHitTestLocations.None);
+            }
         }
 
         /// <summary>
@@ -2746,23 +3240,62 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        /// <param name="useFullRowSelect">Force the hit test to be done as if full row select is true</param>
         /// <returns>An information block about what is under the point</returns>
-        public virtual OlvListViewHitTestInfo OlvHitTest(int x, int y, bool useFullRowSelect) {
-            // This horrible sequence finds what item is under the given position.
-            // We want to find the item under the point, even if the point is not
-            // actually over the icon or label. HitTest() will only do that
-            // when FullRowSelect is true.
-            ListViewHitTestInfo hitTestInfo = null;
-            if (this.FullRowSelect || !useFullRowSelect)
-                hitTestInfo = this.HitTest(x, y);
-            else {
-                this.FullRowSelect = true;
-                hitTestInfo = this.HitTest(x, y);
-                this.FullRowSelect = false;
-            }
-
+        public virtual OlvListViewHitTestInfo OlvHitTest(int x, int y) {
+            ListViewHitTestInfo hitTestInfo = this.HitTest(x, y);
             OlvListViewHitTestInfo hti = new OlvListViewHitTestInfo(hitTestInfo);
+
+            // There is a bug/"feature" of the ListView concerning hit testing.
+            // If FullRowSelect is false and the point is over cell 0 but not on
+            // the text or icon, HitTest will not register a hit. We could turn
+            // FullRowSelect on, do the HitTest, and then turn it off again, but
+            // toggling FullRowSelect in that way messes up the tooltip in the
+            // underlying control. So we have to find another way.
+            //
+            // It's too hard to try to write the hit test from scratch. Grouping (for
+            // example) makes it just too complicated. So, we have to use HitTest
+            // but try to get around its limits.
+            //
+            // First step is to determine if the point was within column 0.
+            // If it was, then we only have to determine if there is an actual row
+            // under the point. If there is, then we know that the point is over cell 0.
+            // So we try a Battleship-style approach: is there a subcell to the right
+            // of cell 0? This will return a false negative if column 0 is the rightmost column,
+            // so we also check for a subcell to the left. But if only column 0 is visible,
+            // then that will fail too, so we check for something at the very left of the
+            // control.
+            //
+            // This will still fail under pathological conditions. If column 0 fills
+            // the whole listview and no part of the text column 0 is visible
+            // (because it is horizontally scrolled offscreen), then the hit test will fail.
+
+            // Are we in the buggy context? Details view, not full row select, and
+            // failing to find anything
+            if (hitTestInfo.Item == null && !this.FullRowSelect && this.View == View.Details) {
+                // Is the point within the column 0? If it is, maybe it should have been a hit.
+                // Let's test slightly to the right and then to left of column 0. Hopefully one
+                // of those will hit a subitem
+                Point sides = NativeMethods.GetScrolledColumnSides(this, 0);
+                if (x >= sides.X && x <= sides.Y) {
+                    // We look for:
+                    // - any subitem to the right of cell 0?
+                    // - any subitem to the left of cell 0?
+                    // - cell 0 at the left edge of the screen
+                    hitTestInfo = this.HitTest(sides.Y + 4, y);
+                    if (hitTestInfo.Item == null)
+                        hitTestInfo = this.HitTest(sides.X - 4, y);
+                    if (hitTestInfo.Item == null)
+                        hitTestInfo = this.HitTest(4, y);
+
+                    if (hitTestInfo.Item != null) {
+                        // We hit something! So, the original point must have been in cell 0
+                        hti.Item = (OLVListItem)hitTestInfo.Item;
+                        hti.SubItem = hti.Item.GetSubItem(0);
+                        hti.Location = ListViewHitTestLocations.None;
+                        hti.HitTestLocation = HitTestLocation.InCell;
+                    }
+                }
+            }
 
             if (this.OwnerDraw)
                 this.CalculateOwnerDrawnHitTest(hti, x, y);
@@ -2780,21 +3313,55 @@ namespace BrightIdeasSoftware
         /// <param name="y"></param>
         protected virtual void CalculateStandardHitTest(OlvListViewHitTestInfo hti, int x, int y) {
 
-            // Check if the point is over a sub item checkbox
-
-            // Subitem checkboxes are only visible in details mode
-            if (this.View != View.Details)
+            // Standard hit test works fine for the primary column
+            if (this.View != View.Details || hti.ColumnIndex == 0 ||
+                hti.SubItem == null || hti.Column == null)
                 return;
 
-            // Does the subitem have a checkbox?
-            if (hti.Column == null || !hti.Column.CheckBoxes)
-                return;
+            Rectangle cellBounds = hti.SubItem.Bounds;
+            bool hasImage = (this.GetActualImageIndex(hti.SubItem.ImageSelector) != -1);
 
-            // Figure out if they clicked in the checkbox.
-            Rectangle r = hti.SubItem.Bounds;
+            // Unless we say otherwise, it was an general incell hit
+            hti.HitTestLocation = HitTestLocation.InCell;
+
+            // Check if the point is over where an image should be.
+            // If there is a checkbox or image there, tag it and exit.
+            Rectangle r = cellBounds;
             r.Width = this.SmallImageSize.Width;
-            if (r.Contains(x, y))
-                hti.HitTestLocation = HitTestLocation.CheckBox;
+            if (r.Contains(x, y)) {
+                if (hti.Column.CheckBoxes) {
+                    hti.HitTestLocation = HitTestLocation.CheckBox;
+                    return;
+                }
+                if (hasImage) {
+                    hti.HitTestLocation = HitTestLocation.Image;
+                    return;
+                }
+            }
+
+            // Figure out where the text actually is and if the point is in it
+            // The standard HitTest assumes that any point inside a subitem is
+            // a hit on Text -- which is clearly not true.
+            Rectangle textBounds = cellBounds;
+            textBounds.X += 4;
+            if (hasImage)
+                textBounds.X += this.SmallImageSize.Width;
+
+            Size proposedSize = new Size(textBounds.Width, textBounds.Height);
+            Size textSize = TextRenderer.MeasureText(hti.SubItem.Text, this.Font, proposedSize, TextFormatFlags.EndEllipsis | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix);
+            textBounds.Width = textSize.Width;
+
+            switch (hti.Column.TextAlign) {
+                case HorizontalAlignment.Center:
+                    textBounds.X += (cellBounds.Right - cellBounds.Left - textSize.Width) / 2;
+                    break;
+                case HorizontalAlignment.Right:
+                    textBounds.X = cellBounds.Right - textSize.Width;
+                    break;
+            }
+            if (textBounds.Contains(x, y)) {
+                hti.HitTestLocation = HitTestLocation.Text;
+            }
         }
 
         /// <summary>
@@ -2858,7 +3425,7 @@ namespace BrightIdeasSoftware
         /// <param name="modelObject">The model to be removed</param>
         /// <remarks>See RemoveObjects() for more details</remarks>
         public virtual void RemoveObject(object modelObject) {
-            if (this.InvokeRequired) 
+            if (this.InvokeRequired)
                 this.Invoke((MethodInvoker)delegate() { this.RemoveObject(modelObject); });
             else
                 this.RemoveObjects(new object[] { modelObject });
@@ -2994,11 +3561,11 @@ namespace BrightIdeasSoftware
             }
 
             // Now that we have stored our state, convert it to a byte array
-            MemoryStream ms = new MemoryStream();
-            BinaryFormatter serializer = new BinaryFormatter();
-            serializer.Serialize(ms, olvState);
-
-            return ms.ToArray();
+            using (MemoryStream ms = new MemoryStream()) {
+                BinaryFormatter serializer = new BinaryFormatter();
+                serializer.Serialize(ms, olvState);
+                return ms.ToArray();
+            }
         }
 
         /// <summary>
@@ -3008,43 +3575,39 @@ namespace BrightIdeasSoftware
         /// <param name="state">A byte array returned from SaveState()</param>
         /// <returns>Returns true if the state was restored</returns>
         public virtual bool RestoreState(byte[] state) {
-            MemoryStream ms = new MemoryStream(state);
-            BinaryFormatter deserializer = new BinaryFormatter();
-            ObjectListViewState olvState;
-            try {
-                olvState = deserializer.Deserialize(ms) as ObjectListViewState;
+            using (MemoryStream ms = new MemoryStream(state)) {
+                BinaryFormatter deserializer = new BinaryFormatter();
+                ObjectListViewState olvState;
+                try {
+                    olvState = deserializer.Deserialize(ms) as ObjectListViewState;
+                }
+                catch (System.Runtime.Serialization.SerializationException) {
+                    return false;
+                }
+                // The number of columns has changed. We have no way to match old
+                // columns to the new ones, so we just give up.
+                if (olvState.NumberOfColumns != this.AllColumns.Count)
+                    return false;
+                if (olvState.SortColumn == -1) {
+                    this.LastSortColumn = null;
+                    this.LastSortOrder = SortOrder.None;
+                } else {
+                    this.LastSortColumn = this.AllColumns[olvState.SortColumn];
+                    this.LastSortOrder = olvState.LastSortOrder;
+                }
+                for (int i = 0; i < olvState.NumberOfColumns; i++) {
+                    OLVColumn column = this.AllColumns[i];
+                    column.Width = (int)olvState.ColumnWidths[i];
+                    column.IsVisible = (bool)olvState.ColumnIsVisible[i];
+                    column.LastDisplayIndex = (int)olvState.ColumnDisplayIndicies[i];
+                }
+                if (olvState.IsShowingGroups != this.ShowGroups)
+                    this.ShowGroups = olvState.IsShowingGroups;
+                if (this.View == olvState.CurrentView)
+                    this.RebuildColumns();
+                else
+                    this.View = olvState.CurrentView;
             }
-            catch (System.Runtime.Serialization.SerializationException) {
-                return false;
-            }
-
-            // The number of columns has changed. We have no way to match old
-            // columns to the new ones, so we just give up.
-            if (olvState.NumberOfColumns != this.AllColumns.Count)
-                return false;
-
-            if (olvState.SortColumn == -1) {
-                this.LastSortColumn = null;
-                this.LastSortOrder = SortOrder.None;
-            } else {
-                this.LastSortColumn = this.AllColumns[olvState.SortColumn];
-                this.LastSortOrder = olvState.LastSortOrder;
-            }
-
-            for (int i = 0; i < olvState.NumberOfColumns; i++) {
-                OLVColumn column = this.AllColumns[i];
-                column.Width = (int)olvState.ColumnWidths[i];
-                column.IsVisible = (bool)olvState.ColumnIsVisible[i];
-                column.LastDisplayIndex = (int)olvState.ColumnDisplayIndicies[i];
-            }
-
-            if (olvState.IsShowingGroups != this.ShowGroups)
-                this.ShowGroups = olvState.IsShowingGroups;
-
-            if (this.View == olvState.CurrentView)
-                this.RebuildColumns();
-            else
-                this.View = olvState.CurrentView;
 
             return true;
         }
@@ -3081,6 +3644,75 @@ namespace BrightIdeasSoftware
             this.hasIdleHandler = false;
 
             this.OnSelectionChanged(new EventArgs());
+        }
+
+        /// <summary>
+        /// Handle the BeginScroll listview notification
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns>True if the event was completely handled</returns>
+        protected virtual bool HandleBeginScroll(ref Message m) {
+            //System.Diagnostics.Debug.WriteLine("LVN_BEGINSCROLL");
+
+            NativeMethods.NMLVSCROLL nmlvscroll = (NativeMethods.NMLVSCROLL)m.GetLParam(typeof(NativeMethods.NMLVSCROLL));
+            if (nmlvscroll.dx != 0) {
+                int scrollPositionH = NativeMethods.GetScrollPosition(this, true);
+                ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, scrollPositionH - nmlvscroll.dx, scrollPositionH, ScrollOrientation.HorizontalScroll);
+                this.OnScroll(args);
+
+                // Force any empty list msg to redraw when the list is scrolled horizontally
+                if (this.GetItemCount() == 0)
+                    this.Invalidate();
+            }
+            if (nmlvscroll.dy != 0) {
+                int scrollPositionV = NativeMethods.GetScrollPosition(this, false);
+                ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, scrollPositionV - nmlvscroll.dy, scrollPositionV, ScrollOrientation.VerticalScroll);
+                this.OnScroll(args);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Handle the EndScroll listview notification
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns>True if the event was completely handled</returns>
+        protected virtual bool HandleEndScroll(ref Message m) {
+            //System.Diagnostics.Debug.WriteLine("LVN_BEGINSCROLL");
+
+            // There is a bug in ListView under XP that causes the gridlines to be incorrectly scrolled
+            // when the left button is clicked to scroll. This is supposedly documented at
+            // KB 813791, but I couldn't find it anywhere. You can follow this thread to see the discussion
+            // http://www.ureader.com/msg/1484143.aspx
+
+            if (!ObjectListView.IsVista && Control.MouseButtons == MouseButtons.Left && this.GridLines) {
+                this.Invalidate();
+                this.Update();
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Handle the LinkClick listview notification
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns>True if the event was completely handled</returns>
+        protected virtual bool HandleLinkClick(ref Message m) {
+            //System.Diagnostics.Debug.WriteLine("HandleLinkClick");
+
+            NativeMethods.NMLVLINK nmlvlink = (NativeMethods.NMLVLINK)m.GetLParam(typeof(NativeMethods.NMLVLINK));
+
+            // Find the group that was clicked and trigger an event
+            foreach (OLVGroup x in this.OLVGroups) {
+                if (x.GroupId == nmlvlink.iSubItem) {
+                    this.OnGroupTaskClicked(new GroupTaskClickedEventArgs(x));
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -3155,6 +3787,10 @@ namespace BrightIdeasSoftware
         /// <param name="m"></param>
         protected override void WndProc(ref Message m) {
             switch (m.Msg) {
+                case 2: // WM_DESTROY
+                    if (!this.HandleDestroy(ref m))
+                        base.WndProc(ref m);
+                    break;
                 //case 0x14: // WM_ERASEBKGND
                 //    Can't do anything here since, when the control is double buffered, anything
                 //    done here is immediately over-drawn
@@ -3172,11 +3808,11 @@ namespace BrightIdeasSoftware
                         base.WndProc(ref m);
                     break;
                 case 0x0100: // WM_KEY_DOWN
-                    if (!this.HandleKeyDown(ref m)) 
+                    if (!this.HandleKeyDown(ref m))
                         base.WndProc(ref m);
                     break;
                 case 0x0102: // WM_CHAR
-                    if (!this.HandleChar(ref m)) 
+                    if (!this.HandleChar(ref m))
                         base.WndProc(ref m);
                     break;
                 case 0x0201: // WM_LBUTTONDOWN
@@ -3193,60 +3829,28 @@ namespace BrightIdeasSoftware
                     break;
                 case 0x114: // WM_HSCROLL:
                 case 0x115: // WM_VSCROLL:
-                    if (this.PossibleFinishCellEditing()) 
+                    if (this.PossibleFinishCellEditing())
                         base.WndProc(ref m);
                     break;
                 case 0x20A: // WM_MOUSEWHEEL:
                 case 0x20E: // WM_MOUSEHWHEEL:
-                    if (this.PossibleFinishCellEditing()) 
+                    if (this.PossibleFinishCellEditing())
                         base.WndProc(ref m);
                     break;
                 case 0x7B: // WM_CONTEXTMENU
                     if (!this.HandleContextMenu(ref m))
                         base.WndProc(ref m);
                     break;
-                case 0x1000 + 145: // LVM_INSERTGROUP     = LVM_FIRST + 145;
-                    // Add the collapsible feature if needed
-                    if (!this.HandleInsertGroup(ref m)) 
-                        base.WndProc(ref m);
-                    break;
                 case 0x202:  /*WM_LBUTTONUP*/
-                    if (ObjectListView.IsVista && this.HasCollapsibleGroups) 
+                    if (ObjectListView.IsVista && this.HasCollapsibleGroups)
                         base.DefWndProc(ref m);
                     base.WndProc(ref m);
                     break;
-
-                case 2: // WM_DESTROY
-                    if (!this.HandleDestroy(ref m))
-                        base.WndProc(ref m);
-                    break;
-                //case 0x1000 + 20:
-                //    System.Diagnostics.Debug.WriteLine("LVM_SCROLL");
-                //    base.WndProc(ref m);
-                //    break;
-
-                // This doesn't seem to be called when i expected
-                //case 0x1053: // LVM_FINDITEM = (LVM_FIRST + 83)
-                //    if (!this.HandleFindItem(ref m))
-                //        base.WndProc(ref m);
-                //    break;
                 default:
                     base.WndProc(ref m);
                     break;
             }
         }
-
-        /// <summary>
-        /// Is the program running on Vista or later?
-        /// </summary>
-        static public bool IsVista {
-            get {
-                if (!ObjectListView.isVista.HasValue)
-                    ObjectListView.isVista = Environment.OSVersion.Version.Major >= 6;
-                return ObjectListView.isVista.Value;
-            }
-        }
-        static private bool? isVista;
 
         /// <summary>
         /// Handle the search for item m if possible.
@@ -3269,7 +3873,7 @@ namespace BrightIdeasSoftware
                 this.timeLastCharEvent = 0;
                 return true;
             }
-            
+
             if (System.Environment.TickCount < (this.timeLastCharEvent + MILLISECONDS_BETWEEN_KEYPRESSES))
                 this.lastSearchString += character;
             else
@@ -3380,6 +3984,8 @@ namespace BrightIdeasSoftware
             const int CDDS_POSTPAINT = 2;
             const int CDDS_PREERASE = 3;
             const int CDDS_POSTERASE = 4;
+            //const int CDRF_NEWFONT = 2;
+            //const int CDRF_SKIPDEFAULT = 4;
             const int CDDS_ITEM = 0x00010000;
             const int CDDS_SUBITEM = 0x00020000;
             const int CDDS_ITEMPREPAINT = (CDDS_ITEM | CDDS_PREPAINT);
@@ -3391,10 +3997,10 @@ namespace BrightIdeasSoftware
             const int CDRF_NOTIFYPOSTPAINT = 0x10;
             //const int CDRF_NOTIFYITEMDRAW = 0x20;
             //const int CDRF_NOTIFYSUBITEMDRAW = 0x20; // same value as above!
-            const int CDRF_NOTIFYPOSTERASE = 0x40; 
+            const int CDRF_NOTIFYPOSTERASE = 0x40;
 
             NativeMethods.NMLVCUSTOMDRAW nmcustomdraw = (NativeMethods.NMLVCUSTOMDRAW)m.GetLParam(typeof(NativeMethods.NMLVCUSTOMDRAW));
-            //System.Diagnostics.Debug.WriteLine(String.Format("cd: {0:x}", nmcustomdraw.nmcd.dwDrawStage));
+            //System.Diagnostics.Debug.WriteLine(String.Format("cd: {0:x}, {1}, {2}", nmcustomdraw.nmcd.dwDrawStage, nmcustomdraw.dwItemType, nmcustomdraw.nmcd.dwItemSpec));
 
             // There is a bug in owner drawn virtual lists which causes lots of custom draw messages
             // to be sent to the control *outside* of a WmPaint event. AFAIK, these custom draw events
@@ -3412,13 +4018,17 @@ namespace BrightIdeasSoftware
             switch (nmcustomdraw.nmcd.dwDrawStage) {
                 case CDDS_PREPAINT:
                     //System.Diagnostics.Debug.WriteLine("CDDS_PREPAINT");
+                    // Remember which items were drawn during this paint cycle
+                    if (this.prePaintLevel == 0)
+                        this.drawnItems = new List<OLVListItem>();
 
-                    // If there are any items, we have to wait until at least one has been painted 
+                    // If there are any items, we have to wait until at least one has been painted
                     // before we draw the overlays. If there aren't any items, there will never be any
                     // item paint events, so we can draw the overlays whenever
                     this.isAfterItemPaint = (this.GetItemCount() == 0);
                     this.prePaintLevel++;
                     base.WndProc(ref m);
+
                     // Make sure that we get postpaint notifications
                     m.Result = (IntPtr)((int)m.Result | CDRF_NOTIFYPOSTPAINT | CDRF_NOTIFYPOSTERASE);
                     return true;
@@ -3427,7 +4037,7 @@ namespace BrightIdeasSoftware
                     //System.Diagnostics.Debug.WriteLine("CDDS_POSTPAINT");
                     this.prePaintLevel--;
 
-                    // When in group view, we have two problems. On XP, the control sends 
+                    // When in group view, we have two problems. On XP, the control sends
                     // a whole heap of PREPAINT/POSTPAINT messages before drawing any items.
                     // We have to wait until after the first item paint before we draw overlays.
                     // On Vista, we have a different problem. On Vista, the control nests calls
@@ -3438,7 +4048,7 @@ namespace BrightIdeasSoftware
 
                         // Draw our overlays after everything has been drawn
                         using (Graphics g = Graphics.FromHdc(nmcustomdraw.nmcd.hdc)) {
-                            this.DrawAllDecorations(g);
+                            this.DrawAllDecorations(g, this.drawnItems);
                         }
                     }
                     break;
@@ -3464,16 +4074,14 @@ namespace BrightIdeasSoftware
                         base.WndProc(ref m);
                     }
 
-                    //NativeMethods.NMLVCUSTOMDRAW nmcustomdraw2 = (NativeMethods.NMLVCUSTOMDRAW)m.GetLParam(typeof(NativeMethods.NMLVCUSTOMDRAW));
-                    //nmcustomdraw2.clrText = ColorTranslator.ToWin32(Color.Red);
-                    //Marshal.StructureToPtr(nmcustomdraw2, m.LParam, false);
-                    //m.Result = (IntPtr)CDRF_NOTIFYSUBITEMDRAW;
-
                     m.Result = (IntPtr)((int)m.Result | CDRF_NOTIFYPOSTPAINT | CDRF_NOTIFYPOSTERASE);
                     return true;
 
                 case CDDS_ITEMPOSTPAINT:
                     //System.Diagnostics.Debug.WriteLine("CDDS_ITEMPOSTPAINT");
+                    OLVListItem olvi = this.GetItem((int)nmcustomdraw.nmcd.dwItemSpec);
+                    if (olvi != null)
+                        this.drawnItems.Add(olvi);
                     break;
 
                 case CDDS_SUBITEMPREPAINT:
@@ -3482,12 +4090,12 @@ namespace BrightIdeasSoftware
                     // There is a bug in the .NET framework which appears when column 0 of an owner drawn listview
                     // is dragged to another column position.
                     // The bounds calculation always returns the left edge of column 0 as being 0.
-                    // The effects of this bug become apparent 
+                    // The effects of this bug become apparent
                     // when the listview is scrolled horizontally: the control can think that column 0
                     // is no longer visible (the horizontal scroll position is subtracted from the bounds, giving a
-                    // rectangle that is offscreen). In those circumstances, column 0 is not redraw because 
+                    // rectangle that is offscreen). In those circumstances, column 0 is not redraw because
                     // the control thinks it is not visible and so does not trigger a DrawSubItem event.
-                    
+
                     // To fix this problem, we have to detected the situation -- owner drawing column 0 in any column except 0 --
                     // trigger our own DrawSubItem, and then prevent the default processing from occuring.
 
@@ -3513,7 +4121,7 @@ namespace BrightIdeasSoftware
                     using (Graphics g = Graphics.FromHdc(nmcustomdraw.nmcd.hdc)) {
 
                         // Correctly calculate the bounds of cell 0
-                        Rectangle r = GetCellZeroBounds(rowIndex);
+                        Rectangle r = item.GetSubItemBounds(0);
 
                         // We can hardcode "0" here since we know we are only doing this for column 0
                         DrawListViewSubItemEventArgs args = new DrawListViewSubItemEventArgs(g, r, item, item.SubItems[0], rowIndex, 0,
@@ -3555,14 +4163,7 @@ namespace BrightIdeasSoftware
             return false;
         }
         bool isAfterItemPaint;
-
-        private Rectangle GetCellZeroBounds(int rowIndex) {
-            Rectangle r = this.GetItemRect(rowIndex, ItemBoundsPortion.Entire);
-            Point sides = NativeMethods.GetScrolledColumnSides(this, 0);
-            r.X = sides.X + 1;
-            r.Width = sides.Y - sides.X;
-            return r;
-        }
+        List<OLVListItem> drawnItems;
 
         /// <summary>
         /// Handle the underlying control being destroyed
@@ -3571,18 +4172,26 @@ namespace BrightIdeasSoftware
         /// <returns></returns>
         protected virtual bool HandleDestroy(ref Message m) {
             //System.Diagnostics.Debug.WriteLine("WM_DESTROY");
-            if (this.cellToolTip == null)
-                return false;
+
+            // Recreate the header control when the listview control is destroyed
+            this.BeginInvoke((MethodInvoker)delegate {
+                this.headerControl = null;
+                this.HeaderControl.WordWrap = this.HeaderWordWrap;
+            });
 
             // When the underlying control is destroyed, we need to recreate
             // and reconfigure its tooltip
-            this.cellToolTip.PushSettings();
-            base.WndProc(ref m);
-            this.BeginInvoke((MethodInvoker)delegate {
-                this.UpdateCellToolTipHandle();
-                this.cellToolTip.PopSettings();
-            });
-            return true;
+            if (this.cellToolTip == null)
+                return false;
+            else {
+                this.cellToolTip.PushSettings();
+                base.WndProc(ref m);
+                this.BeginInvoke((MethodInvoker)delegate {
+                    this.UpdateCellToolTipHandle();
+                    this.cellToolTip.PopSettings();
+                });
+                return true;
+            }
         }
 
         /// <summary>
@@ -3671,22 +4280,6 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Handle an InsertGroup message
-        /// </summary>
-        /// <param name="m"></param>
-        /// <returns></returns>
-        protected virtual bool HandleInsertGroup(ref Message m) {
-            if (ObjectListView.IsVista && this.HasCollapsibleGroups) {
-                NativeMethods.LVGROUP group = (NativeMethods.LVGROUP)Marshal.PtrToStructure(
-                    m.LParam, typeof(NativeMethods.LVGROUP));
-                group.state = (int)NativeMethods.GroupState.COLLAPSIBLE;
-                group.mask = group.mask ^ 4; // LVGF_STATE 
-                Marshal.StructureToPtr(group, m.LParam, true);
-            }
-            return false;
-        }
-
-        /// <summary>
         /// Handle a key down message
         /// </summary>
         /// <param name="m"></param>
@@ -3695,35 +4288,42 @@ namespace BrightIdeasSoftware
 
             // If this is a checkbox list, toggle the selected rows when the user presses Space
             if (this.CheckBoxes && m.WParam.ToInt32() == (int)Keys.Space && this.SelectedIndices.Count > 0) {
-                this.ToggleSelectedRows();
+                this.ToggleSelectedRowCheckBoxes();
                 return true;
             }
 
-            // Remember the scroll position so we can decide if the listview has scrolled in the 
+            // Remember the scroll position so we can decide if the listview has scrolled in the
             // handling of the event.
             int scrollPositionH = NativeMethods.GetScrollPosition(this, true);
             int scrollPositionV = NativeMethods.GetScrollPosition(this, false);
 
             base.WndProc(ref m);
 
-            // If the keydown processing changed the scroll position, trigger a Scroll event    
+            // It's possible that the processing in base.WndProc has actually destroyed this control
+            if (this.IsDisposed)
+                return true;
+
+            // If the keydown processing changed the scroll position, trigger a Scroll event
             int newScrollPositionH = NativeMethods.GetScrollPosition(this, true);
             int newScrollPositionV = NativeMethods.GetScrollPosition(this, false);
 
             if (scrollPositionH != newScrollPositionH) {
-                ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, 
+                ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll,
                     scrollPositionH, newScrollPositionH, ScrollOrientation.HorizontalScroll);
                 this.OnScroll(args);
-            } else if (scrollPositionV != newScrollPositionV) {
-                ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, 
+                this.RefreshHotItem();
+            }
+            if (scrollPositionV != newScrollPositionV) {
+                ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll,
                     scrollPositionV, newScrollPositionV, ScrollOrientation.VerticalScroll);
                 this.OnScroll(args);
+                this.RefreshHotItem();
             }
 
             return true;
         }
 
-        private void ToggleSelectedRows() {
+        private void ToggleSelectedRowCheckBoxes() {
             // This doesn't actually toggle all rows. It toggles the first row, and
             // all other rows get the check state of that first row.
             Object primaryModel = this.GetItem(this.SelectedIndices[0]).RowObject;
@@ -3751,8 +4351,7 @@ namespace BrightIdeasSoftware
             int x = m.LParam.ToInt32() & 0xFFFF;
             int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
 
-            OlvListViewHitTestInfo hti = this.OlvHitTest(x, y, true);
-            return this.ProcessLButtonDown(hti);
+            return this.ProcessLButtonDown(this.OlvHitTest(x, y));
         }
 
         /// <summary>
@@ -3783,9 +4382,9 @@ namespace BrightIdeasSoftware
             if (hti.Item.Selected) {
                 CheckState? state = this.GetCheckState(hti.RowObject);
                 if (state.HasValue) {
-                foreach (Object x in this.SelectedObjects)
+                    foreach (Object x in this.SelectedObjects)
                         this.SetObjectCheckedness(x, state.Value);
-            }
+                }
             }
 
             return true;
@@ -3800,8 +4399,7 @@ namespace BrightIdeasSoftware
             int x = m.LParam.ToInt32() & 0xFFFF;
             int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
 
-            OlvListViewHitTestInfo hti = this.OlvHitTest(x, y);
-            return this.ProcessLButtonDoubleClick(hti);
+            return this.ProcessLButtonDoubleClick(this.OlvHitTest(x, y));
         }
 
         /// <summary>
@@ -3827,10 +4425,11 @@ namespace BrightIdeasSoftware
             const int NM_CUSTOMDRAW = -12;
             const int NM_RELEASEDCAPTURE = -16;
             const int LVN_ITEMCHANGED = -101;
-            const int LVN_ITEMCHANGING = -100; 
+            const int LVN_ITEMCHANGING = -100;
             const int LVN_MARQUEBEGIN = -156;
             const int LVN_BEGINSCROLL = -180;
             const int LVN_ENDSCROLL = -181;
+            const int LVN_LINKCLICK = -184;
             const int LVIF_STATE = 8;
 
             bool isMsgHandled = false;
@@ -3840,33 +4439,24 @@ namespace BrightIdeasSoftware
 
             switch (nmhdr.code) {
                 case LVN_BEGINSCROLL:
-                    //System.Diagnostics.Debug.WriteLine("LVN_BEGINSCROLL");
-
-                    NativeMethods.NMLVSCROLL nmlvscroll = (NativeMethods.NMLVSCROLL)m.GetLParam(typeof(NativeMethods.NMLVSCROLL));
-                    if (nmlvscroll.dx != 0) {
-                        int scrollPositionH = NativeMethods.GetScrollPosition(this, true);
-                        ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, scrollPositionH - nmlvscroll.dx, scrollPositionH, ScrollOrientation.HorizontalScroll);
-                        this.OnScroll(args);
-                    }
-                    else if (nmlvscroll.dy != 0)
-                    {
-                        int scrollPositionV = NativeMethods.GetScrollPosition(this, false);
-                        ScrollEventArgs args = new ScrollEventArgs(ScrollEventType.EndScroll, scrollPositionV - nmlvscroll.dy, scrollPositionV, ScrollOrientation.VerticalScroll);
-                        this.OnScroll(args);
-                    }
+                    isMsgHandled = this.HandleBeginScroll(ref m);
                     break;
 
                 case LVN_ENDSCROLL:
-                    //System.Diagnostics.Debug.WriteLine("LVN_ENDSCROLL");
+                    isMsgHandled = this.HandleEndScroll(ref m);
+                    break;
+
+                case LVN_LINKCLICK:
+                    isMsgHandled = this.HandleLinkClick(ref m);
                     break;
 
                 case LVN_MARQUEBEGIN:
-                    //System.Diagnostics.Debug.WriteLine("LVN_MARQUEBEGIN"); 
+                    //System.Diagnostics.Debug.WriteLine("LVN_MARQUEBEGIN");
                     this.isMarqueSelecting = true;
                     break;
 
                 case NM_RELEASEDCAPTURE:
-                    //System.Diagnostics.Debug.WriteLine("NM_RELEASEDCAPTURE"); 
+                    //System.Diagnostics.Debug.WriteLine("NM_RELEASEDCAPTURE");
                     this.isMarqueSelecting = false;
                     this.Invalidate();
                     break;
@@ -3877,12 +4467,12 @@ namespace BrightIdeasSoftware
                     break;
 
                 case NM_DBLCLK:
-                    // The default behavior of a .NET ListView with checkboxes is to toggle the checkbox on 
+                    // The default behavior of a .NET ListView with checkboxes is to toggle the checkbox on
                     // double-click. That's just silly, if you ask me :)
                     if (this.CheckBoxes) {
                         // How do we make ListView not do that silliness? We could just ignore the message
                         // but the last part of the base code sets up state information, and without that
-                        // state, the ListView doesn't trigger MouseDoubleClick events. So we fake a 
+                        // state, the ListView doesn't trigger MouseDoubleClick events. So we fake a
                         // right button double click event, which sets up the same state, but without
                         // toggling the checkbox.
                         nmhdr.code = NM_RDBLCLK;
@@ -3945,6 +4535,8 @@ namespace BrightIdeasSoftware
         protected bool HandleNotify(ref Message m) {
             bool isMsgHandled = false;
 
+            const int NM_CUSTOMDRAW = -12;
+
             const int HDN_FIRST = (0 - 300);
             const int HDN_ITEMCHANGINGA = (HDN_FIRST - 0);
             const int HDN_ITEMCHANGINGW = (HDN_FIRST - 20);
@@ -3980,6 +4572,11 @@ namespace BrightIdeasSoftware
             // commented out code below. But without unsafe code, the best we can do is allow the user to drag the column to
             // any width, and then spring it back to within bounds once they release the mouse button. UI-wise it's very ugly.
             switch (nmheader.nhdr.code) {
+
+                case NM_CUSTOMDRAW:
+                    if (!this.OwnerDrawnHeader)
+                        isMsgHandled = this.HeaderControl.HandleHeaderCustomDraw(ref m);
+                    break;
 
                 case HDN_ITEMCLICKA:
                 case HDN_ITEMCLICKW:
@@ -4076,7 +4673,7 @@ namespace BrightIdeasSoftware
         /// the underlying Windows listview control.
         /// </summary>
         protected virtual void UpdateCellToolTipHandle() {
-            if (this.cellToolTip != null && this.cellToolTip.Handle == IntPtr.Zero) 
+            if (this.cellToolTip != null && this.cellToolTip.Handle == IntPtr.Zero)
                 this.cellToolTip.AssignHandle(NativeMethods.GetTooltipControl(this));
         }
 
@@ -4130,7 +4727,7 @@ namespace BrightIdeasSoftware
         protected virtual void HandlePostPaint() {
             // This message is no longer necessary, but we keep it for compatibility
         }
-        
+
         /// <summary>
         /// Handle the window position changing.
         /// </summary>
@@ -4153,7 +4750,7 @@ namespace BrightIdeasSoftware
 
         #region Column header clicking, column hiding and resizing
 
-        protected HeaderControl HeaderControl {
+        public HeaderControl HeaderControl {
             get {
                 if (this.headerControl == null)
                     this.headerControl = new HeaderControl(this);
@@ -4170,10 +4767,17 @@ namespace BrightIdeasSoftware
             ColumnClickEventArgs eventArgs = new ColumnClickEventArgs(columnIndex);
             this.OnColumnRightClick(eventArgs);
 
-            if (this.SelectColumnsOnRightClick)
-                this.ShowColumnSelectMenu(Cursor.Position);
+            if (this.ShowCommandMenuOnRightClick) {
+                this.ShowColumnCommandMenu(columnIndex, Cursor.Position);
+                return true;
+            }
 
-            return this.SelectColumnsOnRightClick;
+            if (this.SelectColumnsOnRightClick) {
+                this.ShowColumnSelectMenu(Cursor.Position);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -4193,6 +4797,147 @@ namespace BrightIdeasSoftware
         protected virtual void ShowColumnSelectMenu(Point pt) {
             ToolStripDropDown m = this.MakeColumnSelectMenu(new ContextMenuStrip());
             m.Show(pt);
+        }
+
+        /// <summary>
+        /// Show a popup menu at the given point which will allow the user to choose which columns
+        /// are visible on this listview
+        /// </summary>
+        /// <param name="pt">Where should the menu be placed</param>
+        protected virtual void ShowColumnCommandMenu(int columnIndex, Point pt) {
+            ToolStripDropDown m = this.MakeColumnCommandMenu(new ContextMenuStrip(), columnIndex);
+            if (this.ShowCommandMenuOnRightClick) {
+                if (m.Items.Count > 0)
+                    m.Items.Add(new ToolStripSeparator());
+                this.MakeColumnSelectMenu(m);
+            }
+            m.Show(pt);
+        }
+
+        [Category("Labels - ObjectListView"), DefaultValue("Sort ascending by '{0}'"), Localizable(true)]
+        public string MenuLabelSortAscending {
+            get { return this.menuLabelSortAscending; }
+            set { this.menuLabelSortAscending = value; }
+        }
+        private string menuLabelSortAscending = "Sort ascending by '{0}'";
+
+        [Category("Labels - ObjectListView"), DefaultValue("Sort descending by '{0}'"), Localizable(true)]
+        public string MenuLabelSortDescending {
+            get { return this.menuLabelSortDescending; }
+            set { this.menuLabelSortDescending = value; }
+        }
+        private string menuLabelSortDescending = "Sort descending by '{0}'";
+
+        [Category("Labels - ObjectListView"), DefaultValue("Group by '{0}'"), Localizable(true)]
+        public string MenuLabelGroupBy {
+            get { return this.menuLabelGroupBy; }
+            set { this.menuLabelGroupBy = value; }
+        }
+        private string menuLabelGroupBy = "Group by '{0}'";
+
+        [Category("Labels - ObjectListView"), DefaultValue("Lock grouping on '{0}'"), Localizable(true)]
+        public string MenuLabelLockGroupingOn {
+            get { return this.menuLabelLockGroupingOn; }
+            set { this.menuLabelLockGroupingOn = value; }
+        }
+        private string menuLabelLockGroupingOn = "Lock grouping on '{0}'";
+
+        [Category("Labels - ObjectListView"), DefaultValue("Unlock grouping from '{0}'"), Localizable(true)]
+        public string MenuLabelUnlockGroupingOn {
+            get { return this.menuLabelUnlockGroupingOn; }
+            set { this.menuLabelUnlockGroupingOn = value; }
+        }
+        private string menuLabelUnlockGroupingOn = "Unlock grouping from '{0}'";
+
+        [Category("Labels - ObjectListView"), DefaultValue("Turn off groups"), Localizable(true)]
+        public string MenuLabelTurnOffGroups {
+            get { return this.menuLabelTurnOffGroups; }
+            set { this.menuLabelTurnOffGroups = value; }
+        }
+        private string menuLabelTurnOffGroups = "Turn off groups";
+
+        [Category("Labels - ObjectListView"), DefaultValue("Unsort"), Localizable(true)]
+        public string MenuLabelUnsort {
+            get { return this.menuLabelUnsort; }
+            set { this.menuLabelUnsort = value; }
+        }
+        private string menuLabelUnsort = "Unsort";
+
+        /// <summary>
+        /// Append the column selection menu items to the given menu strip.
+        /// </summary>
+        /// <param name="strip">The menu to which the items will be added.</param>
+        /// <returns>Return the menu to which the items were added</returns>
+        public virtual ToolStripDropDown MakeColumnCommandMenu(ToolStripDropDown strip, int columnIndex) {
+            //TODO: Embed some resources so we can put images against these commands
+            OLVColumn column = this.GetColumn(columnIndex);
+            if (column == null)
+                return strip;
+
+            string label = String.Format(this.MenuLabelSortAscending, column.Text);
+            if (!String.IsNullOrEmpty(label)) {
+                strip.Items.Add(label, null, (EventHandler)delegate(object sender, EventArgs args) {
+                    this.Sort(column, SortOrder.Ascending);
+                });
+            }
+            label = String.Format(this.MenuLabelSortDescending, column.Text);
+            if (!String.IsNullOrEmpty(label)) {
+                strip.Items.Add(label, null, (EventHandler)delegate(object sender, EventArgs args) {
+                    this.Sort(column, SortOrder.Descending);
+                });
+            }
+            if (this.CanShowGroups) {
+                label = String.Format(this.MenuLabelGroupBy, column.Text);
+                if (!String.IsNullOrEmpty(label)) {
+                    strip.Items.Add(label, null, (EventHandler)delegate(object sender, EventArgs args) {
+                        this.ShowGroups = true;
+                        this.PrimarySortColumn = column;
+                        this.PrimarySortOrder = SortOrder.Ascending;
+                        this.BuildList();
+                    });
+                }
+            }
+            if (this.ShowGroups) {
+                if (this.AlwaysGroupByColumn == column) {
+                    label = String.Format(this.MenuLabelUnlockGroupingOn, column.Text);
+                    if (!String.IsNullOrEmpty(label)) {
+                        strip.Items.Add(label, null, (EventHandler)delegate(object sender, EventArgs args) {
+                            this.AlwaysGroupByColumn = null;
+                            this.AlwaysGroupBySortOrder = SortOrder.Ascending;
+                            this.BuildList();
+                        });
+                    }
+                } else {
+                    label = String.Format(this.MenuLabelLockGroupingOn, column.Text);
+                    if (!String.IsNullOrEmpty(label)) {
+                        strip.Items.Add(label, null, (EventHandler)delegate(object sender, EventArgs args) {
+                            this.ShowGroups = true;
+                            this.AlwaysGroupByColumn = column;
+                            this.AlwaysGroupBySortOrder = SortOrder.Ascending;
+                            this.BuildList();
+                        });
+                    }
+                }
+                label = String.Format(this.MenuLabelTurnOffGroups, column.Text);
+                if (!String.IsNullOrEmpty(label)) {
+                    strip.Items.Add(label, null, (EventHandler)delegate(object sender, EventArgs args) {
+                        this.ShowGroups = false;
+                        this.BuildList();
+                    });
+                }
+            } else {
+                label = String.Format(this.MenuLabelUnsort, column.Text);
+                if (!String.IsNullOrEmpty(label)) {
+                    strip.Items.Add(label, null, (EventHandler)delegate(object sender, EventArgs args) {
+                        this.ShowGroups = false;
+                        this.PrimarySortColumn = null;
+                        this.PrimarySortOrder = SortOrder.None;
+                        this.BuildList();
+                    });
+                }
+            }
+
+            return strip;
         }
 
         /// <summary>
@@ -4229,16 +4974,21 @@ namespace BrightIdeasSoftware
         }
 
         private void ColumnSelectMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
-            ToolStripMenuItem mi = (ToolStripMenuItem)e.ClickedItem;
-            OLVColumn col = (OLVColumn)mi.Tag;
-            mi.Checked = !mi.Checked;
-            col.IsVisible = mi.Checked;
+            this.lastMenuItemClicked = (ToolStripMenuItem)e.ClickedItem;
+            OLVColumn col = this.lastMenuItemClicked.Tag as OLVColumn;
+            if (col == null)
+                return;
+            this.lastMenuItemClicked.Checked = !this.lastMenuItemClicked.Checked;
+            col.IsVisible = this.lastMenuItemClicked.Checked;
             this.BeginInvoke(new MethodInvoker(this.RebuildColumns));
         }
+        ToolStripMenuItem lastMenuItemClicked;
 
         private void ColumnSelectMenu_Closing(object sender, ToolStripDropDownClosingEventArgs e) {
             e.Cancel = (this.SelectColumnsMenuStaysOpen &&
-                e.CloseReason == ToolStripDropDownCloseReason.ItemClicked);
+                e.CloseReason == ToolStripDropDownCloseReason.ItemClicked &&
+                this.lastMenuItemClicked != null &&
+                this.lastMenuItemClicked.Tag is OLVColumn);
         }
 
         /// <summary>
@@ -4590,7 +5340,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Return a collection of columns that are appropriate to the given view.
+        /// Return a collection of columns that are visible to the given view.
         /// Only Tile and Details have columns; all other views have 0 columns.
         /// </summary>
         /// <param name="view">Which view are the columns being calculate for?</param>
@@ -4601,12 +5351,14 @@ namespace BrightIdeasSoftware
             // that property returns -1. So, we track the index of
             // the column header, and always include the first header.
 
-            int index = 0;
             switch (view) {
                 case View.Details:
-                    return this.AllColumns.FindAll(delegate(OLVColumn x) { return (index++ == 0) || x.IsVisible; });
                 case View.Tile:
-                    return this.AllColumns.FindAll(delegate(OLVColumn x) { return (index++ == 0) || x.IsTileViewColumn; });
+                    int index = 0;
+                    return this.AllColumns.FindAll(delegate(OLVColumn x) { 
+                        return (index++ == 0) || x.IsVisible; 
+                    });
+                    //return this.AllColumns.FindAll(delegate(OLVColumn x) { return (index++ == 0) || x.IsTileViewColumn; });
                 default:
                     return new List<OLVColumn>();
             }
@@ -4664,6 +5416,20 @@ namespace BrightIdeasSoftware
             }
 
             return (OLVListItem)info.Item;
+        }
+
+        /// <summary>
+        /// Return the sub item at the given index/column
+        /// </summary>
+        /// <param name="index">Index of the item to be returned</param>
+        /// <param name="index">Index of the subitem to be returned</param>
+        /// <returns>An OLVListSubItem</returns>
+        public virtual OLVListSubItem GetSubItem(int index, int columnIndex) {
+            OLVListItem olvi = this.GetItem(index);
+            if (olvi == null)
+                return null;
+            else
+                return olvi.GetSubItem(columnIndex);
         }
 
         #endregion
@@ -4726,8 +5492,6 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Find the given model object within the listview and return its index
         /// </summary>
-        /// <remarks>Technically, this method will work with virtual lists, but it will
-        /// probably be very slow.</remarks>
         /// <param name="modelObject">The model object to be found</param>
         /// <returns>The index of the object. -1 means the object was not present</returns>
         public virtual int IndexOf(Object modelObject) {
@@ -4744,21 +5508,10 @@ namespace BrightIdeasSoftware
         /// <remarks>This method does not resort or regroup the view. It simply updates
         /// the displayed data of the given item</remarks>
         public virtual void RefreshItem(OLVListItem olvi) {
+            olvi.UseItemStyleForSubItems = true;
             olvi.SubItems.Clear();
             this.FillInValues(olvi, olvi.RowObject);
-            this.SetSubItemImages(olvi.Index, olvi, true);
-
-            // Calculate the background color
-            if (this.UseAlternatingBackColors) {
-                int rowIndex = this.GetItemIndexInDisplayOrder(olvi);
-                Color newBackColor = this.BackColor;
-                if (rowIndex % 2 != 0)
-                    newBackColor = this.AlternateRowBackColorOrDefault;
-                if (olvi.BackColor != newBackColor) {
-                    olvi.BackColor = newBackColor;
-                    this.CorrectSubItemColors(olvi);
-                }
-            }
+            this.PostProcessOneRow(olvi.Index, this.GetItemIndexInDisplayOrder(olvi), olvi);
         }
 
         /// <summary>
@@ -4910,7 +5663,7 @@ namespace BrightIdeasSoftware
 
         #endregion
 
-        #region Column Sorting
+        #region Column sorting
 
         /// <summary>
         /// Sort the items by the last sort column and order
@@ -4961,9 +5714,13 @@ namespace BrightIdeasSoftware
         public virtual void Sort(OLVColumn columnToSort, SortOrder order) {
             if (this.InvokeRequired) {
                 this.Invoke((MethodInvoker)delegate { this.Sort(columnToSort, order); });
-                return;
+            } else {
+                this.DoSort(columnToSort, order);
+                this.PostProcessRows();
             }
+        }
 
+        private void DoSort(OLVColumn columnToSort, SortOrder order) {
             // Sanity checks
             if (this.GetItemCount() == 0 || this.Columns.Count == 0)
                 return;
@@ -5023,30 +5780,6 @@ namespace BrightIdeasSoftware
             this.RefreshHotItem();
 
             this.OnAfterSorting(new AfterSortingEventArgs(args));
-        }
-
-        /// <summary>
-        /// When grouping items, there are some constraints that must always be observed.
-        /// In particular, if AlwaysGroupByColumn property is set, it must be honoured.
-        /// </summary>
-        /// <param name="columnToSort"></param>
-        /// <param name="order"></param>
-        private void RationalizeColumnForGrouping(ref OLVColumn columnToSort, ref SortOrder order,
-            ref OLVColumn secondaryColumn, ref SortOrder secondaryOrder) {
-            if (this.AlwaysGroupByColumn != null) {
-                secondaryColumn = columnToSort;
-                secondaryOrder = order;
-                columnToSort = this.AlwaysGroupByColumn;
-            }
-            if (this.AlwaysGroupBySortOrder != SortOrder.None) {
-                order = this.AlwaysGroupBySortOrder;
-            }
-
-            // Groups have to have a sorting column
-            if (columnToSort == null && this.Columns.Count > 0)
-                columnToSort = this.GetColumn(0);
-            if (order == SortOrder.None)
-                order = SortOrder.Ascending;
         }
 
         /// <summary>
@@ -5142,10 +5875,22 @@ namespace BrightIdeasSoftware
             return bm;
         }
 
-
         #endregion
 
         #region Utilities
+
+        /// <summary>
+        /// Do the actual work of creating the given list of groups
+        /// </summary>
+        /// <param name="groups"></param>
+        protected virtual void CreateGroups(IList<OLVGroup> groups) {
+            this.Groups.Clear();
+            // The group must be added before it is given items, otherwise an exception is thrown (is this documented?)
+            foreach (OLVGroup group in groups) {
+                group.InsertGroupOldStyle(this);
+                group.SetItemsOldStyle();
+            }
+        }
 
         /// <summary>
         /// For some reason, UseItemStyleForSubItems doesn't work for the colors
@@ -5156,12 +5901,6 @@ namespace BrightIdeasSoftware
         /// <remarks>Cells drawn via BaseRenderer don't need this, but it is needed
         /// when an owner drawn cell uses DrawDefault=true</remarks>
         protected virtual void CorrectSubItemColors(ListViewItem olvi) {
-            //if (this.OwnerDraw && olvi.UseItemStyleForSubItems)
-            //    foreach (ListViewItem.ListViewSubItem si in olvi.SubItems) {
-            //        si.BackColor = olvi.BackColor;
-            //        si.ForeColor = olvi.ForeColor;
-            //        si.Font = olvi.Font;
-            //    }
         }
 
         /// <summary>
@@ -5173,14 +5912,23 @@ namespace BrightIdeasSoftware
             if (this.Columns.Count == 0)
                 return;
 
-            OLVColumn column = this.GetColumn(0);
-            lvi.Text = column.GetStringValue(rowObject);
-            lvi.ImageSelector = column.GetImage(rowObject);
+            OLVListSubItem subItem = this.MakeSubItem(rowObject, this.GetColumn(0));
+            lvi.SubItems[0] = subItem;
+            lvi.ImageSelector = subItem.ImageSelector;
 
-            for (int i = 1; i < this.Columns.Count; i++) {
-                column = this.GetColumn(i);
-                lvi.SubItems.Add(new OLVListSubItem(column.GetStringValue(rowObject),
-                                                    column.GetImage(rowObject)));
+            // Only Details and Tile views have subitems
+            if (this.View == View.Details) {
+                for (int i = 1; i < this.Columns.Count; i++) {
+                    lvi.SubItems.Add(this.MakeSubItem(rowObject, this.GetColumn(i)));
+                }
+            } else {
+                if (this.View == View.Tile) {
+                    for (int i = 1; i < this.Columns.Count; i++) {
+                        OLVColumn column = this.GetColumn(i);
+                        if (column.IsTileViewColumn)
+                            lvi.SubItems.Add(this.MakeSubItem(rowObject, column));
+                    }
+                }
             }
 
             // Give the item the same font/colors as the control
@@ -5188,17 +5936,53 @@ namespace BrightIdeasSoftware
             lvi.BackColor = this.BackColor;
             lvi.ForeColor = this.ForeColor;
 
-            // Give the row formatter a chance to mess with the item
-            if (this.RowFormatter != null)
-                this.RowFormatter(lvi);
-
-            this.CorrectSubItemColors(lvi);
-
             // Set the check state of the row, if we are showing check boxes
             if (this.CheckBoxes) {
                 CheckState? state = this.GetCheckState(lvi.RowObject);
                 if (state.HasValue)
                     lvi.CheckState = (CheckState)state;
+            }
+
+            // Give the RowFormatter a chance to mess with the item
+            if (this.RowFormatter != null) {
+                this.RowFormatter(lvi);
+            }
+        }
+
+        private OLVListSubItem MakeSubItem(object rowObject, OLVColumn column) {
+            OLVListSubItem subItem = new OLVListSubItem(column.GetStringValue(rowObject),
+                                                        column.GetImage(rowObject));
+            if (this.UseHyperlinks && column.Hyperlink) {
+                IsHyperlinkEventArgs args = new IsHyperlinkEventArgs();
+                args.ListView = this;
+                args.Model = rowObject;
+                args.Column = column;
+                args.Text = subItem.Text;
+                args.Url = subItem.Text;
+                this.OnIsHyperlink(args);
+                subItem.Url = args.Url;
+            }
+
+            return subItem;
+        }
+
+        private void ApplyHyperlinkStyle(int rowIndex, OLVListItem olvi) {
+            olvi.UseItemStyleForSubItems = false;
+
+            // If subitem 0 is given a back color, the item back color is changed too.
+            // So we have to remember it here so we can used it even if subitem 0 is changed.
+            Color itemBackColor = olvi.BackColor;
+
+            for (int i = 0; i < this.Columns.Count; i++) {
+                OLVListSubItem subItem = olvi.GetSubItem(i);
+                OLVColumn column = this.GetColumn(i);
+                subItem.BackColor = itemBackColor;
+                if (column.Hyperlink && !String.IsNullOrEmpty(subItem.Url)) {
+                    if (this.IsUrlVisited(subItem.Url))
+                        this.ApplyCellStyle(olvi, i, this.HyperlinkStyle.Visited);
+                    else
+                        this.ApplyCellStyle(olvi, i, this.HyperlinkStyle.Normal);
+                }
             }
         }
 
@@ -5208,7 +5992,9 @@ namespace BrightIdeasSoftware
         /// <remarks>This method must be called after any .NET call that update the extended styles
         /// since they seem to erase this setting.</remarks>
         protected virtual void ForceSubItemImagesExStyle() {
-            NativeMethods.ForceSubItemImagesExStyle(this);
+            // Virtual lists can't show subitem images natively, so don't turn on this flag
+            if (!this.VirtualMode)
+                NativeMethods.ForceSubItemImagesExStyle(this);
         }
 
         /// <summary>
@@ -5252,10 +6038,18 @@ namespace BrightIdeasSoftware
         /// <param name="columnIndex">The column index whose tool tip is to be fetched</param>
         /// <returns>A string or null if no tool tip is to be shown</returns>
         public virtual String GetCellToolTip(int columnIndex, int rowIndex) {
-            if (this.CellToolTipGetter == null)
-                return null;
-            else
+            if (this.CellToolTipGetter != null)
                 return this.CellToolTipGetter(this.GetColumn(columnIndex), this.GetModelObject(rowIndex));
+
+            // Show the URL in the tooltip if it's different to the text
+            if (columnIndex >= 0) {
+                OLVListSubItem si = this.GetSubItem(rowIndex, columnIndex);
+                if (si != null && !String.IsNullOrEmpty(si.Url) && si.Url != si.Text &&
+                    this.HotCellHitLocation == HitTestLocation.Text)
+                    return si.Url;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -5276,6 +6070,53 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Do the work required after the items in a listview have been created
+        /// </summary>
+        protected virtual void PostProcessRows() {
+            // If this method is called during a BeginUpdate/EndUpdate pair, changes to the
+            // Items collection are cached. Getting the Count flushes that cache.
+            int count = this.Items.Count;
+
+            //if (this.ShowImagesOnSubItems)
+            //    this.ForceSubItemImagesExStyle();
+
+            int i = 0;
+            if (this.ShowGroups) {
+                foreach (ListViewGroup group in this.Groups) {
+                    foreach (OLVListItem olvi in group.Items) {
+                        this.PostProcessOneRow(olvi.Index, i, olvi);
+                        i++;
+                    }
+                }
+            } else {
+                foreach (OLVListItem olvi in this.Items) {
+                    this.PostProcessOneRow(olvi.Index, i, olvi);
+                    i++;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Do the work required after one item in a listview have been created
+        /// </summary>
+        protected virtual void PostProcessOneRow(int rowIndex, int displayIndex, OLVListItem olvi) {
+            if (this.UseAlternatingBackColors) {
+                if (displayIndex % 2 == 1) {
+                    olvi.BackColor = this.AlternateRowBackColorOrDefault;
+                } else {
+                    olvi.BackColor = this.BackColor;
+                }
+            }
+            if (this.ShowImagesOnSubItems && !this.VirtualMode) {
+                this.SetSubItemImages(rowIndex, olvi);
+            }
+            if (this.UseHyperlinks) {
+                this.ApplyHyperlinkStyle(rowIndex, olvi);
+            }
+            this.TriggerFormatRowEvent(rowIndex, displayIndex, olvi);
+        }
+
+        /// <summary>
         /// Prepare the listview to show alternate row backcolors
         /// </summary>
         /// <remarks>We cannot rely on lvi.Index in this method.
@@ -5284,46 +6125,20 @@ namespace BrightIdeasSoftware
         /// useable because it still refers to the position in the overall list, not the display order.
         ///</remarks>
         protected virtual void PrepareAlternateBackColors() {
-            // If this method is called during a BeginUpdate/EndUpdate pair, changes to the
-            // Items collection are cached. Getting the Count flushes that cache.
-            int count = this.Items.Count;
-
-            Color rowBackColor = this.AlternateRowBackColorOrDefault;
-            int i = 0;
-            if (this.ShowGroups) {
-                foreach (ListViewGroup group in this.Groups) {
-                    foreach (ListViewItem lvi in group.Items) {
-                        if (i % 2 == 0)
-                            lvi.BackColor = this.BackColor;
-                        else
-                            lvi.BackColor = rowBackColor;
-                        CorrectSubItemColors(lvi);
-                        i++;
-                    }
-                }
-            } else {
-                foreach (ListViewItem lvi in this.Items) {
-                    if (i % 2 == 0)
-                        lvi.BackColor = this.BackColor;
-                    else
-                        lvi.BackColor = rowBackColor;
-                    CorrectSubItemColors(lvi);
-                    i++;
-                }
-            }
         }
 
         /// <summary>
         /// Setup all subitem images on all rows
         /// </summary>
+        [Obsolete("This method is not longer maintained and will be removed", false)]
         protected virtual void SetAllSubItemImages() {
-            if (!this.ShowImagesOnSubItems || this.OwnerDraw)
-                return;
+            //if (!this.ShowImagesOnSubItems || this.OwnerDraw)
+            //    return;
 
-            this.ForceSubItemImagesExStyle();
+            //this.ForceSubItemImagesExStyle();
 
-            for (int rowIndex = 0; rowIndex < this.GetItemCount(); rowIndex++)
-                SetSubItemImages(rowIndex, this.GetItem(rowIndex));
+            //for (int rowIndex = 0; rowIndex < this.GetItemCount(); rowIndex++)
+            //    SetSubItemImages(rowIndex, this.GetItem(rowIndex));
         }
 
         /// <summary>
@@ -5346,7 +6161,7 @@ namespace BrightIdeasSoftware
                 return;
 
             for (int i = 1; i < item.SubItems.Count; i++) {
-                this.SetSubItemImage(rowIndex, i, (OLVListSubItem)item.SubItems[i], shouldClearImages);
+                this.SetSubItemImage(rowIndex, i, item.GetSubItem(i), shouldClearImages);
             }
         }
 
@@ -5387,6 +6202,47 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Trigger FormatRow and possibly FormatCell events for the given item
+        /// </summary>
+        /// <param name="rowIndex"></param>
+        /// <param name="displayIndex"></param>
+        /// <param name="olvi"></param>
+        protected virtual void TriggerFormatRowEvent(int rowIndex, int displayIndex, OLVListItem olvi) {
+            FormatRowEventArgs args = new FormatRowEventArgs();
+            args.ListView = this;
+            args.RowIndex = rowIndex;
+            args.DisplayIndex = displayIndex;
+            args.Item = olvi;
+            args.UseCellFormatEvents = this.UseCellFormatEvents;
+            this.OnFormatRow(args);
+
+            if (args.UseCellFormatEvents && this.View == View.Details) {
+                // If a cell isn't given its own color, it should use the color of the item.
+                // However, there is a bug in the .NET framework where the cell are given
+                // the color of the ListView instead. So we have to explicitly give each
+                // cell the back color that it should have.
+                olvi.UseItemStyleForSubItems = false;
+                Color backColor = olvi.BackColor;
+                for (int i = 0; i < this.Columns.Count; i++) {
+                    olvi.SubItems[i].BackColor = backColor;
+                }
+
+                // Fire one event per cell
+                FormatCellEventArgs args2 = new FormatCellEventArgs();
+                args2.ListView = this;
+                args2.RowIndex = rowIndex;
+                args2.DisplayIndex = displayIndex;
+                args2.Item = olvi;
+                for (int i = 0; i < this.Columns.Count; i++) {
+                    args2.ColumnIndex = i;
+                    args2.Column = this.GetColumn(i);
+                    args2.SubItem = olvi.GetSubItem(i);
+                    this.OnFormatCell(args2);
+                }
+            }
+        }
+
         #endregion
 
         #region ISupportInitialize Members
@@ -5420,7 +6276,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         private void SetupBaseImageList() {
             // If a row height hasn't been set, or an image list has been give which is the required size, just assign it
-            if (rowHeight == -1 || 
+            if (rowHeight == -1 ||
                 this.View != View.Details ||
                 (this.shadowedImageList != null && this.shadowedImageList.ImageSize.Height == rowHeight))
                 this.BaseSmallImageList = this.shadowedImageList;
@@ -5491,7 +6347,7 @@ namespace BrightIdeasSoftware
                 this.StateImageList.ImageSize = new Size(16, 16);
             }
 
-            if (this.RowHeight != -1 && 
+            if (this.RowHeight != -1 &&
                 this.View == View.Details &&
                 this.StateImageList.ImageSize.Height != this.RowHeight) {
                 this.StateImageList = new ImageList();
@@ -5616,7 +6472,7 @@ namespace BrightIdeasSoftware
             Rectangle r = e.Bounds;
 
             // Optimize drawing by only redrawing subitems that touch the area that was damaged
-            if (!r.IntersectsWith(this.lastUpdateRectangle)) 
+            if (!r.IntersectsWith(this.lastUpdateRectangle))
                 return;
 
             // Get the special renderer for this column. If there isn't one, use the default draw mechanism.
@@ -5638,6 +6494,10 @@ namespace BrightIdeasSoftware
                 g = buffer.Graphics;
             }
 
+            // Default to high quality drawing
+            g.TextRenderingHint = ObjectListView.TextRendereringHint;
+            g.SmoothingMode = SmoothingMode.HighQuality;
+
             // Finally, give the renderer a chance to draw something
             e.DrawDefault = !renderer.RenderSubItem(e, g, r, ((OLVListItem)e.Item).RowObject);
 
@@ -5652,6 +6512,7 @@ namespace BrightIdeasSoftware
 
         #region OnEvent Handling
 
+
         /// <summary>
         /// We need the click count in the mouse up event, but that is always 1.
         /// So we have to remember the click count from the preceding mouse down event.
@@ -5661,7 +6522,7 @@ namespace BrightIdeasSoftware
             base.OnMouseDown(e);
             this.lastMouseDownClickCount = e.Clicks;
         }
-        private int lastMouseDownClickCount = 0;
+        private int lastMouseDownClickCount;
 
         /// <summary>
         /// When the mouse leaves the control, remove any hot item highlighting
@@ -5686,11 +6547,14 @@ namespace BrightIdeasSoftware
         /// <param name="e"></param>
         protected override void OnMouseMove(MouseEventArgs e) {
             base.OnMouseMove(e);
-            this.UpdateHotItem(e.Location);
 
             CellOverEventArgs args = new CellOverEventArgs();
             this.BuildCellEvent(args, e.Location);
             this.OnCellOver(args);
+
+            if (!args.Handled) {
+                this.UpdateHotItem(args.HitTest);
+            }
         }
 
         /// <summary>
@@ -5724,19 +6588,71 @@ namespace BrightIdeasSoftware
             if (args.Handled)
                 return;
 
+            // Did the user click a hyperlink?
+            if (this.UseHyperlinks &&
+                args.HitTest.HitTestLocation == HitTestLocation.Text &&
+                args.SubItem != null &&
+                !String.IsNullOrEmpty(args.SubItem.Url)) {
+                this.ProcessHyperlinkClicked(args);
+            }
+
             // No one handled it so check to see if we should start editing.
-            // We only start the edit if the user clicked on something (not a dead zone).
+            // We only start the edit if the user clicked on the image or text.
             if (this.ShouldStartCellEdit(e) &&
                 args.HitTest.HitTestLocation != HitTestLocation.Nothing) {
-                // In non-details views, ColumnIndex will be -1
-                int columnIndex = Math.Max(0, args.ColumnIndex);
 
                 // We don't edit the primary column by single clicks -- only subitems.
-                if (this.CellEditActivation != CellEditActivateMode.SingleClick || columnIndex > 0)
-                    this.EditSubItem(args.Item, columnIndex);
+                if (this.CellEditActivation != CellEditActivateMode.SingleClick || args.ColumnIndex > 0)
+                    this.EditSubItem(args.Item, args.ColumnIndex);
             }
         }
-        
+
+        /// <summary>
+        /// Tell the world that a hyperlink was clicked and if the event isn't handled,
+        /// do the default processing.
+        /// </summary>
+        /// <param name="e"></param>
+        protected virtual void ProcessHyperlinkClicked(CellClickEventArgs e) {
+            HyperlinkClickedEventArgs args = new HyperlinkClickedEventArgs();
+            args.HitTest = e.HitTest;
+            args.ListView = this;
+            args.Location = new Point(-1, -1);
+            args.Item = e.Item;
+            args.SubItem = e.SubItem;
+            args.Model = e.Model;
+            args.ColumnIndex = e.ColumnIndex;
+            args.Column = e.Column;
+            args.RowIndex = e.RowIndex;
+            args.ModifierKeys = Control.ModifierKeys;
+            args.Url = e.SubItem.Url;
+            this.OnHyperlinkClicked(args);
+            if (!args.Handled) {
+                this.StandardHyperlinkClickedProcessing(args);
+            }
+        }
+
+        /// <summary>
+        /// Do the default processing for a hyperlink clicked event, which
+        /// is to try and open the url.
+        /// </summary>
+        /// <param name="args"></param>
+        protected virtual void StandardHyperlinkClickedProcessing(HyperlinkClickedEventArgs args) {
+            Cursor originalCursor = this.Cursor;
+            try {
+                this.Cursor = Cursors.WaitCursor;
+                System.Diagnostics.Process.Start(args.Url);
+            }
+            catch (Win32Exception) {
+                System.Media.SystemSounds.Beep.Play();
+                // ignore it
+            }
+            finally {
+                this.Cursor = originalCursor;
+            }
+            this.MarkUrlVisited(args.Url);
+            this.RefreshHotItem();
+        }
+
         /// <summary>
         /// The user right clicked on the control
         /// </summary>
@@ -5765,6 +6681,14 @@ namespace BrightIdeasSoftware
             if (hitTest.Item != null)
                 args.RowIndex = hitTest.Item.Index;
             args.ModifierKeys = Control.ModifierKeys;
+
+            // In non-details view, we want any hit on an item to act as if it was a hit
+            // on column 0 -- which, effectively, it was.
+            if (args.Item != null && args.ListView.View != View.Details) {
+                args.ColumnIndex = 0;
+                args.Column = args.ListView.GetColumn(0);
+                args.SubItem = args.Item.GetSubItem(0);
+            }
         }
 
         /// <summary>
@@ -5783,6 +6707,30 @@ namespace BrightIdeasSoftware
                 this.hasIdleHandler = true;
                 Application.Idle += new EventHandler(HandleApplicationIdle);
             }
+        }
+
+        protected override void OnHandleCreated(EventArgs e) {
+            base.OnHandleCreated(e);
+
+            this.Invoke((MethodInvoker)this.OnControlCreated);
+        }
+
+        /// <summary>
+        /// This method is called after the control has been fully created.
+        /// </summary>
+        protected virtual void OnControlCreated() {
+
+            // Force the header control to be created when the listview handle is
+            HeaderControl hc = this.HeaderControl;
+            hc.WordWrap = this.HeaderWordWrap;
+
+            // Make sure any overlays that are set on the hot item style take effect
+            this.HotItemStyle = this.HotItemStyle;
+
+            // Arrange for any group images to be installed after the control is created
+            NativeMethods.SetGroupImageList(this, this.GroupImageList);
+
+            this.UseExplorerTheme = this.UseExplorerTheme;
         }
 
         #endregion
@@ -5935,8 +6883,8 @@ namespace BrightIdeasSoftware
             this.ConfigureControl();
             this.PauseAnimations(true);
         }
-        private Control cellEditor = null;
-        private CellEditEventArgs cellEditEventArgs = null;
+        private Control cellEditor;
+        private CellEditEventArgs cellEditEventArgs;
 
         /// <summary>
         /// Calculate the bounds of the edit control for the given item/column
@@ -5945,7 +6893,11 @@ namespace BrightIdeasSoftware
         /// <param name="subItemIndex"></param>
         /// <returns></returns>
         public Rectangle CalculateCellEditorBounds(OLVListItem item, int subItemIndex) {
-            Rectangle r = this.CalculateCellBounds(item, subItemIndex);
+            Rectangle r;
+            if (this.View == View.Details)
+                r = item.GetSubItemBounds(subItemIndex);
+            else
+                r = this.GetItemRect(item.Index, ItemBoundsPortion.Label);
             if (this.OwnerDraw)
                 return CalculateCellEditorBoundsOwnerDrawn(item, subItemIndex, r);
             else
@@ -5983,7 +6935,7 @@ namespace BrightIdeasSoftware
         /// <returns>A rectangle that is the bounds of the cell editor</returns>
         protected Rectangle CalculateCellEditorBoundsStandard(OLVListItem item, int subItemIndex, Rectangle cellBounds) {
             if (this.View != View.Details)
-                return cellBounds;//            this.GetItemRect(item.Index, ItemBoundsPortion.Label);
+                return cellBounds;//
 
             // Allow for image (if there is one)
             int offset = 0;
@@ -6129,7 +7081,7 @@ namespace BrightIdeasSoftware
         /// <returns>A Rectangle</returns>
         public virtual Rectangle CalculateCellBounds(OLVListItem item, int subItemIndex) {
             // We use ItemBoundsPortion.Label rather than ItemBoundsPortion.Item
-            // since Label extends to the right edge of the cell, whereas Item gives just the 
+            // since Label extends to the right edge of the cell, whereas Item gives just the
             // current text width.
             return this.CalculateCellBounds(item, subItemIndex, ItemBoundsPortion.Label);
         }
@@ -6201,7 +7153,8 @@ namespace BrightIdeasSoftware
         /// <returns></returns>
         protected virtual Control MakeDefaultCellEditor(OLVColumn column) {
             TextBox tb = new TextBox();
-            this.ConfigureAutoComplete(tb, column);
+            if (column.AutoCompleteEditor)
+                this.ConfigureAutoComplete(tb, column);
             return tb;
         }
 
@@ -6316,7 +7269,7 @@ namespace BrightIdeasSoftware
 
             this.cellEditor.Validating -= new CancelEventHandler(CellEditor_Validating);
             this.Controls.Remove(this.cellEditor);
-            this.cellEditor.Dispose(); //THINK: do we need to call this?
+            //this.cellEditor.Dispose(); //THINK: do we need to call this?
             this.cellEditor = null;
             this.Select();
             this.PauseAnimations(false);
@@ -6324,14 +7277,13 @@ namespace BrightIdeasSoftware
 
         #endregion
 
-        #region Hot Item handling
+        #region Hot row and cell handling
 
         /// <summary>
         /// Force the hot item to be recalculated
         /// </summary>
         public virtual void ClearHotItem() {
             this.UpdateHotItem(new Point(-1, -1));
-            //this.ClearTransitions();
         }
 
         /// <summary>
@@ -6347,166 +7299,194 @@ namespace BrightIdeasSoftware
         /// <param name="pt">Where is the mouse?</param>
         /// <remarks>This is the main entry point for hot item handling</remarks>
         protected virtual void UpdateHotItem(Point pt) {
-            if (!this.UseHotItem || this.HotItemStyle == null)
+            this.UpdateHotItem(this.OlvHitTest(pt.X, pt.Y));
+        }
+        /// <summary>
+        /// The mouse has moved to the given pt. See if the hot item needs to be updated
+        /// </summary>
+        /// <param name="pt">Where is the mouse?</param>
+        /// <remarks>This is the main entry point for hot item handling</remarks>
+        protected virtual void UpdateHotItem(OlvListViewHitTestInfo hti) {
+
+            int newHotRow = hti.RowIndex;
+            int newHotColumn = hti.ColumnIndex;
+            HitTestLocation newHotCellHitLocation = hti.HitTestLocation;
+
+            // In non-details view, we treat any hit on a row as if it were a hit
+            // on column 0 -- which (effectively) it is!
+            if (newHotRow >= 0 && this.View != View.Details)
+                newHotColumn = 0;
+
+            if (this.HotRowIndex == newHotRow &&
+                this.HotColumnIndex == newHotColumn &&
+                this.HotCellHitLocation == newHotCellHitLocation)
                 return;
 
-            // Figure out which item the mouse is over
-            int newHotItem = -1;
-            ListViewHitTestInfo hti = this.HitTest(pt);
-            if (hti.Item != null && !hti.Item.Selected) {
-                // If the list is full row select or they are hovering over column 0,
-                // then we pay attention to any change.
-                if (this.FullRowSelect || hti.Item.SubItems.IndexOf(hti.SubItem) == 0)
-                    newHotItem = hti.Item.Index;
-            }
+            // Trigger the hotitem changed event
+            HotItemChangedEventArgs args = new HotItemChangedEventArgs();
+            args.HotCellHitLocation = newHotCellHitLocation;
+            args.HotColumnIndex = newHotColumn;
+            args.HotRowIndex = newHotRow;
+            args.OldHotCellHitLocation = this.HotCellHitLocation;
+            args.OldHotColumnIndex = this.HotColumnIndex;
+            args.OldHotRowIndex = this.HotRowIndex;
+            this.OnHotItemChanged(args);
 
-            // If the hot item hasn't changed, we don't need to do anything else
-            if (this.HotItemIndex == newHotItem)
+            // Update the state of the control
+            this.HotRowIndex = newHotRow;
+            this.HotColumnIndex = newHotColumn;
+            this.HotCellHitLocation = newHotCellHitLocation;
+
+            // If the event handler handled it complete, don't do anything else
+            if (args.Handled)
                 return;
 
-            // Invalidate the old and new hot items so they are redrawn
-            int oldHotItem = this.HotItemIndex;
-            this.HotItemIndex = newHotItem;
             this.BeginUpdate();
             try {
-                if (oldHotItem != -1)
-                    this.UnapplyHotItemStyle(oldHotItem);
+                this.Invalidate();
+                if (args.OldHotRowIndex != -1)
+                    this.UnapplyHotItem(args.OldHotRowIndex);
 
-                if (newHotItem != -1)
-                    this.ApplyHotItemStyle(newHotItem);
+                if (this.HotRowIndex != -1) {
+                    // Virtual lists apply hot item style when fetching their rows
+                    if (this.VirtualMode)
+                        this.RedrawItems(this.HotRowIndex, this.HotRowIndex, true);
+                    else
+                        this.UpdateHotRow(this.HotRowIndex, this.HotColumnIndex, this.HotCellHitLocation, hti.Item);
+                }
+
+                if (this.UseHotItem && this.HotItemStyle != null && this.HotItemStyle.Overlay != null) {
+                    this.RefreshOverlays();
+                }
             }
             finally {
                 this.EndUpdate();
             }
         }
 
-        protected virtual void ApplyHotItemStyle(int index) {
-            //this.RegisterHotItemTransition(index);
-
-            // Virtual lists apply hot item style when fetching their rows
-            if (this.VirtualMode)
-                this.RedrawItems(index, index, false);
-            else
-                this.ApplyHotItemStyle(this.GetItem(index));
+        /// <summary>
+        /// Update the given row using the current hot item information
+        /// </summary>
+        /// <param name="olvi"></param>
+        protected virtual void UpdateHotRow(OLVListItem olvi) {
+            this.UpdateHotRow(this.HotRowIndex, this.HotColumnIndex, this.HotCellHitLocation, olvi);
         }
 
-        protected virtual void ApplyHotItemStyle(OLVListItem olvi) {
-            if (!this.FullRowSelect) {
-                this.ApplyHotItemStyle(olvi, olvi.SubItems[0]);
+        /// <summary>
+        /// Update the given row using the given hot item information
+        /// </summary>
+        /// <param name="rowIndex"></param>
+        /// <param name="columnIndex"></param>
+        /// <param name="hitLocation"></param>
+        /// <param name="olvi"></param>
+        protected virtual void UpdateHotRow(int rowIndex, int columnIndex, HitTestLocation hitLocation, OLVListItem olvi) {
+            if (rowIndex < 0 || columnIndex < 0)
                 return;
+
+            if (this.UseHyperlinks) {
+                OLVColumn column = this.GetColumn(columnIndex);
+                OLVListSubItem si = olvi.GetSubItem(columnIndex);
+                if (column.Hyperlink && hitLocation == HitTestLocation.Text && !String.IsNullOrEmpty(si.Url)) {
+                    this.ApplyCellStyle(olvi, columnIndex, this.HyperlinkStyle.Over);
+                    this.Cursor = this.HyperlinkStyle.OverCursor ?? Cursors.Default;
+                } else {
+                    this.Cursor = Cursors.Default;
+                }
             }
 
-            if (this.HotItemStyle.Font != null)
-                olvi.Font = this.HotItemStyle.Font;
-
-            if (this.HotItemStyle.FontStyle != FontStyle.Regular) {
-                Font f = olvi.Font;
-                if (f == null)
-                    f = this.Font;
-                olvi.Font = new Font(f, this.HotItemStyle.FontStyle);
+            if (this.UseHotItem) {
+                if (!olvi.Selected) {
+                    this.ApplyRowStyle(olvi, this.HotItemStyle);
+                }
             }
-
-            if (this.HotItemStyle.ForeColor != Color.Empty)
-                olvi.ForeColor = this.HotItemStyle.ForeColor;
-
-            if (this.HotItemStyle.BackColor != Color.Empty)
-                olvi.BackColor = this.HotItemStyle.BackColor;
-
-            this.CorrectSubItemColors(olvi);
         }
 
-        protected virtual void ApplyHotItemStyle(ListViewItem olvi, ListViewItem.ListViewSubItem si) {
+        protected virtual void ApplyRowStyle(OLVListItem olvi, IItemStyle style) {
+            if (style == null)
+                return;
+
+            if (this.FullRowSelect || this.View != View.Details) {
+                if (style.Font != null)
+                    olvi.Font = style.Font;
+
+                if (style.FontStyle != FontStyle.Regular)
+                    olvi.Font = new Font(olvi.Font ?? this.Font, style.FontStyle);
+
+                if (!style.ForeColor.IsEmpty) {
+                    if (olvi.UseItemStyleForSubItems)
+                        olvi.ForeColor = style.ForeColor;
+                    else {
+                        foreach (ListViewItem.ListViewSubItem x in olvi.SubItems) {
+                            x.ForeColor = style.ForeColor;
+                        }
+                    }
+                }
+
+                if (!style.BackColor.IsEmpty) {
+                    if (olvi.UseItemStyleForSubItems)
+                        olvi.BackColor = style.BackColor;
+                    else {
+                        foreach (ListViewItem.ListViewSubItem x in olvi.SubItems) {
+                            x.BackColor = style.BackColor;
+                        }
+                    }
+                }
+            } else {
+                olvi.UseItemStyleForSubItems = false;
+
+                foreach (ListViewItem.ListViewSubItem x in olvi.SubItems) {
+                    if (style.BackColor.IsEmpty)
+                        x.BackColor = olvi.BackColor;
+                    else
+                        x.BackColor = style.BackColor;
+                }
+
+                this.ApplyCellStyle(olvi, 0, style);
+            }
+        }
+
+        protected virtual void ApplyCellStyle(OLVListItem olvi, int columnIndex, IItemStyle style) {
+            if (style == null)
+                return;
+
+            // Don't apply formatting to subitems when not in Details view
+            if (this.View != View.Details && columnIndex > 0)
+                return;
+
             olvi.UseItemStyleForSubItems = false;
 
-            // Background color is applied to all sub items
-            foreach (ListViewItem.ListViewSubItem x in olvi.SubItems) {
-                if (this.HotItemStyle.BackColor == Color.Empty)
-                    x.BackColor = olvi.BackColor;
-                else
-                    x.BackColor = this.HotItemStyle.BackColor;
-                x.ForeColor = olvi.ForeColor;
-            }
+            ListViewItem.ListViewSubItem si = olvi.SubItems[columnIndex];
+            if (style.Font != null)
+                si.Font = style.Font;
 
-            if (this.HotItemStyle.Font != null)
-                si.Font = this.HotItemStyle.Font;
+            if (style.FontStyle != FontStyle.Regular)
+                si.Font = new Font(si.Font ?? olvi.Font ?? this.Font, style.FontStyle);
 
-            if (this.HotItemStyle.FontStyle != FontStyle.Regular) {
-                Font f = olvi.Font;
-                if (f == null)
-                    f = this.Font;
-                si.Font = new Font(f, this.HotItemStyle.FontStyle);
-            }
+            if (!style.ForeColor.IsEmpty)
+                si.ForeColor = style.ForeColor;
 
-            if (this.HotItemStyle.ForeColor != Color.Empty)
-                si.ForeColor = this.HotItemStyle.ForeColor;
+            if (!style.BackColor.IsEmpty)
+                si.BackColor = style.BackColor;
         }
 
-        protected virtual void UnapplyHotItemStyle(int index) {
-            if (this.VirtualMode)
-                this.RedrawItems(index, index, false);
-            else
-                this.UnapplyHotItemStyle(this.GetItem(index));
-        }
-
-        protected virtual void UnapplyHotItemStyle(OLVListItem olvi) {
-            if (olvi != null) {
-                olvi.UseItemStyleForSubItems = true;
-                this.RefreshItem(olvi);
-                //this.FillInValues(olvi, olvi.RowObject);
+        protected virtual void UnapplyHotItem(int index) {
+            this.Cursor = Cursors.Default;
+            // Virtual lists will apply the appropriate formatting when the row is fetched
+            if (this.VirtualMode) {
+                if (index < this.VirtualListSize)
+                    this.RedrawItems(index, index, true);
+            } else {
+                OLVListItem olvi = this.GetItem(index);
+                if (olvi != null) {
+                    //this.PostProcessOneRow(index, index, olvi);
+                    this.RefreshItem(olvi);
+                }
             }
         }
 
-        //Dictionary<int, TransitionState> transitionStateMap = new Dictionary<int, TransitionState>();
-
-        //internal TransitionState GetHotItemTransitionState(int rowIndex)
-        //{
-        //    TransitionState state;
-
-        //    if (this.transitionStateMap.TryGetValue(rowIndex, out state))
-        //        return state;
-        //    else
-        //        return null;
-        //}
-
-        //protected virtual void RegisterHotItemTransition(int newHotItem)
-        //{
-        //    if (this.GetHotItemTransitionState(newHotItem) == null)
-        //        this.transitionStateMap[newHotItem] = new TransitionState(newHotItem);
-        //}
-
-        //protected virtual void tickler_Tick(object sender, EventArgs e)
-        //{
-        //    if (this.InvokeRequired)
-        //        this.Invoke(new MethodInvoker(this.tickler_TickInUIThread));
-        //    else
-        //        this.tickler_TickInUIThread();
-        //}
-
-        //protected virtual void tickler_TickInUIThread()
-        //{
-        //    List<int> toRemove = new List<int>();
-        //    foreach (TransitionState state in this.transitionStateMap.Values) {
-        //        state.Tick(state.RowIndex == this.HotItemIndex);
-        //        if (!this.UseHotItem || state.IsDone || state.RowIndex >= this.GetItemCount())
-        //            toRemove.Add(state.RowIndex);
-        //        else
-        //            this.RedrawItems(state.RowIndex, state.RowIndex, false);
-        //    }
-
-        //    foreach (int rowIndex in toRemove) {
-        //        this.transitionStateMap.Remove(rowIndex);
-        //        this.RedrawItems(rowIndex, rowIndex, false);
-        //    }
-        //}
-
-        //protected virtual void ClearTransitions()
-        //{
-        //    foreach (TransitionState state in this.transitionStateMap.Values)
-        //        state.IsDone = true;
-        //}
 
         #endregion
-        
+
         #region Drag and drop
 
         protected override void OnItemDrag(ItemDragEventArgs e) {
@@ -6514,7 +7494,7 @@ namespace BrightIdeasSoftware
 
             if (this.DragSource == null)
                 return;
-            
+
             Object data = this.DragSource.StartDrag(this, e.Button, (OLVListItem)e.Item);
             if (data != null) {
                 DragDropEffects effect = this.DoDragDrop(data, this.DragSource.GetAllowedEffects(data));
@@ -6569,13 +7549,15 @@ namespace BrightIdeasSoftware
         #region Decorations and Overlays
 
         /// <summary>
-        /// Add the given overlay to those on this list and make it appear
+        /// Add the given decoration to those on this list and make it appear
         /// </summary>
-        /// <param name="overlay">The overlay</param>
+        /// <param name="decoration">The decoration</param>
         /// <remarks>
         /// A decoration scrolls with the listview. An overlay stays fixed in place.
         /// </remarks>
-        public virtual void AddDecoration(IOverlay decoration) {
+        public virtual void AddDecoration(IDecoration decoration) {
+            if (decoration == null)
+                return;
             this.Decorations.Add(decoration);
             this.Invalidate();
         }
@@ -6585,16 +7567,19 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="overlay">The overlay</param>
         public virtual void AddOverlay(IOverlay overlay) {
+            if (overlay == null)
+                return;
             this.Overlays.Add(overlay);
-            this.RefreshOverlays();
+            this.Invalidate();
         }
 
         /// <summary>
         /// Draw all the decorations
         /// </summary>
         /// <param name="g">A Graphics</param>
-        protected virtual void DrawAllDecorations(Graphics g) {
-            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+        /// <param name="drawnItems">The items that were redrawn and whose decorations should also be redrawn</param>
+        protected virtual void DrawAllDecorations(Graphics g, List<OLVListItem> drawnItems) {
+            g.TextRenderingHint = ObjectListView.TextRendereringHint;
             g.SmoothingMode = SmoothingMode.HighQuality;
 
             Rectangle contentRectangle = this.ContentRectangle;
@@ -6608,37 +7593,64 @@ namespace BrightIdeasSoftware
                 this.DropSink.DrawFeedback(g, contentRectangle);
             }
 
-            // Draw our decorations
-            g.TranslateTransform(0 - NativeMethods.GetScrollPosition(this, true), 0);
-            foreach (IOverlay decoration in this.Decorations) {
+            // Draw our item and subitem decorations
+            foreach (OLVListItem olvi in drawnItems) {
+                if (olvi.HasDecoration) {
+                    foreach (IDecoration d in olvi.Decorations) {
+                        d.ListItem = olvi;
+                        d.SubItem = null;
+                        d.Draw(this, g, contentRectangle);
+                    }
+                }
+                foreach (OLVListSubItem subItem in olvi.SubItems) {
+                    if (subItem.HasDecoration) {
+                        foreach (IDecoration d in subItem.Decorations) {
+                            d.ListItem = olvi;
+                            d.SubItem = subItem;
+                            d.Draw(this, g, contentRectangle);
+                        }
+                    }
+                }
+                if (this.SelectedRowDecoration != null && olvi.Selected) {
+                    this.SelectedRowDecoration.ListItem = olvi;
+                    this.SelectedRowDecoration.SubItem = null;
+                    this.SelectedRowDecoration.Draw(this, g, contentRectangle);
+                }
+            }
+
+            // Now draw the specifically registered decorations
+            foreach (IDecoration decoration in this.Decorations) {
+                decoration.ListItem = null;
+                decoration.SubItem = null;
                 decoration.Draw(this, g, contentRectangle);
             }
-            g.ResetTransform();
 
-            // If we are in design mode, we don't want to use the glass panel,
+            // Finally, draw any hot item decoration
+            if (this.UseHotItem && this.HotItemStyle != null && this.HotItemStyle.Decoration != null) {
+                IDecoration hotItemDecoration = this.HotItemStyle.Decoration;
+                hotItemDecoration.ListItem = this.GetItem(this.HotRowIndex);
+                if (hotItemDecoration.ListItem == null)
+                    hotItemDecoration.SubItem = null;
+                else
+                    hotItemDecoration.SubItem = hotItemDecoration.ListItem.GetSubItem(this.HotColumnIndex);
+                hotItemDecoration.Draw(this, g, contentRectangle);
+            }
+
+            // If we are in design mode, we don't want to use the glass panels,
             // so we draw the background overlays here
             if (this.DesignMode) {
-                this.DrawBackgroundOverlays(g);
+                foreach (IOverlay overlay in this.Overlays) {
+                    overlay.Draw(this, g, contentRectangle);
+                }
             }
         }
 
         /// <summary>
-        /// Draw the overlays
-        /// </summary>
-        /// <param name="g"></param>
-        internal void DrawBackgroundOverlays(Graphics g) {
-            Rectangle contentRectangle = this.ContentRectangle;
-            foreach (IOverlay overlay in this.Overlays) {
-                overlay.Draw(this, g, contentRectangle);
-            }
-        }
-
-        /// <summary>
-        /// Is the given overlay showne on this list
+        /// Is the given decoration shown on this list
         /// </summary>
         /// <param name="overlay">The overlay</param>
-        public virtual bool HasDecoration(IOverlay overlay) {
-            return this.Decorations.Contains(overlay);
+        public virtual bool HasDecoration(IDecoration decoration) {
+            return this.Decorations.Contains(decoration);
         }
 
         /// <summary>
@@ -6657,10 +7669,10 @@ namespace BrightIdeasSoftware
         /// the next time the ObjectListView redraws.
         /// </remarks>
         public virtual void HideOverlays() {
-            if (this.glassPanel != null)
-                this.glassPanel.HideGlass();
+            foreach (GlassPanelForm glassPanel in this.glassPanels) {
+                glassPanel.HideGlass();
+            }
         }
-        private GlassPanelForm glassPanel;
 
         /// <summary>
         /// Create and configure the empty list msg overlay
@@ -6680,42 +7692,56 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected virtual void InitializeStandardOverlays() {
             this.OverlayImage = new ImageOverlay();
-            this.Overlays.Add(this.OverlayImage);
+            this.AddOverlay(this.OverlayImage);
             this.OverlayText = new TextOverlay();
-            this.Overlays.Add(this.OverlayText);
+            this.AddOverlay(this.OverlayText);
         }
 
         /// <summary>
         /// Make sure that any overlays are visible.
         /// </summary>
         public virtual void ShowOverlays() {
-            // If we are in design mode or there are no overlays, don't use a glass panel
+            // If we are in design mode or there are no overlays, don't use glass panels
             if (this.DesignMode || !this.HasOverlays)
                 return;
 
-            if (this.glassPanel == null) {
-                this.glassPanel = new GlassPanelForm();
-                this.glassPanel.Bind(this);
+            // Make sure that each overlay has its own glass panels
+            if (this.Overlays.Count != this.glassPanels.Count) {
+                foreach (IOverlay overlay in this.Overlays) {
+                    GlassPanelForm glassPanel = this.FindGlassPanelForOverlay(overlay);
+                    if (glassPanel == null) {
+                        glassPanel = new GlassPanelForm();
+                        glassPanel.Bind(this, overlay);
+                        this.glassPanels.Add(glassPanel);
+                    }
+                }
             }
+            foreach (GlassPanelForm glassPanel in this.glassPanels) {
+                glassPanel.ShowGlass();
+            }
+        }
 
-            this.glassPanel.ShowGlass();
+        private GlassPanelForm FindGlassPanelForOverlay(IOverlay overlay) {
+            return this.glassPanels.Find(delegate(GlassPanelForm x) { return x.Overlay == overlay; });
         }
 
         /// <summary>
         /// Refresh the display of the overlays
         /// </summary>
         public virtual void RefreshOverlays() {
-            if (this.glassPanel != null) {
-                this.glassPanel.Invalidate();
+            foreach (GlassPanelForm glassPanel in this.glassPanels) {
+                glassPanel.Invalidate();
             }
         }
 
         /// <summary>
         /// Remove the given decoration from this list
         /// </summary>
-        /// <param name="overlay">The overlay</param>
-        public virtual void RemoveDecoration(IOverlay overlay) {
-            this.Decorations.Remove(overlay);
+        /// <param name="decoration">The decoration to remove</param>
+        public virtual void RemoveDecoration(IDecoration decoration) {
+            if (decoration == null)
+                return;
+            this.Decorations.Remove(decoration);
             this.Invalidate();
         }
 
@@ -6724,77 +7750,14 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="overlay">The overlay</param>
         public virtual void RemoveOverlay(IOverlay overlay) {
+            if (overlay == null)
+                return;
             this.Overlays.Remove(overlay);
-            this.RefreshOverlays();
-        }
-
-        #endregion
-
-        #region Design Time
-
-        /// <summary>
-        /// This class works in conjunction with the OLVColumns property to allow OLVColumns
-        /// to be added to the ObjectListView.
-        /// </summary>
-        internal class OLVColumnCollectionEditor : System.ComponentModel.Design.CollectionEditor
-        {
-            public OLVColumnCollectionEditor(Type t)
-                : base(t) {
-            }
-
-            protected override Type CreateCollectionItemType() {
-                return typeof(OLVColumn);
-            }
-
-            public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value) {
-                // Figure out which ObjectListView we are working on. This should be the Instance of the context.
-                ObjectListView olv = null;
-                if (context != null)
-                    olv = context.Instance as ObjectListView;
-
-                if (olv == null) {
-                    //THINK: Can this ever happen?
-                    System.Diagnostics.Debug.WriteLine("context.Instance was NOT an ObjectListView");
-
-                    // Hack to figure out which ObjectListView we are working on
-                    ListView.ColumnHeaderCollection cols = (ListView.ColumnHeaderCollection)value;
-                    if (cols.Count == 0) {
-                        cols.Add(new OLVColumn());
-                        olv = (ObjectListView)cols[0].ListView;
-                        cols.Clear();
-                        olv.AllColumns.Clear();
-                    } else
-                        olv = (ObjectListView)cols[0].ListView;
-                }
-
-                // Edit all the columns, not just the ones that are visible
-                base.EditValue(context, provider, olv.AllColumns);
-
-                // Calculate just the visible columns
-                List<OLVColumn> newColumns = olv.GetFilteredColumns(View.Details);
-                olv.Columns.Clear();
-                olv.Columns.AddRange(newColumns.ToArray());
-
-                return olv.Columns;
-            }
-
-            protected override string GetDisplayText(object value) {
-                OLVColumn col = value as OLVColumn;
-                if (col == null || String.IsNullOrEmpty(col.AspectName))
-                    return base.GetDisplayText(value);
-
-                return base.GetDisplayText(value) + " (" + col.AspectName + ")";
-            }
-        }
-
-        /// <summary>
-        /// Return Columns for this list. We hide the original so we can associate
-        /// a specialised editor with it.
-        /// </summary>
-        [Editor(typeof(OLVColumnCollectionEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        new public ListView.ColumnHeaderCollection Columns {
-            get {
-                return base.Columns;
+            GlassPanelForm glassPanel = this.FindGlassPanelForOverlay(overlay);
+            if (glassPanel != null) {
+                this.glassPanels.Remove(glassPanel);
+                glassPanel.Unbind();
+                glassPanel.Dispose();
             }
         }
 
@@ -6807,9 +7770,10 @@ namespace BrightIdeasSoftware
         private bool hasIdleHandler; // has an Idle handler already been installed?
         private bool isInWmPaintEvent; // is a WmPaint event currently being handled?
         private bool shouldDoCustomDrawing; // should the list do its custom drawing?
-        private ImageOverlay imageOverlay; // the image overlay that is controlled by IDE settings
-        private TextOverlay textOverlay; // the text overlay that is controlled by IDE settings
-        private bool isMarqueSelecting; // Is a margque selection in progress?
+        private bool isMarqueSelecting; // Is a marque selection in progress?
+
+        private List<GlassPanelForm> glassPanels = new List<GlassPanelForm>(); // The transparent panel that draws overlays
+        Dictionary<string, bool> visitedUrlMap = new Dictionary<string, bool>(); // Which urls have been visited?
 
         #endregion
     }
@@ -6861,6 +7825,13 @@ namespace BrightIdeasSoftware
     /// The callbacks for RightColumnClick events
     /// </summary>
     public delegate void ColumnRightClickEventHandler(object sender, ColumnClickEventArgs e);
+
+    /// <summary>
+    /// This delegate is called when a group has been created but not yet made
+    /// into a real ListViewGroup. The user can take this opportunity to fill
+    /// in lots of other details about the group.
+    /// </summary>
+    public delegate void GroupFormatterDelegate(OLVGroup group, GroupingParameters parms);
 
     /// <summary>
     /// <summary>
@@ -6930,8 +7901,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Create an OLVColumn
         /// </summary>
-        public OLVColumn()
-            : base() {
+        public OLVColumn() {
         }
 
         /// <summary>
@@ -7036,6 +8006,18 @@ namespace BrightIdeasSoftware
         private string aspectToStringFormat;
 
         /// <summary>
+        /// Gets or sets whether the cell editor should use AutoComplete
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+         Description("Should the editor for cells of this column use AutoComplete"),
+         DefaultValue(true)]
+        public bool AutoCompleteEditor {
+            get { return autoCompleteEditor; }
+            set { autoCompleteEditor = value; }
+        }
+        private bool autoCompleteEditor = true;
+        
+        /// <summary>
         /// Should this column show a checkbox, rather than a string?
         /// </summary>
         /// <remarks>
@@ -7054,25 +8036,6 @@ namespace BrightIdeasSoftware
             }
         }
         private bool checkBoxes;
-
-        /// <summary>
-        /// Should this column have a tri-state checkbox?
-        /// </summary>
-        /// <remarks>
-        /// If this is true, the user can choose the third state (normally Indeterminate).
-        /// </remarks>
-        [Category("Behavior - ObjectListView"),
-         Description("Should values in this column be treated as a tri-state checkbox?"),
-         DefaultValue(false)]
-        public virtual bool TriStateCheckBoxes {
-            get { return triStateCheckBoxes; }
-            set {
-                triStateCheckBoxes = value;
-                if (value && !this.CheckBoxes)
-                    this.CheckBoxes = true;
-            }
-        }
-        private bool triStateCheckBoxes;
 
         /// <summary>
         /// Should this column resize to fill the free space in the listview?
@@ -7137,7 +8100,20 @@ namespace BrightIdeasSoftware
             get { return freeSpaceProportion; }
             set { freeSpaceProportion = Math.Max(0, value); }
         }
-        private int freeSpaceProportion = 0;
+        private int freeSpaceProportion;
+
+        /// <summary>
+        /// This delegate is called when a group has been created but not yet made
+        /// into a real ListViewGroup. The user can take this opportunity to fill
+        /// in lots of other details about the group.
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public GroupFormatterDelegate GroupFormatter {
+            get { return groupFormatter; }
+            set { groupFormatter = value; }
+        }
+        private GroupFormatterDelegate groupFormatter;
 
         /// <summary>
         /// This delegate is called to get the object that is the key for the group
@@ -7245,6 +8221,70 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets or sets the font in which the header for this column will be drawn
+        /// </summary>
+        [Category("Appearance - ObjectListView"),
+         Description("What font will be used to draw the text of the header of this column"),
+         DefaultValue(false)]
+        public Font HeaderFont {
+            get { return this.headerFont; }
+            set { this.headerFont = value; }
+        }
+        private Font headerFont;
+
+        /// <summary>
+        /// Gets or sets the color in which the header for this column will be drawn
+        /// </summary>
+        /// <remarks>If this is set to an value other than Color.Empty, the header
+        /// will not be properly themed, since themeing does not allow the color to be
+        /// changed. The effect of not being themed will be different from OS to OS. At
+        /// very least, the sort indicator will not be standard.</remarks>
+        [Category("Appearance - ObjectListView"),
+         Description("What color will be used to draw the text of the header of this column"),
+         DefaultValue(typeof(Color), "")]
+        public Color HeaderForeColor {
+            get { return this.headerForeColor; }
+            set { this.headerForeColor = value; }
+        }
+        private Color headerForeColor;
+
+        /// <summary>
+        /// Gets or sets whether the text values in this column will act like hyperlinks
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+         Description("Will the text values of this column act like hyperlinks?"),
+         DefaultValue(false)]
+        public bool Hyperlink {
+            get { return hyperlink; }
+            set { hyperlink = value; }
+        }
+        private bool hyperlink;
+
+        /// <summary>
+        /// This is the name of property that will be invoked to get the image selector of the
+        /// image that should be shown in this column.
+        /// It can return an int, string, Image or null.
+        /// </summary>
+        /// <remarks>
+        /// <para>This is ignored if ImageGetter is not null.</para>
+        /// <para>The property can use these return value to identify the image:</para>
+        /// <list>
+        /// <item>null or -1 -- indicates no image</item>
+        /// <item>an int -- the int value will be used as an index into the image list</item>
+        /// <item>a String -- the string value will be used as a key into the image list</item>
+        /// <item>an Image -- the Image will be drawn directly (only in OwnerDrawn mode)</item>
+        /// </list>
+        /// </remarks>
+        [Category("Behavior - ObjectListView"),
+         Description("The name of the property that holds the image selector"),
+         DefaultValue(null)]
+        public string ImageAspectName {
+            get { return imageAspectName; }
+            set { imageAspectName = value; }
+        }
+        private string imageAspectName;
+
+        /// <summary>
         /// This delegate is called to get the image selector of the image that should be shown in this column.
         /// It can return an int, string, Image or null.
         /// </summary>
@@ -7301,7 +8341,7 @@ namespace BrightIdeasSoftware
             get { return isTileViewColumn; }
             set { isTileViewColumn = value; }
         }
-        private bool isTileViewColumn = false;
+        private bool isTileViewColumn;
 
         /// <summary>
         /// Can this column be seen by the user?
@@ -7395,6 +8435,44 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets or sets the horizontal alignment of the contents of the column.
+        /// </summary>
+        /// <remarks>.NET will not allow column 0 to have any alignment except
+        /// to the left. We can't change the basic behaviour of the listview,
+        /// but when owner drawn, column 0 can now have other alignments.</remarks>
+        new public HorizontalAlignment TextAlign {
+            get {
+                if (this.textAlign.HasValue)
+                    return this.textAlign.Value;
+                else
+                    return base.TextAlign;
+            }
+            set {
+                this.textAlign = value;
+                base.TextAlign = value;
+            }
+        }
+        private HorizontalAlignment? textAlign;
+
+        /// <summary>
+        /// Gets the StringAlignment equivilent of the column text alignment
+        /// </summary>
+        public StringAlignment TextStringAlign {
+            get {
+                switch (this.TextAlign) {
+                    case HorizontalAlignment.Center:
+                        return StringAlignment.Center;
+                    case HorizontalAlignment.Left:
+                        return StringAlignment.Near;
+                    case HorizontalAlignment.Right:
+                        return StringAlignment.Far;
+                    default:
+                        return StringAlignment.Near;
+                }
+            }
+        }
+
+        /// <summary>
         /// What string should be displayed when the mouse is hovered over the header of this column?
         /// </summary>
         /// <remarks>If a HeaderToolTipGetter is installed on the owning ObjectListView, this
@@ -7408,6 +8486,25 @@ namespace BrightIdeasSoftware
             set { toolTipText = value; }
         }
         private String toolTipText;
+
+        /// <summary>
+        /// Should this column have a tri-state checkbox?
+        /// </summary>
+        /// <remarks>
+        /// If this is true, the user can choose the third state (normally Indeterminate).
+        /// </remarks>
+        [Category("Behavior - ObjectListView"),
+         Description("Should values in this column be treated as a tri-state checkbox?"),
+         DefaultValue(false)]
+        public virtual bool TriStateCheckBoxes {
+            get { return triStateCheckBoxes; }
+            set {
+                triStateCheckBoxes = value;
+                if (value && !this.CheckBoxes)
+                    this.CheckBoxes = true;
+            }
+        }
+        private bool triStateCheckBoxes;
 
         /// <summary>
         /// Group objects by the initial letter of the aspect of the column
@@ -7519,14 +8616,22 @@ namespace BrightIdeasSoftware
             if (this.CheckBoxes)
                 return this.GetCheckStateImage(rowObject);
 
-            if (this.imageGetter != null)
-                return this.imageGetter(rowObject);
+            if (this.ImageGetter != null)
+                return this.ImageGetter(rowObject);
+
+            if (!String.IsNullOrEmpty(this.ImageAspectName)) {
+                if (this.imageAspectMunger == null)
+                    this.imageAspectMunger = new Munger(this.ImageAspectName);
+
+                return this.imageAspectMunger.GetValue(rowObject);
+            }
 
             if (!String.IsNullOrEmpty(this.ImageKey))
                 return this.ImageKey;
 
             return this.ImageIndex;
         }
+        private Munger imageAspectMunger;
 
         /// <summary>
         /// Return the image that represents the check box for the given model
@@ -7639,7 +8744,25 @@ namespace BrightIdeasSoftware
         ///     new UInt32[] { 20000, 100000 },
         ///     new string[] { "Lowly worker",  "Middle management", "Rarified elevation"});
         /// </example>
+
+        // Untyped version to help with Generator and OLVColumn attributes
+        public void MakeGroupies(object[] values, string[] descriptions) {
+            this.MakeGroupies(values, descriptions, null, null, null);
+        }
+
         public void MakeGroupies<T>(T[] values, string[] descriptions) {
+            this.MakeGroupies(values, descriptions, null, null, null);
+        }
+
+        public void MakeGroupies<T>(T[] values, string[] descriptions, object[] images) {
+            this.MakeGroupies(values, descriptions, images, null, null);
+        }
+
+        public void MakeGroupies<T>(T[] values, string[] descriptions, object[] images, string[] subtitles) {
+            this.MakeGroupies(values, descriptions, images, subtitles, null);
+        }
+
+        public void MakeGroupies<T>(T[] values, string[] descriptions, object[] images, string[] subtitles, string[] tasks) {
             if (values.Length + 1 != descriptions.Length)
                 throw new ArgumentException("descriptions must have one more element than values.");
 
@@ -7665,6 +8788,22 @@ namespace BrightIdeasSoftware
 
                 return descriptions[(int)key];
             };
+
+            // Install one delegate that does all the other formatting
+            this.GroupFormatter = delegate(OLVGroup group, GroupingParameters parms) {
+                int key = (int)group.Key; // we know this is an int since we created it in GroupKeyGetter
+
+                if (key >= 0) {
+                    if (images != null && key < images.Length)
+                        group.TitleImage = images[key];
+
+                    if (subtitles != null && key < subtitles.Length)
+                        group.Subtitle = subtitles[key];
+
+                    if (tasks != null && key < tasks.Length)
+                        group.Task = tasks[key];
+                }
+            };
         }
 
         #endregion
@@ -7681,11 +8820,12 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class OLVListItem : ListViewItem
     {
+        #region Constructors
+
         /// <summary>
         /// Create a OLVListItem for the given row object
         /// </summary>
-        public OLVListItem(object rowObject)
-            : base() {
+        public OLVListItem(object rowObject) {
             this.rowObject = rowObject;
         }
 
@@ -7698,43 +8838,24 @@ namespace BrightIdeasSoftware
             this.imageSelector = image;
         }
 
-        /// <summary>
-        /// RowObject is the model object that is source of the data for this list item.
-        /// </summary>
-        public object RowObject {
-            get { return rowObject; }
-            set { rowObject = value; }
-        }
-        private object rowObject;
+        #endregion
+
+        #region Properties
 
         /// <summary>
-        /// DisplayIndex is the index of the row where this item is displayed. For flat lists,
-        /// this is the same as ListViewItem.Index, but for grouped views, it is different.
+        /// Gets the bounding rectangle of the item, including all subitems
         /// </summary>
-        [Obsolete("This property is no longer maintained", true)]
-        public int DisplayIndex {
-            get { return 0; }
-            set { }
-        }
-
-        /// <summary>
-        /// Get or set the image that should be shown against this item
-        /// </summary>
-        /// <remarks><para>This can be an Image, a string or an int. A string or an int will
-        /// be used as an index into the small image list.</para></remarks>
-        public Object ImageSelector {
-            get { return imageSelector; }
-            set {
-                imageSelector = value;
-                if (value is Int32)
-                    this.ImageIndex = (Int32)value;
-                else if (value is String)
-                    this.ImageKey = (String)value;
-                else
-                    this.ImageIndex = -1;
+        new public Rectangle Bounds {
+            get {
+                try {
+                    return base.Bounds;
+                }
+                catch (System.ArgumentException) {
+                    // If the item is part of a collapsed group, Bounds will throw an exception
+                    return Rectangle.Empty;
+                }
             }
         }
-        private Object imageSelector;
 
         /// <summary>
         /// Enable tri-state checkbox.
@@ -7780,19 +8901,110 @@ namespace BrightIdeasSoftware
         private CheckState checkState;
 
         /// <summary>
-        /// Gets the bounding rectangle of the item, including all subitems
+        /// Gets if this item has any decorations set for it.
         /// </summary>
-        new public Rectangle Bounds {
+        public bool HasDecoration {
             get {
-                try {
-                    return base.Bounds;
-                }
-                catch (System.ArgumentException) {
-                    // If the item is part of a collapsed group, Bounds will throw an exception
-                    return Rectangle.Empty;
-                }
+                return this.decorations != null && this.decorations.Count > 0;
             }
         }
+
+        /// <summary>
+        /// Gets or sets the decoration that will be drawn over this item
+        /// </summary>
+        /// <remarks>Setting this replaces all other decorations</remarks>
+        public IDecoration Decoration {
+            get {
+                if (this.HasDecoration)
+                    return this.Decorations[0];
+                else
+                    return null;
+            }
+            set {
+                this.Decorations.Clear();
+                if (value != null)
+                    this.Decorations.Add(value);
+            }
+        }
+
+        /// <summary>
+        /// Gets the collection of decorations that will be drawn over this item
+        /// </summary>
+        public IList<IDecoration> Decorations {
+            get {
+                if (this.decorations == null)
+                    this.decorations = new List<IDecoration>();
+                return this.decorations;
+            }
+        }
+        private IList<IDecoration> decorations;
+
+        /// <summary>
+        /// Get or set the image that should be shown against this item
+        /// </summary>
+        /// <remarks><para>This can be an Image, a string or an int. A string or an int will
+        /// be used as an index into the small image list.</para></remarks>
+        public Object ImageSelector {
+            get { return imageSelector; }
+            set {
+                imageSelector = value;
+                if (value is Int32)
+                    this.ImageIndex = (Int32)value;
+                else if (value is String)
+                    this.ImageKey = (String)value;
+                else
+                    this.ImageIndex = -1;
+            }
+        }
+        private Object imageSelector;
+
+        /// <summary>
+        /// Gets or sets the the model object that is source of the data for this list item.
+        /// </summary>
+        public object RowObject {
+            get { return rowObject; }
+            set { rowObject = value; }
+        }
+        private object rowObject;
+
+        #endregion
+
+        #region Accessing
+
+        /// <summary>
+        /// Return the sub item at the given index
+        /// </summary>
+        /// <param name="index">Index of the subitem to be returned</param>
+        /// <returns>An OLVListSubItem</returns>
+        public virtual OLVListSubItem GetSubItem(int index) {
+            if (index >= 0 && index < this.SubItems.Count)
+                return (OLVListSubItem)this.SubItems[index];
+            else
+                return null;
+        }
+
+
+        /// <summary>
+        /// Return bounds of the given subitem
+        /// </summary>
+        /// <remarks>This correctly calculates the bounds even for column 0.</remarks>
+        public virtual Rectangle GetSubItemBounds(int subItemIndex) {
+            if (subItemIndex == 0) {
+                Rectangle r = this.Bounds;
+                Point sides = NativeMethods.GetScrolledColumnSides(this.ListView, subItemIndex);
+                r.X = sides.X + 1;
+                r.Width = sides.Y - sides.X;
+                return r;
+            } else {
+                OLVListSubItem subItem = this.GetSubItem(subItemIndex);
+                if (subItem == null)
+                    return new Rectangle();
+                else
+                    return subItem.Bounds;
+            }
+        }
+
+        #endregion
     }
 
     /// <summary>
@@ -7801,21 +9013,64 @@ namespace BrightIdeasSoftware
     [Browsable(false)]
     public class OLVListSubItem : ListViewItem.ListViewSubItem
     {
+        #region Constructors
+
         /// <summary>
         /// Create a OLVListSubItem
         /// </summary>
-        public OLVListSubItem()
-            : base() {
+        public OLVListSubItem() {
         }
 
         /// <summary>
         /// Create a OLVListSubItem that shows the given string and image
         /// </summary>
-        public OLVListSubItem(string text, Object image)
-            : base() {
+        public OLVListSubItem(string text, Object image) {
             this.Text = text;
             this.ImageSelector = image;
         }
+
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// Gets if this subitem has any decorations set for it.
+        /// </summary>
+        public bool HasDecoration {
+            get {
+                return this.decorations != null && this.decorations.Count > 0;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the decoration that will be drawn over this item
+        /// </summary>
+        /// <remarks>Setting this replaces all other decorations</remarks>
+        public IDecoration Decoration {
+            get {
+                if (this.HasDecoration)
+                    return this.Decorations[0];
+                else
+                    return null;
+            }
+            set {
+                this.Decorations.Clear();
+                if (value != null)
+                    this.Decorations.Add(value);
+            }
+        }
+
+        /// <summary>
+        /// Gets the collection of decorations that will be drawn over this item
+        /// </summary>
+        public IList<IDecoration> Decorations {
+            get {
+                if (this.decorations == null)
+                    this.decorations = new List<IDecoration>();
+                return this.decorations;
+            }
+        }
+        private IList<IDecoration> decorations;
 
         /// <summary>
         /// Get or set the image that should be shown against this item
@@ -7829,53 +9084,28 @@ namespace BrightIdeasSoftware
         private Object imageSelector;
 
         /// <summary>
+        /// Gets or sets the url that should be invoked when this subitem is clicked
+        /// </summary>
+        public string Url {
+            get { return this.url; }
+            set { this.url = value; }
+        }
+        private string url;
+
+        #endregion
+
+        #region Implementation Properties
+
+        /// <summary>
         /// Return the state of the animatation of the image on this subitem.
         /// Null means there is either no image, or it is not an animation
         /// </summary>
-        internal ImageRenderer.AnimationState AnimationState {
-            get { return animationState; }
-            set { animationState = value; }
-        }
-        private ImageRenderer.AnimationState animationState;
+        internal ImageRenderer.AnimationState AnimationState;
 
+        #endregion
     }
 
     #endregion
-
-    /// <summary>
-    /// Instances of this class specify how should "hot items" (non-selected
-    /// rows under the cursor) be renderered.
-    /// </summary>
-    public class HotItemStyle : System.ComponentModel.Component
-    {
-        [DefaultValue(null)]
-        public Font Font {
-            get { return this.font; }
-            set { this.font = value; }
-        }
-        private Font font;
-
-        [DefaultValue(FontStyle.Regular)]
-        public FontStyle FontStyle {
-            get { return this.fontStyle; }
-            set { this.fontStyle = value; }
-        }
-        private FontStyle fontStyle;
-
-        [DefaultValue(typeof(Color), "")]
-        public Color ForeColor {
-            get { return this.foreColor; }
-            set { this.foreColor = value; }
-        }
-        private Color foreColor;
-
-        [DefaultValue(typeof(Color), "")]
-        public Color BackColor {
-            get { return this.backColor; }
-            set { this.backColor = value; }
-        }
-        private Color backColor;
-    }
 
     /// <summary>
     /// Instances of this class encapsulate the information gathered during a OlvHitTest()
@@ -7887,7 +9117,7 @@ namespace BrightIdeasSoftware
     {
         public OlvListViewHitTestInfo(ListViewHitTestInfo hti) {
             this.item = (OLVListItem)hti.Item;
-            this.subItem = hti.SubItem;
+            this.subItem = (OLVListSubItem)hti.SubItem;
             this.location = hti.Location;
 
             switch (hti.Location) {
@@ -7927,22 +9157,25 @@ namespace BrightIdeasSoftware
         /// </summary>
         public OLVListItem Item {
             get { return item; }
+            internal set { item = value; }
         }
         private OLVListItem item;
 
         /// <summary>
         /// Gets the subitem that was hit
         /// </summary>
-        public ListViewItem.ListViewSubItem SubItem {
+        public OLVListSubItem SubItem {
             get { return subItem; }
+            internal set { subItem = value; }
         }
-        private ListViewItem.ListViewSubItem subItem;
+        private OLVListSubItem subItem;
 
         /// <summary>
         /// Gets the part of the subitem that was hit
         /// </summary>
         public ListViewHitTestLocations Location {
             get { return location; }
+            internal set { location = value; }
         }
         private ListViewHitTestLocations location;
 
@@ -7967,6 +9200,18 @@ namespace BrightIdeasSoftware
                     return null;
                 else
                     return this.Item.RowObject;
+            }
+        }
+
+        /// <summary>
+        /// Gets the index of the row under the hit point or -1
+        /// </summary>
+        public int RowIndex {
+            get {
+                if (this.Item == null)
+                    return -1;
+                else
+                    return this.Item.Index;
             }
         }
 
@@ -8008,6 +9253,88 @@ namespace BrightIdeasSoftware
         InCell, // in the cell but not in any more specific location
         UserDefined
     }
+
+    /// <summary>
+    /// This class contains all the settings used when groups are created
+    /// </summary>
+    public class GroupingParameters
+    {
+        public GroupingParameters(ObjectListView olv, OLVColumn groupByColumn, SortOrder groupByOrder,
+            OLVColumn column, SortOrder order, OLVColumn secondaryColumn, SortOrder secondaryOrder,
+            string titleFormat, string titleSingularFormat, bool sortItemsByPrimaryColumn) {
+            this.ListView = olv;
+            this.GroupByColumn = groupByColumn;
+            this.GroupByOrder = groupByOrder;
+            this.PrimarySort = column;
+            this.PrimarySortOrder = order;
+            this.SecondarySort = secondaryColumn;
+            this.SecondarySortOrder = secondaryOrder;
+            this.SortItemsByPrimaryColumn = sortItemsByPrimaryColumn;
+            this.TitleFormat = titleFormat;
+            this.TitleSingularFormat = titleSingularFormat;
+        }
+
+        public ObjectListView ListView {
+            get { return this.listView; }
+            set { this.listView = value; }
+        }
+        private ObjectListView listView;
+
+        public OLVColumn GroupByColumn {
+            get { return this.groupByColumn; }
+            set { this.groupByColumn = value; }
+        }
+        private OLVColumn groupByColumn;
+
+        public SortOrder GroupByOrder {
+            get { return this.groupByOrder; }
+            set { this.groupByOrder = value; }
+        }
+        private SortOrder groupByOrder;
+
+        public OLVColumn PrimarySort {
+            get { return this.primarySort; }
+            set { this.primarySort = value; }
+        }
+        private OLVColumn primarySort;
+
+        public SortOrder PrimarySortOrder {
+            get { return this.primarySortOrder; }
+            set { this.primarySortOrder = value; }
+        }
+        private SortOrder primarySortOrder;
+
+        public OLVColumn SecondarySort {
+            get { return this.secondarySort; }
+            set { this.secondarySort = value; }
+        }
+        private OLVColumn secondarySort;
+
+        public SortOrder SecondarySortOrder {
+            get { return this.secondarySortOrder; }
+            set { this.secondarySortOrder = value; }
+        }
+        private SortOrder secondarySortOrder;
+
+        public string TitleFormat {
+            get { return this.titleFormat; }
+            set { this.titleFormat = value; }
+        }
+        private string titleFormat;
+
+        public string TitleSingularFormat {
+            get { return this.titleSingularFormat; }
+            set { this.titleSingularFormat = value; }
+        }
+        private string titleSingularFormat;
+
+        public bool SortItemsByPrimaryColumn {
+            get { return this.sortItemsByPrimaryColumn; }
+            set { this.sortItemsByPrimaryColumn = value; }
+        }
+        private bool sortItemsByPrimaryColumn;
+    }
+
 
     //internal class TransitionState
     //{
@@ -8210,7 +9537,7 @@ namespace BrightIdeasSoftware
             else
                 return base.ContainsKey(key);
         }
-
+        
         new public IList Keys {
             get {
                 ArrayList list = new ArrayList(base.Keys);

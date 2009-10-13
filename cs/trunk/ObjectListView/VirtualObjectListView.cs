@@ -5,6 +5,10 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-08-28   JPP  - BIG CHANGE. Virtual lists can now have groups!
+ *                   - Objects property now uses "yield return" -- much more efficient for big lists
+ * 2009-08-07   JPP  - Use new scheme for formatting rows/cells
+ * v2.2.1
  * 2009-07-24   JPP  - Added specialised version of RefreshSelectedObjects() which works efficiently with virtual lists
  *                     (thanks to chriss85 for finding this bug)
  * 2009-07-03   JPP  - Standardized code format
@@ -44,6 +48,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace BrightIdeasSoftware
 {
@@ -55,17 +60,16 @@ namespace BrightIdeasSoftware
     /// <remarks><para>A listview is not a great user interface for a large number of items. But if you've
     /// ever wanted to have a list with 10 million items, go ahead, knock yourself out.</para>
     /// <para>Virtual lists can never iterate their contents. That would defeat the whole purpose.</para>
-    /// <para>Given the above, grouping is not possible on virtual lists.</para>
-    /// <para>For the same reason, animate GIFs should not be used in virtual lists. Animated GIFs require some state
+    /// <para>Animated GIFs should not be used in virtual lists. Animated GIFs require some state
     /// information to be stored for each animation, but virtual lists specifically do not keep any state information.
     /// In any case, you really do not want to keep state information for 10 million animations!</para>
     /// <para>
     /// Although it isn't documented, .NET virtual lists cannot have checkboxes. This class codes around this limitation,
     /// but you must use the functions provided by ObjectListView: CheckedObjects, CheckObject(), UncheckObject() and their friends. 
-    /// </para>
-    /// <para>
     /// If you use the normal check box properties (CheckedItems or CheckedIndicies), they will throw an exception, since the
     /// list is in virtual mode, and .NET "knows" it can't handle checkboxes in virtual mode.
+    /// </para>
+    /// <para>
     /// The "CheckBoxes" property itself can be set once, but trying to unset it later will throw an exception.
     /// </para>
     /// <para>Due to the limits of the underlying Windows control, virtual lists do not trigger ItemCheck/ItemChecked events. 
@@ -78,7 +82,6 @@ namespace BrightIdeasSoftware
         /// </summary>
         public VirtualObjectListView()
             : base() {
-            this.ShowGroups = false; // virtual lists can never show groups
             this.VirtualMode = true; // Virtual lists have to be virtual -- no prizes for guessing that :)
 
             this.CacheVirtualItems += new CacheVirtualItemsEventHandler(this.HandleCacheVirtualItems);
@@ -91,8 +94,18 @@ namespace BrightIdeasSoftware
             this.DataSource = new VirtualListVersion1DataSource(this);
         }
 
-
         #region Public Properties
+
+        /// <summary>
+        /// Gets whether or not this listview is capabale of showing groups
+        /// </summary>
+        [Browsable(false)]
+        public override bool CanShowGroups {
+            get {
+                // Virtual lists need Vista and a grouping strategy to show groups
+                return (ObjectListView.IsVista && this.GroupingStrategy != null);
+            }
+        }
 
         /// <summary>
         /// Get or set the collection of model objects that are checked.
@@ -178,6 +191,44 @@ namespace BrightIdeasSoftware
         private IVirtualListDataSource dataSource;
 
         /// <summary>
+        /// Gets or sets the strategy that will be used to create groups
+        /// </summary>
+        /// <remarks>
+        /// This must be provided for a virtual list to show groups.
+        /// </remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public IVirtualGroups GroupingStrategy {
+            get { return this.groupingStrategy; }
+            set { this.groupingStrategy = value; }
+        }
+        private IVirtualGroups groupingStrategy;
+
+        /// <summary>
+        /// Get/set the collection of objects that this list will show
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The contents of the control will be updated immediately after setting this property.
+        /// </para>
+        /// <para>This method preserves selection, if possible. Use SetObjects() if
+        /// you do not want to preserve the selection. Preserving selection is the slowest part of this
+        /// code and performance is O(n) where n is the number of selected rows.</para>
+        /// <para>This method is not thread safe.</para>
+        /// <para>The property DOES work on virtual lists, but if you try to iterate through a list 
+        /// of 10 million objects, it may take some time :)</para>
+        /// </remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public override IEnumerable Objects {
+            get {
+                for (int i = 0; i < this.GetItemCount(); i++)
+                    yield return this.GetModelObject(i);
+            }
+            set { base.Objects = value; }
+        }
+
+        /// <summary>
         /// This delegate is used to fetch a rowObject, given it's index within the list
         /// </summary>
         /// <remarks>Only use this property if you are not using a DataSource.</remarks>
@@ -186,6 +237,84 @@ namespace BrightIdeasSoftware
         public virtual RowGetterDelegate RowGetter {
             get { return ((VirtualListVersion1DataSource)this.dataSource).RowGetter; }
             set { ((VirtualListVersion1DataSource)this.dataSource).RowGetter = value; }
+        }
+
+        /// <summary>
+        /// Should this list show its items in groups?
+        /// </summary>
+        [Category("Appearance"),
+         Description("Should the list view show items in groups?"),
+         DefaultValue(true)]
+        override public bool ShowGroups {
+            get {
+                // Pre-Vista, virtual lists cannot show groups
+                if (ObjectListView.IsVista)
+                    return showGroups;
+                else
+                    return false;
+            }
+            set {
+                this.showGroups = value;
+                if (this.Created && !value)
+                    this.DisableVirtualGroups();
+            }
+        }
+        private bool showGroups;
+
+        /// <summary>
+        /// Do the plumbing to enable groups on a virtual list
+        /// </summary>
+        protected void EnableVirtualGroups() {
+
+            // We need to implement the IOwnerDataCallback interface
+            if (this.ownerDataCallbackImpl == null)
+                this.ownerDataCallbackImpl = new OwnerDataCallbackImpl(this);
+
+            const int LVM_SETOWNERDATACALLBACK = 0x10BB;
+            IntPtr ptr = Marshal.GetComInterfaceForObject(ownerDataCallbackImpl, typeof(IOwnerDataCallback));
+            IntPtr x = NativeMethods.SendMessage(this.Handle, LVM_SETOWNERDATACALLBACK, ptr, 0);
+            //System.Diagnostics.Debug.WriteLine(x);
+            Marshal.Release(ptr);
+
+            const int LVM_ENABLEGROUPVIEW = 0x1000 + 157;
+            x = NativeMethods.SendMessage(this.Handle, LVM_ENABLEGROUPVIEW, 1, 0);
+            System.Diagnostics.Debug.WriteLine(x);
+        }
+        private OwnerDataCallbackImpl ownerDataCallbackImpl;
+
+        /// <summary>
+        /// Do the plumbing to enable groups on a virtual list
+        /// </summary>
+        protected void DisableVirtualGroups() {
+            IntPtr x;
+
+            int err = NativeMethods.ClearGroups(this);
+            System.Diagnostics.Debug.WriteLine(err);
+
+            const int LVM_ENABLEGROUPVIEW = 0x1000 + 157;
+            x = NativeMethods.SendMessage(this.Handle, LVM_ENABLEGROUPVIEW, 0, 0);
+            System.Diagnostics.Debug.WriteLine(x);
+
+            const int LVM_SETOWNERDATACALLBACK = 0x10BB;
+            x = NativeMethods.SendMessage(this.Handle, LVM_SETOWNERDATACALLBACK, 0, 0);
+            System.Diagnostics.Debug.WriteLine(x);
+        }
+
+        protected override void CreateGroups(IList<OLVGroup> groups) {
+
+            // A virtual list we cannot touch the Groups property since it often throws exceptions
+            // when used with a virtual list
+
+            NativeMethods.ClearGroups(this);
+
+            this.EnableVirtualGroups();
+
+            foreach (OLVGroup group in groups) {
+                System.Diagnostics.Debug.Assert(group.Items.Count == 0, "Groups in virtual lists cannot set Items. Use VirtualItemCount instead.");
+                System.Diagnostics.Debug.Assert(group.VirtualItemCount > 0, "VirtualItemCount must be greater than 0.");
+
+                group.InsertGroupNewStyle(this);
+            }
         }
 
         #endregion
@@ -210,6 +339,18 @@ namespace BrightIdeasSoftware
                 return this.DataSource.GetNthObject(index);
             else
                 return null;
+        }
+
+        /// <summary>
+        /// Find the given model object within the listview and return its index
+        /// </summary>
+        /// <param name="modelObject">The model object to be found</param>
+        /// <returns>The index of the object. -1 means the object was not present</returns>
+        public override int IndexOf(Object modelObject) {
+            if (this.DataSource == null || modelObject == null)
+                return -1;
+
+            return this.DataSource.GetObjectIndex(modelObject);
         }
 
         /// <summary>
@@ -417,6 +558,8 @@ namespace BrightIdeasSoftware
         public override void BuildList(bool shouldPreserveSelection) {
             this.UpdateVirtualListSize();
             this.ClearCachedInfo();
+            if (this.ShowGroups)
+                this.BuildGroups();
             this.Invalidate();
         }
 
@@ -442,6 +585,18 @@ namespace BrightIdeasSoftware
                 this.checkStateMap.TryGetValue(modelObject, out state);
             return state;
         }
+        
+        /// <summary>
+        /// Make a list of groups that should be shown according to the given parameters
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <returns></returns>
+        protected override IList<OLVGroup> MakeGroups(GroupingParameters parms) {
+            if (this.GroupingStrategy == null)
+                return new List<OLVGroup>();
+            else
+                return this.GroupingStrategy.GetGroups(parms);
+        }
 
         /// <summary>
         /// Create a OLVListItem for given row index
@@ -451,20 +606,39 @@ namespace BrightIdeasSoftware
         public virtual OLVListItem MakeListViewItem(int itemIndex) {
             OLVListItem olvi = new OLVListItem(this.GetModelObject(itemIndex));
             this.FillInValues(olvi, olvi.RowObject);
-            if (this.UseAlternatingBackColors) {
-                if (this.View == View.Details && itemIndex % 2 == 1)
-                    olvi.BackColor = this.AlternateRowBackColorOrDefault;
-                else
-                    olvi.BackColor = this.BackColor;
 
-                this.CorrectSubItemColors(olvi);
-            }
+            this.PostProcessOneRow(itemIndex, this.GetItemIndexInDisplayOrder(itemIndex), olvi);
 
-            if (this.UseHotItem && this.HotItemIndex == itemIndex)
-                this.ApplyHotItemStyle(olvi);
+            if (this.HotRowIndex == itemIndex)
+                this.UpdateHotRow(olvi);
 
-            this.SetSubItemImages(itemIndex, olvi);
             return olvi;
+        }
+
+        /// <summary>
+        /// Return the position of the given itemIndex in the list as it currently shown to the user.
+        /// If the control is not grouped, the display order is the same as the
+        /// sorted list order. But if the list is grouped, the display order is different.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public virtual int GetItemIndexInDisplayOrder(int itemIndex) {
+            if (!this.ShowGroups)
+                return itemIndex;
+
+            int groupIndex = this.GroupingStrategy.GetGroup(itemIndex);
+            int displayIndex = 0;
+            for (int i = 0; i < groupIndex - 1; i++)
+                displayIndex += this.OLVGroups[i].VirtualItemCount;
+            displayIndex += this.GroupingStrategy.GetIndexWithinGroup(this.OLVGroups[groupIndex], itemIndex);
+
+            return displayIndex;
+        }
+
+        /// <summary>
+        /// On virtual lists, this cannot work.
+        /// </summary>
+        protected override void PostProcessRows() {
         }
 
         /// <summary>
@@ -622,6 +796,8 @@ namespace BrightIdeasSoftware
             // .NET 2.0 seems to generate a lot of these events. Before drawing *each* sub-item,
             // this event is triggered 4-8 times for the same index. So we save lots of CPU time
             // by caching the last result.
+            //System.Diagnostics.Debug.WriteLine(String.Format("HandleRetrieveVirtualItem({0})", e.ItemIndex));
+
             if (this.lastRetrieveVirtualItemIndex != e.ItemIndex) {
                 this.lastRetrieveVirtualItemIndex = e.ItemIndex;
                 this.lastRetrieveVirtualItem = this.MakeListViewItem(e.ItemIndex);
@@ -683,196 +859,6 @@ namespace BrightIdeasSoftware
         private Dictionary<Object, CheckState> checkStateMap = new Dictionary<object, CheckState>();
         private OLVListItem lastRetrieveVirtualItem;
         private int lastRetrieveVirtualItemIndex = -1;
-
-        #endregion
-    }
-
-    /// <summary>
-    /// A VirtualListDataSource is a complete manner to provide functionality to a virtual list.
-    /// An object that implements this interface provides a VirtualObjectListView with all the
-    /// information it needs to be fully functional.
-    /// </summary>
-    /// <remarks>Implementors must provide functioning implementations of GetObjectCount()
-    /// and GetNthObject(), otherwise nothing will appear in the list.</remarks>
-    public interface IVirtualListDataSource
-    {
-        /// <summary>
-        /// Return the object that should be displayed at the n'th row.
-        /// </summary>
-        /// <param name="n">The index of the row whose object is to be returned.</param>
-        /// <returns>The model object at the n'th row, or null if the fetching was unsuccessful.</returns>
-        Object GetNthObject(int n);
-
-        /// <summary>
-        /// Return the number of rows that should be visible in the virtual list
-        /// </summary>
-        /// <returns>The number of rows the list view should have.</returns>
-        int GetObjectCount();
-
-        /// <summary>
-        /// Get the index of the row that is showing the given model object
-        /// </summary>
-        /// <param name="model">The model object sought</param>
-        /// <returns>The index of the row showing the model, or -1 if the object could not be found.</returns>
-        int GetObjectIndex(Object model);
-
-        /// <summary>
-        /// The ListView is about to request the given range of items. Do
-        /// whatever caching seems appropriate.
-        /// </summary>
-        /// <param name="first"></param>
-        /// <param name="last"></param>
-        void PrepareCache(int first, int last);
-
-        /// <summary>
-        /// Find the first row that "matches" the given text in the given range.
-        /// </summary>
-        /// <param name="value">The text typed by the user</param>
-        /// <param name="first">Start searching from this index. This may be greater than the 'to' parameter, 
-        /// in which case the search should descend</param>
-        /// <param name="last">Do not search beyond this index. This may be less than the 'from' parameter.</param>
-        /// <param name="column">The column that should be considered when looking for a match.</param>
-        /// <returns>Return the index of row that was matched, or -1 if no match was found</returns>
-        int SearchText(string value, int first, int last, OLVColumn column);
-
-        /// <summary>
-        /// Sort the model objects in the data source.
-        /// </summary>
-        /// <param name="column"></param>
-        /// <param name="order"></param>
-        void Sort(OLVColumn column, SortOrder order);
-
-        //-----------------------------------------------------------------------------------
-        // Modification commands
-        // THINK: Should we split these three into a separate interface?
-
-        /// <summary>
-        /// Add the given collection of model objects to this control.
-        /// </summary>
-        /// <param name="modelObjects">A collection of model objects</param>
-        void AddObjects(ICollection modelObjects);
-
-        /// <summary>
-        /// Remove all of the given objects from the control
-        /// </summary>
-        /// <param name="modelObjects">Collection of objects to be removed</param>
-        void RemoveObjects(ICollection modelObjects);
-
-        /// <summary>
-        /// Set the collection of objects that this control will show.
-        /// </summary>
-        /// <param name="collection"></param>
-        void SetObjects(IEnumerable collection);
-    }
-
-    /// <summary>
-    /// A do-nothing implementation of the VirtualListDataSource interface.
-    /// </summary>
-    public class AbstractVirtualListDataSource : IVirtualListDataSource
-    {
-        public AbstractVirtualListDataSource(VirtualObjectListView listView) {
-            this.listView = listView;
-        }
-
-        /// <summary>
-        /// The list view that this data source is giving information to.
-        /// </summary>
-        protected VirtualObjectListView listView;
-
-        public virtual object GetNthObject(int n) {
-            return null;
-        }
-
-        public virtual int GetObjectCount() {
-            return -1;
-        }
-
-        public virtual int GetObjectIndex(object model) {
-            return -1;
-        }
-
-        public virtual void PrepareCache(int from, int to) {
-        }
-
-        public virtual int SearchText(string value, int first, int last, OLVColumn column) {
-            return -1;
-        }
-
-        public virtual void Sort(OLVColumn column, SortOrder order) {
-        }
-
-        public virtual void AddObjects(ICollection modelObjects) {
-        }
-
-        public virtual void RemoveObjects(ICollection modelObjects) {
-        }
-
-        public virtual void SetObjects(IEnumerable collection) {
-        }
-
-        /// <summary>
-        /// This is a useful default implementation of SearchText method, intended to be called
-        /// by implementors of IVirtualListDataSource.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="first"></param>
-        /// <param name="last"></param>
-        /// <param name="column"></param>
-        /// <param name="source"></param>
-        /// <returns></returns>
-        static public int DefaultSearchText(string value, int first, int last, OLVColumn column, IVirtualListDataSource source) {
-            if (first <= last) {
-                for (int i = first; i <= last; i++) {
-                    string data = column.GetStringValue(source.GetNthObject(i));
-                    if (data.StartsWith(value, StringComparison.CurrentCultureIgnoreCase))
-                        return i;
-                }
-            } else {
-                for (int i = first; i >= last; i--) {
-                    string data = column.GetStringValue(source.GetNthObject(i));
-                    if (data.StartsWith(value, StringComparison.CurrentCultureIgnoreCase))
-                        return i;
-                }
-            }
-
-            return -1;
-        }
-    }
-
-    /// <summary>
-    /// This class mimics the behavior of VirtualObjectListView v1.x.
-    /// </summary>
-    public class VirtualListVersion1DataSource : AbstractVirtualListDataSource
-    {
-        public VirtualListVersion1DataSource(VirtualObjectListView listView)
-            : base(listView) {
-        }
-
-        #region Public properties
-
-        /// <summary>
-        /// How will the n'th object of the data source be fetched?
-        /// </summary>
-        public RowGetterDelegate RowGetter {
-            get { return rowGetter; }
-            set { rowGetter = value; }
-        }
-        private RowGetterDelegate rowGetter;
-
-        #endregion
-
-        #region IVirtualListDataSource implementation
-
-        public override object GetNthObject(int n) {
-            if (this.RowGetter == null)
-                return null;
-            else
-                return this.RowGetter(n);
-        }
-
-        public override int SearchText(string value, int first, int last, OLVColumn column) {
-            return DefaultSearchText(value, first, last, column, this);
-        }
 
         #endregion
     }
