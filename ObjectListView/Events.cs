@@ -5,6 +5,11 @@
  * Date: 17/10/2008 9:15 PM
  *
  * Change log:
+ * 2009-08-16   JPP  - Added group events
+ * 2009-08-08   JPP  - Added HotItem event
+ * 2009-07-24   JPP  - Added Hyperlink events
+ *                   - Added Formatting events
+ * v2.2.1
  * 2009-06-13   JPP  - Added Cell events
  *                   - Moved all event parameter blocks to this file.
  *                   - Added Handled property to AfterSearchEventArgs
@@ -39,6 +44,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
@@ -94,6 +100,34 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
         Description("This event is triggered before the items in the list are sorted.")]
         public event EventHandler<BeforeSortingEventArgs> BeforeSorting;
+
+        /// <summary>
+        /// Triggered after a ObjectListView has created groups
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered after the groups are created.")]
+        public event EventHandler<CreateGroupsEventArgs> AfterCreatingGroups;
+
+        /// <summary>
+        /// Triggered before a ObjectListView begins to create groups
+        /// </summary>
+        /// <remarks>
+        /// Set Groups to prevent the default group creation process
+        /// </remarks>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered before the groups are created.")]
+        public event EventHandler<CreateGroupsEventArgs> BeforeCreatingGroups;
+
+        /// <summary>
+        /// Triggered just before a ObjectListView creates groups
+        /// </summary>
+        /// <remarks>
+        /// You can make changes to the groups, which have been created, before those
+        /// groups are created within the listview.
+        /// </remarks>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when the groups are just about to be created.")]
+        public event EventHandler<CreateGroupsEventArgs> AboutToCreateGroups;
 
         /// <summary>
         /// This event is triggered when the user moves a drag over an ObjectListView that
@@ -182,11 +216,53 @@ namespace BrightIdeasSoftware
         public event EventHandler<OlvDropEventArgs> Dropped;
 
         /// <summary>
+        /// This event is triggered when a cell needs to be formatted.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when a cell needs to be formatted.")]
+        public event EventHandler<FormatCellEventArgs> FormatCell;
+
+        /// <summary>
+        /// This event is triggered when a row needs to be formatted.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when a row needs to be formatted.")]
+        public event EventHandler<FormatRowEventArgs> FormatRow;
+
+        /// <summary>
         /// This event is triggered when a header needs a tool tip.
         /// </summary>
         [Category("Behavior - ObjectListView"),
         Description("This event is triggered when a header needs a tool tip.")]
         public event EventHandler<ToolTipShowingEventArgs> HeaderToolTipShowing;
+
+        /// <summary>
+        /// Triggered when the "hot" item changes
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when the hot item changed.")]
+        public event EventHandler<HotItemChangedEventArgs> HotItemChanged;
+
+        /// <summary>
+        /// Triggered when a hyperlink cell is clicked.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when a hyperlink cell is clicked.")]
+        public event EventHandler<HyperlinkClickedEventArgs> HyperlinkClicked;
+
+        /// <summary>
+        /// Triggered when the task text of a group is clicked.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when the task text of a group is clicked.")]
+        public event EventHandler<GroupTaskClickedEventArgs> GroupTaskClicked;
+
+        /// <summary>
+        /// Is the value in the given cell a hyperlink.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when the control needs to know if a given cell contains a hyperlink.")]
+        public event EventHandler<IsHyperlinkEventArgs> IsHyperlink;
 
         /// <summary>
         /// Some new objects are about to be added to an ObjectListView.
@@ -262,6 +338,21 @@ namespace BrightIdeasSoftware
         //-----------------------------------------------------------------------------------
         #region OnEvents
 
+        protected virtual void OnAboutToCreateGroups(CreateGroupsEventArgs e) {
+            if (this.AboutToCreateGroups != null)
+                this.AboutToCreateGroups(this, e);
+        }
+
+        protected virtual void OnBeforeCreatingGroups(CreateGroupsEventArgs e) {
+            if (this.BeforeCreatingGroups != null)
+                this.BeforeCreatingGroups(this, e);
+        }
+
+        protected virtual void OnAfterCreatingGroups(CreateGroupsEventArgs e) {
+            if (this.AfterCreatingGroups != null)
+                this.AfterCreatingGroups(this, e);
+        }
+
         protected virtual void OnAfterSearching(AfterSearchingEventArgs e) {
             if (this.AfterSearching != null)
                 this.AfterSearching(this, e);
@@ -317,9 +408,39 @@ namespace BrightIdeasSoftware
                 this.Dropped(this, args);
         }
 
+        protected virtual void OnFormatCell(FormatCellEventArgs args) {
+            if (this.FormatCell != null)
+                this.FormatCell(this, args);
+        }
+
+        protected virtual void OnFormatRow(FormatRowEventArgs args) {
+            if (this.FormatRow != null)
+                this.FormatRow(this, args);
+        }
+
         protected virtual void OnHeaderToolTip(ToolTipShowingEventArgs args) {
             if (this.HeaderToolTipShowing != null)
                 this.HeaderToolTipShowing(this, args);
+        }
+
+        protected virtual void OnHotItemChanged(HotItemChangedEventArgs e) {
+            if (this.HotItemChanged != null)
+                this.HotItemChanged(this, e);
+        }
+
+        protected virtual void OnHyperlinkClicked(HyperlinkClickedEventArgs e) {
+            if (this.HyperlinkClicked != null)
+                this.HyperlinkClicked(this, e);
+        }
+
+        protected virtual void OnGroupTaskClicked(GroupTaskClickedEventArgs e) {
+            if (this.GroupTaskClicked != null)
+                this.GroupTaskClicked(this, e);
+        }
+
+        protected virtual void OnIsHyperlink(IsHyperlinkEventArgs e) {
+            if (this.IsHyperlink != null)
+                this.IsHyperlink(this, e);
         }
 
         protected virtual void OnItemsAdding(ItemsAddingEventArgs e) {
@@ -821,11 +942,11 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>This is null when the view is not in details view and 
         /// for event triggered by the header</remarks>
-        public ListViewItem.ListViewSubItem SubItem {
+        public OLVListSubItem SubItem {
             get { return subItem; }
             internal set { this.subItem = value; }
         }
-        private ListViewItem.ListViewSubItem subItem;
+        private OLVListSubItem subItem;
 
         /// <summary>
         /// Gets the HitTest object that determined which cell was hit
@@ -835,6 +956,12 @@ namespace BrightIdeasSoftware
             internal set { hitTest = value;  }
         }
         private OlvListViewHitTestInfo hitTest;
+
+        /// <summary>
+        /// Gets or set if this event completelely handled. If it was, no further processing
+        /// will be done for it.
+        /// </summary>
+        public bool Handled;
     }
 
     /// <summary>
@@ -842,12 +969,6 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class CellClickEventArgs : CellEventArgs
     {
-        /// <summary>
-        /// Gets or set if this event completelely handled. If it was, no further processing
-        /// will be done for it.
-        /// </summary>
-        public bool Handled;
-
         /// <summary>
         /// Gets or sets the number of clicks associated with this event
         /// </summary>
@@ -864,12 +985,6 @@ namespace BrightIdeasSoftware
     public class CellRightClickEventArgs : CellEventArgs
     {
         /// <summary>
-        /// Gets or set if this event completelely handled. If it was, no further processing
-        /// will be done for it.
-        /// </summary>
-        public bool Handled;
-
-        /// <summary>
         /// Gets or sets the menu that should be displayed as a result of this event.
         /// </summary>
         /// <remarks>The menu will be positioned at Location, so changing that property changes
@@ -877,10 +992,9 @@ namespace BrightIdeasSoftware
         public ContextMenuStrip MenuStrip;
     }
 
-    public class CellHoverEventArgs : CellEventArgs
-    {
-    }
-
+    /// <summary>
+    /// Tell the world that the mouse is over a given cell
+    /// </summary>
     public class CellOverEventArgs : CellEventArgs
     {
     }
@@ -948,6 +1062,360 @@ namespace BrightIdeasSoftware
         /// What font should be used to draw the text of the tooltip?
         /// </summary>
         public Font Font;
+    }
+
+    /// <summary>
+    /// Common information to all hyperlink events
+    /// </summary>
+    public class HyperlinkEventArgs : EventArgs
+    {
+        //TODO: Unified with CellEventArgs
+
+        /// <summary>
+        /// Gets the ObjectListView that is the source of the event
+        /// </summary>
+        public ObjectListView ListView {
+            get { return this.listView; }
+            internal set { this.listView = value; }
+        }
+        private ObjectListView listView;
+
+        /// <summary>
+        /// Gets the model object under the cell
+        /// </summary>
+        public object Model {
+            get { return this.model; }
+            internal set { this.model = value; }
+        }
+        private object model;
+
+        /// <summary>
+        /// Gets the row index of the cell
+        /// </summary>
+        public int RowIndex {
+            get { return this.rowIndex; }
+            internal set { this.rowIndex = value; }
+        }
+        private int rowIndex = -1;
+
+        /// <summary>
+        /// Gets the column index of the cell
+        /// </summary>
+        /// <remarks>This is -1 when the view is not in details view.</remarks>
+        public int ColumnIndex {
+            get { return this.columnIndex; }
+            internal set { this.columnIndex = value; }
+        }
+        private int columnIndex = -1;
+
+        /// <summary>
+        /// Gets the column of the cell 
+        /// </summary>
+        /// <remarks>This is null when the view is not in details view.</remarks>
+        public OLVColumn Column {
+            get { return this.column; }
+            internal set { this.column = value; }
+        }
+        private OLVColumn column;
+
+        /// <summary>
+        /// Gets the item of the cell
+        /// </summary>
+        public OLVListItem Item {
+            get { return item; }
+            internal set { this.item = value; }
+        }
+        private OLVListItem item;
+
+        /// <summary>
+        /// Gets the subitem of the cell
+        /// </summary>
+        /// <remarks>This is null when the view is not in details view</remarks>
+        public OLVListSubItem SubItem {
+            get { return subItem; }
+            internal set { this.subItem = value; }
+        }
+        private OLVListSubItem subItem;
+
+        /// <summary>
+        /// Gets the ObjectListView that is the source of the event
+        /// </summary>
+        public string Url {
+            get { return this.url; }
+            internal set { this.url = value; }
+        }
+        private string url;
+
+        /// <summary>
+        /// Gets or set if this event completelely handled. If it was, no further processing
+        /// will be done for it.
+        /// </summary>
+        public bool Handled;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class IsHyperlinkEventArgs : EventArgs
+    {
+        /// <summary>
+        /// Gets the ObjectListView that is the source of the event
+        /// </summary>
+        public ObjectListView ListView {
+            get { return this.listView; }
+            internal set { this.listView = value; }
+        }
+        private ObjectListView listView;
+
+        /// <summary>
+        /// Gets the model object under the cell
+        /// </summary>
+        public object Model {
+            get { return this.model; }
+            internal set { this.model = value; }
+        }
+        private object model;
+
+        /// <summary>
+        /// Gets the column of the cell 
+        /// </summary>
+        /// <remarks>This is null when the view is not in details view.</remarks>
+        public OLVColumn Column {
+            get { return this.column; }
+            internal set { this.column = value; }
+        }
+        private OLVColumn column;
+
+        /// <summary>
+        /// Gets the text of the cell 
+        /// </summary>
+        public string Text {
+            get { return this.text; }
+            internal set { this.text = value; }
+        }
+        private string text;
+        
+        /// <summary>
+        /// Gets or sets the url that should be invoked when this cell is clicked.
+        /// </summary>
+        /// <remarks>Setting this to None or String.Empty means that this cell is not a hyperlink</remarks>
+        public string Url;
+    }
+    
+    /// <summary>
+    /// </summary>
+    public class FormatRowEventArgs : EventArgs
+    {
+        //TODO: Unified with CellEventArgs
+
+        /// <summary>
+        /// Gets the ObjectListView that is the source of the event
+        /// </summary>
+        public ObjectListView ListView {
+            get { return this.listView; }
+            internal set { this.listView = value; }
+        }
+        private ObjectListView listView;
+
+        /// <summary>
+        /// Gets the item of the cell
+        /// </summary>
+        public OLVListItem Item {
+            get { return item; }
+            internal set { this.item = value; }
+        }
+        private OLVListItem item;
+
+        /// <summary>
+        /// Gets the model object under the cell
+        /// </summary>
+        public object Model {
+            get { return this.Item.RowObject; }
+        }
+
+        /// <summary>
+        /// Gets the row index of the cell
+        /// </summary>
+        public int RowIndex {
+            get { return this.rowIndex; }
+            internal set { this.rowIndex = value; }
+        }
+        private int rowIndex = -1;
+
+        /// <summary>
+        /// Gets the display index of the row
+        /// </summary>
+        public int DisplayIndex {
+            get { return this.displayIndex; }
+            internal set { this.displayIndex = value; }
+        }
+        private int displayIndex = -1;
+
+        /// <summary>
+        /// Should events be triggered for each cell in this row?
+        /// </summary>
+        public bool UseCellFormatEvents;
+    }
+
+    public class FormatCellEventArgs : FormatRowEventArgs
+    {
+        /// <summary>
+        /// Gets the column index of the cell
+        /// </summary>
+        /// <remarks>This is -1 when the view is not in details view.</remarks>
+        public int ColumnIndex {
+            get { return this.columnIndex; }
+            internal set { this.columnIndex = value; }
+        }
+        private int columnIndex = -1;
+
+        /// <summary>
+        /// Gets the column of the cell 
+        /// </summary>
+        /// <remarks>This is null when the view is not in details view.</remarks>
+        public OLVColumn Column {
+            get { return this.column; }
+            internal set { this.column = value; }
+        }
+        private OLVColumn column;
+
+        /// <summary>
+        /// Gets the subitem of the cell
+        /// </summary>
+        /// <remarks>This is null when the view is not in details view</remarks>
+        public OLVListSubItem SubItem {
+            get { return subItem; }
+            internal set { this.subItem = value; }
+        }
+        private OLVListSubItem subItem;
+    }
+
+    /// <summary>
+    /// The event args when a hyperlink is clicked
+    /// </summary>
+    public class HyperlinkClickedEventArgs : CellEventArgs
+    {
+        /// <summary>
+        /// Gets the url that was associated with this cell.
+        /// </summary>
+        public string Url;
+    }
+
+    /// <summary>
+    /// The event args when the hot item changed
+    /// </summary>
+    public class HotItemChangedEventArgs : EventArgs
+    {
+        /// <summary>
+        /// Gets or set if this event completelely handled. If it was, no further processing
+        /// will be done for it.
+        /// </summary>
+        public bool Handled;
+
+        /// <summary>
+        /// Gets the part of the cell that the mouse is over
+        /// </summary>
+        public HitTestLocation HotCellHitLocation {
+            get { return newHotCellHitLocation; }
+            internal set { newHotCellHitLocation = value; }
+        }
+        private HitTestLocation newHotCellHitLocation;
+
+        /// <summary>
+        /// Gets the index of the column that the mouse is over
+        /// </summary>
+        /// <remarks>In non-details view, this will always be 0.</remarks>
+        public int HotColumnIndex {
+            get { return newHotColumnIndex; }
+            internal set { newHotColumnIndex = value; }
+        }
+        private int newHotColumnIndex;
+
+        /// <summary>
+        /// Gets the index of the row that the mouse is over
+        /// </summary>
+        public int HotRowIndex {
+            get { return newHotRowIndex; }
+            internal set { newHotRowIndex = value; }
+        }
+        private int newHotRowIndex;
+
+        /// <summary>
+        /// Gets the part of the cell that the mouse used to be over
+        /// </summary>
+        public HitTestLocation OldHotCellHitLocation {
+            get { return oldHotCellHitLocation; }
+            internal set { oldHotCellHitLocation = value; }
+        }
+        private HitTestLocation oldHotCellHitLocation;
+
+        /// <summary>
+        /// Gets the index of the column that the mouse used to be over
+        /// </summary>
+        public int OldHotColumnIndex {
+            get { return oldHotColumnIndex; }
+            internal set { oldHotColumnIndex = value; }
+        }
+        private int oldHotColumnIndex;
+
+        /// <summary>
+        /// Gets the index of the row that the mouse used to be over
+        /// </summary>
+        public int OldHotRowIndex {
+            get { return oldHotRowIndex; }
+            internal set { oldHotRowIndex = value; }
+        }
+        private int oldHotRowIndex;
+    }
+
+    /// <summary>
+    /// This event argument block is used when groups are created for a list.
+    /// </summary>
+    public class CreateGroupsEventArgs : EventArgs
+    {
+        public CreateGroupsEventArgs(GroupingParameters parms) {
+            this.parameters = parms;
+        }
+
+        /// <summary>
+        /// Gets the settings that control the creation of groups
+        /// </summary>
+        public GroupingParameters Parameters {
+            get { return this.parameters; }
+        }
+        private GroupingParameters parameters;
+
+        /// <summary>
+        /// Gets or sets the groups that should be used
+        /// </summary>
+        public IList<OLVGroup> Groups {
+            get { return this.groups; }
+            set { this.groups = value; }
+        }
+        private IList<OLVGroup> groups;
+
+        /// <summary>
+        /// Has this event been cancelled by the event handler?
+        /// </summary>
+        public bool Canceled;
+    }
+    
+    /// <summary>
+    /// This event argument block is used when the text of a group task is clicked
+    /// </summary>
+    public class GroupTaskClickedEventArgs : EventArgs
+    {
+        public GroupTaskClickedEventArgs(OLVGroup group) {
+            this.group = group;
+        }
+
+        /// <summary>
+        /// Gets which group was clicked
+        /// </summary>
+        public OLVGroup Group {
+            get { return this.group; }
+        }
+        private OLVGroup group;
     }
 
     #endregion

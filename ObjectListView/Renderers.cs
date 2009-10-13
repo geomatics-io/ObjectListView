@@ -5,6 +5,13 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-09-28   JPP  - Added DescribedTaskRenderer
+ * 2009-09-01   JPP  - Correctly handle an ImageRenderer's handling of an aspect that holds
+ *                     the image to be displayed at Byte[].
+ * 2009-08-29   JPP  - Fixed bug where some of a cell's background was not erased. 
+ * 2009-08-15   JPP  - Correctly MeasureText() using the appropriate graphic context
+ *                   - Handle translucent selection setting
+ * v2.2.1
  * 2009-07-24   JPP  - Try to honour CanWrap setting when GDI rendering text.
  * 2009-07-11   JPP  - Correctly calculate edit rectangle for subitems of a tree view
  *                     (previously subitems were indented in the same way as the primary column)
@@ -45,6 +52,9 @@
  * 2008-09-27   JPP  - Separated from ObjectListView.cs
  * 
  * Copyright (C) 2006-2008 Phillip Piper
+ * 
+ * TO DO:
+ * - Hit detection on renderers doesn't change the controls standard selection behavior
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -184,17 +194,12 @@ namespace BrightIdeasSoftware
      ToolboxItem(true)]
     public class BaseRenderer : AbstractRenderer
     {
-        /// <summary>
-        /// Make a simple renderer
-        /// </summary>
-        public BaseRenderer() {
-        }
-
         #region Configuration Properties
 
         /// <summary>
         /// Can the renderer wrap lines that do not fit completely within the cell?
         /// </summary>
+        /// <remarks>Wrapping text doesn't work with the GDI renderer.</remarks>
         [Category("Appearance"),
          Description("Can the renderer wrap text that does not fit completely within the cell"),
          DefaultValue(false)]
@@ -202,7 +207,19 @@ namespace BrightIdeasSoftware
             get { return canWrap; }
             set { canWrap = value; }
         }
-        private bool canWrap = false;
+        private bool canWrap;
+
+        /// <summary>
+        /// Gets or sets the image list from which keyed images will be fetched
+        /// </summary>
+        [Category("Appearance"),
+         Description("The image list from which keyed images will be fetched for drawing."),
+         DefaultValue(null)]
+        public ImageList ImageList {
+            get { return imageList; }
+            set { imageList = value; }
+        }
+        private ImageList imageList;
 
         /// <summary>
         /// When rendering multiple images, how many pixels should be between each image?
@@ -319,6 +336,15 @@ namespace BrightIdeasSoftware
         private Font font;
 
         /// <summary>
+        /// Gets the image list from which keyed images will be fetched
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public ImageList ImageListOrDefault {
+            get { return this.ImageList ?? this.ListView.BaseSmallImageList; }
+        }
+
+        /// <summary>
         /// Should this renderer fill in the background before drawing?
         /// </summary>
         [Browsable(false),
@@ -397,11 +423,11 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public ListViewItem.ListViewSubItem SubItem {
+        public OLVListSubItem SubItem {
             get { return listSubItem; }
             set { listSubItem = value; }
         }
-        private ListViewItem.ListViewSubItem listSubItem;
+        private OLVListSubItem listSubItem;
 
         /// <summary>
         /// The brush that will be used to paint the text
@@ -510,7 +536,7 @@ namespace BrightIdeasSoftware
                 return 0;
 
             // Draw from the image list (most common case)
-            ImageList il = this.ListView.BaseSmallImageList;
+            ImageList il = this.ImageListOrDefault;
             if (il != null) {
                 int selectorAsInt = -1;
 
@@ -545,11 +571,12 @@ namespace BrightIdeasSoftware
 
             if (this.UseGdiTextRendering) {
                 Size proposedSize = new Size(int.MaxValue, int.MaxValue);
-                return TextRenderer.MeasureText(txt, this.Font, proposedSize, TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix).Width;
+                return TextRenderer.MeasureText(g, txt, this.Font, proposedSize, TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix).Width;
             } else {
-                StringFormat fmt = new StringFormat();
-                fmt.Trimming = StringTrimming.EllipsisCharacter;
-                return 1 + (int)g.MeasureString(txt, this.Font, int.MaxValue, fmt).Width;
+                using (StringFormat fmt = new StringFormat()) {
+                    fmt.Trimming = StringTrimming.EllipsisCharacter;
+                    return 1 + (int)g.MeasureString(txt, this.Font, int.MaxValue, fmt).Width;
+                }
             }
         }
 
@@ -560,7 +587,7 @@ namespace BrightIdeasSoftware
         protected virtual Color GetBackgroundColor() {
             if (!this.ListView.Enabled)
                 return SystemColors.Control;
-            if (this.IsItemSelected && this.ListView.FullRowSelect) {
+            if (this.IsItemSelected && !this.ListView.UseTranslucentSelection && this.ListView.FullRowSelect) {
                 if (this.ListView.Focused)
                     return this.ListView.HighlightBackgroundColorOrDefault;
                 else
@@ -578,7 +605,8 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <returns>The text color of the subitem</returns>
         protected virtual Color GetForegroundColor() {
-            if (this.IsItemSelected && (this.Column.Index == 0 || this.ListView.FullRowSelect)) {
+            if (this.IsItemSelected && !this.ListView.UseTranslucentSelection && 
+                (this.Column.Index == 0 || this.ListView.FullRowSelect)) {
                 if (this.ListView.Focused)
                     return this.ListView.HighlightForegroundColorOrDefault;
                 else
@@ -613,7 +641,7 @@ namespace BrightIdeasSoftware
             if (imageSelector == null || imageSelector == System.DBNull.Value)
                 return null;
 
-            ImageList il = this.ListView.BaseSmallImageList;
+            ImageList il = this.ImageListOrDefault;
             if (il != null) {
                 if (imageSelector is Int32) {
                     Int32 index = (Int32)imageSelector;
@@ -661,7 +689,8 @@ namespace BrightIdeasSoftware
         /// <returns>The background color of the subitem's text</returns>
         protected virtual Color GetTextBackgroundColor() {
             //TODO: Refactor with GetBackgroundColor() - they are almost identical
-            if (this.IsItemSelected && (this.Column.Index == 0 || this.ListView.FullRowSelect)) {
+            if (this.IsItemSelected && !this.ListView.UseTranslucentSelection 
+                && (this.Column.Index == 0 || this.ListView.FullRowSelect)) {
                 if (this.ListView.Focused)
                     return this.ListView.HighlightBackgroundColorOrDefault;
                 else
@@ -715,7 +744,7 @@ namespace BrightIdeasSoftware
 
             this.Event = e;
             this.ListItem = (OLVListItem)e.Item;
-            this.SubItem = e.SubItem;
+            this.SubItem = (OLVListSubItem)e.SubItem;
             this.ListView = (ObjectListView)this.ListItem.ListView;
             this.Column = (OLVColumn)e.Header;
             this.RowObject = rowObject;
@@ -743,7 +772,8 @@ namespace BrightIdeasSoftware
             if (this.SubItem == null)
                 this.Bounds = this.ListItem.Bounds;
             else
-                this.Bounds = this.ListView.CalculateCellBounds(this.ListItem, this.Column.Index);
+                this.Bounds = this.ListItem.GetSubItemBounds(this.Column.Index);
+                //this.Bounds = this.ListView.CalculateCellBounds(this.ListItem, this.Column.Index);
 
             this.HandleHitTest(this.ListView.CreateGraphics(), hti, x, y);
         }
@@ -753,13 +783,11 @@ namespace BrightIdeasSoftware
 
             this.ListView = (ObjectListView)item.ListView;
             this.ListItem = item;
+            this.SubItem = item.GetSubItem(subItemIndex);
+            this.Column = this.ListView.GetColumn(subItemIndex);
             this.RowObject = item.RowObject;
-            this.IsItemSelected = item.Selected;
+            this.IsItemSelected = this.ListItem.Selected;
             this.Bounds = cellBounds;
-            if (subItemIndex >= 0 && subItemIndex < item.SubItems.Count) {
-                this.SubItem = item.SubItems[subItemIndex];
-                this.Column = this.ListView.GetColumn(subItemIndex);
-            }
 
             return this.HandleGetEditRectangle(g, cellBounds, item, subItemIndex);
         }
@@ -992,7 +1020,7 @@ namespace BrightIdeasSoftware
             Color backgroundColor = this.GetBackgroundColor();
 
             using (Brush brush = new SolidBrush(backgroundColor)) {
-                g.FillRectangle(brush, r);
+                g.FillRectangle(brush, r.X - 1, r.Y - 1, r.Width + 2, r.Height + 2);
             }
         }
 
@@ -1156,7 +1184,6 @@ namespace BrightIdeasSoftware
         /// <param name="g">Graphics context to use for drawing</param>
         /// <param name="r">Bounds of the cell</param>
         /// <param name="txt">The string to be drawn</param>
-        /// <param name="image">The optional image to be drawn</param>
         protected virtual void DrawText(Graphics g, Rectangle r, String txt) {
             if (String.IsNullOrEmpty(txt))
                 return;
@@ -1186,9 +1213,10 @@ namespace BrightIdeasSoftware
 
             TextFormatFlags flags = TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix |
                 TextFormatFlags.VerticalCenter | TextFormatFlags.PreserveGraphicsTranslateTransform;
+            
+            // BUG: Setting or not setting SingleLine doesn't make any difference -- it is always single line.
             if (!this.CanWrap)
                 flags |= TextFormatFlags.SingleLine;
-
             TextRenderer.DrawText(g, txt, this.Font, r, this.GetForegroundColor(), backColor, flags);
         }
 
@@ -1197,36 +1225,26 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>Printing to a printer dc has to be done using this method.</remarks>
         protected virtual void DrawTextGdiPlus(Graphics g, Rectangle r, String txt) {
-            StringFormat fmt = new StringFormat();
-            fmt.LineAlignment = StringAlignment.Center;
-            fmt.Trimming = StringTrimming.EllipsisCharacter;
-            if (!this.CanWrap)
-                fmt.FormatFlags = StringFormatFlags.NoWrap;
-            switch (this.Column.TextAlign) {
-                case HorizontalAlignment.Center:
-                    fmt.Alignment = StringAlignment.Center;
-                    break;
-                case HorizontalAlignment.Left:
-                    fmt.Alignment = StringAlignment.Near;
-                    break;
-                case HorizontalAlignment.Right:
-                    fmt.Alignment = StringAlignment.Far;
-                    break;
+            using (StringFormat fmt = new StringFormat()) {
+                fmt.LineAlignment = StringAlignment.Center;
+                fmt.Trimming = StringTrimming.EllipsisCharacter;
+                fmt.Alignment = this.Column.TextStringAlign;
+                if (!this.CanWrap)
+                    fmt.FormatFlags = StringFormatFlags.NoWrap;
+                // Draw the background of the text as selected, if it's the primary column
+                // and it's selected and it's not in FullRowSelect mode.
+                Font f = this.Font;
+                if (this.IsDrawBackground && this.IsItemSelected && this.Column.Index == 0 && !this.ListView.FullRowSelect) {
+                    SizeF size = g.MeasureString(txt, f, r.Width, fmt);
+                    Rectangle r2 = r;
+                    r2.Width = (int)size.Width + 1;
+                    using (Brush brush = new SolidBrush(this.ListView.HighlightBackgroundColorOrDefault)) {
+                        g.FillRectangle(brush, r2);
+                    }
+                }
+                RectangleF rf = r;
+                g.DrawString(txt, f, this.TextBrush, rf, fmt);
             }
-
-            // Draw the background of the text as selected, if it's the primary column
-            // and it's selected and it's not in FullRowSelect mode.
-            Font f = this.Font;
-            if (this.IsDrawBackground && this.IsItemSelected && this.Column.Index == 0 && !this.ListView.FullRowSelect) {
-                SizeF size = g.MeasureString(txt, f, r.Width, fmt);
-                Rectangle r2 = r;
-                r2.Width = (int)size.Width + 1;
-                using (Brush brush = new SolidBrush(this.ListView.HighlightBackgroundColorOrDefault))
-                    g.FillRectangle(brush, r2);
-            }
-
-            RectangleF rf = r;
-            g.DrawString(txt, f, this.TextBrush, rf, fmt);
 
             // We should put a focus rectange around the column 0 text if it's selected --
             // but we don't because:
@@ -1274,8 +1292,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Make a new empty renderer
         /// </summary>
-        public MappedImageRenderer()
-            : base() {
+        public MappedImageRenderer() {
             map = new System.Collections.Hashtable();
         }
 
@@ -1383,6 +1400,7 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// This renderer draws just a checkbox to match the check state of our model object.
     /// </summary>
+
     public class CheckStateRenderer : BaseRenderer
     {
         public override void Render(Graphics g, Rectangle r) {
@@ -1406,7 +1424,7 @@ namespace BrightIdeasSoftware
             //Size checkBoxSize = CheckBoxRenderer.GetGlyphSize(g, CheckBoxState.CheckedNormal);
             Size checkBoxSize = this.ListView.SmallImageSize;
             return this.AlignRectangle(cellBounds,
-                new Rectangle(0, 0, this.ListView.SmallImageSize.Width, cellBounds.Height));
+                new Rectangle(0, 0, checkBoxSize.Width, cellBounds.Height));
         }
     }
 
@@ -1424,14 +1442,17 @@ namespace BrightIdeasSoftware
     /// <para>If an image is an animated GIF, it's state is stored in the SubItem object.</para>
     /// <para>By default, the image renderer does not render animations (it begins life with animations paused).
     /// To enable animations, you must call Unpause().</para>
+    /// <para>In the current implementation (2009-09), each column showing animated gifs must have a 
+    /// different instance of ImageRenderer assigned to it. You cannot share the same instance of
+    /// an image renderer between two animated gif columns. If you do, only the last column will be
+    /// animated.</para>
     /// </remarks>
     public class ImageRenderer : BaseRenderer
     {
         /// <summary>
         /// Make an empty image renderer
         /// </summary>
-        public ImageRenderer()
-            : base() {
+        public ImageRenderer() {
             this.tickler = new System.Threading.Timer(new TimerCallback(this.OnTimer), null, Timeout.Infinite, Timeout.Infinite);
             this.stopwatch = new Stopwatch();
         }
@@ -1501,11 +1522,15 @@ namespace BrightIdeasSoftware
             if (this.Aspect == null || this.Aspect == System.DBNull.Value)
                 return;
 
-            ICollection imageSelectors = this.Aspect as ICollection;
-            if (imageSelectors == null)
+            if (this.Aspect is System.Byte[]) {
                 this.DrawAlignedImage(g, r, this.GetImageFromAspect());
-            else
-                this.DrawImages(g, r, imageSelectors);
+            } else {
+                ICollection imageSelectors = this.Aspect as ICollection;
+                if (imageSelectors == null)
+                    this.DrawAlignedImage(g, r, this.GetImageFromAspect());
+                else
+                    this.DrawImages(g, r, imageSelectors);
+            }
         }
 
         /// <summary>
@@ -1616,9 +1641,9 @@ namespace BrightIdeasSoftware
 
             // Run through all the subitems in the view for our column, and for each one that
             // has an animation attached to it, see if the frame needs updating.
-            foreach (ListViewItem lvi in this.ListView.Items) {
+            foreach (OLVListItem lvi in this.ListView.Items) {
                 // Get the animation state from the subitem. If there isn't an animation state, skip this row.
-                OLVListSubItem lvsi = (OLVListSubItem)lvi.SubItems[subItemIndex];
+                OLVListSubItem lvsi = lvi.GetSubItem(subItemIndex);
                 AnimationState state = lvsi.AnimationState;
                 if (state == null || !state.IsValid)
                     continue;
@@ -2322,5 +2347,248 @@ namespace BrightIdeasSoftware
 
         private List<Int32> keysInOrder = new List<Int32>();
         private Dictionary<Int32, Object> imageMap = new Dictionary<Int32, object>();
+    }
+
+    /// <summary>
+    /// This renderer draws an image, a single line title, and then multi-line descrition
+    /// under the title.
+    /// </summary>
+    /// <remarks>
+    /// <para>This class works best with FullRowSelect = true.</para>
+    /// <para>It's not designed to work with cell editing -- it will work but will look odd.</para>
+    /// <para>
+    /// This class is experimental. It may not work properly and may disappear from
+    /// future versions.
+    /// </para>
+    /// </remarks>
+    public class DescribedTaskRenderer : BaseRenderer
+    {
+        public DescribedTaskRenderer() {
+        }
+
+        #region Configuration properties
+
+        /// <summary>
+        /// Gets or set the font that will be used to draw the title of the task
+        /// </summary>
+        /// <remarks>If this is null, the ListView's font will be used</remarks>
+        [Category("Appearance - ObjectListView"),
+        Description("The font that will be used to draw the title of the task"),
+        DefaultValue(null)]
+        public Font TitleFont {
+            get { return titleFont; }
+            set { titleFont = value; }
+        }
+        private Font titleFont;
+
+        /// <summary>
+        /// Return a font that has been set for the title or a reasonable default
+        /// </summary>
+        [Browsable(false)]
+        public Font TitleFontOrDefault {
+            get {
+                return this.TitleFont ?? this.ListView.Font;
+            }
+        }
+
+        /// <summary>
+        /// Gets or set the color of the title of the task
+        /// </summary>
+        /// <remarks>This color is used when the task is not selected or when the listview
+        /// has a translucent selection mechanism.</remarks>
+        [Category("Appearance - ObjectListView"),
+        Description("The color of the title"),
+        DefaultValue(typeof(Color), "")]
+        public Color TitleColor {
+            get { return titleColor; }
+            set { titleColor = value; }
+        }
+        private Color titleColor;
+
+        /// <summary>
+        /// Return the color of the title of the task or a reasonable default
+        /// </summary>
+        [Browsable(false)]
+        public Color TitleColorOrDefault {
+            get {
+                if (this.IsItemSelected || this.TitleColor.IsEmpty)
+                    return this.GetForegroundColor();
+                else
+                    return this.TitleColor;
+            }
+        }
+
+        /// <summary>
+        /// Gets or set the font that will be used to draw the description of the task
+        /// </summary>
+        /// <remarks>If this is null, the ListView's font will be used</remarks>
+        [Category("Appearance - ObjectListView"),
+        Description("The font that will be used to draw the description of the task"),
+        DefaultValue(null)]
+        public Font DescriptionFont {
+            get { return descriptionFont; }
+            set { descriptionFont = value; }
+        }
+        private Font descriptionFont;
+
+        /// <summary>
+        /// Return a font that has been set for the title or a reasonable default
+        /// </summary>
+        [Browsable(false)]
+        public Font DescriptionFontOrDefault {
+            get {
+                return this.DescriptionFont ?? this.ListView.Font;
+            }
+        }
+
+        /// <summary>
+        /// Gets or set the color of the description of the task
+        /// </summary>
+        /// <remarks>This color is used when the task is not selected or when the listview
+        /// has a translucent selection mechanism.</remarks>
+        [Category("Appearance - ObjectListView"),
+        Description("The color of the description"),
+        DefaultValue(typeof(Color), "DimGray")]
+        public Color DescriptionColor {
+            get { return descriptionColor; }
+            set { descriptionColor = value; }
+        }
+        private Color descriptionColor = Color.DimGray;
+
+        /// <summary>
+        /// Return the color of the description of the task or a reasonable default
+        /// </summary>
+        [Browsable(false)]
+        public Color DescriptionColorOrDefault {
+            get {
+                if (this.DescriptionColor.IsEmpty || (this.IsItemSelected && !this.ListView.UseTranslucentSelection))
+                    return this.GetForegroundColor();
+                else
+                    return this.DescriptionColor;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the number of pixels that renderer will leave empty around the edge of the cell
+        /// </summary>
+        [Category("Appearance - ObjectListView"),
+        Description("The number of pixels that renderer will leave empty around the edge of the cell"),
+        DefaultValue(typeof(Size), "2,2")]
+        public Size CellPadding {
+            get { return cellPadding; }
+            set { cellPadding = value; }
+        }
+        private Size cellPadding = new Size(2, 2);
+
+        /// <summary>
+        /// Gets or sets the number of pixels that will be left between the image and the text
+        /// </summary>
+        [Category("Appearance - ObjectListView"),
+        Description("The number of pixels that that will be left between the image and the text"),
+        DefaultValue(4)]
+        public int ImageTextSpace {
+            get { return imageTextSpace; }
+            set { imageTextSpace = value; }
+        }
+        private int imageTextSpace = 4;
+
+        /// <summary>
+        /// Gets or sets the name of the aspect of the model object that contains the task description
+        /// </summary>
+        [Category("Appearance - ObjectListView"),
+        Description("The name of the aspect of the model object that contains the task description"),
+        DefaultValue(null)]
+        public string DescriptionAspectName {
+            get { return descriptionAspectName; }
+            set { descriptionAspectName = value; }
+        }
+        private string descriptionAspectName;
+
+        #endregion
+
+        #region Calculating
+
+        /// <summary>
+        /// Fetch the description from the model class
+        /// </summary>
+        /// <returns></returns>
+        protected virtual string GetDescription() {
+            if (String.IsNullOrEmpty(this.DescriptionAspectName))
+                return String.Empty;
+
+            if (this.descriptionGetter == null)
+                this.descriptionGetter = new Munger(this.DescriptionAspectName);
+
+            return this.descriptionGetter.GetValue(this.RowObject) as String;
+        }
+        Munger descriptionGetter;
+
+        #endregion
+
+        #region Rendering
+
+        public override void Render(Graphics g, Rectangle r) {
+            this.DrawBackground(g, r);
+            this.DrawDescribedTask(g, r, this.Aspect as String, this.GetDescription(), this.GetImage());
+        }
+
+        public virtual void DrawDescribedTask(Graphics g, Rectangle r, string title, string description, Image image) {
+            Rectangle cellBounds = r;
+            cellBounds.Inflate(-this.CellPadding.Width, -this.CellPadding.Height);
+            Rectangle textBounds = cellBounds;
+
+            if (image != null) {
+                g.DrawImage(image, cellBounds.Location);
+                int gapToText = image.Width + this.ImageTextSpace;
+                textBounds.X += gapToText;
+                textBounds.Width -= gapToText;
+            }
+
+            // Color the background if the row is selected and we're not using a translucent selection
+            if (this.IsItemSelected && !this.ListView.UseTranslucentSelection) {
+                using (SolidBrush b = new SolidBrush(this.GetTextBackgroundColor())) {
+                    g.FillRectangle(b, textBounds);
+                }
+            }
+
+            // Draw the title
+            if (!String.IsNullOrEmpty(title)) {
+                using (StringFormat fmt = new StringFormat(StringFormatFlags.NoWrap)) {
+                    fmt.Trimming = StringTrimming.EllipsisCharacter;
+                    fmt.Alignment = StringAlignment.Near;
+                    fmt.LineAlignment = StringAlignment.Near;
+                    Font f = this.TitleFontOrDefault;
+                    using (SolidBrush b = new SolidBrush(this.TitleColorOrDefault)) {
+                        g.DrawString(title, f, b, textBounds, fmt);
+                    }
+
+                    // How tall was the title?
+                    SizeF size = g.MeasureString(title, f, (int)textBounds.Width, fmt);
+                    textBounds.Y += (int)size.Height;
+                    textBounds.Height -= (int)size.Height;
+                }
+            }
+
+            // Draw the description
+            if (!String.IsNullOrEmpty(description)) {
+                using (StringFormat fmt2 = new StringFormat()) {
+                    fmt2.Trimming = StringTrimming.EllipsisCharacter;
+                    using (SolidBrush b = new SolidBrush(this.DescriptionColorOrDefault)) {
+                        g.DrawString(description, this.DescriptionFontOrDefault, b, textBounds, fmt2);
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region Hit Testing
+
+        protected override void HandleHitTest(Graphics g, OlvListViewHitTestInfo hti, int x, int y) {
+            if (this.Bounds.Contains(x, y))
+                hti.HitTestLocation = HitTestLocation.Text;
+        }
+
+        #endregion
     }
 }

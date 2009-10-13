@@ -7,10 +7,10 @@
 Features of an ObjectListView
 =============================
 
-Why take the time to learn how to use an ObjectListView? What's the benefit? The return on
-investment? This page tries to document the useful features of an ObjectListView. Not all
-features are equally useful, but it's better to be aware of what's available so that you
-can use it when the need arises.
+Why take the time to learn how to use an ObjectListView? What's the benefit? The
+return on investment? This page tries to document the useful features of an
+ObjectListView. Not all features are equally useful, but it's better to be aware
+of what's available so that you can use it when the need arises.
 
 * `Alternate rows background colors`_
 * `Automatic grouping`_
@@ -27,12 +27,15 @@ can use it when the need arises.
 * `Drag and drop`_
 * `Ease of use`_
 * `Editing cell values`_
+* `Header formatting`_
+* `Header visible in all views`_
 * `Hot item tracking`_
+* `Groups on virtual lists`_
 * `In-place modifications of the list`_
 * `Model object level operations`_
 * `More control over column width`_
 * `Owner drawing`_
-* `Overlays`_
+* `Overlays and decorations`_
 * `Row height can be changed`_
 * `Save and restore state`_
 * `Searching on the sort column`_
@@ -46,10 +49,10 @@ can use it when the need arises.
 Ease of use
 -----------
 
-**The** major goal of an ObjectListView is to make your life easier. All common ListView
-tasks should be easier -- or at least no more difficult -- with an ObjectListView. For the
-investment of configuration the Columns, you receive a great deal of convenience and
-value added functions.
+**The** major goal of an ObjectListView is to make your life easier. All  common
+ListView tasks  should be  easier --  or at  least no  more difficult -- with an
+ObjectListView. For the investment of  configuration the Columns, you receive  a
+great deal of convenience and value added functions.
 
 See :ref:`getting-started-label` for an introduction to the basics.
 
@@ -57,28 +60,32 @@ See :ref:`getting-started-label` for an introduction to the basics.
 Automatically create the ListView from model objects
 ----------------------------------------------------
 
-The major way in which the ObjectListView makes your life easier is by being able to
-automatically build the ListView from a collection of model objects. Once the columns
-are defined, an ObjectListView is able to build the rows of the ListView without any
-other help. It only takes a single method call: `SetObjects()`.
+The major way  in which the  ObjectListView makes your  life easier is  by being
+able to  automatically build  the ListView  from a  collection of model objects.
+Once the columns are defined, an ObjectListView is able to build the rows of the
+ListView  without  any  other  help.  It  only  takes  a  single  method   call:
+`SetObjects()`.
 
 
 Automatic grouping
 ------------------
 
-If `ShowGroups` is true, the control will automatically create groups and
+If  `ShowGroups`  is true,  the  control will  automatically  create groups  and
 partition the rows into those groups.
 
 This grouping can be customised in several ways:
 
-* the way a row is assigned to a group can be changed by installing a `GroupKeyGetter` on the column.
-* the name for a groups can be changed by installing a `GroupKeyToTitleConverter` on the oolumn
+*  the  way a  row  is assigned  to  a group  can  be changed  by  installing  a
+   `GroupKeyGetter` on the column.
 
-For values that form a continous range (like salaries, height, grades), the `MakeGroupies`
-utility method can easily create more meaningful groupings.
+* the name for a groups can be changed by installing a `GroupKeyToTitleConverter`
+  on the oolumn
 
-Groups normally change according to the sort column. You can "lock" the groups to be on a
-particular column via the `AlwaysGroupByColumn` property.
+For values  that form  a continous  range (like  salaries, height,  grades), the
+`MakeGroupies` utility method can easily create more meaningful groupings.
+
+Groups normally change according to the  sort column. You can "lock" the  groups
+to be on a particular column via the `AlwaysGroupByColumn` property.
 
 See :ref:`grouping-label` for more details.
 
@@ -88,21 +95,45 @@ Collapsible groups
 
 This is the most requested feature ever. Under Vista, groups are now collapsible.
 This is enabled by default. If you don't want your groups to be collapsible, set
-`HasCollapsibleGroups` to `false`.
+`HasCollapsibleGroups` to *false*.
 
 Under XP, groups cannot be collapsed.
 
 
+Groups on virtual lists
+-----------------------
+
+Grouping on virtual lists  is normally impossible. The  SDK says so. But  with a
+little exploring of `undocumented features`__, it can be made to work. Thanks to
+Geoff Chapell for all his hard work in finding out what is possible.
+
+.. __: http://www.geoffchappell.com/viewer.htm?doc=studies/windows/shell/comctl32/controls/listview/index.htm&tx=23
+
+So, as  of v2.3,  virtual lists  can show  groups. `FastObjectListViews` support
+grouping without any further effort -- simple set `ShowGroups` to *true*. If you
+have a `VirtualObjectListView` and have done the work of implementing a  virtual
+data source, you will need to implement the `IVirtualGroups` interface, and then
+set `GroupingStrategy` property to an object that implements that interface.
+
+Group formatting
+----------------
+
+Under Vista and later, groups can now have icons, sub titles, footers and tasks.
+
+.. image:: images/group-formatting.png
+
+See :ref:`recipe-groupformatting`
+
 Automatic sorting
 -----------------
 
-ObjectListView will automatically sort the rows when the
-user clicks on a column header. This sorting understands the data type of the column, so
-sorting is always correct according to the data type. Sorting does not use the string
+ObjectListView will automatically sort the rows when the user clicks on a column
+header. This  sorting understands  the data  type of  the column,  so sorting is
+always correct  according to  the data  type. Sorting  does not  use the  string
 representation.
 
-Sorting can be customised either by listening for the `BeforeSorting` event or by installing
-a `CustomSorter`.
+Sorting can be customised either  by listening for the `BeforeSorting`  event or
+by installing a `CustomSorter`.
 
 
 Different flavours of ObjectListView for different purposes
@@ -162,9 +193,9 @@ supports accepting drops from other sources including cross-application drops. S
 is provide for drops from other `ObjectListViews` in the same application.
 
 In many cases, an `ObjectListView` becomes a full drag source by setting
-`IsSimpleDragSource` to `true`.
+`IsSimpleDragSource` to *true*.
 
-Similarly, to accept drops, it is usually enough to set `IsSimpleDropSink` to `true`, and
+Similarly, to accept drops, it is usually enough to set `IsSimpleDropSink` to *true*, and
 then handle the `CanDrop` and `Dropped` events (or the `ModelCanDrop` and `ModelDropped`
 events, if you only want to handle drops from other `ObjectListViews` in your application).
 
@@ -333,6 +364,7 @@ that it is selected.
 If you set the `TintSortColumn` property, the sort column will automatically be
 selected.
 
+
 Row height can be changed
 -------------------------
 
@@ -380,17 +412,22 @@ their `DataSource`.
 `TreeListViews` interpret these operations as modifying the top level item
 ("roots") of their list.
 
-Overlays
---------
+
+Overlays and decorations
+------------------------
 
 `ObjectListViews` can draw images and text over the top of the control. This drawing
 is normally done transluscently, so that the drawn images/text do not completely
 obscure the underlying information.
 
+Overlays are drawing over the control itself. Decorations are added to rows and
+subitems.
+
 See:
 * :ref:`recipe-overlays` for how to use them;
 * :ref:`overlays-label` for some gotchas
 * :ref:`blog-overlays` for the history of their development.
+
 
 Cell events
 -----------
@@ -400,3 +437,23 @@ A normal `ListView` triggers mouse events for the list as a whole.
 `CellClick`, `CellOver` and `CellRightClick`. These events allow you
 to easily know what the user clicked (or what the mouse is over), and
 then react appropriately.
+
+Header formatting
+-----------------
+
+Each column header can be given its own font and color. These can be set
+all headers at once using propeties on the `ObjectListView` itself.
+
+The text of column header can also be word wrapped, rather than truncated.
+
+See :ref:`recipe-headerformatting`
+
+Header visible in all views
+---------------------------
+
+In *Details* view, the user can click on a column heading to sort the items
+according to that column. But in other views, there is no way to specify
+how to sort the items. To help with this, `ObjectListView` has a
+`ShowHeaderInAllView` property, which if set to *true*, shows the header
+in all views, not just *Details*, so that the items can be sorted however
+the user wants.

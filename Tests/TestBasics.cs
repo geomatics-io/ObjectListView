@@ -8,11 +8,7 @@
  * 10/25/2008 JPP  Initial Version
  */
 
-using System;
-using System.Drawing;
-using System.Windows.Forms;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
 
 namespace BrightIdeasSoftware.Tests
 {
@@ -34,21 +30,6 @@ namespace BrightIdeasSoftware.Tests
             this.olv.SetObjects(PersonDb.All);
             for (int i = 0; i < PersonDb.All.Count; i++)
                 Assert.AreEqual(PersonDb.All[i], this.olv.GetModelObject(i));
-        }
-
-        [Test]
-        public void TestAlternateBackColors()
-        {
-            this.olv.UseAlternatingBackColors = true;
-            this.olv.AlternateRowBackColor = Color.Pink;
-
-            this.olv.SetObjects(PersonDb.All);
-            for (int i = 0; i < this.olv.GetItemCount(); i++) {
-                if ((i % 2) == 0)
-                    Assert.AreEqual(this.olv.BackColor, this.olv.GetItem(i).BackColor);
-                else
-                    Assert.AreEqual(this.olv.AlternateRowBackColor, this.olv.GetItem(i).BackColor);
-            }
         }
 
         [TestFixtureSetUp]

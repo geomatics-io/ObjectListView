@@ -43,9 +43,12 @@
     <Compile Include="Person.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="SetupTestSuite.cs" />
+    <Compile Include="TestAdornments.cs" />
     <Compile Include="TestBasics.cs" />
     <Compile Include="TestCheckBoxes.cs" />
     <Compile Include="TestColumn.cs" />
+    <Compile Include="TestFormatting.cs" />
+    <Compile Include="TestGenerator.cs" />
     <Compile Include="TestSelection.cs" />
     <Compile Include="TestSorting.cs" />
     <Compile Include="TestTreeView.cs" />

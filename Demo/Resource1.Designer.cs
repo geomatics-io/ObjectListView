@@ -81,6 +81,13 @@ namespace ObjectListViewDemo {
             }
         }
         
+        internal static System.Drawing.Bitmap loveheart {
+            get {
+                object obj = ResourceManager.GetObject("loveheart", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap movie16 {
             get {
                 object obj = ResourceManager.GetObject("movie16", resourceCulture);

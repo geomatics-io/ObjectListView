@@ -161,6 +161,7 @@
     <Content Include="Photos\mb.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Photos\np.png" />
     <Content Include="Photos\ns.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -174,6 +175,10 @@
     <Content Include="Persons.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\fav32.png" />
+    <Content Include="Resources\limeleaf.png" />
+    <Content Include="Resources\redback1.png" />
+    <Content Include="Resources\redbull.png" />
     <None Include="Resources\star16.png" />
     <None Include="Resources\down16.png" />
     <None Include="Resources\tick16.png" />

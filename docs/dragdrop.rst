@@ -23,12 +23,12 @@ and dropped on items, like this:
 
 .. image:: images/dragdrop-example1.png
 
-If you set `IsSimpleDragSource` to `true`, the `ObjectListView` will
+If you set `IsSimpleDragSource` to *true*, the `ObjectListView` will
 be able to initiate drags. It will drag the currently selected items,
 as well as creating text and HTML versions of those rows that can
 be dropped onto other programs.
 
-If you set `IsSimpleDropSink` to `true`, the `ObjectListView` will be able to
+If you set `IsSimpleDropSink` to *true*, the `ObjectListView` will be able to
 receive drops. The normal drop sink does a lot of work for you: figuring out
 which item is under the mouse, handling auto scrolling, drawing user feedback.
 However, there are two things that it can't figure out for itself:
@@ -79,7 +79,7 @@ that particular point, or to explain what will happen if the drop occured there:
 .. image:: images/dragdrop-infomsg.png
 
 This message is displayed by a specialised `TextOverlay`, which is exposed through
-the *Billboard* property of the `SimpleDropSink` class. You can make changes to the
+the `Billboard` property of the `SimpleDropSink` class. You can make changes to the
 messages appearance through this property.
 
 Handling the events - Dropped
@@ -101,9 +101,11 @@ example from the demo looks like this::
             p.MaritalStatus = MaritalStatus.Married;
 
         // Force them to refresh
-        e.ListView.RefreshObject(e.TargetModel);
-        e.ListView.RefreshObjects(e.SourceModels);
+        e.RefreshObjects();
     }
+
+The event has a convenience method, `RefreshObjects()`, which refreshes all the objects
+involved in the operation. This is particularly useful with operations on `TreeListViews`.  
 
 Simply doing more
 -----------------
@@ -185,7 +187,7 @@ full suite of Windows drag-drop messages::
         void QueryContinue(QueryContinueDragEventArgs args);
     }
 
-The only new method in this list is the *DrawFeedback()* method. This
+The only new method in this list is the `DrawFeedback()` method. This
 is where the `DropSink` can draw feedback onto the `ObjectListView`
 to indicate the state of the drop. This drawing is done over the
 top of the `ObjectListView` and this will normally involve some form
@@ -206,7 +208,7 @@ This is done by installing a `RearrangingDropSink`::
     this.objectListView1.DropSink = new RearrangingDropSink(false);
 
 This turns `objectListView1` into a rearrangeble list, where the user can
-rearrange the rows by dragging them. The `false` parameter says that this
+rearrange the rows by dragging them. The *false* parameter says that this
 sink will not accept drags from other `ObjectListViews`.
 
 The class is clever but it is not magical. It works even when the `ObjectListView`

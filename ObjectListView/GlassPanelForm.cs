@@ -1,11 +1,14 @@
 ﻿/*
  * GlassPanelForm - A transparent form that is placed over an ObjectListView
- * to allow flicker-free overlay images during scrollin.
+ * to allow flicker-free overlay images during scrolling.
  *
  * Author: Phillip Piper
  * Date: 14/04/2009 4:36 PM
  *
  * Change log:
+ * 2009-08-19   JPP  - Only hide the glass pane on resize, not on move
+ *                   - Each glass panel now only draws one overlays
+ * v2.2
  * 2009-06-05   JPP  - Handle when owning window is a topmost window
  * 2009-04-14   JPP  - Initial version
  *
@@ -81,11 +84,12 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Attach this form to the given ObjectListView
         /// </summary>        
-        public void Bind(ObjectListView olv) {
+        public void Bind(ObjectListView olv, IOverlay overlay) {
             if (this.objectListView != null)
                 this.Unbind();
 
             this.objectListView = olv;
+            this.Overlay = overlay;
 
             this.objectListView.LocationChanged += new EventHandler(objectListView_LocationChanged);
             this.objectListView.SizeChanged += new EventHandler(objectListView_SizeChanged);
@@ -104,6 +108,7 @@ namespace BrightIdeasSoftware
             this.Owner = this.objectListView.TopLevelControl as Form;
             if (this.Owner != null) {
                 this.Owner.LocationChanged += new EventHandler(Owner_LocationChanged);
+                this.Owner.SizeChanged += new EventHandler(Owner_SizeChanged);
                 this.Owner.ResizeBegin += new EventHandler(Owner_ResizeBegin);
                 this.Owner.ResizeEnd += new EventHandler(Owner_ResizeEnd);
                 if (this.Owner.TopMost) {
@@ -170,6 +175,7 @@ namespace BrightIdeasSoftware
             this.Owner = this.objectListView.TopLevelControl as Form;
             if (this.Owner != null) {
                 this.Owner.LocationChanged -= new EventHandler(Owner_LocationChanged);
+                this.Owner.SizeChanged -= new EventHandler(Owner_SizeChanged);
                 this.Owner.ResizeBegin -= new EventHandler(Owner_ResizeBegin);
                 this.Owner.ResizeEnd -= new EventHandler(Owner_ResizeEnd);
             }
@@ -192,7 +198,6 @@ namespace BrightIdeasSoftware
             // the overlay window, if it was shown before the resize started.
             this.isDuringResizeSequence = true;
             this.wasGlassShownBeforeResize = this.isGlassShown;
-            this.HideGlass();
         }
 
         /// <summary>
@@ -205,6 +210,25 @@ namespace BrightIdeasSoftware
             if (this.wasGlassShownBeforeResize)
                 this.ShowGlass();
         }
+
+        /// <summary>
+        /// The owning form has moved. Move the overlay panel too.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Owner_LocationChanged(object sender, EventArgs e) {
+            this.RecalculateBounds();
+        }
+
+        /// <summary>
+        /// The owning form is resizing. Hide our overlay panel until the resizing stops
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Owner_SizeChanged(object sender, EventArgs e) {
+            this.HideGlass();
+        }
+
 
         /// <summary>
         /// Handle when the bound OLV changes its location. The overlay panel must 
@@ -225,9 +249,10 @@ namespace BrightIdeasSoftware
         /// <param name="sender"></param>
         /// <param name="e"></param>
         void objectListView_SizeChanged(object sender, EventArgs e) {
-            if (this.isGlassShown) {
-                this.Size = this.objectListView.ClientSize;
-            }
+            // This event is triggered in all sorts of places, and not always when the size changes.
+            //if (this.isGlassShown) {
+            //    this.Size = this.objectListView.ClientSize;
+            //}
         }
 
         /// <summary>
@@ -250,8 +275,9 @@ namespace BrightIdeasSoftware
         /// <param name="e"></param>
         void objectListView_ParentChanged(object sender, EventArgs e) {
             ObjectListView olv = this.objectListView;
+            IOverlay overlay = this.Overlay;
             this.Unbind();
-            this.Bind(olv);
+            this.Bind(olv, overlay);
         }
 
         /// <summary>
@@ -267,28 +293,20 @@ namespace BrightIdeasSoftware
                 this.HideGlass();
         }
 
-        /// <summary>
-        /// The owning form has moved. Move the overlay panel too.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Owner_LocationChanged(object sender, EventArgs e) {
-            this.RecalculateBounds();
-        }
-
         #endregion
 
         #region Implementation
 
         protected override void OnPaint(PaintEventArgs e) {
-            if (this.objectListView == null)
+            if (this.objectListView == null || this.Overlay == null)
                 return;
 
             Graphics g = e.Graphics;
-            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+            g.TextRenderingHint = ObjectListView.TextRendereringHint;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
             //g.DrawRectangle(new Pen(Color.Green, 4.0f), this.ClientRectangle);
-            this.objectListView.DrawBackgroundOverlays(g);
+
+            this.Overlay.Draw(this.objectListView, g, this.objectListView.ClientRectangle);
         }
 
         protected void RecalculateBounds() {
@@ -302,7 +320,11 @@ namespace BrightIdeasSoftware
         }
 
         internal void UpdateTransparency() {
-            this.Opacity = this.objectListView.OverlayTransparency / 255.0f;
+            ITransparentOverlay transparentOverlay = this.Overlay as ITransparentOverlay;
+            if (transparentOverlay == null)
+                this.Opacity = this.objectListView.OverlayTransparency / 255.0f;
+            else
+                this.Opacity = transparentOverlay.Transparency / 255.0f;
         }
 
         protected override void WndProc(ref Message m) {
@@ -318,10 +340,16 @@ namespace BrightIdeasSoftware
         }
 
         #endregion
+        
+        #region Implementation variables
+
+        internal IOverlay Overlay;
+
+        #endregion
 
         #region Private variables
 
-        ObjectListView objectListView;
+        private ObjectListView objectListView;
         private bool isDuringResizeSequence;
         private bool isGlassShown;
         private bool wasGlassShownBeforeResize;
