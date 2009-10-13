@@ -8,11 +8,8 @@
  * 10/25/2008 JPP  Initial Version
  */
 
-using System;
-using System.Collections;
 using System.Windows.Forms;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
 
 namespace BrightIdeasSoftware.Tests
 {
@@ -20,10 +17,9 @@ namespace BrightIdeasSoftware.Tests
     public class TestOlvCheckBoxes
     {
         [SetUp]
-        public void InitEachTest()
-        {
-        	if (!this.olv.CheckBoxes)
-            	this.olv.CheckBoxes = true;
+        public void InitEachTest() {
+            if (!this.olv.CheckBoxes)
+                this.olv.CheckBoxes = true;
 
             this.olv.SetObjects(PersonDb.All);
             this.olv.CheckedObjects = null;
@@ -31,15 +27,13 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [TearDown]
-        public void TearDownEachTest()
-        {
+        public void TearDownEachTest() {
             this.olv.CheckStateGetter = null;
             this.olv.CheckStatePutter = null;
         }
 
         [Test]
-        public void TestCheckObject()
-        {
+        public void TestCheckObject() {
             Person p = PersonDb.All[1];
             this.olv.CheckObject(p);
             Assert.AreEqual(p, this.olv.CheckedObject);
@@ -50,8 +44,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestCheckIndeterminateObject()
-        {
+        public void TestCheckIndeterminateObject() {
             Person p = PersonDb.All[1];
             this.olv.CheckIndeterminateObject(p);
             Assert.IsTrue(this.olv.IsCheckedIndeterminate(p));
@@ -61,8 +54,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestUncheckObject()
-        {
+        public void TestUncheckObject() {
             Person p = PersonDb.All[1];
             this.olv.CheckedObjects = PersonDb.All;
             this.olv.UncheckObject(p);
@@ -72,24 +64,21 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestToggleCheckObject()
-        {
+        public void TestToggleCheckObject() {
             this.olv.ToggleCheckObject(PersonDb.All[1]);
             Assert.IsTrue(this.olv.IsChecked(PersonDb.All[1]));
             this.olv.ToggleCheckObject(PersonDb.All[1]);
             Assert.IsFalse(this.olv.IsChecked(PersonDb.All[1]));
         }
-        
+
         [Test]
-        public void TestCheckedObject()
-        {
+        public void TestCheckedObject() {
             this.olv.CheckedObject = PersonDb.All[1];
             Assert.AreEqual(PersonDb.All[1], this.olv.CheckedObject);
         }
-        
+
         [Test]
-        public void TestCheckedObjects()
-        {
+        public void TestCheckedObjects() {
             this.olv.CheckedObjects = PersonDb.All;
             // We really want to check that the collections contain the same members, but 
             // there is no easy way to do that
@@ -97,8 +86,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestCheckStateGetter()
-        {
+        public void TestCheckStateGetter() {
             this.olv.TriStateCheckBoxes = true;
             this.olv.CheckStateGetter = delegate(object x) {
                 int idx = PersonDb.All.IndexOf((Person)x);
@@ -124,8 +112,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestBooleanCheckStateGetter()
-        {
+        public void TestBooleanCheckStateGetter() {
             this.olv.BooleanCheckStateGetter = delegate(object x) { return x == PersonDb.All[1]; };
             this.olv.SetObjects(PersonDb.All);
             Assert.IsTrue(this.olv.IsChecked(PersonDb.All[1]));
@@ -142,8 +129,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestCheckStatePutter()
-        {
+        public void TestCheckStatePutter() {
             this.olv.CheckStatePutter = delegate(object x, CheckState state) {
                 Person p = (Person)x;
                 switch (state) {
@@ -168,8 +154,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestCheckStatePutterWithDifferentReturnValue()
-        {
+        public void TestCheckStatePutterWithDifferentReturnValue() {
             this.olv.CheckStatePutter = delegate(object x, CheckState state) {
                 Person p = (Person)x;
 
@@ -198,8 +183,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestItemCheckEvent()
-        {
+        public void TestItemCheckEvent() {
             this.olv.TriStateCheckBoxes = true;
 
             try {
@@ -229,15 +213,13 @@ namespace BrightIdeasSoftware.Tests
         Person personInEvent;
         CheckState stateInEvent;
 
-        void olv_ItemCheck(object sender, ItemCheckEventArgs e)
-        {
+        void olv_ItemCheck(object sender, ItemCheckEventArgs e) {
             this.personInEvent = (Person)this.olv.GetItem(e.Index).RowObject;
             this.stateInEvent = e.NewValue;
         }
 
         [Test]
-        public void TestSpaceBar()
-        {
+        public void TestSpaceBar() {
             // For some reason, SendKeys doesn't work here
 
             //this.olv.Select(); // Make the listview have the keyboard focus
@@ -247,8 +229,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestCheckedAspectName()
-        {
+        public void TestCheckedAspectName() {
             foreach (Person p in PersonDb.All)
                 p.IsActive = false;
 
@@ -265,8 +246,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestSubItemCheckBox()
-        {
+        public void TestSubItemCheckBox() {
             PersonDb.All[0].IsActive = true;
             PersonDb.All[1].IsActive = false;
 
@@ -289,8 +269,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [TestFixtureSetUp]
-        public void Init()
-        {
+        public void Init() {
             this.olv = MyGlobals.mainForm.objectListView1;
         }
         protected ObjectListView olv;
@@ -300,8 +279,7 @@ namespace BrightIdeasSoftware.Tests
     public class TestFastOlvCheckBoxes : TestOlvCheckBoxes
     {
         [TestFixtureSetUp]
-        new public void Init()
-        {
+        new public void Init() {
             this.olv = MyGlobals.mainForm.fastObjectListView1;
         }
     }
@@ -310,8 +288,7 @@ namespace BrightIdeasSoftware.Tests
     public class TestTreeListViewCheckBoxes : TestOlvCheckBoxes
     {
         [TestFixtureSetUp]
-        new public void Init()
-        {
+        new public void Init() {
             this.olv = MyGlobals.mainForm.treeListView1;
         }
     }

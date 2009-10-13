@@ -407,7 +407,7 @@ this::
 Just a couple more things to configure. You need to make an `ImageList`, give it
 the images you want, and then assign it to the `SmallImageList` property of the
 `ObjectListView`. And finally, we will set the `UseAlternatingBackColors` property
-to `True`.
+to *true*.
 
 Putting all these bits together, we now have something that looks like this:
 
@@ -425,7 +425,7 @@ The last part of our getting started project will be to improve how the `ObjectL
 If you turn on the ShowGroups property on the `ObjectListView`, you will see that
 it automatically supports grouping. Normally, the first column groups rows that
 have the same initial letter. You can give other columns this same behaviour by
-setting the `UseInitialLetterForGroup` property to `True`.
+setting the `UseInitialLetterForGroup` property to *true*.
 
 .. image:: images/gettingstarted-example3.png
 

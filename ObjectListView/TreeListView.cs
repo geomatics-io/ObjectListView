@@ -5,6 +5,7 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2009-09-01  JPP  - Fixed off-by-one error that was messing up hit detection
  * 2009-08-27  JPP  - Fixed bug when dragging a node from one place to another in the tree
  * v2.2.1
  * 2009-07-14  JPP  - Clicks to the left of the expander in tree cells are now ignored.
@@ -124,6 +125,9 @@ namespace BrightIdeasSoftware
 
             this.DataSource = this.TreeModel;
             this.TreeColumnRenderer = new TreeRenderer();
+
+            // This improves hit detection even if we don't have any state image
+            this.StateImageList = new ImageList();
         }
 
         //------------------------------------------------------------------------------------------
@@ -137,6 +141,16 @@ namespace BrightIdeasSoftware
         public virtual CanExpandGetterDelegate CanExpandGetter {
             get { return this.TreeModel.CanExpandGetter; }
             set { this.TreeModel.CanExpandGetter = value; }
+        }
+
+        /// <summary>
+        /// Gets whether or not this listview is capabale of showing groups
+        /// </summary>
+        [Browsable(false)]
+        public override bool CanShowGroups {
+            get {
+                return false;
+            }
         }
 
         /// <summary>
@@ -448,9 +462,9 @@ namespace BrightIdeasSoftware
         /// <param name="m"></param>
         protected override void WndProc(ref Message m) {
             switch (m.Msg) {
-                case 0x1012: // LVM_HITTEST = (LVM_FIRST + 18)
-                    this.HandleHitTest(ref m);
-                    break;
+                //case 0x1012: // LVM_HITTEST = (LVM_FIRST + 18)
+                //    this.HandleHitTest(ref m);
+                //    break;
 
                 default:
                     base.WndProc(ref m);
@@ -462,38 +476,38 @@ namespace BrightIdeasSoftware
         /// Handle a hit test to account for the indent of the branch
         /// </summary>
         /// <param name="m"></param>
-        protected virtual void HandleHitTest(ref Message m) {
-            //THINK: Do we need to do this, since we are using the build-in Level ability of
-            // of ListCtrl, which should take the indent into account
+        //protected virtual void HandleHitTest(ref Message m) {
+        //    //THINK: Do we need to do this, since we are using the build-in Level ability of
+        //    // of ListCtrl, which should take the indent into account
 
-            // We want to change our base behavior by taking the indentation of tree into account
-            // when performing a hit test. So we figure out which row is at the test point,
-            // then calculate the indentation for that row, and modify the hit test *inplace*
-            // so that the normal hittest is done, but indented by the correct amount.
+        //    // We want to change our base behavior by taking the indentation of tree into account
+        //    // when performing a hit test. So we figure out which row is at the test point,
+        //    // then calculate the indentation for that row, and modify the hit test *inplace*
+        //    // so that the normal hittest is done, but indented by the correct amount.
 
-            this.DefWndProc(ref m);
-            //NativeMethods.LVHITTESTINFO* hittest = (NativeMethods.LVHITTESTINFO*)m.LParam;
-            NativeMethods.LVHITTESTINFO hittest = (NativeMethods.LVHITTESTINFO)m.GetLParam(typeof(NativeMethods.LVHITTESTINFO));
-            // Find which row was hit...
-            int row = hittest.iItem;
-            if (row < 0)
-                return;
+        //    this.DefWndProc(ref m);
+        //    //NativeMethods.LVHITTESTINFO* hittest = (NativeMethods.LVHITTESTINFO*)m.LParam;
+        //    NativeMethods.LVHITTESTINFO hittest = (NativeMethods.LVHITTESTINFO)m.GetLParam(typeof(NativeMethods.LVHITTESTINFO));
+        //    // Find which row was hit...
+        //    int row = hittest.iItem;
+        //    if (row < 0)
+        //        return;
 
-            // ...from that decide the model object...
-            Object model = this.TreeModel.GetNthObject(row);
-            if (model == null)
-                return;
+        //    // ...from that decide the model object...
+        //    Object model = this.TreeModel.GetNthObject(row);
+        //    if (model == null)
+        //        return;
 
-            // ...and from that, the branch of the tree showing that model...
-            Branch br = this.TreeModel.GetBranch(model);
-            if (br == null)
-                return;
+        //    // ...and from that, the branch of the tree showing that model...
+        //    Branch br = this.TreeModel.GetBranch(model);
+        //    if (br == null)
+        //        return;
 
-            // ...use the indentation on that branch to modify the hittest
-            hittest.pt_x += (br.Level * TreeRenderer.PIXELS_PER_LEVEL);
-            System.Runtime.InteropServices.Marshal.StructureToPtr(hittest, m.LParam, false);
-            this.DefWndProc(ref m);
-        }
+        //    // ...use the indentation on that branch to modify the hittest
+        //    hittest.pt_x += (br.Level * TreeRenderer.PIXELS_PER_LEVEL);
+        //    System.Runtime.InteropServices.Marshal.StructureToPtr(hittest, m.LParam, false);
+        //    this.DefWndProc(ref m);
+        //}
 
         /// <summary>
         /// Handle a left button down event
@@ -520,9 +534,8 @@ namespace BrightIdeasSoftware
         public override OLVListItem MakeListViewItem(int itemIndex) {
             OLVListItem olvItem = base.MakeListViewItem(itemIndex);
             Branch br = this.TreeModel.GetBranch(olvItem.RowObject);
-            if (br != null) {
-                olvItem.IndentCount = br.Level;
-            }
+            if (br != null)
+                olvItem.IndentCount = br.Level - 1;
             return olvItem;
         }
 

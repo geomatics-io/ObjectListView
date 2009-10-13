@@ -478,7 +478,7 @@ namespace BrightIdeasSoftware
         /// <param name="msg">The msg</param>
         /// <returns>True if the message has been handled</returns>
         public virtual bool HandleGetDispInfo(ref Message msg) {
-            System.Diagnostics.Trace.WriteLine("HandleGetDispInfo");
+            //System.Diagnostics.Trace.WriteLine("HandleGetDispInfo");
             this.SetMaxWidth();
             ToolTipShowingEventArgs args = new ToolTipShowingEventArgs();
             args.ToolTipControl = this;

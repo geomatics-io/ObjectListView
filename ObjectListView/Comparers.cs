@@ -5,6 +5,7 @@
  * Date: 25/11/2008 17:15 
  *
  * Change log:
+ * 2009-08-24  JPP  - Added OLVGroupComparer
  * 2009-06-01  JPP  - ModelObjectComparer would crash if secondary sort column was null.
  * 2008-12-20  JPP  - Fixed bug with group comparisons when a group key was null (SF#2445761)
  * 2008-11-25  JPP  Initial version
@@ -122,13 +123,11 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class ListViewGroupComparer : IComparer<ListViewGroup>
     {
-        public ListViewGroupComparer(SortOrder order)
-        {
+        public ListViewGroupComparer(SortOrder order) {
             this.sortOrder = order;
         }
 
-        public int Compare(ListViewGroup x, ListViewGroup y)
-        {
+        public int Compare(ListViewGroup x, ListViewGroup y) {
             // If we know how to compare the tags, do that.
             // Otherwise do a case insensitive compare on the group header.
             // We have explicitly catch the "almost-null" value of DBNull.Value,
@@ -150,9 +149,36 @@ namespace BrightIdeasSoftware
     }
 
     /// <summary>
+    /// This comparer sort list view groups.
+    /// </summary>
+    public class OLVGroupComparer : IComparer<OLVGroup>
+    {
+        public OLVGroupComparer(SortOrder order) {
+            this.sortOrder = order;
+        }
+
+        public int Compare(OLVGroup x, OLVGroup y) {
+            // If we can compare the sort values, do that.
+            // Otherwise do a case insensitive compare on the group header.
+            int result;
+            if (x.SortValue != null && y.SortValue != null)
+                result = x.SortValue.CompareTo(y.SortValue);
+            else
+                result = String.Compare(x.Header, y.Header, StringComparison.CurrentCultureIgnoreCase);
+
+            if (this.sortOrder == SortOrder.Descending)
+                result = 0 - result;
+
+            return result;
+        }
+
+        private SortOrder sortOrder;
+    }
+
+    /// <summary>
     /// This comparer can be used to sort a collection of model objects by a given column
     /// </summary>
-    public class ModelObjectComparer : IComparer
+    public class ModelObjectComparer : IComparer, IComparer<object>
     {
         public ModelObjectComparer(OLVColumn col, SortOrder order)
         {
@@ -217,6 +243,10 @@ namespace BrightIdeasSoftware
         private OLVColumn column;
         private SortOrder sortOrder;
         private ModelObjectComparer secondComparer;
+
+        #region IComparer<object> Members
+
+        #endregion
     }
 
 }

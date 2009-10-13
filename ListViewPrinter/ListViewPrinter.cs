@@ -1242,7 +1242,7 @@ namespace BrightIdeasSoftware
             renderer.ListItem = (OLVListItem)lvi;
             renderer.ListView = (ObjectListView)lv;
             renderer.RowObject = ((OLVListItem)lvi).RowObject;
-            renderer.SubItem = this.GetSubItem(lvi, column);
+            renderer.SubItem = (OLVListSubItem)this.GetSubItem(lvi, column);
             renderer.CanWrap = this.CellFormat.CanWrap;
 
             // Use the cell block format to draw the background and border of the cell
@@ -1982,10 +1982,8 @@ namespace BrightIdeasSoftware
             //lgb.Rectangle.Height = r.Height;
 
             LinearGradientBrush lgb2 = new LinearGradientBrush(r, lgb.LinearColors[0], lgb.LinearColors[1], 0.0);
-#if !MONO
             lgb2.Blend = lgb.Blend;
             //lgb2.InterpolationColors = lgb.InterpolationColors;
-#endif
             lgb2.WrapMode = lgb.WrapMode;
             lgb2.Transform = lgb.Transform;
             return lgb2;
@@ -2016,10 +2014,8 @@ namespace BrightIdeasSoftware
             //lgb.Rectangle.Height = r.Height;
 
             LinearGradientBrush lgb2 = new LinearGradientBrush(r, lgb.LinearColors[0], lgb.LinearColors[1], 0.0);
-#if !MONO
             lgb2.Blend = lgb.Blend;
             //lgb2.InterpolationColors = lgb.InterpolationColors;
-#endif
             lgb2.WrapMode = lgb.WrapMode;
             lgb2.Transform = lgb.Transform;
             return lgb2;

@@ -137,28 +137,20 @@ answer is, "Yes, so long as you stick to the primary commands." Specially, these
 methods can all be called from background threads, and the control will work as
 expected:
 
-* `SetObjects()`
+* `AddObject/s()`
+* `BuildList()`
 * `ClearObjects()`
+* `InsertObjects()`
 * `RefreshObjects()`
+* `RemoveObject/s()`
+* `SetObjects()`
 * `Sort()`
 
 
 Does it work with Mono?
 -----------------------
 
-Yes. Maybe. Depends.
+As of September 2009, not any more. 
 
-Some of the tricks of the ObjectListView depend on manipulating the underlying
-Windows ListView control. Obviously, these tricks will not work on Mono.
-
-However, the code should compile and run on Mono. You will need to define the
-conditional compilation symbol MONO in your project.
-
-I have tested the ObjectListView under Ubuntu and it works as expected, albeit
-without some functionality. I have also tested it with the Windows version of
-Mono, and it still works, though it is not pretty. I have no access to a Mac or
-to other versions of Un*x, so I would be interested in hearing people's
-experiences on these operating systems.
-
-Please don't ask me Mono questions. You will have to look elsewhere for Mono
-expertise.
+It would be possible to make it work with
+Mono again. Please let me know if you are interested.

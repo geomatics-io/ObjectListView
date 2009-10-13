@@ -22,7 +22,19 @@ I'm too impatient! Just show me what it can do!
 
 Here is an example of what your ListView can look like with a few callbacks in place:
 
-.. image:: images/fancy-screenshot.png
+.. image:: images/fancy-screenshot2.png
+
+There is a lot to notice here:
+
+* word wrapped column header ("Cooking Skill")
+* decorations (love heart)
+* overlays (the personel information insert)
+* transluscent hot item
+* owner drawn columns (the stars)
+
+On Vista, the groups look even better:
+
+.. image:: images/fancy-screenshot3.png
 
 The TreeListView similarly make a tree structure look beautiful:
 
@@ -31,6 +43,11 @@ The TreeListView similarly make a tree structure look beautiful:
 And this is the report that can be effortlessly produced from the ObjectListView:
 
 .. image:: images/printpreview.png
+
+With a little work, you can even do something from the halls of cool like this:
+
+.. image:: images/foobar-lookalike.png
+
 
 Without wasting my time, just tell me what it does!
 ---------------------------------------------------
@@ -43,15 +60,20 @@ OK, here's the bullet point feature list:
 * Easily enable :ref:`drag and drop <dragdrop-label>`.
 * Supports all ListView views (report, list, large and small icons).
 * Supports automatic grouping.
-* Supports collapsible groups (Vista only).
+* Supports sophisticate :ref:`group formatting <recipe-groupformatting>`, including collapsible groups (Vista only).
 * Columns can be fixed-width, have a minimum and/or maximum width, or be space-filling (:ref:`Column Widths <recipe-column-width>`)
 * Displays a :ref:`"list is empty" message <recipe-emptymsg>` when the list is empty (obviously).
-* Supports :ref:`tooltips <recipe-tooltips>` for cells and for headers
-* Supports :ref:`checkboxes in any column <recipe-checkbox>` as well as tri-state checkboxes
+* Supports fancy :ref:`tooltips <recipe-tooltips>` for cells and for headers.
+* Supports :ref:`checkboxes in any column <recipe-checkbox>` as well as tri-state checkboxes.
 * Supports alternate rows background colors.
 * Supports :ref:`custom formatting of rows <recipe-formatter>`.
-* Supports :ref:`searching (by typing) on any column <recipe-search>`
-* Supports :ref:`image and text overlays <recipe-overlays>`
+* Supports :ref:`searching (by typing) on any column <recipe-search>`.
+* Supports :ref:`image and text overlays <recipe-overlays>` as well as arbitrary :ref:`decorations <recipe-decorations>`.
+* Supports :ref:`hyperlinks <recipe-hyperlink>`.
+* Supports :ref:`hot tracking <recipe-hottracking>` with text font/color changes and with decorations.
+* Supports :ref:`column header formatting <recipe-headerformatting>`.
+* Supports :ref:`groups on virtual lists <recipe-virtualgroups>` (Vista only).
+* Supports :ref:`transluscent hot item and selection <recipe-vistascheme>` like Vista even on XP.
 * The `DataListView` version supports data binding.
 * The `FastObjectListView` version can build a list of 10,000 objects in less than 0.1 seconds.
 * The `VirtualObjectListView` version supports millions of rows through ListView's virtual mode.
@@ -104,6 +126,11 @@ solve some of the problem encountered within the ObjectListView.
 
 * :ref:`This article <blog-tooltip>` talks about the problems of trying to use a standard `ToolTip` class on a
   `ListView`.
+
+Samples
+-------
+
+This :ref:`page of samples <samples-label>` shows what can be done with a little effort. Use it for inspiration.
 
 What people have said about ObjectListView
 ------------------------------------------
@@ -220,3 +247,4 @@ Site contents
    download
    Technical Blog <blog>
    changelog
+   samples
