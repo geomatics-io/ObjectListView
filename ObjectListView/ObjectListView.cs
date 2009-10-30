@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2009-10-30  JPP  - Plugged possible resource leak by using using() with CreateGraphics()
  * 2009-10-28  JPP  - Fix bug when right clicking in the empty area of the header
  * 2009-10-20  JPP  - Redraw the control after setting EmptyListMsg property
  * v2.3
@@ -6926,8 +6927,11 @@ namespace BrightIdeasSoftware
 
             if (renderer == null)
                 return r;
-            else
-                return renderer.GetEditRectangle(this.CreateGraphics(), r, item, subItemIndex);
+            else {
+                using (Graphics g = this.CreateGraphics()) {
+                    return renderer.GetEditRectangle(g, r, item, subItemIndex);
+                }
+            }
         }
 
         /// <summary>
