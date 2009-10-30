@@ -5,6 +5,8 @@
  * Date: 25/11/2008 17:15 
  *
  * Change log:
+ * 2009-10-30  JPP  - Plugged GDI resource leak, where font handles were created during custom
+ *                    drawing, but never destroyed
  * v2.3
  * 2009-10-03  JPP  - Handle when ListView.HeaderStyle is None
  * 2009-08-24  JPP  - Handle the header being destroyed
@@ -320,11 +322,14 @@ namespace BrightIdeasSoftware
         internal virtual bool HandleHeaderCustomDraw(ref Message m) {
             const int CDRF_NEWFONT = 2;
             const int CDRF_SKIPDEFAULT = 4;
+            const int CDRF_NOTIFYPOSTPAINT = 0x10;
             const int CDRF_NOTIFYITEMDRAW = 0x20;
 
             const int CDDS_PREPAINT = 1;
+            const int CDDS_POSTPAINT = 2;
             const int CDDS_ITEM = 0x00010000;
             const int CDDS_ITEMPREPAINT = (CDDS_ITEM | CDDS_PREPAINT);
+            const int CDDS_ITEMPOSTPAINT = (CDDS_ITEM | CDDS_POSTPAINT);
 
             NativeMethods.NMCUSTOMDRAW nmcustomdraw = (NativeMethods.NMCUSTOMDRAW)m.GetLParam(typeof(NativeMethods.NMCUSTOMDRAW));
             //System.Diagnostics.Debug.WriteLine(String.Format("header cd: {0:x}, {1}, {2:x}", nmcustomdraw.dwDrawStage, nmcustomdraw.dwItemSpec, nmcustomdraw.uItemState));
@@ -355,17 +360,26 @@ namespace BrightIdeasSoftware
                         if (this.HotFontStyle != FontStyle.Regular && columnIndex == this.ColumnIndexUnderCursor)
                             f = new Font(f, this.HotFontStyle);
 
-                        NativeMethods.SelectObject(nmcustomdraw.hdc, f.ToHfont());
+                        this.fontHandle = f.ToHfont();
+                        NativeMethods.SelectObject(nmcustomdraw.hdc, this.fontHandle);
 
-                        m.Result = (IntPtr)CDRF_NEWFONT;
+                        m.Result = (IntPtr)(CDRF_NEWFONT | CDRF_NOTIFYPOSTPAINT);
                     }
 
                     return true;
+
+                case CDDS_ITEMPOSTPAINT:
+                    if (this.fontHandle != IntPtr.Zero) {
+                        NativeMethods.DeleteObject(this.fontHandle);
+                        this.fontHandle = IntPtr.Zero;
+                    }
+                    break;
             }
 
             return false;
         }
         bool cachedNeedsCustomDraw;
+        IntPtr fontHandle;
 
         /// <summary>
         /// The message divides a ListView's space between the header and the rows of the listview.
