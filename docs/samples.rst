@@ -10,40 +10,40 @@ Samples
 These are examples of what can be done with an `ObjectListView`.
 
 +------------------------------------------+----------------------------------------------+
-|                                          |                                             |
+|                                          |                                              |
 | `Foobar Lookalike`_                      | .. image:: images/foobar-lookalike-small.png |
-|                                          |   :align: center                            |
-| Shows how to creatively use decorations, |                                             |
-| and hot item styles.                     |                                             |
-|                                          |                                             |
-|                                          |                                             |
-|                                          |                                             |
+|                                          |   :align: center                             |
+| Shows how to creatively use decorations, |                                              |
+| and hot item styles.                     |                                              |
+|                                          |                                              |
+|                                          |                                              |
+|                                          |                                              |
 +------------------------------------------+----------------------------------------------+
-|                                          |                                             |
+|                                          |                                              |
 | `Task List`_                             | .. image:: images/task-list-small.png        |
-|                                          |   :align: center                            |
-| Shows a more sophisticated renderer as   |                                             |
-| well as demonstrating how to combine a   |                                             |
-| decoration with a renderer.              |                                             |
-|                                          |                                             |
+|                                          |   :align: center                             |
+| Shows a more sophisticated renderer as   |                                              |
+| well as demonstrating how to combine a   |                                              |
+| decoration with a renderer.              |                                              |
+|                                          |                                              |
 +------------------------------------------+----------------------------------------------+
-                                              
-                                              
-Foobar Lookalike                              
-----------------                              
-                                              
+
+
+Foobar Lookalike
+----------------
+
 Those who dwell in the house of cool know that black goes with everything.
-                                            
-.. image:: images/foobar-lookalike.png      
-                                            
+
+.. image:: images/foobar-lookalike.png
+
 A normal ListView cannot display things that exceed the bounds of their cells.
 But `ObjectListView` has decorations and overlays so it is much more flexible.
-                                            
+
 The dark background is a simple `BackColor` setting. The different colored text
 is handled throught a `FormatCell` event. The hot row highlighting is handled
 through normal `HotItemStyle` mechanism. The only interesting bit is that it
 uses the `LeftColumn` property to limit the cells that are highlighted as hot.
-                                            
+
 The clever  bit is  getting the  album artwork  into the  control. This  is done
 through two types of decorations. In the first row in an album, cell 0 is  given
 an `ImageDecoration` which shows a thumbnail of the artwork. This works, but the
@@ -57,7 +57,7 @@ not visible.
 
 `Download from here`_
 
-.. _Download from here: http://sourceforge.net/projects
+.. _Download from here: http://sourceforge.net/projects/objectlistview/files/objectlistview/FoobarLookalike.7z
 
 Task List
 ---------
@@ -75,4 +75,5 @@ does the same task.
 
 `Download sample project from here`_
 
-.. _Download sample project from here: http://sourceforge.net/projects
+.. _Download sample project from here: http://sourceforge.net/projects/objectlistview/files/objectlistview/VistaSelection.7z
+

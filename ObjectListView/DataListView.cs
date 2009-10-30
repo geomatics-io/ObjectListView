@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * v2.3
  * 2009-01-18   JPP  - Boolean columns are now handled as checkboxes
  *                   - Auto-generated columns would fail if the data source was 
  *                     reseated, even to the same data source

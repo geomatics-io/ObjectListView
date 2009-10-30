@@ -5,6 +5,7 @@
  * Date: 16/08/2009 1:02 AM
  *
  * Change log:
+ * v2.3
  * 2009-09-22   JPP  - Added Wrap property to TextAdornment, to allow text wrapping to be disabled
  *                   - Added ShrinkToWidth property to ImageAdornment
  * 2009-08-17   JPP  - Initial version

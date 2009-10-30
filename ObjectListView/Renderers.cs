@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * v2.3
  * 2009-09-28   JPP  - Added DescribedTaskRenderer
  * 2009-09-01   JPP  - Correctly handle an ImageRenderer's handling of an aspect that holds
  *                     the image to be displayed at Byte[].

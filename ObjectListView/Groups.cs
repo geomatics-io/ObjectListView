@@ -5,6 +5,7 @@
  * Date: 22/08/2009 6:03PM
  *
  * Change log:
+ * v2.3
  * 2009-09-09   JPP  - Added Collapsed and Collapsible properties
  * 2009-09-01   JPP  - Cleaned up code, added more docs
  *                   - Works under VS2005 again

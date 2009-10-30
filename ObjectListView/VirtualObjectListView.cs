@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * v2.3
  * 2009-08-28   JPP  - BIG CHANGE. Virtual lists can now have groups!
  *                   - Objects property now uses "yield return" -- much more efficient for big lists
  * 2009-08-07   JPP  - Use new scheme for formatting rows/cells

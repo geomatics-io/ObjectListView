@@ -5,6 +5,7 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * v2.3
  * 2009-09-01  JPP  - Fixed off-by-one error that was messing up hit detection
  * 2009-08-27  JPP  - Fixed bug when dragging a node from one place to another in the tree
  * v2.2.1

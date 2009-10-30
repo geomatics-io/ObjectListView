@@ -5,6 +5,7 @@
  * Date: 29/07/2009 23:09
  *
  * Change log:
+ * v2.3
  * 2009-08-15  JPP  - Added Decoration and Overlay properties to HotItemStyle
  * 2009-07-29  JPP  - Initial version
  *

@@ -5,6 +5,7 @@
  * Date: 2009-03-17 5:15 PM
  *
  * Change log:
+ * v2.3
  * 2009-09-01   JPP  - Correctly handle case where RefreshObjects() is called for
  *                     objects that were children but are now roots.
  * 2009-08-27   JPP  - Added ModelDropEventArgs.RefreshObjects() to simplify updating after
