@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2009-10-30   JPP  - Plugged possible resource leak by using using() with CreateGraphics()
  * v2.3
  * 2009-09-28   JPP  - Added DescribedTaskRenderer
  * 2009-09-01   JPP  - Correctly handle an ImageRenderer's handling of an aspect that holds
@@ -776,7 +777,9 @@ namespace BrightIdeasSoftware
                 this.Bounds = this.ListItem.GetSubItemBounds(this.Column.Index);
                 //this.Bounds = this.ListView.CalculateCellBounds(this.ListItem, this.Column.Index);
 
-            this.HandleHitTest(this.ListView.CreateGraphics(), hti, x, y);
+            using (Graphics g = this.ListView.CreateGraphics()) {
+                this.HandleHitTest(g, hti, x, y);
+            }
         }
 
         public override Rectangle GetEditRectangle(Graphics g, Rectangle cellBounds, OLVListItem item, int subItemIndex) {
