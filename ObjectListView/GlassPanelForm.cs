@@ -6,6 +6,10 @@
  * Date: 14/04/2009 4:36 PM
  *
  * Change log:
+ * 2009-10-28   JPP  - Use FindForm() rather than TopMostControl, since the latter doesn't work
+ *                     as I expected when the OLV is part of an MDI child window. Thanks to
+ *                     wvd_vegt who tracked this down.
+ * v2.3
  * 2009-08-19   JPP  - Only hide the glass pane on resize, not on move
  *                   - Each glass panel now only draws one overlays
  * v2.2
@@ -105,7 +109,7 @@ namespace BrightIdeasSoftware
                 }
                 parent = parent.Parent;
             }
-            this.Owner = this.objectListView.TopLevelControl as Form;
+            this.Owner = this.objectListView.FindForm();
             if (this.Owner != null) {
                 this.Owner.LocationChanged += new EventHandler(Owner_LocationChanged);
                 this.Owner.SizeChanged += new EventHandler(Owner_SizeChanged);
