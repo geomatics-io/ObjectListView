@@ -5,6 +5,7 @@
  * Date: 28/11/2008 17:15 
  *
  * Change log:
+ * v2.3
  * 2009-02-15  JPP  - Made Munger a public class
  * 2009-01-20  JPP  - Made the Munger capable of handling indexed access.
  *                    Incidentally, this removed the ugliness that the last change introduced.

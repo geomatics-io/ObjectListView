@@ -9,6 +9,7 @@ Change Log
 
 Version Index
 -------------
+* `v2.3 - 13 October 2009`_
 * `v2.2.1 - 08 August 2009`_
 * `v2.2 - 08 June 2009`_
 * `v2.2 beta - 15 May 2009`_
@@ -29,8 +30,280 @@ Version Index
 * `Previous versions - 04 April 2007`_
 
 
+v2.3 - 13 October 2009
+----------------------
+
+2009-10-03 20:51 (#905) - ObjectListView/ObjectListView.cs
+  - Explain why we need ApplyExtendedStyles() instead of using CreateParams
+
+2009-10-03 20:50 (#904) - ObjectListView/HeaderControl.cs
+  - Handle when ListView.HeaderStyle is None
+
+2009-10-03 20:50 (#903) - ObjectListView/Adornments.cs
+  - Update some DefaultValues so that code generation is better
+
+2009-09-28 20:49 (#900) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Use DescribedTaskRenderer to show that it works
+
+2009-09-28 20:48 (#899) - ObjectListView/Renderers.cs
+  - Added DescribedTaskRenderer
+
+2009-09-28 20:48 (#898) - docs/samples.rst, docs/.templates/layout.html, docs/.static/samples-icon.png
+  - Updates samples
+  - Put Samples into main menu
+
+2009-09-23 00:20 (#888) - ObjectListView/ToolTipControl.cs
+  - Removed debug print
+
+2009-09-23 00:20 (#887) - ObjectListView/Decorations.cs
+  - Added LeftColumn and RightColumn to RowBorderDecoration
+
+2009-09-23 00:19 (#886) - ObjectListView/Adornments.cs
+  - Added Wrap property to TextAdornment, to allow text wrapping to be disabled
+  - Added ShrinkToWidth property to ImageAdornment
+
+2009-09-22 12:16 (#885) - ObjectListView/ObjectListView.csproj
+  - Renamed OLVGroup.cs to Groups.cs
+
+2009-09-22 11:45 (#884) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Added hyperlink to Fast tab
+
+2009-09-17 00:57 (#876) - ObjectListView/ObjectListView.cs
+  - Added OwnerDrawnHeader. Set this to true if you want to owner draw the header yourself.
+
+2009-09-16 22:33 (#874) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Allow for Vista style selection
+
+2009-09-15 22:29 (#873) - ObjectListView/ObjectListView.cs, ObjectListView/NativeMethods.cs
+  - Added UseExplorerTheme
+
+2009-09-15 19:28 (#872) - Tests/MainForm.Designer.cs, Tests/Program.cs, Tests/MainForm.cs, Tests/SetupTestSuite.cs, Tests/TestAdornments.cs, Tests/TestFormatting.cs, Tests/TestTreeView.cs, Tests/TestColumn.cs, Tests/TestCheckBoxes.cs, Tests/TestBasics.cs, Tests/TestSelection.cs, Tests/TestSorting.cs
+  - Cleaned up using statements
+
+2009-09-15 19:24 (#870) - ObjectListView/Groups.cs
+  - Changed file name from OLVGroup.cs to Groups.cs
+
+2009-09-15 10:12 (#866) - ObjectListView/OLVGroup.cs
+  - Updated docs
+
+2009-09-15 10:12 (#865) - ObjectListView/NativeMethods.cs
+  - Added SetExtendedStyle()
+
+2009-09-15 10:11 (#864) - ObjectListView/ObjectListView.cs
+  - Added ShowHeaderInAllViews. To make this work, Columns are no longer changed when switching to/from Tile view.
+
+2009-09-12 11:39 (#860) - ObjectListView/ObjectListView.DesignTime.cs
+  - ObjectListViewDesigner now removes tooltips since they cause problems when set in the IDE.
+  - ObjectListViewDesigner is NOT enabled by default because of the problems of trying to duplicate the functionality of .NET's internal ListViewDesigner
+
+2009-09-11 22:44 (#856) - ObjectListView/ObjectListView.cs
+  - Added OLVColumn.AutoCompleteEditor to allow the autocomplete of cell editors to be disabled.
+
+2009-09-10 23:44 (#855) - ObjectListView/ObjectListView.cs
+  - Cleaned up code a little
+
+2009-09-10 23:43 (#854) - ObjectListView/Renderers.cs
+  - Cleaned up code a little
+
+2009-09-10 23:42 (#852) - ObjectListView/Generator.cs
+  - Allow for an attribute having a null Title
+
+2009-09-10 23:41 (#851) - ObjectListView/Attributes.cs
+  - Added default constructor
+
+2009-09-10 23:40 (#850) - ObjectListView/OLVGroup.cs
+  - Added Collapsed and Collapsible properties
+
+2009-09-03 00:18 (#846) - ObjectListView/TreeListView.cs
+  - Fixed off-by-one error that was messing up hit detection
+
+2009-09-02 16:43 (#845) - ObjectListView/ObjectListView.cs
+  - Correct incorrect attribute on SelectedRowDecoration
+
+2009-09-02 16:42 (#844) - ObjectListView/DropSink.cs
+  - Correctly handle case where RefreshObjects() is called for objects that were children but are now roots.
+
+2009-09-02 15:25 (#843) - ObjectListView/OLVGroup.cs
+  - Cleaned up code, added more docs
+  - Works under VS2005 again
+
+2009-09-02 15:25 (#842) - ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs, ObjectListView/HeaderControl.cs, ObjectListView/Renderers.cs
+  - Changed to use ObjectListView.TextRendereringHint rather than hardcoding a hint
+
+2009-09-02 15:23 (#841) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Select All button on virtual tab works again
+
+2009-09-02 15:22 (#840) - docs/download.rst
+  - Added info about 2.3 SVN branch
+
+2009-08-31 21:58 (#839) - docs/whatsnew.rst, docs/download.rst
+  - Added docs for v2.3a release
+
+2009-08-31 21:58 (#838) - ObjectListView/OLVGroup.cs, Demo/ObjectListViewDemo.csproj, ObjectListView/ObjectListView.csproj
+  - Made compatible with VS2005 again
+
+2009-08-31 16:31 (#837) - ObjectListView/ObjectListView.cs
+  - Added group formatting to supercharge what is possible with groups
+  - Virtual groups now work
+  - Extended MakeGroupies() to handle more aspects of group creation
+
+2009-08-30 23:26 (#831) - Demo/MainForm.Designer.cs, Demo/ObjectListViewDemo2008.csproj, Demo/MainForm.cs, Demo/MainForm.resx
+  - File explorer tab can now show various style of hot row highlighting
+
+2009-08-30 23:25 (#830) - ObjectListView/GroupingStrategy.cs, ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs, ObjectListView/ObjectListView2008.csproj, ObjectListView/VirtualObjectListView.cs, ObjectListView/VirtualGroups.cs, ObjectListView/TreeListView.cs, ObjectListView/Decorations.cs
+  - Reworked virtual groups. Only virtual lists need a grouping strategy now
+  - Tweaked some decorations
+
+2009-08-30 00:02 (#829) - ObjectListView/ObjectListView.cs, ObjectListView/VirtualObjectListView.cs
+  - Menu commands are now localizable
+  - Virtual lists don't get any grouping strategy by default
+
+2009-08-29 17:00 (#825) - ObjectListView/VirtualObjectListView.cs
+  - BIG CHANGE. Virtual lists can now have groups!
+
+2009-08-29 16:59 (#823) - ObjectListView/Renderers.cs
+  - Fixed bug where some of a cell's background was not erased.
+
+2009-08-29 16:58 (#821) - ObjectListView/ObjectListView.cs
+  - Added new grouping properties and capabilities: OLVGroup, GroupImageList, GroupingStrategy, SpaceBetweenGroups, OLVColumn.GroupFormatter
+  - Enhanced MakeGroupies() to be capable of handling new groups
+  - Fixed problem where grid lines would become confused when the listview was scrolled using the mouse.
+
+2009-08-29 16:50 (#819) - ObjectListView/NativeMethods.cs
+  - Added structures to help with new group operations
+
+2009-08-29 16:50 (#818) - ObjectListView/HeaderControl.cs
+  - Handle the header being destroyed
+
+2009-08-29 16:48 (#817) - ObjectListView/FastObjectListView.cs
+  - Added GroupingStrategy
+  - Added optimized Objects property
+
+2009-08-29 16:48 (#816) - ObjectListView/Events.cs
+  - Added group events
+
+2009-08-29 16:46 (#814) - ObjectListView/Comparers.cs
+  - Added OLVGroupComparer
+
+2009-08-29 16:45 (#813) - ObjectListView/Adornments.cs
+  - Made clear which 'ContentAlignment' I wanted
+
+2009-08-29 16:44 (#812) - ObjectListView/GroupingStrategy.cs, ObjectListView/OLVGroup.cs, ObjectListView/VirtualListDataSource.cs
+  - Initial checkin
+
+2009-08-27 22:51 (#805) - ObjectListView/TreeListView.cs, ObjectListView/DropSink.cs
+  - Fixed bug when dragging a node from one place to another in the tree
+  - Added ModelDropEventArgs.RefreshObjects() to simplify updating after a drag-drop operation
+
+2009-08-24 16:24 (#799) - ObjectListView/ObjectListView.cs
+  - Added ability to show basic column commands when header is right clicked
+  - Added SelectedRowDecoration, UseTranslucentSelection and UseTranslucentHotItem.
+  - Added PrimarySortColumn and PrimarySortOrder
+  - Correct problems with standard hit test and subitems
+  - Support Decorations
+  - Added header formatting capabilities: font, color, word wrap
+  - Gave ObjectListView its own designer to hide unwanted properties
+  - Separated design time stuff into separate file
+  - Added FormatRow and FormatCell events
+  - Get around bug in HitTest when not FullRowSelect
+  - Added OLVListItem.GetSubItemBounds() method which works correctly for all columns including column 0
+  - Added HotItemChanged event
+
+2009-08-24 16:22 (#797) - ObjectListView/Styles.cs
+  - Added Decoration and Overlay properties to HotItemStyle
+
+2009-08-24 16:20 (#796) - ObjectListView/Renderers.cs
+  - Correctly MeasureText() using the appropriate graphic context
+  - Handle translucent selection setting
+
+2009-08-24 16:18 (#795) - ObjectListView/Overlays.cs
+  - Overlays now use Adornments
+  - Added ITransparentOverlay interface. Overlays can now have separate transparency levels
+  - Moved decoration related code to new file
+
+2009-08-24 16:16 (#794) - ObjectListView/ObjectListView.csproj
+  - Added new files to project
+
+2009-08-24 16:15 (#793) - ObjectListView/ObjectListView2008.csproj
+  - Added new files to project
+
+2009-08-24 16:15 (#792) - ObjectListView/NativeMethods.cs
+  - Added new stuff
+
+2009-08-24 16:14 (#791) - ObjectListView/HeaderControl.cs
+  - Added formatting capabilities: font, color, word wrap
+  - Correctly handle header themes
+
+2009-08-24 16:13 (#790) - ObjectListView/GlassPanelForm.cs
+  - Each glass panel now only draws one overlays
+  - Only hide the glass pane on resize, not on move
+
+2009-08-24 16:12 (#789) - ObjectListView/Events.cs
+  - Added HotItem event
+
+2009-08-24 16:10 (#788) - ObjectListView/DropSink.cs
+  - Changed to use OlvHitTest()
+
+2009-08-24 16:09 (#787) - ObjectListView/Decorations.cs
+  - Initial version
+
+2009-08-24 16:09 (#786) - ObjectListView/CellEditors.cs
+  - Standardized code formatting
+
+2009-08-24 16:08 (#785) - ObjectListView/ObjectListView.DesignTime.cs, ObjectListView/Attributes.cs, ObjectListView/Generator.cs, ObjectListView/Adornments.cs
+  - Initial version
+
+2009-08-24 16:04 (#784) - ListViewPrinter/ListViewPrinter.cs
+  - Removed all references of MONO symbol
+
+2009-08-24 16:04 (#783) - docs/whatsnew.rst
+  - First take of v2.3 documentation
+
+2009-08-24 16:03 (#782) - Demo/Photos/jr.png, Demo/ObjectListViewDemo2008.csproj, Demo/MainForm.Designer.cs, Demo/Photos/sj.png, Demo/Resource1.Designer.cs, Demo/MainForm.cs, Demo/Photos/ns.png, Demo/Photos/sp.png, Demo/Resource1.resx, Demo/MainForm.resx, Demo/Photos/gab.png, Demo/Photos/ak.png, Demo/Photos/mb.png, Demo/ObjectListViewDemo.csproj, Demo/Photos/cp.png, Demo/Photos/Thumbs.db, Demo/Photos/cr.png, Demo/Photos/gp.png, Demo/Photos/es.png, Demo/Photos/jp.png
+  - Changed to show off many v2.3 features
+  - Made BusinessCardOverlay
+  - Removed all references to MONO symbol
+  - Use Segoe font under Vista
+  - Reduced size of photos
+
+2009-08-24 15:59 (#781) - Tests/MainForm.Designer.cs, Tests/Tests2008.csproj, Tests/TestAdornments.cs, Tests/Tests.csproj, Tests/TestGenerator.cs
+  - Added new tests: adornments, formatting, generator
+
+
+
 v2.2.1 - 08 August 2009
 -----------------------
+
+2009-08-08 09:43 (#741) - ObjectListView/ObjectListView.cs
+  - Added hyperlinks
+  - Use new scheme for formatting rows/cells
+  - Added Hot* properties that track where the mouse is
+  - Overrode TextAlign on columns so that column 0 can have something other than just left alignment.
+  - Redraw EmptyListMsg when the list is horizontally scrolled
+
+2009-08-08 09:37 (#740) - ObjectListView/VirtualObjectListView.cs
+  - Use new scheme for formatting rows/cells
+
+2009-08-08 09:36 (#739) - ObjectListView/Renderers.cs
+  - Use OLVListSubItem instead of ListViewItem.ListViewSubItem
+
+2009-08-08 09:34 (#736) - ObjectListView/Events.cs
+  - Added Hyperlink events
+  - Added Formatting events
+  - Use OLVListSubItem instead of ListViewItem.ListViewSubItem
+
+2009-08-08 09:31 (#735) - Tests/Tests2008.csproj, Tests/TestFormatting.cs, Tests/TestColumn.cs, Tests/TestCheckBoxes.cs, Tests/TestBasics.cs
+  - Added test for formatting events
+  - Reformatted code
+
+2009-08-06 13:47 (#727) - docs/download.rst
+  - Tweaked sizes of downloads for v2.2.1
+
+2009-08-06 13:29 (#725) - Demo/ObjectListViewDemo2008.csproj, Demo/AssemblyInfo.cs, ObjectListView/ObjectListView2008.csproj, ObjectListView/Properties/AssemblyInfo.cs
+  - Update version info to 2.2.1
+
+2009-08-06 13:01 (#724) - docs/.templates/layout.html, docs/blog3.rst, docs/changelog.rst, docs/download.rst
+  - Prepare docs for v2.2.1 release
 
 2009-08-05 09:28 (#722) - ObjectListView/ObjectListView.cs, ObjectListView/Overlays.cs
   - Add Bounds property to OLVListItem, which handles the case of the list item belonging to a collapsed group

@@ -5,6 +5,7 @@
  * Date: 20/10/2008 5:15 PM
  *
  * Change log:
+ * v2.3
  * 2009-08-13   JPP  - Standardized code formatting
  * v2.2.1
  * 2008-01-18   JPP  - Added special handling for enums

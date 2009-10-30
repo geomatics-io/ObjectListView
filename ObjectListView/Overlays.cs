@@ -5,6 +5,7 @@
  * Date: 14/04/2009 4:36 PM
  *
  * Change log:
+ * v2.3
  * 2009-08-17   JPP  - Overlays now use Adornments
  *                   - Added ITransparentOverlay interface. Overlays can now have separate transparency levels
  * 2009-08-10   JPP  - Moved decoration related code to new file

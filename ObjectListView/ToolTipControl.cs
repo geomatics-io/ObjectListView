@@ -9,6 +9,7 @@
  * Date: 2009-05-17 7:22PM 
  *
  * Change log:
+ * v2.3
  * 2009-06-13  JPP  - Moved ToolTipShowingEventArgs to Events.cs
  * v2.2
  * 2009-06-06  JPP  - Fixed some Vista specific problems

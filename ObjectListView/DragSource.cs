@@ -7,6 +7,7 @@
  * Date: 2009-03-17 5:15 PM
  *
  * Change log:
+ * v2.3
  * 2009-07-06   JPP  - Make sure Link is acceptable as an drop effect by default
  *                     (since MS didn't make it part of the 'All' value)
  * v2.2

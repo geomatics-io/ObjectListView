@@ -24,14 +24,6 @@ Here is an example of what your ListView can look like with a few callbacks in p
 
 .. image:: images/fancy-screenshot2.png
 
-There is a lot to notice here:
-
-* word wrapped column header ("Cooking Skill")
-* decorations (love heart)
-* overlays (the personel information insert)
-* transluscent hot item
-* owner drawn columns (the stars)
-
 On Vista, the groups look even better:
 
 .. image:: images/fancy-screenshot3.png
@@ -44,7 +36,7 @@ And this is the report that can be effortlessly produced from the ObjectListView
 
 .. image:: images/printpreview.png
 
-With a little work, you can even do something from the halls of cool like this:
+With a little work, you can even pretend to live in the halls of cool with something like this:
 
 .. image:: images/foobar-lookalike.png
 

@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * v2.3
  * 2009-08-27   JPP  - Added GroupingStrategy
  *                   - Added optimized Objects property
  * v2.2.1
