@@ -5,7 +5,10 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
- * 2009-09-30  JPP  - Addd Dispose() method to properly release resources
+ * 2009-10-28  JPP  - Fix bug when right clicking in the empty area of the header
+ * 2009-10-20  JPP  - Redraw the control after setting EmptyListMsg property
+ * v2.3
+ * 2009-09-30  JPP  - Added Dispose() method to properly release resources
  * 2009-09-16  JPP  - Added OwnerDrawnHeader, which you can set to true if you want to owner draw
  *                    the header yourself.
  * 2009-09-15  JPP  - Added UseExplorerTheme, which allow complete visual compliance with Vista explorer.
@@ -886,8 +889,10 @@ namespace BrightIdeasSoftware
             }
             set {
                 TextOverlay overlay = this.EmptyListMsgOverlay as TextOverlay;
-                if (overlay != null)
+                if (overlay != null) {
                     overlay.Text = value;
+                    this.Invalidate();
+                }
             }
         }
 
@@ -2818,10 +2823,10 @@ namespace BrightIdeasSoftware
         /// </remarks>
         protected virtual void ApplyExtendedStyles() {
             const int LVS_EX_SUBITEMIMAGES = 0x00000002;
-            const int LVS_EX_TRANSPARENTBKGND = 0x00400000;
+            //const int LVS_EX_TRANSPARENTBKGND = 0x00400000;
             const int LVS_EX_HEADERINALLVIEWS = 0x02000000;
 
-            const int styleMask = LVS_EX_SUBITEMIMAGES | LVS_EX_TRANSPARENTBKGND | LVS_EX_HEADERINALLVIEWS;
+            const int styleMask = LVS_EX_SUBITEMIMAGES | LVS_EX_HEADERINALLVIEWS;
             int style = 0;
 
             if (this.ShowImagesOnSubItems && !this.VirtualMode)
@@ -4767,7 +4772,7 @@ namespace BrightIdeasSoftware
             ColumnClickEventArgs eventArgs = new ColumnClickEventArgs(columnIndex);
             this.OnColumnRightClick(eventArgs);
 
-            if (this.ShowCommandMenuOnRightClick) {
+            if (columnIndex >= 0 && this.ShowCommandMenuOnRightClick) {
                 this.ShowColumnCommandMenu(columnIndex, Cursor.Position);
                 return true;
             }
@@ -4806,7 +4811,7 @@ namespace BrightIdeasSoftware
         /// <param name="pt">Where should the menu be placed</param>
         protected virtual void ShowColumnCommandMenu(int columnIndex, Point pt) {
             ToolStripDropDown m = this.MakeColumnCommandMenu(new ContextMenuStrip(), columnIndex);
-            if (this.ShowCommandMenuOnRightClick) {
+            if (this.SelectColumnsOnRightClick) {
                 if (m.Items.Count > 0)
                     m.Items.Add(new ToolStripSeparator());
                 this.MakeColumnSelectMenu(m);
