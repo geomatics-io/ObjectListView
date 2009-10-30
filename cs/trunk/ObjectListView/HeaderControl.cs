@@ -5,6 +5,7 @@
  * Date: 25/11/2008 17:15 
  *
  * Change log:
+ * v2.3
  * 2009-10-03  JPP  - Handle when ListView.HeaderStyle is None
  * 2009-08-24  JPP  - Handle the header being destroyed
  * v2.2.1

@@ -5,6 +5,7 @@
  * Date: 10/10/2006
  *
  * Change log:
+ * v2.3
  * 2006-10-10   JPP  - Initial version
  *
  * To do:

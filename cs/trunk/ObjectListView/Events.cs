@@ -5,6 +5,7 @@
  * Date: 17/10/2008 9:15 PM
  *
  * Change log:
+ * v2.3
  * 2009-08-16   JPP  - Added group events
  * 2009-08-08   JPP  - Added HotItem event
  * 2009-07-24   JPP  - Added Hyperlink events

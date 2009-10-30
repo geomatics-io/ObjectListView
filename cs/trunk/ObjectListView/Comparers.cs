@@ -5,6 +5,7 @@
  * Date: 25/11/2008 17:15 
  *
  * Change log:
+ * v2.3
  * 2009-08-24  JPP  - Added OLVGroupComparer
  * 2009-06-01  JPP  - ModelObjectComparer would crash if secondary sort column was null.
  * 2008-12-20  JPP  - Fixed bug with group comparisons when a group key was null (SF#2445761)

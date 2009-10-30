@@ -5,6 +5,7 @@
  * Date: 19/08/2009 10:56 PM
  *
  * Change log:
+ * v2.3
  * 2009-09-23   JPP  - Added LeftColumn and RightColumn to RowBorderDecoration
  * 2009-08-23   JPP  - Added LightBoxDecoration
  * 2009-08-19   JPP  - Initial version. Separated from Overlays.cs

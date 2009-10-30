@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * v2.3
  * 2009-03-31   JPP  - Added Objects property
  * 2008-11-26   JPP  - Added tool tip getting methods
  * 2008-11-05   JPP  - Added CheckState handling methods
