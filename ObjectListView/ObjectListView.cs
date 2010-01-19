@@ -5,6 +5,8 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2010-01-18  JPP  - Overlays can be turned off. They also only work on 32-bit displays
+ * v2.3
  * 2009-10-30  JPP  - Plugged possible resource leak by using using() with CreateGraphics()
  * 2009-10-28  JPP  - Fix bug when right clicking in the empty area of the header
  * 2009-10-20  JPP  - Redraw the control after setting EmptyListMsg property
@@ -2107,6 +2109,21 @@ namespace BrightIdeasSoftware
         private bool useAlternatingBackColors;
 
         /// <summary>
+        /// Should FormatCell events be called for each cell in the control?
+        /// </summary>
+        /// <remarks>Individual rows can decide whether to call FormatCell
+        /// events. This is simply the default behaviour.</remarks>
+        [Category("Behavior - ObjectListView"),
+         Description("Should FormatCell events be triggered to every cell that is built?"),
+         DefaultValue(false)]
+        public bool UseCellFormatEvents
+        {
+            get { return useCellFormatEvents; }
+            set { useCellFormatEvents = value; }
+        }
+        private bool useCellFormatEvents;
+
+        /// <summary>
         /// Should the selected row be drawn with non-standard foreground and background colors?
         /// </summary>
         /// <remarks>
@@ -2127,36 +2144,6 @@ namespace BrightIdeasSoftware
         private bool useCustomSelectionColors;
 
         /// <summary>
-        /// Gets or sets whether this listview should show hyperlinks in the cells.
-        /// </summary>
-        [Category("Behavior - ObjectListView"),
-         Description("Should hyperlinks be shown on this control?"),
-         DefaultValue(false)]
-        public bool UseHyperlinks {
-            get { return this.useHyperlinks; }
-            set { 
-                this.useHyperlinks = value; 
-                if (value && this.HyperlinkStyle == null)
-                    this.HyperlinkStyle = new HyperlinkStyle();
-            }
-        }
-        private bool useHyperlinks;
-
-        /// <summary>
-        /// Should FormatCell events be called for each cell in the control?
-        /// </summary>
-        /// <remarks>Individual rows can decide whether to call FormatCell
-        /// events. This is simply the default behaviour.</remarks>
-        [Category("Behavior - ObjectListView"),
-         Description("Should FormatCell events be triggered to every cell that is built?"),
-         DefaultValue(false)]
-        public bool UseCellFormatEvents {
-            get { return useCellFormatEvents; }
-            set { useCellFormatEvents = value; }
-        }
-        private bool useCellFormatEvents;
-
-        /// <summary>
         /// Should the item under the cursor be formatted in a special way?
         /// </summary>
         [Category("Appearance - ObjectListView"),
@@ -2175,6 +2162,39 @@ namespace BrightIdeasSoftware
             }
         }
         private bool useHotItem;
+
+        /// <summary>
+        /// Gets or sets whether this listview should show hyperlinks in the cells.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+         Description("Should hyperlinks be shown on this control?"),
+         DefaultValue(false)]
+        public bool UseHyperlinks
+        {
+            get { return this.useHyperlinks; }
+            set
+            {
+                this.useHyperlinks = value;
+                if (value && this.HyperlinkStyle == null)
+                    this.HyperlinkStyle = new HyperlinkStyle();
+            }
+        }
+        private bool useHyperlinks;
+
+        /// <summary>
+        /// Should this control show overlays
+        /// </summary>
+        /// <remarks>Overlays are enabled by default and would only need to be disabled
+        /// if they were causing problems in your development environment.</remarks>
+        [Category("Behavior - ObjectListView"),
+         Description("Should this control show overlays"),
+         DefaultValue(true)]
+        public bool UseOverlays
+        {
+            get { return this.useOverlays; }
+            set { this.useOverlays = value; }
+        }
+        private bool useOverlays = true;
 
         /// <summary>
         /// Should this control be configured to show check boxes on subitems?
@@ -2650,6 +2670,7 @@ namespace BrightIdeasSoftware
 
             // If the event didn't create them for us, use our default strategy
             if (args.Groups == null) {
+
                 args.Groups = this.MakeGroups(parms);
             }
 
@@ -2933,6 +2954,17 @@ namespace BrightIdeasSoftware
             OLVDataObject dataObject = new OLVDataObject(this, objectsToCopy);
             dataObject.CreateTextFormats();
             Clipboard.SetDataObject(dataObject);
+        }
+
+        /// <summary>
+        /// Return a html representation of the given objects
+        /// </summary>
+        public virtual string ObjectsToHtml(IList objectsToConvert) {
+            if (objectsToConvert.Count == 0)
+                return String.Empty;
+
+            OLVDataObject dataObject = new OLVDataObject(this, objectsToConvert);
+            return dataObject.CreateHtml();
         }
 
         /// <summary>
@@ -7710,8 +7742,8 @@ namespace BrightIdeasSoftware
         /// Make sure that any overlays are visible.
         /// </summary>
         public virtual void ShowOverlays() {
-            // If we are in design mode or there are no overlays, don't use glass panels
-            if (this.DesignMode || !this.HasOverlays)
+            // If we shouldn't show overlays, then don't create glass panels
+            if (!this.ShouldShowOverlays())
                 return;
 
             // Make sure that each overlay has its own glass panels
@@ -7728,6 +7760,29 @@ namespace BrightIdeasSoftware
             foreach (GlassPanelForm glassPanel in this.glassPanels) {
                 glassPanel.ShowGlass();
             }
+        }
+
+        private bool ShouldShowOverlays() {
+            // If we are in design mode, we dont show the overlays
+            if (this.DesignMode)
+                return false;
+
+            // If we are explicitly not using overlays, also don't show them
+            if (!this.UseOverlays)
+                return false;
+
+            // If there are no overlays, guess...
+            if (!this.HasOverlays)
+                return false;
+
+            // If we don't have 32-bit display, alpha blending doesn't work, so again, no overlays
+            // TODO: This should actually figure out which screen(s) the control is on, and make sure
+            // that each one is 32-bit.
+            if (Screen.PrimaryScreen.BitsPerPixel < 32)
+                return false;
+
+            // Finally, we can show the overlays
+            return true;
         }
 
         private GlassPanelForm FindGlassPanelForOverlay(IOverlay overlay) {
