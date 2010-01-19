@@ -184,6 +184,31 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Make a HTML representation of our model objects
+        /// </summary>
+        public string CreateHtml() {
+            List<OLVColumn> columns = this.ListView.ColumnsInDisplayOrder;
+
+            // Build html version of the selection
+            StringBuilder sbHtml = new StringBuilder("<table>");
+
+            foreach (object modelObject in this.ModelObjects) {
+                sbHtml.Append("<tr><td>");
+                foreach (OLVColumn col in columns) {
+                    if (col != columns[0]) {
+                        sbHtml.Append("</td><td>");
+                    }
+                    string strValue = col.GetStringValue(modelObject);
+                    sbHtml.Append(strValue); //TODO: Should encode the string value
+                }
+                sbHtml.AppendLine("</td></tr>");
+            }
+            sbHtml.AppendLine("</table>");
+
+            return sbHtml.ToString();
+        }
+
+        /// <summary>
         /// Convert the fragment of HTML into the Clipboards HTML format.
         /// </summary>
         /// <remarks>The HTML format is found here http://msdn2.microsoft.com/en-us/library/aa767917.aspx
