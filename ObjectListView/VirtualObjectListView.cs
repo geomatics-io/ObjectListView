@@ -205,6 +205,19 @@ namespace BrightIdeasSoftware
         }
         private IVirtualGroups groupingStrategy;
 
+
+        /// <summary>
+        /// Gets whether or not the current list is filtering its contents
+        /// </summary>
+        /// <remarks>
+        /// This is only possible if our underlying data source supports filtering.
+        /// </remarks>
+        public override bool IsFiltering {
+            get {
+                return base.IsFiltering && (this.DataSource is IFilterableDataSource);
+            }
+        }
+
         /// <summary>
         /// Get/set the collection of objects that this list will show
         /// </summary>
@@ -212,9 +225,9 @@ namespace BrightIdeasSoftware
         /// <para>
         /// The contents of the control will be updated immediately after setting this property.
         /// </para>
-        /// <para>This method preserves selection, if possible. Use SetObjects() if
+        /// <para>Setting this property preserves selection, if possible. Use SetObjects() if
         /// you do not want to preserve the selection. Preserving selection is the slowest part of this
-        /// code and performance is O(n) where n is the number of selected rows.</para>
+        /// code -- performance is O(n) where n is the number of selected rows.</para>
         /// <para>This method is not thread safe.</para>
         /// <para>The property DOES work on virtual lists, but if you try to iterate through a list 
         /// of 10 million objects, it may take some time :)</para>
@@ -223,10 +236,44 @@ namespace BrightIdeasSoftware
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public override IEnumerable Objects {
             get {
+                try {
+                    // If we are filtering, we have to temporarily disable filtering so we get
+                    // the whole collection
+                    if (this.IsFiltering)
+                        ((IFilterableDataSource)this.DataSource).ApplyFilters(null, null);
+                    return this.FilteredObjects;
+                } finally {
+                    if (this.IsFiltering)
+                        ((IFilterableDataSource)this.DataSource).ApplyFilters(this.ModelFilter, this.ListFilter);
+                }
+            }
+            set { base.Objects = value; }
+        }
+
+        /// <summary>
+        /// Gets the collection of objects that survive any filtering that may be in place.
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public override IEnumerable FilteredObjects {
+            get {
                 for (int i = 0; i < this.GetItemCount(); i++)
                     yield return this.GetModelObject(i);
             }
-            set { base.Objects = value; }
+        }
+
+        protected override void UpdateFiltering() {
+            IFilterableDataSource filterable = this.DataSource as IFilterableDataSource;
+            if (filterable == null)
+                return;
+
+            this.BeginUpdate();
+            try {
+                filterable.ApplyFilters(this.ModelFilter, this.ListFilter);
+                this.UpdateVirtualListSize();
+            } finally {
+                this.EndUpdate();
+            }
         }
 
         /// <summary>

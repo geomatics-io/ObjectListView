@@ -5,6 +5,7 @@
  * Date: 17/10/2008 9:15 PM
  *
  * Change log:
+ * 2010-03-04   JPP  - Added filtering events
  * v2.3
  * 2009-08-16   JPP  - Added group events
  * 2009-08-08   JPP  - Added HotItem event
@@ -217,6 +218,13 @@ namespace BrightIdeasSoftware
         public event EventHandler<OlvDropEventArgs> Dropped;
 
         /// <summary>
+        /// This event is triggered when the control needs to filter its collection of objects.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("This event is triggered when the control needs to filter its collection of objects.")]
+        public event EventHandler<FilterEventArgs> Filter;
+
+        /// <summary>
         /// This event is triggered when a cell needs to be formatted.
         /// </summary>
         [Category("Behavior - ObjectListView"),
@@ -407,6 +415,11 @@ namespace BrightIdeasSoftware
         protected virtual void OnDropped(OlvDropEventArgs args) {
             if (this.Dropped != null)
                 this.Dropped(this, args);
+        }
+
+        protected virtual void OnFilter(FilterEventArgs e) {
+            if (this.Filter != null)
+                this.Filter(this, e);
         }
 
         protected virtual void OnFormatCell(FormatCellEventArgs args) {
@@ -723,6 +736,20 @@ namespace BrightIdeasSoftware
             get { return secondarySortOrder; }
         }
         private SortOrder secondarySortOrder;
+    }
+    
+    /// <summary>
+    /// This event is triggered when the contents of a list have changed
+    /// and we want the world to have a chance to filter the list.
+    /// </summary>
+    public class FilterEventArgs : EventArgs
+    {
+        public FilterEventArgs(IEnumerable objects) {
+            this.Objects = objects;
+        }
+
+        public IEnumerable Objects;
+        public IEnumerable FilteredObjects;
     }
 
     /// <summary>

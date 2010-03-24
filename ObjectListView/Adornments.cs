@@ -11,7 +11,9 @@
  * 2009-08-17   JPP  - Initial version
  *
  * To do:
- *
+ * - Use IPointLocator rather than Corners
+ * - Add RotationCenter property ratherr than always using middle center
+ * 
  * Copyright (C) 2009 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify

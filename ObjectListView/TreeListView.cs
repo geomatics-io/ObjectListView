@@ -167,11 +167,34 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets or  sets the filter that is applied to our whole list of objects.
+        /// TreeListViews do not current whole list filters.
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public override IListFilter ListFilter {
+            get { return null; }
+            set {
+                System.Diagnostics.Debug.Assert(value == null, "TreeListView do not support ListFilters");
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the collection of root objects of the tree
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public override IEnumerable Objects {
+            get { return this.Roots; }
+            set { this.Roots = value; }
+        }
+
+        /// <summary>
         /// After expanding a branch, should the TreeListView attempts to show as much of the 
         /// revealed descendents as possible.
         /// </summary>
         [Category("Behavior - ObjectListView"),
-         Description("Should a wait cursor be shown when a branch is being expaned?"),
+         Description("Should the parent of an expand subtree be scrolled to the top revealing the children?"),
          DefaultValue(true)]
         public bool RevealAfterExpand {
             get { return revealAfterExpand; }
@@ -461,17 +484,17 @@ namespace BrightIdeasSoftware
         /// Intercept the basic message pump to customise the mouse down and hit testing.
         /// </summary>
         /// <param name="m"></param>
-        protected override void WndProc(ref Message m) {
-            switch (m.Msg) {
-                //case 0x1012: // LVM_HITTEST = (LVM_FIRST + 18)
-                //    this.HandleHitTest(ref m);
-                //    break;
+        //protected override void WndProc(ref Message m) {
+        //    switch (m.Msg) {
+        //        //case 0x1012: // LVM_HITTEST = (LVM_FIRST + 18)
+        //        //    this.HandleHitTest(ref m);
+        //        //    break;
 
-                default:
-                    base.WndProc(ref m);
-                    break;
-            }
-        }
+        //        default:
+        //            base.WndProc(ref m);
+        //            break;
+        //    }
+        //}
 
         /// <summary>
         /// Handle a hit test to account for the indent of the branch
@@ -587,8 +610,9 @@ namespace BrightIdeasSoftware
                     // If the branch is expanded, select the first child.
                     // If it isn't expanded and can be, expand it.
                     if (br.IsExpanded) {
-                        if (br.ChildBranches.Count > 0)
-                            this.SelectObject(br.ChildBranches[0].Model, true);
+                        List<Branch> filtered = br.FilteredChildBranches;
+                        if (filtered.Count > 0)
+                            this.SelectObject(filtered[0].Model, true);
                     } else {
                         if (br.CanExpand)
                             this.Expand(modelObject);
@@ -609,7 +633,7 @@ namespace BrightIdeasSoftware
         /// A Tree object represents a tree structure data model that supports both 
         /// tree and flat list operations as well as fast access to branches.
         /// </summary>
-        protected class Tree : IVirtualListDataSource
+        public class Tree : IVirtualListDataSource, IFilterableDataSource
         {
             public Tree(TreeListView treeView) {
                 this.treeView = treeView;
@@ -800,16 +824,17 @@ namespace BrightIdeasSoftware
             /// </summary>
             protected virtual void RebuildList() {
                 this.objectList = ArrayList.Adapter(this.trunk.Flatten());
-                if (this.trunk.ChildBranches.Count > 0) {
-                    this.trunk.ChildBranches[0].IsFirstBranch = true;
-                    this.trunk.ChildBranches[0].IsOnlyBranch = (this.trunk.ChildBranches.Count == 1);
+                List<Branch> filtered = this.trunk.FilteredChildBranches;
+                if (filtered.Count > 0) {
+                    filtered[0].IsFirstBranch = true;
+                    filtered[0].IsOnlyBranch = (filtered.Count == 1);
                 }
                 this.RebuildObjectMap(0);
             }
 
             /// <summary>
             /// Rebuild our reverse index that maps an object to its location
-            /// in the objectList array.
+            /// in the filteredObjectList array.
             /// </summary>
             /// <param name="startIndex"></param>
             protected virtual void RebuildObjectMap(int startIndex) {
@@ -859,8 +884,8 @@ namespace BrightIdeasSoftware
 
                 // Sorting is going to change the order of the branches so clear
                 // the "first branch" flag
-                if (this.trunk.ChildBranches.Count > 0)
-                    this.trunk.ChildBranches[0].IsFirstBranch = false;
+                foreach (Branch b in this.trunk.ChildBranches)
+                    b.IsFirstBranch = false;
 
                 this.trunk.Sort(this.GetBranchComparer());
                 this.RebuildList();
@@ -899,6 +924,40 @@ namespace BrightIdeasSoftware
 
             #endregion
 
+            #region IFilterableDataSource Members
+
+            public void ApplyFilters(IModelFilter modelFilter, IListFilter listFilter) {
+                this.modelFilter = modelFilter;
+                this.listFilter = listFilter;
+                this.RebuildList();
+            }
+
+            /// <summary>
+            /// Is this list currently being filtered?
+            /// </summary>
+            internal bool IsFiltering {
+                get {
+                    return this.treeView.UseFiltering && (this.modelFilter != null || this.listFilter != null);
+                }
+            }
+
+            /// <summary>
+            /// Should the given model be included in this control?
+            /// </summary>
+            /// <param name="model">The model to consider</param>
+            /// <returns>True if it will be included</returns>
+            internal bool IncludeModel(object model) {
+                if (!this.treeView.UseFiltering)
+                    return true;
+
+                if (this.modelFilter == null)
+                    return true;
+
+                return this.modelFilter.Filter(model);
+            }
+
+            #endregion
+
             //------------------------------------------------------------------------------------------
             // Private instance variables
 
@@ -909,12 +968,15 @@ namespace BrightIdeasSoftware
             private ArrayList objectList = new ArrayList();
             private TreeListView treeView;
             private Branch trunk;
+
+            protected IModelFilter modelFilter;
+            protected IListFilter listFilter;
         }
 
         /// <summary>
         /// A Branch represents a sub-tree within a tree
         /// </summary>
-        protected class Branch
+        public class Branch
         {
             [Flags]
             public enum BranchFlags
@@ -979,14 +1041,11 @@ namespace BrightIdeasSoftware
                     return children;
                 }
                 set {
-                    if (this.ChildBranches.Count > 0)
-                        this.ChildBranches[this.ChildBranches.Count - 1].IsLastChild = false;
-
-                    this.ChildBranches.Clear();
-                    foreach (Object x in value)
-                        this.AddChild(x);
-                    if (this.ChildBranches.Count > 0)
-                        this.ChildBranches[this.ChildBranches.Count - 1].IsLastChild = true;
+                    //this.ManageLastChildFlag(delegate {
+                        this.ChildBranches.Clear();
+                        foreach (Object x in value)
+                            this.AddChild(x);
+                    //});
                 }
             }
 
@@ -1014,8 +1073,9 @@ namespace BrightIdeasSoftware
                     if (!this.IsExpanded)
                         return 0;
 
-                    int count = this.ChildBranches.Count;
-                    foreach (Branch br in this.ChildBranches)
+                    List<Branch> filtered = this.FilteredChildBranches;
+                    int count = filtered.Count;
+                    foreach (Branch br in filtered)
                         count += br.NumberVisibleDescendents;
                     return count;
                 }
@@ -1161,11 +1221,16 @@ namespace BrightIdeasSoftware
             /// <param name="flatList"></param>
             /// <remarks>The branch itself is <b>not</b> included in the list.</remarks>
             public virtual void FlattenOnto(IList flatList) {
-                foreach (Branch br in this.ChildBranches) {
+                Branch lastBranch = null;
+                foreach (Branch br in this.FilteredChildBranches) {
+                    lastBranch = br;
+                    br.IsLastChild = false;
                     flatList.Add(br.Model);
                     if (br.IsExpanded)
                         br.FlattenOnto(flatList);
                 }
+                if (lastBranch != null)
+                    lastBranch.IsLastChild = true;
             }
 
             /// <summary>
@@ -1177,14 +1242,43 @@ namespace BrightIdeasSoftware
                 if (this.ChildBranches.Count == 0)
                     return;
 
-                // We're about to sort the children, so clear the last child flag
-                this.ChildBranches[this.ChildBranches.Count - 1].IsLastChild = false;
-                if (comparer != null)
-                    this.ChildBranches.Sort(comparer);
-                this.ChildBranches[this.ChildBranches.Count - 1].IsLastChild = true;
+                //this.ManageLastChildFlag(delegate {
+                    if (comparer != null)
+                        this.ChildBranches.Sort(comparer);
+                //});
 
                 foreach (Branch br in this.ChildBranches)
                     br.Sort(comparer);
+            }
+
+            protected void ManageLastChildFlag(MethodInvoker toDo) {
+                foreach (Branch b in this.ChildBranches)
+                    b.IsLastChild = false;
+
+                toDo.Invoke();
+
+                List<Branch> filtered = this.FilteredChildBranches;
+                if (filtered.Count > 0)
+                    filtered[filtered.Count - 1].IsLastChild = true;
+            }
+
+            public List<Branch> FilteredChildBranches {
+                get {
+                    if (!this.Tree.IsFiltering)
+                        return this.ChildBranches;
+
+                    List<Branch> filtered = new List<Branch>();
+                    foreach (Branch b in this.ChildBranches) {
+                        if (this.Tree.IncludeModel(b.Model))
+                            filtered.Add(b);
+                        else {
+                            // Also include this branch if it has any filtered branches (yes, its recursive)
+                            if (b.FilteredChildBranches.Count > 0)
+                                filtered.Add(b);
+                        }
+                    }
+                    return filtered;
+                }
             }
 
             //------------------------------------------------------------------------------------------
@@ -1215,7 +1309,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// This class sorts branches according to how their respective model objects are sorted
         /// </summary>
-        protected class BranchComparer : IComparer<Branch>
+        public class BranchComparer : IComparer<Branch>
         {
             public BranchComparer(IComparer actualComparer) {
                 this.actualComparer = actualComparer;
@@ -1231,7 +1325,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// This class handles drawing the tree structure of the primary column.
         /// </summary>
-        public class TreeRenderer : BaseRenderer
+        public class TreeRenderer : HighlightTextRenderer
         {
             public TreeRenderer() {
                 this.LinePen = new Pen(Color.Blue, 1.0f);
@@ -1293,25 +1387,7 @@ namespace BrightIdeasSoftware
                     r2.Offset((br.Level - 1) * PIXELS_PER_LEVEL, 0);
                     r2.Width = PIXELS_PER_LEVEL;
 
-                    if (!this.IsPrinting && Application.RenderWithVisualStyles) {
-                        VisualStyleElement element = VisualStyleElement.TreeView.Glyph.Closed;
-                        if (br.IsExpanded)
-                            element = VisualStyleElement.TreeView.Glyph.Opened;
-                        VisualStyleRenderer renderer = new VisualStyleRenderer(element);
-                        renderer.DrawBackground(g, r2);
-                    } else {
-                        int h = 8;
-                        int w = 8;
-                        int x = r2.X + 4;
-                        int y = r2.Y + (r2.Height / 2) - 4;
-
-                        g.DrawRectangle(new Pen(SystemBrushes.ControlDark), x, y, w, h);
-                        g.FillRectangle(Brushes.White, x + 1, y + 1, w - 1, h - 1);
-                        g.DrawLine(Pens.Black, x + 2, y + 4, x + w - 2, y + 4);
-
-                        if (!br.IsExpanded)
-                            g.DrawLine(Pens.Black, x + 4, y + 2, x + 4, y + h - 2);
-                    }
+                    this.DrawExpansionGlyph(g, r2, br.IsExpanded);
                 }
 
                 int indent = br.Level * PIXELS_PER_LEVEL;
@@ -1321,21 +1397,57 @@ namespace BrightIdeasSoftware
                 this.DrawImageAndText(g, r);
             }
 
-            private void DrawLines(Graphics g, Rectangle r, Pen p, Branch br) {
+            protected virtual void DrawExpansionGlyph(Graphics g, Rectangle r, bool isExpanded) {
+                if (this.UseStyles) {
+                    this.DrawExpansionGlyphStyled(g, r, isExpanded);
+                } else {
+                    this.DrawExpansionGlyphManual(g, r, isExpanded);
+                }
+            }
+
+            protected virtual bool UseStyles {
+                get {
+                    return !this.IsPrinting && Application.RenderWithVisualStyles;
+                }
+            }
+
+            protected virtual void DrawExpansionGlyphStyled(Graphics g, Rectangle r, bool isExpanded) {
+                VisualStyleElement element = VisualStyleElement.TreeView.Glyph.Closed;
+                if (isExpanded)
+                    element = VisualStyleElement.TreeView.Glyph.Opened;
+                VisualStyleRenderer renderer = new VisualStyleRenderer(element);
+                renderer.DrawBackground(g, r);
+            }
+
+            protected virtual void DrawExpansionGlyphManual(Graphics g, Rectangle r, bool isExpanded) {
+                int h = 8;
+                int w = 8;
+                int x = r.X + 4;
+                int y = r.Y + (r.Height / 2) - 4;
+
+                g.DrawRectangle(new Pen(SystemBrushes.ControlDark), x, y, w, h);
+                g.FillRectangle(Brushes.White, x + 1, y + 1, w - 1, h - 1);
+                g.DrawLine(Pens.Black, x + 2, y + 4, x + w - 2, y + 4);
+
+                if (!isExpanded)
+                    g.DrawLine(Pens.Black, x + 4, y + 2, x + 4, y + h - 2);
+            }
+
+            protected virtual void DrawLines(Graphics g, Rectangle r, Pen p, Branch br) {
                 Rectangle r2 = r;
                 r2.Width = PIXELS_PER_LEVEL;
 
                 // Vertical lines have to start on even points, otherwise the dotted line looks wrong.
-                // This isn't need if pen isn't dotted.
+                // This is only needed if pen is dotted.
                 int top = r2.Top;
-                if (p.DashStyle == DashStyle.Dot && (top & 1) == 1)
-                    top += 1;
+                //if (p.DashStyle == DashStyle.Dot && (top & 1) == 0)
+                //    top += 1;
 
                 // Draw lines for ancestors
                 int midX;
                 IList<Branch> ancestors = br.Ancestors;
                 foreach (Branch ancestor in ancestors) {
-                    if (!ancestor.IsLastChild) {
+                    if (!ancestor.IsLastChild && !ancestor.IsOnlyBranch) {
                         midX = r2.Left + r2.Width / 2;
                         g.DrawLine(p, midX, top, midX, r2.Bottom);
                     }
@@ -1345,11 +1457,13 @@ namespace BrightIdeasSoftware
                 // Draw lines for this branch
                 midX = r2.Left + r2.Width / 2;
                 int midY = r2.Top + r2.Height / 2;
+
                 // Horizontal line first
                 g.DrawLine(p, midX, midY, r2.Right, midY);
+
                 // Vertical line second
                 if (br.IsFirstBranch) {
-                    if (!br.IsOnlyBranch)
+                    if (!br.IsLastChild && !br.IsOnlyBranch)
                         g.DrawLine(p, midX, midY, midX, r2.Bottom);
                 } else {
                     if (br.IsLastChild)

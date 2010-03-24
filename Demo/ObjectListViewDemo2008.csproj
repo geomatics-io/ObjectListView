@@ -105,6 +105,7 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="AnimatedDecoration.cs" />
     <Compile Include="Resource1.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -199,6 +200,8 @@
     <Content Include="Persons.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="Resources\goldstar3.png" />
+    <None Include="Resources\goldstart-32.png" />
     <None Include="Resources\fav32.png" />
     <None Include="Resources\redback1.png" />
     <None Include="Resources\redbull.png" />
@@ -218,6 +221,10 @@
     <ProjectReference Include="..\ObjectListView\ObjectListView2008.csproj">
       <Project>{18FEDA0C-D147-4286-B39A-01204808106A}</Project>
       <Name>ObjectListView2008</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SparkleLibrary\SparkleLibrary.csproj">
+      <Project>{D63F9786-B608-4085-AF08-D909448B0426}</Project>
+      <Name>SparkleLibrary</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
