@@ -1069,18 +1069,42 @@ on the list background.
 25. How do I change the font or color of the column headers?
 ------------------------------------------------------------
 
-Set the `HeaderFont` or `HeaderForeColor` properties on the `ObjectListView` to
+Set `ObjectListView.HeaderUsesThemes` to `false` and then create 
+a `HeaderFormatStyle` object (either in code or within the IDE), give it
+the characteristics you want, and then assign that style to either 
+`ObjectListView.HeaderFormatStyle` (to format all column headers) or 
+`OLVColumn.HeaderFormatStyle` (to format just one column header).
+
+Each `HeaderFormatStyle` has a setting for each state of the header:
+
+* `Normal` controls how the header appears when nothing else is happening to it. 
+
+* `Hot` controls how the header appears when the mouse is over the header. 
+  This should be a slight, but still noticable, shift from the normal state.
+
+* `Pressed` controls how the header appears when the user has pressed the 
+  mouse button on the header, but not yet released the button. 
+  This should be a clear visual change from both the normal and hot states. 
+
+For each state, the header format allows the font, font color, background color 
+and frame to be specified. If you combine these attributes badly, you can 
+produce some truly dreadful designs, but when well used, the effect can be pleasant.
+
+There is also `ObjectListView.HeaderWordWrap` which when `true` says to
+word wrap the text within the header.
+
+.. image:: images/header-formatting.png
+
+[v2.3 and earlier] 
+
+In previous versions, you could set the `HeaderFont` or `HeaderForeColor` 
+properties on the `ObjectListView` to
 change the font and color for all columns. You can also set the `HeaderFont` or
 `HeaderForeColor` properties on one `OLVColumn` to change just that column.
 
-There is also `HeaderWordWrap` on `ObjectListView` which allows the text within
-the header to be word wrapped.
-
-As far as possible, `ObjectListView` tries to keep the same style as whatever theme is
-currently active. For this reason, you cannot set the background color of the
-header. If you want to do this, you can always owner draw the header yourself.
-
-.. image:: images/header-formatting.png
+These properties should no longer to be used, since `HeaderFormatStyles` provide
+much more. These properties will be marked obsolete in v2.5 and removed some
+time after that.
 
 
 .. _recipe-hyperlink:
@@ -1332,3 +1356,127 @@ Caveat emptor
 Implementating this feature required the use of undocumented features. That means
 there is no guarantee that it will continue working in later versions of Windows
 (or even on current versions). You have been warned.
+
+.. _recipe-filtering:
+
+32. Can I filter the contents of the ObjectListView?
+----------------------------------------------------
+
+[v2.4] `ObjectListView` supports filtering on lists. To enable filtering
+on a list, you must set `UseFiltering` to `true`. To ensure backward
+compatibility, it is `false` by default.
+
+Once filtering is enabled, `ObjecListView` supports two sorts of filtering: 
+(1) whole list filtering;
+(2) model filtering.
+
+Whole list filtering is useful for filtering that applies to the entire list.
+Tail and head filtering are classic examples of such filtering. If you have a log file
+viewer and you only want to show the last 500 lines, you can set a filter
+to simply show the last 500 objects::
+
+   this.olvLogView.ListFilter = new TailFilter(500);
+   
+Since this filter operates on the list as a whole, it runs quickly. By cutting down
+the number of objects shown in the list, it can speed up the list considerably.
+
+Model filtering considers each object in turn and decides if it should be included.
+Because it considers every object individually, it is slower than a whole list filter,
+but it is still fast enough for normal use. On my mid-range laptop, model filtering on
+a list of 50,000 objects still has a sub-second response time. 
+
+You can make your own filters by implmenting the `IModelFilter` or `IListFilter`
+interface, or by subclassing `AbstractModelFilter` or `AbstractListFilter`.
+These interfaces are just about as simple as they could be::
+
+    public interface IModelFilter
+    {
+        bool Filter(object modelObject);
+    }
+
+    public interface IListFilter
+    {
+        IEnumerable Filter(IEnumerable modelObjects);
+    }
+	
+If you only wanted to show emergency calls, you could make a filter like this::
+
+    public class OnlyEmergenciesFilter : IModelFilter
+    {
+        public bool Filter(object modelObject) {
+            return ((PhoneCall)x).IsEmergency; 
+        }
+    }
+    ...
+    this.olv1.ModelFilter = new OnlyEmergenciesFilter();
+	
+Rather than subclassing, you will often be able to use an instance of `ModelFilter` directly.
+This accepts a delegate that decides if the given model should be included. Again, to only
+show emergency calls, you could install a filter like this::
+
+   this.olv1.ModelFilter = new ModelFilter(delegate(object x) { 
+       return ((PhoneCall)x).IsEmergency; 
+   });
+   
+To remove a filter, simply set `ModelFilter` (or `ListFilter`) to `null`.
+   
+Filters and virtual lists
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As always, since virtual lists keep their data to themselves, `ObjectListView` cannot filter 
+their contents directly. However, if the `VirtualListDataSource` behind the virtual list
+implements the new `IFilterableDataSource` data source, then the virtual list can be filtered too.
+
+The `IFilterableDataSource` is very simple::
+
+    public interface IFilterableDataSource
+    {
+        /// <summary>
+        /// All subsequent retrievals on this data source should be filtered
+        /// through the given filters. null means no filtering of that kind.
+        /// </summary>
+        void ApplyFilters(IModelFilter modelFilter, IListFilter listFilter);
+    }
+
+The data source should store the given filters, and apply them to all subsequent operations.
+
+
+.. _recipe-text-filtering:
+
+   
+33. Is there an easy way to only show rows that contain some text?
+------------------------------------------------------------------
+
+    *I want to do a text filter like iTunes' search box, where only songs that contain the typed string are shown. Is there an easy way to do that?*
+	
+Funnily enough, there is! It's called `TextMatchFilter.` You use it thus::
+
+    this.olv1.ModelFilter = new TextMatchFilter(this.olv1, "search");
+	
+After executing this line, the `olv1` will only show rows where the text "search"
+occurs in at least one cell of that row. 
+
+This searching uses each cell's string representation. This can lead to some odd, but still
+accurate results, when owner drawn is `true`. For example, subitem check boxes are drawn
+as boxes, but their string representation is "true" and "false." If you're text filter is
+"rue" it will match all rows where a subitem check box is checked.
+
+HighlightTextRenderer
+^^^^^^^^^^^^^^^^^^^^^
+
+If your filtered `ObjectListView` is owner drawn, you can pair this text searching
+with a special renderer, `HighlightTextRenderer.` This renderer draws a highlight box
+around any substring that matches its given text. So::
+
+    this.olv1.DefaultRenderer = new HighlightTextRenderer("er");
+    this.olv1.ModelFilter = new TextMatchFilter(this.olv1, "er");
+
+would give something that looks like this:
+
+.. image:: images/text-filter-highlighting.png
+
+You can change the highlighting by playing with the `FrameColor` and `FillColor` properties
+on the `HighlightTextRenderer.`
+
+Remember: the list has to be owner drawn for the renderer to have any effect.
+

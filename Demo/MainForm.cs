@@ -132,7 +132,7 @@ namespace ObjectListViewDemo
             tcol.AspectPutter = delegate(Person x, object newValue) { x.SetRate((double)newValue); };
 
 			// Just one line of code make everything happen.
-			this.listViewSimple.SetObjects(list);
+			this.olvSimple.SetObjects(list);
 		}
 
 		void InitializeComplexExample(List<Person> list)
@@ -140,7 +140,7 @@ namespace ObjectListViewDemo
 
             // The following line makes getting aspect about 10x faster. Since getting the aspect is
             // the slowest part of building the ListView, it is worthwhile BUT NOT NECESSARY to do.
-            TypedObjectListView<Person> tlist = new TypedObjectListView<Person>(this.listViewComplex);
+            TypedObjectListView<Person> tlist = new TypedObjectListView<Person>(this.olvComplex);
             tlist.GenerateAspectGetters();
             /* The line above the equivilent to typing the following:
             tlist.GetColumn(0).AspectGetter = delegate(Person x) { return x.Name; };
@@ -220,15 +220,15 @@ namespace ObjectListViewDemo
 			};
 
             // Install a custom renderer that draws the Tile view in a special way
-            this.listViewComplex.ItemRenderer = new BusinessCardRenderer();
+            this.olvComplex.ItemRenderer = new BusinessCardRenderer();
 
             // Drag and drop support
             // You can set up drag and drop explicitly (like this) or, in the IDE, you can set
             // IsSimpleDropSource and IsSimpleDragSource and respond to CanDrop and Dropped events
 
-            this.listViewComplex.DragSource = new SimpleDragSource();
+            this.olvComplex.DragSource = new SimpleDragSource();
             SimpleDropSink dropSink = new SimpleDropSink();
-            this.listViewComplex.DropSink = dropSink;
+            this.olvComplex.DropSink = dropSink;
             dropSink.CanDropOnItem = true;
             //dropSink.CanDropOnSubItem = true;
             dropSink.FeedbackColor = Color.IndianRed; // just to be different
@@ -265,7 +265,7 @@ namespace ObjectListViewDemo
 
             comboBox1.SelectedIndex = 4;
             comboBox5.SelectedIndex = 0;
-            listViewComplex.SetObjects(list);
+            olvComplex.SetObjects(list);
         }
 
         /// <summary>
@@ -533,7 +533,7 @@ namespace ObjectListViewDemo
             }
 
             public override int GetObjectCount() {
-                return 50000;
+                return 500 * 1000;
             }
 
             public override void Sort(OLVColumn column, SortOrder order) {
@@ -549,21 +549,21 @@ namespace ObjectListViewDemo
 
 		void InitializeVirtualListExample ()
 		{
-            this.listViewVirtual.BooleanCheckStateGetter = delegate(object x) {
+            this.olvVirtual.BooleanCheckStateGetter = delegate(object x) {
                 return ((Person)x).IsActive;
             };
-            this.listViewVirtual.BooleanCheckStatePutter = delegate(object x, bool newValue) {
+            this.olvVirtual.BooleanCheckStatePutter = delegate(object x, bool newValue) {
                 ((Person)x).IsActive = newValue;
                 return newValue;
             };
-            this.listViewVirtual.DataSource = new ExampleVirtualDataSource(this.listViewVirtual, this.masterList);
+            this.olvVirtual.DataSource = new ExampleVirtualDataSource(this.olvVirtual, this.masterList);
 
             // Install a custom sorter, just to show how it could be done. We don't
             // have a backing store that can sort all 10 million items, so we have to be
             // content with sorting the master list and showing that sorted. It gives the idea.
-            this.listViewVirtual.CustomSorter = delegate(OLVColumn col, SortOrder order) {
+            this.olvVirtual.CustomSorter = delegate(OLVColumn col, SortOrder order) {
                 masterList.Sort(new MasterListSorter(col, order));
-                this.listViewVirtual.BuildList();
+                this.olvVirtual.BuildList();
             };
 
 			// Install aspect getters to optimize performance
@@ -576,7 +576,7 @@ namespace ObjectListViewDemo
             this.olvColumn10.AspectPutter = delegate(object x, object newValue) { ((Person)x).SetRate((double)newValue); };
 
             // Install a RowFormatter to setup a tooltip on the item
-            this.listViewVirtual.RowFormatter = delegate(OLVListItem lvi) {
+            this.olvVirtual.RowFormatter = delegate(OLVListItem lvi) {
                 lvi.ToolTipText = String.Format("This is a long tool tip for '{0}' that does nothing except waste space.", lvi.Text);
             };
 
@@ -604,7 +604,7 @@ namespace ObjectListViewDemo
         void InitializeExplorerExample()
         {
             // Draw the system icon next to the name
-            SysImageListHelper helper = new SysImageListHelper(this.listViewFiles);
+            SysImageListHelper helper = new SysImageListHelper(this.olvFiles);
             this.olvColumnFileName.ImageGetter = delegate(object x) {
                 return helper.GetImageIndex(((FileSystemInfo)x).FullName);
             };
@@ -689,6 +689,17 @@ namespace ObjectListViewDemo
                 DirectoryInfo dir = (DirectoryInfo)x;
                 try {
                     return new ArrayList(dir.GetFileSystemInfos());
+
+                    // Test checking objects before they exist in the list
+
+                    //ArrayList list = new ArrayList(dir.GetFileSystemInfos());
+                    //ArrayList list2 = new ArrayList();
+                    //foreach (FileSystemInfo fsi in list) {
+                    //    if (fsi.Name.ToLowerInvariant().StartsWith("d"))
+                    //        list2.Add(fsi);
+                    //}
+                    //this.treeListView.CheckedObjects = list2;
+                    //return list;
                 }
                 catch (UnauthorizedAccessException ex) {
                     MessageBox.Show(this, ex.Message, "ObjectListViewDemo", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -696,10 +707,12 @@ namespace ObjectListViewDemo
                 }
             };
 
-            this.treeListView.CheckBoxes = false;
+            //this.treeListView.CheckBoxes = false;
 
             // You can change the way the connection lines are drawn by changing the pen
-            //((TreeListView.TreeRenderer)this.treeListView.TreeColumnRenderer).LinePen = Pens.Firebrick;
+            TreeListView.TreeRenderer renderer = (TreeListView.TreeRenderer)this.treeListView.TreeColumnRenderer;
+            renderer.LinePen = new Pen(Color.Firebrick, 0.5f);
+            renderer.LinePen.DashStyle = DashStyle.Dot;
 
             //-------------------------------------------------------------------
             // Eveything after this is the same as the Explorer example tab --
@@ -790,7 +803,7 @@ namespace ObjectListViewDemo
 				this.dataGridView1.DataSource = ds;
 				this.dataGridView1.DataMember = "Person";
                 // Install this data source
-                this.listViewDataSet.DataSource = new BindingSource(ds, "Person");
+                this.olvData.DataSource = new BindingSource(ds, "Person");
 
                 // Test with BindingSource
                 //this.listViewDataSet.DataSource = new BindingSource(ds, "Person");
@@ -852,20 +865,20 @@ namespace ObjectListViewDemo
 
 			this.toolStripStatusLabel1.Text =
 				String.Format("XML Load: {0} items in {1}ms, average per item: {2:F}ms",
-				              listViewDataSet.Items.Count,
+				              olvData.Items.Count,
 				              stopWatch.ElapsedMilliseconds,
-				              stopWatch.ElapsedMilliseconds / listViewDataSet.Items.Count);
+				              stopWatch.ElapsedMilliseconds / olvData.Items.Count);
         }
 
         #region Form event handlers
 
         private void MainForm_Load(object sender, EventArgs e) {
             // Make the tooltips look somewhat different
-            this.listViewComplex.CellToolTip.BackColor = Color.Black;
-            this.listViewComplex.CellToolTip.ForeColor = Color.AntiqueWhite;
-            this.listViewComplex.HeaderToolTip.BackColor = Color.AntiqueWhite;
-            this.listViewComplex.HeaderToolTip.ForeColor = Color.Black;
-            this.listViewComplex.HeaderToolTip.IsBalloon = true;
+            this.olvComplex.CellToolTip.BackColor = Color.Black;
+            this.olvComplex.CellToolTip.ForeColor = Color.AntiqueWhite;
+            this.olvComplex.HeaderToolTip.BackColor = Color.AntiqueWhite;
+            this.olvComplex.HeaderToolTip.ForeColor = Color.Black;
+            this.olvComplex.HeaderToolTip.IsBalloon = true;
         }
 
         #endregion
@@ -941,38 +954,38 @@ namespace ObjectListViewDemo
 
 		void CheckBox3CheckedChanged(object sender, System.EventArgs e)
 		{
-			ShowGroupsChecked(this.listViewSimple, (CheckBox)sender);
+			ShowGroupsChecked(this.olvSimple, (CheckBox)sender);
 		}
 
 		void CheckBox4CheckedChanged(object sender, System.EventArgs e)
 		{
-			ShowLabelsOnGroupsChecked(this.listViewSimple, (CheckBox)sender);
+			ShowLabelsOnGroupsChecked(this.olvSimple, (CheckBox)sender);
 		}
 
 		void Button1Click(object sender, System.EventArgs e)
 		{
-            this.TimedRebuildList(this.listViewSimple);
+            this.TimedRebuildList(this.olvSimple);
 		}
 
         void Button4Click(object sender, System.EventArgs e) {
             // Silly example just to make sure that object selection works
 
-            listViewSimple.SelectedObjects = listViewComplex.SelectedObjects;
-            listViewSimple.Select();
+            olvSimple.SelectedObjects = olvComplex.SelectedObjects;
+            olvSimple.Select();
 
-            listViewSimple.CopyObjectsToClipboard(listViewSimple.CheckedObjects);
+            olvSimple.CopyObjectsToClipboard(olvSimple.CheckedObjects);
         }
 
         private void button7_Click(object sender, EventArgs e)
         {
             Person person = new Person("Some One Else " + System.Environment.TickCount);
-            this.listViewSimple.AddObject(person);
-            this.listViewSimple.EnsureModelVisible(person);
+            this.olvSimple.AddObject(person);
+            this.olvSimple.EnsureModelVisible(person);
         }
 
         private void button6_Click(object sender, EventArgs e)
         {
-            this.listViewSimple.RemoveObjects(this.listViewSimple.SelectedObjects);
+            this.olvSimple.RemoveObjects(this.olvSimple.SelectedObjects);
         }
 
         #endregion
@@ -981,49 +994,49 @@ namespace ObjectListViewDemo
 
         void CheckBox1CheckedChanged(object sender, System.EventArgs e)
 		{
-			ShowGroupsChecked(this.listViewComplex, (CheckBox)sender);
+			ShowGroupsChecked(this.olvComplex, (CheckBox)sender);
 		}
 
 		void CheckBox2CheckedChanged(object sender, System.EventArgs e)
 		{
-            this.listViewComplex.UseTranslucentSelection = ((CheckBox)sender).Checked;
-            this.listViewComplex.UseTranslucentHotItem = ((CheckBox)sender).Checked;
+            this.olvComplex.UseTranslucentSelection = ((CheckBox)sender).Checked;
+            this.olvComplex.UseTranslucentHotItem = ((CheckBox)sender).Checked;
 
             // Make the hot item show an overlay when it changes
-            if (this.listViewComplex.UseTranslucentHotItem) {
-                this.listViewComplex.HotItemStyle.Overlay = new BusinessCardOverlay();
-                this.listViewComplex.HotItemStyle = this.listViewComplex.HotItemStyle;
+            if (this.olvComplex.UseTranslucentHotItem) {
+                this.olvComplex.HotItemStyle.Overlay = new BusinessCardOverlay();
+                this.olvComplex.HotItemStyle = this.olvComplex.HotItemStyle;
             }
 
-            this.listViewComplex.Invalidate();
+            this.olvComplex.Invalidate();
         }
 
 		void Button2Click(object sender, System.EventArgs e)
 		{
-            this.TimedRebuildList(this.listViewComplex);
+            this.TimedRebuildList(this.olvComplex);
         }
 
 		void Button5Click(object sender, System.EventArgs e)
 		{
-            this.listViewComplex.CopySelectionToClipboard();
-            listViewComplex.SelectedObjects = listViewSimple.SelectedObjects;
-            listViewComplex.Select();
+            this.olvComplex.CopySelectionToClipboard();
+            olvComplex.SelectedObjects = olvSimple.SelectedObjects;
+            olvComplex.Select();
 		}
 
 		void CheckBox6CheckedChanged(object sender, EventArgs e)
 		{
             if (comboBox1.SelectedIndex == 3 && this.checkBox6.Checked)
-                this.listViewComplex.TileSize = new Size(250, 120);
+                this.olvComplex.TileSize = new Size(250, 120);
 
-            ChangeOwnerDrawn(this.listViewComplex, (CheckBox)sender);
+            ChangeOwnerDrawn(this.olvComplex, (CheckBox)sender);
 		}
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (comboBox1.SelectedIndex == 3 && this.listViewComplex.OwnerDraw)
-                this.listViewComplex.TileSize = new Size(250, 120);
+            if (comboBox1.SelectedIndex == 3 && this.olvComplex.OwnerDraw)
+                this.olvComplex.TileSize = new Size(250, 120);
 
-            this.ChangeView(this.listViewComplex, (ComboBox)sender);
+            this.ChangeView(this.olvComplex, (ComboBox)sender);
         }
         #endregion
 
@@ -1031,12 +1044,12 @@ namespace ObjectListViewDemo
 
 		void CheckBox7CheckedChanged(object sender, System.EventArgs e)
 		{
-			ShowGroupsChecked(this.listViewDataSet, (CheckBox)sender);
+			ShowGroupsChecked(this.olvData, (CheckBox)sender);
 		}
 
 		void CheckBox8CheckedChanged(object sender, System.EventArgs e)
 		{
-			ShowLabelsOnGroupsChecked(this.listViewDataSet, (CheckBox)sender);
+			ShowLabelsOnGroupsChecked(this.olvData, (CheckBox)sender);
 		}
 
 		void Button3Click(object sender, System.EventArgs e)
@@ -1046,12 +1059,12 @@ namespace ObjectListViewDemo
 
         void CheckBox5CheckedChanged(object sender, EventArgs e)
         {
-            ChangeOwnerDrawn(this.listViewDataSet, (CheckBox)sender);
+            ChangeOwnerDrawn(this.olvData, (CheckBox)sender);
         }
 
         private void comboBox3_SelectedIndexChanged(object sender, EventArgs e)
         {
-            this.ChangeView(this.listViewDataSet, (ComboBox)sender);
+            this.ChangeView(this.olvData, (ComboBox)sender);
         }
 
         void ListViewDataSetSelectedIndexChanged(object sender, System.EventArgs e)
@@ -1069,12 +1082,12 @@ namespace ObjectListViewDemo
 
         private void rowHeightUpDown_ValueChanged(object sender, EventArgs e)
         {
-            this.listViewDataSet.RowHeight = Decimal.ToInt32(this.rowHeightUpDown.Value);
+            this.olvData.RowHeight = Decimal.ToInt32(this.rowHeightUpDown.Value);
         }
 
         private void checkBoxPause_CheckedChanged(object sender, EventArgs e)
         {
-            this.listViewDataSet.PauseAnimations(((CheckBox)sender).Checked);
+            this.olvData.PauseAnimations(((CheckBox)sender).Checked);
         }
 
         #endregion
@@ -1083,22 +1096,22 @@ namespace ObjectListViewDemo
 
 		void CheckBox9CheckedChanged(object sender, EventArgs e)
 		{
-            this.ChangeOwnerDrawn(this.listViewVirtual, (CheckBox)sender);
+            this.ChangeOwnerDrawn(this.olvVirtual, (CheckBox)sender);
         }
 
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
-            this.ChangeView(this.listViewVirtual, (ComboBox)sender);
+            this.ChangeView(this.olvVirtual, (ComboBox)sender);
         }
 
         private void button8_Click(object sender, EventArgs e)
         {
-            this.listViewVirtual.SelectAll();
+            this.olvVirtual.SelectAll();
         }
 
         private void button9_Click(object sender, EventArgs e)
         {
-            this.listViewVirtual.DeselectAll();
+            this.olvVirtual.DeselectAll();
         }
 
 		#endregion
@@ -1134,39 +1147,39 @@ namespace ObjectListViewDemo
 
             Cursor.Current = Cursors.WaitCursor;
             sw.Start();
-			this.listViewFiles.SetObjects(pathInfo.GetFileSystemInfos());
+			this.olvFiles.SetObjects(pathInfo.GetFileSystemInfos());
             sw.Stop();
             Cursor.Current = Cursors.Default;
 
-            float msPerItem = (listViewFiles.Items.Count == 0 ? 0 : (float)sw.ElapsedMilliseconds / listViewFiles.Items.Count);
+            float msPerItem = (olvFiles.Items.Count == 0 ? 0 : (float)sw.ElapsedMilliseconds / olvFiles.Items.Count);
             this.toolStripStatusLabel1.Text = String.Format("Timed build: {0} items in {1}ms ({2:F}ms per item)",
-                listViewFiles.Items.Count, sw.ElapsedMilliseconds, msPerItem);
+                olvFiles.Items.Count, sw.ElapsedMilliseconds, msPerItem);
 		}
 
 		void CheckBox12CheckedChanged(object sender, EventArgs e)
 		{
-			ShowGroupsChecked(this.listViewFiles, (CheckBox)sender);
+			ShowGroupsChecked(this.olvFiles, (CheckBox)sender);
 		}
 
 		void CheckBox11CheckedChanged(object sender, EventArgs e)
 		{
-            this.ShowLabelsOnGroupsChecked(this.listViewFiles, (CheckBox)sender);
+            this.ShowLabelsOnGroupsChecked(this.olvFiles, (CheckBox)sender);
 		}
 
 		void CheckBox10CheckedChanged(object sender, EventArgs e)
 		{
-            this.ChangeOwnerDrawn(this.listViewFiles, (CheckBox)sender);
+            this.ChangeOwnerDrawn(this.olvFiles, (CheckBox)sender);
 		}
 
 		void ComboBox4SelectedIndexChanged(object sender, EventArgs e)
 		{
-           this.ChangeView(this.listViewFiles, (ComboBox)sender);
-           this.button13.Enabled = (this.listViewFiles.View == View.Details || this.listViewFiles.View == View.Tile);
+           this.ChangeView(this.olvFiles, (ComboBox)sender);
+           this.button13.Enabled = (this.olvFiles.View == View.Details || this.olvFiles.View == View.Tile);
        }
 
         private void listViewFiles_ItemActivate(object sender, EventArgs e)
         {
-            Object rowObject = this.listViewFiles.SelectedObject;
+            Object rowObject = this.olvFiles.SelectedObject;
             if (rowObject == null)
                 return;
 
@@ -1201,13 +1214,13 @@ namespace ObjectListViewDemo
 
         private void buttonSaveState_Click(object sender, EventArgs e)
         {
-            this.fileListViewState = this.listViewFiles.SaveState();
+            this.fileListViewState = this.olvFiles.SaveState();
             this.buttonRestoreState.Enabled = true;
         }
 
         private void buttonRestoreState_Click(object sender, EventArgs e)
         {
-            this.listViewFiles.RestoreState(this.fileListViewState);
+            this.olvFiles.RestoreState(this.fileListViewState);
         }
 
         #endregion
@@ -1247,15 +1260,15 @@ namespace ObjectListViewDemo
         void UpdatePrintPreview()
         {
             if (this.rbShowSimple.Checked == true)
-				this.listViewPrinter1.ListView = this.listViewSimple;
+				this.listViewPrinter1.ListView = this.olvSimple;
 			else if (this.rbShowComplex.Checked == true)
-				this.listViewPrinter1.ListView = this.listViewComplex;
+				this.listViewPrinter1.ListView = this.olvComplex;
 			else if (this.rbShowDataset.Checked == true)
-				this.listViewPrinter1.ListView = this.listViewDataSet;
+				this.listViewPrinter1.ListView = this.olvData;
             else if (this.rbShowVirtual.Checked == true)
-                this.listViewPrinter1.ListView = this.listViewVirtual;
+                this.listViewPrinter1.ListView = this.olvVirtual;
             else if (this.rbShowFileExplorer.Checked == true)
-                this.listViewPrinter1.ListView = this.listViewFiles;
+                this.listViewPrinter1.ListView = this.olvFiles;
 
 			this.listViewPrinter1.DocumentName = this.tbTitle.Text;
 			this.listViewPrinter1.Header = this.tbHeader.Text.Replace("\\t", "\t");
@@ -1447,22 +1460,22 @@ namespace ObjectListViewDemo
 
         private void comboBox5_SelectedIndexChanged(object sender, EventArgs e)
         {
-            this.ChangeEditable(this.listViewComplex, (ComboBox)sender);
+            this.ChangeEditable(this.olvComplex, (ComboBox)sender);
         }
 
         private void comboBox6_SelectedIndexChanged(object sender, EventArgs e)
         {
-            this.ChangeEditable(this.listViewSimple, (ComboBox)sender);
+            this.ChangeEditable(this.olvSimple, (ComboBox)sender);
         }
 
         private void comboBox7_SelectedIndexChanged(object sender, EventArgs e)
         {
-            this.ChangeEditable(this.listViewDataSet, (ComboBox)sender);
+            this.ChangeEditable(this.olvData, (ComboBox)sender);
         }
 
         private void comboBox8_SelectedIndexChanged(object sender, EventArgs e)
         {
-            this.ChangeEditable(this.listViewVirtual, (ComboBox)sender);
+            this.ChangeEditable(this.olvVirtual, (ComboBox)sender);
         }
 
         private void ChangeEditable(ObjectListView objectListView, ComboBox comboBox)
@@ -1481,10 +1494,10 @@ namespace ObjectListViewDemo
 
         private void InitializeFastListExample(List<Person> list)
         {
-            this.olvFastList.BooleanCheckStateGetter = delegate(object x) {
+            this.olvFast.BooleanCheckStateGetter = delegate(object x) {
                 return ((Person)x).IsActive;
             };
-            this.olvFastList.BooleanCheckStatePutter = delegate(object x, bool newValue) {
+            this.olvFast.BooleanCheckStatePutter = delegate(object x, bool newValue) {
                 ((Person)x).IsActive = newValue;
                 return newValue;
             };
@@ -1550,7 +1563,7 @@ namespace ObjectListViewDemo
             comboBox9.SelectedIndex = 0;
             comboBox10.SelectedIndex = 4;
 
-            this.olvFastList.SetObjects(list);
+            this.olvFast.SetObjects(list);
         }
 
         private void InitializeDragDropExample(List<Person> list) {
@@ -1586,7 +1599,7 @@ namespace ObjectListViewDemo
             try {
                 this.Cursor = Cursors.WaitCursor;
                 stopWatch.Start();
-                this.olvFastList.AddObjects(l);
+                this.olvFast.AddObjects(l);
             } finally {
                 stopWatch.Stop();
                 this.Cursor = Cursors.Default;
@@ -1595,37 +1608,37 @@ namespace ObjectListViewDemo
             this.takeNoticeOfSelectionEvent = false;
             this.toolStripStatusLabel1.Text =
                 String.Format("Build time: {0} items in {1}ms, average per item: {2:F}ms",
-                              this.olvFastList.Items.Count,
+                              this.olvFast.Items.Count,
                               stopWatch.ElapsedMilliseconds,
-                              (float)stopWatch.ElapsedMilliseconds / this.olvFastList.Items.Count);
+                              (float)stopWatch.ElapsedMilliseconds / this.olvFast.Items.Count);
         }
         private bool takeNoticeOfSelectionEvent = true;
 
         private void checkBox13_CheckedChanged(object sender, EventArgs e)
         {
-            ChangeOwnerDrawn(this.olvFastList, (CheckBox)sender);
+            ChangeOwnerDrawn(this.olvFast, (CheckBox)sender);
         }
 
         private void comboBox9_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ChangeEditable(this.olvFastList, (ComboBox)sender);
+            ChangeEditable(this.olvFast, (ComboBox)sender);
         }
 
         private void comboBox10_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ChangeView(this.olvFastList, (ComboBox)sender);
+            ChangeView(this.olvFast, (ComboBox)sender);
         }
 
         private void button15_Click(object sender, EventArgs e)
         {
-            this.olvFastList.ClearObjects();
-            this.HandleSelectionChanged(this.olvFastList);
+            this.olvFast.ClearObjects();
+            this.HandleSelectionChanged(this.olvFast);
         }
 
         private void button13_Click(object sender, EventArgs e)
         {
             ColumnSelectionForm form = new ColumnSelectionForm();
-            form.OpenOn(this.listViewFiles);
+            form.OpenOn(this.olvFiles);
         }
 
         private void olvFastList_SelectionChanged(object sender, EventArgs e)
@@ -1652,40 +1665,40 @@ namespace ObjectListViewDemo
             // Give him a birthday that will display an image to make sure the image appears.
             list[list.Count - 1].BirthDate = new DateTime(1984, 12, 25);
 
-            this.listViewComplex.AddObjects(list);
+            this.olvComplex.AddObjects(list);
         }
 
         private void button17_Click(object sender, EventArgs e)
         {
-            this.listViewComplex.RemoveObjects(this.listViewComplex.SelectedObjects);
+            this.olvComplex.RemoveObjects(this.olvComplex.SelectedObjects);
         }
 
 		void Button18Click(object sender, EventArgs e)
 		{
-            this.olvFastList.RemoveObjects(this.olvFastList.SelectedObjects);
+            this.olvFast.RemoveObjects(this.olvFast.SelectedObjects);
         }
 
         private void checkBox15_CheckedChanged(object sender, EventArgs e)
         {
             if (((CheckBox)sender).Checked) {
-                if (this.listViewSimple.ShowGroups) {
-                    this.listViewSimple.AlwaysGroupByColumn = this.listViewSimple.LastSortColumn;
-                    this.listViewSimple.AlwaysGroupBySortOrder = this.listViewSimple.LastSortOrder;
+                if (this.olvSimple.ShowGroups) {
+                    this.olvSimple.AlwaysGroupByColumn = this.olvSimple.LastSortColumn;
+                    this.olvSimple.AlwaysGroupBySortOrder = this.olvSimple.LastSortOrder;
                 }
             } else {
-                this.listViewSimple.AlwaysGroupByColumn = null;
-                this.listViewSimple.AlwaysGroupBySortOrder = SortOrder.None;
+                this.olvSimple.AlwaysGroupByColumn = null;
+                this.olvSimple.AlwaysGroupBySortOrder = SortOrder.None;
             }
         }
 
         private void button19_Click(object sender, EventArgs e)
         {
-            this.olvFastList.CopyObjectsToClipboard(this.olvFastList.CheckedObjects);
+            this.olvFast.CopyObjectsToClipboard(this.olvFast.CheckedObjects);
         }
 
         private void button20_Click(object sender, EventArgs e)
         {
-            this.olvFastList.EditSubItem(this.olvFastList.GetItem(5), 1);
+            this.olvFast.EditSubItem(this.olvFast.GetItem(5), 1);
         }
 
         private void treeListView_ItemActivate(object sender, EventArgs e)
@@ -1781,7 +1794,7 @@ namespace ObjectListViewDemo
         */
         private void checkBox18_CheckedChanged(object sender, EventArgs e)
         {
-            this.listViewSimple.UseHotItem = ((CheckBox)sender).Checked;
+            this.olvSimple.UseHotItem = ((CheckBox)sender).Checked;
             //this.listViewSimple.FullRowSelect = ((CheckBox)sender).Checked;
         }
 
@@ -1832,7 +1845,7 @@ namespace ObjectListViewDemo
         }
 
         private void comboBoxNagLevel_SelectedIndexChanged(object sender, EventArgs e) {
-            this.listViewVirtual.RemoveOverlay(this.nagOverlay);
+            this.olvVirtual.RemoveOverlay(this.nagOverlay);
 
             this.nagOverlay = new TextOverlay();
             switch (comboBoxNagLevel.SelectedIndex) {
@@ -1843,7 +1856,7 @@ namespace ObjectListViewDemo
                     this.nagOverlay.BorderWidth = 2.0f;
                     this.nagOverlay.BorderColor = Color.RoyalBlue;
                     this.nagOverlay.TextColor = Color.DarkBlue;
-                    this.listViewVirtual.OverlayTransparency = 255;
+                    this.olvVirtual.OverlayTransparency = 255;
                     break;
                 case 1:
                     this.nagOverlay.Alignment = ContentAlignment.TopRight;
@@ -1855,7 +1868,7 @@ namespace ObjectListViewDemo
                     this.nagOverlay.Rotation = 20;
                     this.nagOverlay.InsetX = 5;
                     this.nagOverlay.InsetY = 50;
-                    this.listViewVirtual.OverlayTransparency = 192;
+                    this.olvVirtual.OverlayTransparency = 192;
                     break;
                 case 2:
                     this.nagOverlay.Alignment = ContentAlignment.MiddleCenter;
@@ -1865,10 +1878,10 @@ namespace ObjectListViewDemo
                     this.nagOverlay.BorderColor = Color.Red;
                     this.nagOverlay.Rotation = -30;
                     this.nagOverlay.Font = new Font("Stencil", 36);
-                    this.listViewVirtual.OverlayTransparency = 192;
+                    this.olvVirtual.OverlayTransparency = 192;
                     break;
             }
-            this.listViewVirtual.AddOverlay(this.nagOverlay);
+            this.olvVirtual.AddOverlay(this.nagOverlay);
         }
         private TextOverlay nagOverlay;
 
@@ -1882,10 +1895,6 @@ namespace ObjectListViewDemo
             //        di.Attributes = di.Attributes | FileAttributes.Archive;
             //}
             this.treeListView.RefreshObjects(this.treeListView.SelectedObjects);
-        }
-
-        private void listViewSimple_Scroll(object sender, ScrollEventArgs e) {
-            //System.Diagnostics.Debug.WriteLine(String.Format("{0}, {1}, {2}", e.OldValue, e.NewValue, e.ScrollOrientation));
         }
 
         private void listViewComplex_CellToolTip(object sender, ToolTipShowingEventArgs e) {
@@ -2040,7 +2049,7 @@ namespace ObjectListViewDemo
 
         private void listViewComplex_FormatRow(object sender, FormatRowEventArgs e) {
             e.UseCellFormatEvents = true;
-            if (listViewComplex.View != View.Details) {
+            if (olvComplex.View != View.Details) {
                 if (e.Item.Text.ToLowerInvariant().StartsWith("nicola")) {
                     e.Item.Decoration = new ImageDecoration(Resource1.loveheart, 64);
                 } else
@@ -2048,32 +2057,32 @@ namespace ObjectListViewDemo
             }
         }
 
-    private void listViewComplex_FormatCell(object sender, FormatCellEventArgs e) {
-        Person p = (Person)e.Model;
+        private void listViewComplex_FormatCell(object sender, FormatCellEventArgs e) {
+            Person p = (Person)e.Model;
 
-        // Put a love heart next to Nicola's name :)
-        if (e.ColumnIndex == 0) {
-            if (e.SubItem.Text.ToLowerInvariant().StartsWith("nicola")) {
-                e.SubItem.Decoration = new ImageDecoration(Resource1.loveheart, 64);
-            } else
-                e.SubItem.Decoration = null;
-        }
+            // Put a love heart next to Nicola's name :)
+            if (e.ColumnIndex == 0) {
+                if (e.SubItem.Text.ToLowerInvariant().StartsWith("nicola")) {
+                    e.SubItem.Decoration = new ImageDecoration(Resource1.loveheart, 64);
+                } else
+                    e.SubItem.Decoration = null;
+            }
 
             // If the occupation is missing a value, put a composite decoration over it
             // to draw attention to.
-    if (e.ColumnIndex == 1 && e.SubItem.Text == "") {
-        TextDecoration decoration = new TextDecoration("Missing!", 255);
-        decoration.Alignment = ContentAlignment.MiddleCenter;
-        decoration.Font = new Font(this.Font.Name, this.Font.SizeInPoints+2);
-        decoration.TextColor = Color.Firebrick;
-        decoration.Rotation = -20;
-        e.SubItem.Decoration = decoration;
-        CellBorderDecoration cbd = new CellBorderDecoration();
-        cbd.BorderPen = new Pen(Color.FromArgb(128, Color.Firebrick));
-        cbd.FillBrush = null;
-        cbd.CornerRounding = 4.0f;
-        e.SubItem.Decorations.Add(cbd);
-    }
+            if (e.ColumnIndex == 1 && e.SubItem.Text == "") {
+                TextDecoration decoration = new TextDecoration("Missing!", 255);
+                decoration.Alignment = ContentAlignment.MiddleCenter;
+                decoration.Font = new Font(this.Font.Name, this.Font.SizeInPoints + 2);
+                decoration.TextColor = Color.Firebrick;
+                decoration.Rotation = -20;
+                e.SubItem.Decoration = decoration;
+                CellBorderDecoration cbd = new CellBorderDecoration();
+                cbd.BorderPen = new Pen(Color.FromArgb(128, Color.Firebrick));
+                cbd.FillBrush = null;
+                cbd.CornerRounding = 4.0f;
+                e.SubItem.Decorations.Add(cbd);
+            }
             //if (e.ColumnIndex == 7) {
             //    if (p.CanTellJokes.HasValue && p.CanTellJokes.Value)
             //        e.SubItem.Decoration = new CellBorderDecoration();
@@ -2091,8 +2100,8 @@ namespace ObjectListViewDemo
 
         private void checkBox20_CheckedChanged(object sender, EventArgs e) {
             if (ObjectListView.IsVista) {
-                this.olvFastList.ShowGroups = !this.olvFastList.ShowGroups;
-                this.olvFastList.BuildList();
+                this.olvFast.ShowGroups = !this.olvFast.ShowGroups;
+                this.olvFast.BuildList();
             } else {
                 MessageBox.Show("Sorry. Groups on virtual lists only works on Vista and later",
                     "OLV Demo", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -2109,7 +2118,7 @@ namespace ObjectListViewDemo
 
         private void comboBox14_SelectedIndexChanged(object sender, EventArgs e) {
             ComboBox cb = (ComboBox)sender;
-            ObjectListView olv = this.listViewFiles;
+            ObjectListView olv = this.olvFiles;
 
             olv.UseHotItem = true;
             olv.FullRowSelect = false;
@@ -2158,6 +2167,149 @@ namespace ObjectListViewDemo
             } else {
                 e.Url = "http://objectlistview.sourceforge.net";
             }
+        }
+
+        private void button29_Click(object sender, EventArgs e) {
+            AnimatedDecoration listAnimation = new AnimatedDecoration(this.olvSimple);
+            Animation animation = listAnimation.Animation;
+
+            //Sprite image = new ImageSprite(Resource1.largestar);
+            //image.FixedLocation = Locators.SpriteAligned(Corner.MiddleCenter);
+            //image.Add(0, 2000, Effects.Rotate(0, 360 * 2f));
+            //image.Add(1000, 1000, Effects.Fade(1.0f, 0.0f));
+            //animation.Add(0, image);
+
+            Sprite image = new ImageSprite(Resource1.largestar);
+            image.Add(0, 500, Effects.Move(Corner.BottomCenter, Corner.MiddleCenter));
+            image.Add(0, 500, Effects.Rotate(0, 180));
+            image.Add(500, 1500, Effects.Rotate(180, 360 * 2.5f));
+            image.Add(500, 1000, Effects.Scale(1.0f, 3.0f));
+            image.Add(500, 1000, Effects.Goto(Corner.MiddleCenter));
+            image.Add(1000, 900, Effects.Fade(1.0f, 0.0f));
+            animation.Add(0, image);
+
+            Sprite text = new TextSprite("Animations!", new Font("Tahoma", 32), Color.Blue, Color.AliceBlue, Color.Red, 3.0f);
+            text.Opacity = 0.0f;
+            text.FixedLocation = Locators.SpriteAligned(Corner.MiddleCenter);
+            text.Add(900, 900, Effects.Fade(0.0f, 1.0f));
+            text.Add(1000, 800, Effects.Rotate(180, 1440));
+            text.Add(2000, 500, Effects.Scale(1.0f, 0.5f));
+            text.Add(3500, 1000, Effects.Scale(0.5f, 3.0f));
+            text.Add(3500, 1000, Effects.Fade(1.0f, 0.0f));
+            animation.Add(0, text);
+
+            animation.Start();
+        }
+
+        private void button30_Click(object sender, EventArgs e) {
+            AnimatedDecoration animatedDecoration = new AnimatedDecoration(this.olvSimple,
+                this.olvSimple.GetModelObject(5));
+            Animation animation = animatedDecoration.Animation;
+
+            // Animate the same star several times to make ghosting
+            this.AddStarAnimation(animation, 250, 0.4f);
+            this.AddStarAnimation(animation, 200, 0.5f);
+            this.AddStarAnimation(animation, 150, 0.6f);
+            this.AddStarAnimation(animation, 100, 0.7f);
+            this.AddStarAnimation(animation, 50, 0.8f);
+            this.AddStarAnimation(animation, 0, 1.0f);
+
+            this.AddStarAnimation(animation, 2250, 0.4f);
+            this.AddStarAnimation(animation, 2200, 0.5f);
+            this.AddStarAnimation(animation, 2150, 0.6f);
+            this.AddStarAnimation(animation, 2100, 0.7f);
+            this.AddStarAnimation(animation, 2050, 0.8f);
+            this.AddStarAnimation(animation, 2000, 1.0f);
+
+            animation.Start();
+        }
+
+        private void AddStarAnimation(Animation animation, int start, float opacity) {
+            Sprite sprite = new ImageSprite(Resource1.star32);
+            sprite.Opacity = opacity;
+            sprite.Add(0, 4000, Effects.Walk(Locators.AnimationBounds(), WalkDirection.Anticlockwise));
+            sprite.Add(0, 4000, Effects.Rotate(0, 1480));
+            animation.Add(start, sprite);
+        }
+
+        private void button31_Click(object sender, EventArgs e) {
+            AnimatedDecoration animatedDecoration = new AnimatedDecoration(this.olvSimple,
+                this.olvSimple.GetModelObject(5),
+                this.olvSimple.GetColumn(1));
+            Animation animation = animatedDecoration.Animation;
+
+            ShapeSprite sprite = ShapeSprite.RoundedRectangle(5.0f, Color.Firebrick, Color.FromArgb(48, Color.Firebrick));
+            sprite.Opacity = 0.0f;
+            sprite.CornerRounding = 14;
+            sprite.FixedBounds = Locators.AnimationBounds(3, 3);
+            sprite.Add(0, 4500, Effects.Blink(3));
+            animation.Add(0, sprite);
+
+            animation.Start();
+        }
+
+        private void listViewSimple_MouseHover(object sender, EventArgs e) {
+            OLVColumn column;
+            Point pt = this.olvSimple.PointToClient(Cursor.Position);
+            OLVListItem item = this.olvSimple.GetItemAt(pt.X, pt.Y, out column);
+            System.Diagnostics.Debug.WriteLine(String.Format("Hover: {0}, {1}", item, column));
+        }
+
+        private void textBoxFilterSimple_TextChanged(object sender, EventArgs e) {
+            this.TimedFilter(this.olvSimple, textBoxFilterSimple.Text);
+        }
+
+        private void textBoxFilterComplex_TextChanged(object sender, EventArgs e) {
+            this.TimedFilter(this.olvComplex, textBoxFilterComplex.Text); 
+        }
+
+        private void textBoxFilterFast_TextChanged(object sender, EventArgs e) {
+            this.TimedFilter(this.olvFast, textBoxFilterFast.Text);
+        }
+
+        private void textBoxFilterData_TextChanged(object sender, EventArgs e) {
+            this.TimedFilter(this.olvData, textBoxFilterData.Text);
+        }
+
+        private void textBoxTreeFilter_TextChanged(object sender, EventArgs e) {
+            this.TimedFilter(this.treeListView, textBoxFilterTree.Text);
+        }
+
+        void TimedFilter(ObjectListView olv, string txt) {
+            TextMatchFilter filter = null;
+            if (!String.IsNullOrEmpty(txt))
+                filter = new TextMatchFilter(olv, txt);
+
+            // Setup a default renderer to draw the filter matches
+            if (filter == null) 
+                olv.DefaultRenderer = null;
+            else 
+                olv.DefaultRenderer = new HighlightTextRenderer(txt);
+
+            // Some lists have renderers already installed
+            HighlightTextRenderer highlightingRenderer = olv.GetColumn(0).Renderer as HighlightTextRenderer;
+            if (highlightingRenderer != null)
+                highlightingRenderer.TextToHighlight = txt;
+
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+            olv.ModelFilter = filter;
+            stopWatch.Stop();
+
+            IList objects = olv.Objects as IList;
+            if (objects == null)
+                this.toolStripStatusLabel1.Text =
+                    String.Format("Filtered in {0}ms", stopWatch.ElapsedMilliseconds);
+            else
+                this.toolStripStatusLabel1.Text =
+                    String.Format("Filtered {0} items down to {1} items in {2}ms",
+                                  objects.Count,
+                                  olv.Items.Count,
+                                  stopWatch.ElapsedMilliseconds);
+        }
+
+        private void listViewSimple_Scroll(object sender, ScrollEventArgs e) {
+
         }
     }
 

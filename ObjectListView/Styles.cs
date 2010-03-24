@@ -5,6 +5,7 @@
  * Date: 29/07/2009 23:09
  *
  * Change log:
+ * 2010-03-23  JPP  - Added HeaderFormatStyle and support
  * v2.3
  * 2009-08-15  JPP  - Added Decoration and Overlay properties to HotItemStyle
  * 2009-07-29  JPP  - Initial version
@@ -224,5 +225,134 @@ namespace BrightIdeasSoftware
             set { this.overCursor = value; }
         }
         private Cursor overCursor;
+    }
+
+    [TypeConverter(typeof(ExpandableObjectConverter))]
+    public class HeaderStateStyle
+    {
+        /// <summary>
+        /// Gets or sets the font that will be applied by this style
+        /// </summary>
+        [DefaultValue(null)]
+        public Font Font {
+            get { return this.font; }
+            set { this.font = value; }
+        }
+        private Font font;
+
+        /// <summary>
+        /// Gets or sets the color of the text that will be applied by this style
+        /// </summary>
+        [DefaultValue(typeof(Color), "")]
+        public Color ForeColor {
+            get { return this.foreColor; }
+            set { this.foreColor = value; }
+        }
+        private Color foreColor;
+
+        /// <summary>
+        /// Gets or sets the background color that will be applied by this style
+        /// </summary>
+        [DefaultValue(typeof(Color), "")]
+        public Color BackColor {
+            get { return this.backColor; }
+            set { this.backColor = value; }
+        }
+        private Color backColor;
+
+        /// <summary>
+        /// Gets or sets the color in which a frame will be drawn around the header for this column
+        /// </summary>
+        [DefaultValue(typeof(Color), "")]
+        public Color FrameColor {
+            get { return this.frameColor; }
+            set { this.frameColor = value; }
+        }
+        private Color frameColor;
+
+        /// <summary>
+        /// Gets or sets the width of the frame that will be drawn around the header for this column
+        /// </summary>
+        [DefaultValue(0.0f)]
+        public float FrameWidth {
+            get { return this.frameWidth; }
+            set { this.frameWidth = value; }
+        }
+        private float frameWidth;
+    }
+
+    /// <summary>
+    /// This class defines how a header should be formatted
+    /// </summary>
+    public class HeaderFormatStyle : System.ComponentModel.Component
+    {
+        public HeaderFormatStyle() {
+            this.Hot = new HeaderStateStyle();
+            this.Normal = new HeaderStateStyle();
+            this.Pressed = new HeaderStateStyle();
+        }
+
+        /// <summary>
+        /// What sort of formatting should be applied to a column header when the mouse is over it?
+        /// </summary>
+        [Category("Appearance"),
+         Description("How should the header be drawn when the mouse is over it?")]
+        public HeaderStateStyle Hot {
+            get { return this.hotStyle; }
+            set { this.hotStyle = value; }
+        }
+        private HeaderStateStyle hotStyle;
+
+        /// <summary>
+        /// What sort of formatting should be applied to a column header in its normal state?
+        /// </summary>
+        [Category("Appearance"),
+         Description("How should a column header normally be drawn")]
+        public HeaderStateStyle Normal {
+            get { return this.normalStyle; }
+            set { this.normalStyle = value; }
+        }
+        private HeaderStateStyle normalStyle;
+
+        /// <summary>
+        /// What sort of formatting should be applied to a column header when pressed?
+        /// </summary>
+        [Category("Appearance"),
+         Description("How should a column header be drawn when it is pressed")]
+        public HeaderStateStyle Pressed {
+            get { return this.pressedStyle; }
+            set { this.pressedStyle = value; }
+        }
+        private HeaderStateStyle pressedStyle;
+
+        /// <summary>
+        /// Set the font for all three states
+        /// </summary>
+        /// <param name="font"></param>
+        public void SetFont(Font font) {
+            this.Normal.Font = font;
+            this.Hot.Font = font;
+            this.Pressed.Font = font;
+        }
+
+        /// <summary>
+        /// Set the fore color for all three states
+        /// </summary>
+        /// <param name="font"></param>
+        public void SetForeColor(Color color) {
+            this.Normal.ForeColor = color;
+            this.Hot.ForeColor = color;
+            this.Pressed.ForeColor = color;
+        }
+
+        /// <summary>
+        /// Set the back color for all three states
+        /// </summary>
+        /// <param name="font"></param>
+        public void SetBackColor(Color color) {
+            this.Normal.BackColor = color;
+            this.Hot.BackColor = color;
+            this.Pressed.BackColor = color;
+        }
     }
 }

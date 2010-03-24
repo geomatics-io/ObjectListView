@@ -23,7 +23,7 @@ it that cannot have rows of different heights. There is no way to make one row b
 than other rows. It's just not possible.
 
 If being able to have rows of different heights is essential to you,
-ObjectListView is not your solution. You may want
+ObjectListView is not your solution. You may wantq
 to consider Matthew Hall's excellent XPTable_ and its `update project`_, as well as
 Lee Paul Alexander's fantastic `Outlook-style list`__.
 
@@ -32,6 +32,19 @@ Lee Paul Alexander's fantastic `Outlook-style list`__.
 .. _update project: http://www.codeproject.com/KB/list/XPTableListViewUpdate.aspx
 
 .. __: http://www.codeproject.com/KB/list/outlooklistcontrol.aspx
+
+
+How do I hide a column?
+-----------------------
+
+You hide a column by setting `IsVisible` to `false` on the column and then calling 
+`RebuildColumns()` on the `ObjectListView`::
+
+    this.olvColumn2.IsVisible = false;
+    this.olv1.RebuildColumns();
+	
+You cannot hide the primary column (i.e. column 0). If you want to hide the primary column,
+make it not the primary column, but give it `DisplayIndex = 0`.
 
 
 Can I use ObjectListView in a commercial application?
