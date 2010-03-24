@@ -66,6 +66,7 @@ OK, here's the bullet point feature list:
 * Supports :ref:`column header formatting <recipe-headerformatting>`.
 * Supports :ref:`groups on virtual lists <recipe-virtualgroups>` (Vista only).
 * Supports :ref:`transluscent hot item and selection <recipe-vistascheme>` like Vista even on XP.
+* Supports :ref:`filtering <recipe-filtering>`, including the very common :ref:`iTunes-like text filtering <recipe-text-filtering>`.
 * The `DataListView` version supports data binding.
 * The `FastObjectListView` version can build a list of 10,000 objects in less than 0.1 seconds.
 * The `VirtualObjectListView` version supports millions of rows through ListView's virtual mode.
@@ -128,6 +129,26 @@ What people have said about ObjectListView
 ------------------------------------------
 
 When thinking about using some new code, it's always interesting to hear what others have said about it.
+
+.. pull-quote:: I have to ask you where I should send the check! Your work is absolutely amazing! You have managed to create a control so powerful, so simple, and so useful that it boggles the mind. I can see this control in every forms application I create from this day forward. Thank you very much for sharing this.
+
+   -- `thund3rstruck <http://www.codeproject.com/Messages/3397326/This-Could-Be-The-Greatest-Code-Project-Artifact-E.aspx>`_
+
+.. pull-quote:: I have been using your tool for over a year now and it is absolutely incredible. It has solved almost all of my problems with the listview and I can't thank you enough for sharing this.
+
+   -- `Statoon4200 <http://www.codeproject.com/Messages/3252682/Thanks-and-question.aspx>`_
+
+.. pull-quote:: This is a very impressive piece of work. I can now dispense with the existing .net list/grid controls and just use this control, plus get so *much* more easy to use functionality. Outstanding. Thanks!
+
+   -- `Werner Neumann <http://www.codeproject.com/Messages/3249574/Wow-Vote-5-modified.aspx>`_
+
+.. pull-quote:: Just a small THANK YOU for taking the time to code something as good as ObjectListView. It works extremely well, and is an absolute joy to work with, even for us beginners! Much appreciated.
+
+   -- `Inztigator <http://www.codeproject.com/Messages/3246404/Brilliant.aspx>`_
+
+.. pull-quote:: This is awesome. Definently one of the better articles here at CodeProject. Just gotta say 'thanks for sharing this with the rest of the world'...
+
+   -- `michael9000 <http://www.codeproject.com/Messages/3240043/My-vote-of-5-Cool-thanks-etc.aspx>`_
 
 .. pull-quote:: I have been watching this control since 2007 and just checked the new features you've added recently and in the last couple of months. This has gotta be the best list control out there. You've done a brilliant job with this and I'm sure many others appreciate your work. Well done and keep it up!
 

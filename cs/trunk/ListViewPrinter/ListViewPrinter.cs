@@ -962,7 +962,14 @@ namespace BrightIdeasSoftware
                 int colWidth = column.Width;
                 if (!this.IsTextOnly && column.Index == 0 && lv.SmallImageList != null && lvi.ImageIndex != -1)
                     colWidth -= lv.SmallImageList.ImageSize.Width;
-                height = Math.Max(height, this.CellFormat.CalculateHeight(g, this.GetSubItem(lvi, i).Text, colWidth));
+
+                // If we are using an specialized renderer in an ObjectListView, it could do anything
+                // with the Text value (e.g. it could be a BLOB that is presented as an Image).
+                // So we ignore it, and hope that the height of the row can be calculated from
+                // the other cells in the row.
+                OLVColumn olvc = column as OLVColumn;
+                if (olvc == null || !(olvc.Renderer is BaseRenderer))
+                    height = Math.Max(height, this.CellFormat.CalculateHeight(g, this.GetSubItem(lvi, i).Text, colWidth));
             }
             return height;
         }

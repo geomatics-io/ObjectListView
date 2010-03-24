@@ -5,10 +5,11 @@
  * Date: 25/11/2008 17:15 
  *
  * Change log:
+ * 2010-03-22  JPP  - Draw header using header styles
  * 2009-10-30  JPP  - Plugged GDI resource leak, where font handles were created during custom
  *                    drawing, but never destroyed
  * v2.3
- * 2009-10-03  JPP  - Handle when ListView.HeaderStyle is None
+ * 2009-10-03  JPP  - Handle when ListView.HeaderFormatStyle is None
  * 2009-08-24  JPP  - Handle the header being destroyed
  * v2.2.1
  * 2009-08-16  JPP  - Correctly handle header themes
@@ -19,8 +20,9 @@
  * 2008-11-25  JPP  - Initial version
  *
  * TO DO:
- *
- * Copyright (C) 2006-2009 Phillip Piper
+ * - Put drawing code into header style object, so that it can be easily customized.
+ * 
+ * Copyright (C) 2006-2010 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,11 +94,11 @@ namespace BrightIdeasSoftware
         /// column's header text when the mouse is over that column
         /// </summary>
         /// <remarks>THIS IS EXPERIMENTAL. USE AT OWN RISK. August 2009</remarks>
+        [Obsolete("Use HeaderStyle.Hot.FontStyle instead")]
         public FontStyle HotFontStyle {
-            get { return this.fontStyle; }
-            set { this.fontStyle = value; }
+            get { return FontStyle.Regular; }
+            set {  }
         }
-        private FontStyle fontStyle = FontStyle.Regular;
 
         /// <summary>
         /// Gets whether the cursor is over a "locked" divider, i.e.
@@ -158,10 +160,11 @@ namespace BrightIdeasSoftware
         /// <returns>Height in pixels</returns>
         protected int CalculateHeight(Graphics g) {
             TextFormatFlags flags = this.TextFormatFlags;
+            int columnUnderCursor = this.ColumnIndexUnderCursor;
             float height = 0.0f;
             for (int i = 0; i < this.ListView.Columns.Count; i++) {
                 OLVColumn column = this.ListView.GetColumn(i);
-                Font f = this.CalculateFont(column);
+                Font f = this.CalculateFont(column, i == columnUnderCursor, false);
                 if (this.WordWrap) {
                     Rectangle r = this.GetItemRect(i);
                     r.Width -= 6; // Match the "tweaking" done in CustomRender
@@ -335,7 +338,7 @@ namespace BrightIdeasSoftware
             //System.Diagnostics.Debug.WriteLine(String.Format("header cd: {0:x}, {1}, {2:x}", nmcustomdraw.dwDrawStage, nmcustomdraw.dwItemSpec, nmcustomdraw.uItemState));
             switch (nmcustomdraw.dwDrawStage) {
                 case CDDS_PREPAINT:
-                    this.cachedNeedsCustomDraw = this.NeedsCustomDraw;
+                    this.cachedNeedsCustomDraw = this.NeedsCustomDraw();
                     m.Result = (IntPtr)CDRF_NOTIFYITEMDRAW;
                     return true;
 
@@ -355,10 +358,10 @@ namespace BrightIdeasSoftware
                         }
                         m.Result = (IntPtr)CDRF_SKIPDEFAULT;
                     } else {
-                        Font f = column.HeaderFont ?? this.ListView.HeaderFont ?? this.ListView.Font;
+                        const int CDIS_SELECTED = 1;
+                        bool isPressed = ((nmcustomdraw.uItemState & CDIS_SELECTED) == CDIS_SELECTED);
 
-                        if (this.HotFontStyle != FontStyle.Regular && columnIndex == this.ColumnIndexUnderCursor)
-                            f = new Font(f, this.HotFontStyle);
+                        Font f = this.CalculateFont(column, columnIndex == this.ColumnIndexUnderCursor, isPressed);
 
                         this.fontHandle = f.ToHfont();
                         NativeMethods.SelectObject(nmcustomdraw.hdc, this.fontHandle);
@@ -440,16 +443,45 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>Word wrapping and colored text require custom drawning. Funnily enough, we
         /// can change the font natively.</remarks>
-        protected bool NeedsCustomDraw {
-            get {
-                if (this.WordWrap)
-                    return true;
-                foreach (OLVColumn column in this.ListView.Columns) {
-                    if (!column.HeaderForeColor.IsEmpty)
-                        return true;
-                }
+        protected bool NeedsCustomDraw() {
+            if (this.WordWrap)
+                return true;
+            
+            if (this.ListView.HeaderUsesThemes)
                 return false;
+
+            if (this.NeedsCustomDraw(this.ListView.HeaderFormatStyle))
+                return true;
+            
+            foreach (OLVColumn column in this.ListView.Columns) {
+                if (this.NeedsCustomDraw(column.HeaderFormatStyle))
+                    return true;
             }
+            return false;
+        }
+
+        private bool NeedsCustomDraw(HeaderFormatStyle style) {
+            if (style == null)
+                return false;
+
+            return (this.NeedsCustomDraw(style.Normal) || 
+                this.NeedsCustomDraw(style.Hot) ||
+                this.NeedsCustomDraw(style.Pressed));
+        }
+
+        private bool NeedsCustomDraw(HeaderStateStyle style) {
+            if (style == null)
+                return false;
+
+            // If we want fancy colors or frames, we have to custom draw. Oddly enough, we 
+            // can handle font changes without custom drawing.
+            if (!style.BackColor.IsEmpty)
+                return true;
+            
+            if (style.FrameWidth > 0f && !style.FrameColor.IsEmpty)
+                return true;
+
+            return (!style.ForeColor.IsEmpty && style.ForeColor != Color.Black);
         }
 
         /// <summary>
@@ -459,115 +491,164 @@ namespace BrightIdeasSoftware
         /// <param name="columnIndex"></param>
         /// <param name="itemState"></param>
         protected void CustomDrawHeaderCell(Graphics g, int columnIndex, int itemState) {
-            // TODO: This needs to be refactored
-            const int CDIS_SELECTED = 1;
             Rectangle r = this.GetItemRect(columnIndex);
             OLVColumn column = this.ListView.GetColumn(columnIndex);
-            int columnUnderCursor = this.ColumnIndexUnderCursor;
+            const int CDIS_SELECTED = 1;
+            bool isPressed = ((itemState & CDIS_SELECTED) == CDIS_SELECTED);
+
+            // Calculate which style should be used for the header
+            HeaderStateStyle stateStyle = this.CalculateStyle(column, columnIndex == this.ColumnIndexUnderCursor, isPressed);
 
             // Draw the background
-            if (VisualStyleRenderer.IsSupported &&
-                VisualStyleRenderer.IsElementDefined(VisualStyleElement.Header.Item.Normal)) {
-                int part = 1; // normal item
-                if (columnIndex == 0 &&
-                    VisualStyleRenderer.IsElementDefined(VisualStyleElement.Header.ItemLeft.Normal))
-                    part = 2; // left item
-                if (columnIndex == this.ListView.Columns.Count - 1 &&
-                    VisualStyleRenderer.IsElementDefined(VisualStyleElement.Header.ItemRight.Normal))
-                    part = 3; // right item
-
-                int state = 1; // normal state
-                if ((itemState & CDIS_SELECTED) == CDIS_SELECTED)
-                    state = 3; // pressed
-                else if (columnIndex == this.ColumnIndexUnderCursor)
-                    state = 2; // hot
-
-                VisualStyleRenderer renderer = new VisualStyleRenderer("HEADER", part, state);
-                renderer.DrawBackground(g, r);
-            } else {
-                //g.FillRectangle(Brushes.LightGray, r);
-                ControlPaint.DrawBorder3D(g, r, Border3DStyle.Raised);
-            }
+            if (this.ListView.HeaderUsesThemes &&
+                VisualStyleRenderer.IsSupported &&
+                VisualStyleRenderer.IsElementDefined(VisualStyleElement.Header.Item.Normal))
+                this.DrawThemedBackground(g, r, columnIndex, isPressed);
+            else
+                this.DrawUnthemedBackground(g, r, columnIndex, isPressed, stateStyle);
+            
 
             // Draw the sort indicator if this column has one
             if (this.HasSortIndicator(column)) {
-                if (VisualStyleRenderer.IsSupported && 
-                    VisualStyleRenderer.IsElementDefined(VisualStyleElement.Header.SortArrow.SortedUp)) {
-                    VisualStyleRenderer renderer2 = null;
-                    if (this.ListView.LastSortOrder == SortOrder.Ascending)
-                        renderer2 = new VisualStyleRenderer(VisualStyleElement.Header.SortArrow.SortedUp);
-                    if (this.ListView.LastSortOrder == SortOrder.Descending)
-                        renderer2 = new VisualStyleRenderer(VisualStyleElement.Header.SortArrow.SortedDown);
-                    if (renderer2 != null) {
-                        Size sz = renderer2.GetPartSize(g, ThemeSizeType.True);
-                        Point pt = renderer2.GetPoint(PointProperty.Offset);
-                        // GetPoint() should work, but if it doesn't, put the arrow in the top middle
-                        if (pt.X == 0 && pt.Y == 0)
-                            pt = new Point(r.X + (r.Width / 2) - (sz.Width / 2), r.Y);
-                        renderer2.DrawBackground(g, new Rectangle(pt, sz));
-                    }
-
-                } else {
-                    // No theme support for sort indicators. So, we draw a triangle at the right edge
-                    // of the column header.
-                    const int triangleHeight = 16;
-                    const int triangleWidth = 16;
-                    const int midX = triangleWidth / 2;
-                    const int midY = (triangleHeight / 2) - 1;
-                    const int deltaX = midX - 2;
-                    const int deltaY = deltaX / 2;
-
-                    Point triangleLocation = new Point(r.Right - triangleWidth - 2, r.Top + (r.Height - triangleHeight) / 2);
-                    Point[] pts = new Point[] { triangleLocation, triangleLocation, triangleLocation };
-
-                    if (this.ListView.LastSortOrder == SortOrder.Ascending) {
-                        pts[0].Offset(midX - deltaX, midY + deltaY);
-                        pts[1].Offset(midX, midY - deltaY - 1);
-                        pts[2].Offset(midX + deltaX, midY + deltaY);
-                    } else {
-                        pts[0].Offset(midX - deltaX, midY - deltaY);
-                        pts[1].Offset(midX, midY + deltaY);
-                        pts[2].Offset(midX + deltaX, midY - deltaY);
-                    }
-
-                    g.FillPolygon(Brushes.SlateGray, pts);
-                    r.Width = r.Width - triangleWidth;
-                }
+                if (this.ListView.HeaderUsesThemes &&
+                    VisualStyleRenderer.IsSupported &&
+                    VisualStyleRenderer.IsElementDefined(VisualStyleElement.Header.SortArrow.SortedUp))
+                    this.DrawThemedSortIndicator(g, r);
+                else
+                    r = this.DrawUnthemedSortIndicator(g, r);
             }
 
             // Finally draw the text
+            this.DrawHeaderText(g, r, column, stateStyle);
+        }
+
+        protected void DrawUnthemedBackground(Graphics g, Rectangle r, int columnIndex, bool isSelected, HeaderStateStyle stateStyle) {
+            if (stateStyle.BackColor.IsEmpty)
+                // I know we're supposed to be drawing the unthemed background, but let's just see if we
+                // can draw something more interesting than the dull raised block
+                if (VisualStyleRenderer.IsSupported &&
+                    VisualStyleRenderer.IsElementDefined(VisualStyleElement.Header.Item.Normal))
+                    this.DrawThemedBackground(g, r, columnIndex, isSelected);
+                else
+                    ControlPaint.DrawBorder3D(g, r, Border3DStyle.RaisedInner);
+            else {
+                using (Brush b = new SolidBrush(stateStyle.BackColor))
+                    g.FillRectangle(b, r);
+            }
+
+            // Draw the frame if the style asks for one
+            if (!stateStyle.FrameColor.IsEmpty && stateStyle.FrameWidth > 0f) {
+                RectangleF r2 = r;
+                r2.Inflate(-stateStyle.FrameWidth, -stateStyle.FrameWidth);
+                g.DrawRectangle(new Pen(stateStyle.FrameColor, stateStyle.FrameWidth), 
+                    r2.X, r2.Y, r2.Width, r2.Height);
+            }
+        }
+
+        protected void DrawThemedBackground(Graphics g, Rectangle r, int columnIndex, bool isSelected) {
+            int part = 1; // normal item
+            if (columnIndex == 0 &&
+                VisualStyleRenderer.IsElementDefined(VisualStyleElement.Header.ItemLeft.Normal))
+                part = 2; // left item
+            if (columnIndex == this.ListView.Columns.Count - 1 &&
+                VisualStyleRenderer.IsElementDefined(VisualStyleElement.Header.ItemRight.Normal))
+                part = 3; // right item
+
+            int state = 1; // normal state
+            if (isSelected)
+                state = 3; // pressed
+            else if (columnIndex == this.ColumnIndexUnderCursor)
+                state = 2; // hot
+
+            VisualStyleRenderer renderer = new VisualStyleRenderer("HEADER", part, state);
+            renderer.DrawBackground(g, r);
+        }
+
+        protected void DrawThemedSortIndicator(Graphics g, Rectangle r) {
+            VisualStyleRenderer renderer2 = null;
+            if (this.ListView.LastSortOrder == SortOrder.Ascending)
+                renderer2 = new VisualStyleRenderer(VisualStyleElement.Header.SortArrow.SortedUp);
+            if (this.ListView.LastSortOrder == SortOrder.Descending)
+                renderer2 = new VisualStyleRenderer(VisualStyleElement.Header.SortArrow.SortedDown);
+            if (renderer2 != null) {
+                Size sz = renderer2.GetPartSize(g, ThemeSizeType.True);
+                Point pt = renderer2.GetPoint(PointProperty.Offset);
+                // GetPoint() should work, but if it doesn't, put the arrow in the top middle
+                if (pt.X == 0 && pt.Y == 0)
+                    pt = new Point(r.X + (r.Width / 2) - (sz.Width / 2), r.Y);
+                renderer2.DrawBackground(g, new Rectangle(pt, sz));
+            }
+        }
+
+        protected Rectangle DrawUnthemedSortIndicator(Graphics g, Rectangle r) {
+            // No theme support for sort indicators. So, we draw a triangle at the right edge
+            // of the column header.
+            const int triangleHeight = 16;
+            const int triangleWidth = 16;
+            const int midX = triangleWidth / 2;
+            const int midY = (triangleHeight / 2) - 1;
+            const int deltaX = midX - 2;
+            const int deltaY = deltaX / 2;
+
+            Point triangleLocation = new Point(r.Right - triangleWidth - 2, r.Top + (r.Height - triangleHeight) / 2);
+            Point[] pts = new Point[] { triangleLocation, triangleLocation, triangleLocation };
+
+            if (this.ListView.LastSortOrder == SortOrder.Ascending) {
+                pts[0].Offset(midX - deltaX, midY + deltaY);
+                pts[1].Offset(midX, midY - deltaY - 1);
+                pts[2].Offset(midX + deltaX, midY + deltaY);
+            } else {
+                pts[0].Offset(midX - deltaX, midY - deltaY);
+                pts[1].Offset(midX, midY + deltaY);
+                pts[2].Offset(midX + deltaX, midY - deltaY);
+            }
+
+            g.FillPolygon(Brushes.SlateGray, pts);
+            r.Width = r.Width - triangleWidth;
+            return r;
+        }
+
+        protected void DrawHeaderText(Graphics g, Rectangle r, OLVColumn column, HeaderStateStyle stateStyle) {
             TextFormatFlags flags = this.TextFormatFlags;
             if (column.TextAlign == HorizontalAlignment.Center)
                 flags |= TextFormatFlags.HorizontalCenter;
             if (column.TextAlign == HorizontalAlignment.Right)
                 flags |= TextFormatFlags.Right;
 
-            Font f = this.CalculateFont(column);
-            Color color = column.HeaderForeColor;
+            Font f = this.ListView.HeaderUsesThemes ? this.ListView.Font : stateStyle.Font ?? this.ListView.Font;
+            Color color = this.ListView.HeaderUsesThemes ? Color.Black : stateStyle.ForeColor;
             if (color.IsEmpty)
-                color = this.ListView.ForeColor;
+                color = Color.Black;
 
             // Tweak the text rectangle a little to improve aethestics
-            r.Inflate(-3, 0); 
+            r.Inflate(-3, 0);
             r.Y -= 2;
 
             TextRenderer.DrawText(g, column.Text, f, r, color, Color.Transparent, flags);
         }
 
-        private Font CalculateFont(OLVColumn column) {
-            Font f = column.HeaderFont ?? this.ListView.HeaderFont ?? this.ListView.Font;
-            if (this.HotFontStyle != FontStyle.Regular && 
-                column.Index == this.ColumnIndexUnderCursor)
-                f = new Font(f, this.HotFontStyle);
-            return f;
+        protected HeaderStateStyle CalculateStyle(OLVColumn column, bool isHot, bool isPressed) {
+            HeaderFormatStyle headerStyle = 
+                column.HeaderFormatStyle ?? this.ListView.HeaderFormatStyle ?? new HeaderFormatStyle();
+            if (this.ListView.IsDesignMode) 
+                return headerStyle.Normal;
+            if (isPressed)
+                return headerStyle.Pressed;
+            if (isHot)
+                return headerStyle.Hot;
+            return headerStyle.Normal;
         }
 
-        private TextFormatFlags TextFormatFlags {
+        protected Font CalculateFont(OLVColumn column, bool isHot, bool isPressed) {
+            HeaderStateStyle stateStyle = this.CalculateStyle(column, isHot, isPressed);
+            return stateStyle.Font ?? this.ListView.Font;
+        }
+
+        protected TextFormatFlags TextFormatFlags {
             get {
                 TextFormatFlags flags = TextFormatFlags.EndEllipsis | 
                     TextFormatFlags.NoPrefix |
                     TextFormatFlags.WordEllipsis | 
-                    TextFormatFlags.NoPadding |
                     TextFormatFlags.VerticalCenter | 
                     TextFormatFlags.PreserveGraphicsTranslateTransform;
                 if (this.WordWrap)

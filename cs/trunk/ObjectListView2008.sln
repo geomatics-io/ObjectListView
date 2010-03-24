@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ListViewPrinter2008", "List
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ListViewPrinterDemo2008", "ListViewPrinterDemo\ListViewPrinterDemo2008.csproj", "{40719365-FC03-46B8-8B6E-5FD1454712B6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SparkleLibrary", "SparkleLibrary\SparkleLibrary.csproj", "{D63F9786-B608-4085-AF08-D909448B0426}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests2008", "Tests\Tests2008.csproj", "{8BB7445D-3428-40CC-AE38-14F6BC6C1BF9}"
 EndProject
 Global
@@ -33,6 +35,10 @@ Global
 		{40719365-FC03-46B8-8B6E-5FD1454712B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40719365-FC03-46B8-8B6E-5FD1454712B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40719365-FC03-46B8-8B6E-5FD1454712B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D63F9786-B608-4085-AF08-D909448B0426}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D63F9786-B608-4085-AF08-D909448B0426}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D63F9786-B608-4085-AF08-D909448B0426}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D63F9786-B608-4085-AF08-D909448B0426}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8BB7445D-3428-40CC-AE38-14F6BC6C1BF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8BB7445D-3428-40CC-AE38-14F6BC6C1BF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BB7445D-3428-40CC-AE38-14F6BC6C1BF9}.Release|Any CPU.ActiveCfg = Release|Any CPU

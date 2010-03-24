@@ -113,9 +113,23 @@ namespace BrightIdeasSoftware
     }
 
     /// <summary>
+    /// This extension allow virtual lists to filter their contents
+    /// </summary>
+    public interface IFilterableDataSource
+    {
+        /// <summary>
+        /// All subsequent retrievals on this data source should be filtered
+        /// through the given filters. null means no filtering of that kind.
+        /// </summary>
+        /// <param name="modelFilter"></param>
+        /// <param name="listFilter"></param>
+        void ApplyFilters(IModelFilter modelFilter, IListFilter listFilter);
+    }
+
+    /// <summary>
     /// A do-nothing implementation of the VirtualListDataSource interface.
     /// </summary>
-    public class AbstractVirtualListDataSource : IVirtualListDataSource
+    public class AbstractVirtualListDataSource : IVirtualListDataSource, IFilterableDataSource
     {
         public AbstractVirtualListDataSource(VirtualObjectListView listView) {
             this.listView = listView;
@@ -184,6 +198,13 @@ namespace BrightIdeasSoftware
 
             return -1;
         }
+
+        #region IFilterableDataSource Members
+
+        virtual public void ApplyFilters(IModelFilter modelFilter, IListFilter listFilter) {
+        }
+
+        #endregion
     }
 
     /// <summary>

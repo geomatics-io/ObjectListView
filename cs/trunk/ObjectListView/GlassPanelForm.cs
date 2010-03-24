@@ -6,6 +6,8 @@
  * Date: 14/04/2009 4:36 PM
  *
  * Change log:
+ * 2010-03-11   JPP  - Work correctly in MDI applications (more or less)
+ * 2010-03-09   JPP  - Correctly Unbind() when the related ObjectListView is disposed.
  * 2009-10-28   JPP  - Use FindForm() rather than TopMostControl, since the latter doesn't work
  *                     as I expected when the OLV is part of an MDI child window. Thanks to
  *                     wvd_vegt who tracked this down.
@@ -94,7 +96,11 @@ namespace BrightIdeasSoftware
 
             this.objectListView = olv;
             this.Overlay = overlay;
+            this.mdiClient = null;
+            this.mdiOwner = null;
 
+            // NOTE: If you listen to any events here, you *must* stop listening in Unbind()
+            this.objectListView.Disposed += new EventHandler(objectListView_Disposed);
             this.objectListView.LocationChanged += new EventHandler(objectListView_LocationChanged);
             this.objectListView.SizeChanged += new EventHandler(objectListView_SizeChanged);
             this.objectListView.VisibleChanged += new EventHandler(objectListView_VisibleChanged);
@@ -110,6 +116,7 @@ namespace BrightIdeasSoftware
                 parent = parent.Parent;
             }
             this.Owner = this.objectListView.FindForm();
+            this.myOwner = this.Owner;
             if (this.Owner != null) {
                 this.Owner.LocationChanged += new EventHandler(Owner_LocationChanged);
                 this.Owner.SizeChanged += new EventHandler(Owner_SizeChanged);
@@ -120,18 +127,51 @@ namespace BrightIdeasSoftware
                     // taking focus away from the owner of the listview
                     NativeMethods.MakeTopMost(this);
                 }
+
+                // We need special code to handle MDI
+                this.mdiOwner = this.Owner.MdiParent;
+                if (this.mdiOwner != null) {
+                    this.mdiOwner.LocationChanged += new EventHandler(Owner_LocationChanged);
+                    this.mdiOwner.SizeChanged += new EventHandler(Owner_SizeChanged);
+                    this.mdiOwner.ResizeBegin += new EventHandler(Owner_ResizeBegin);
+                    this.mdiOwner.ResizeEnd += new EventHandler(Owner_ResizeEnd);
+
+                    // Find the MDIClient control, which houses all MDI children
+                    foreach (Control c in this.mdiOwner.Controls) {
+                        this.mdiClient = c as MdiClient;
+                        if (this.mdiClient != null) {
+                            break;
+                        }
+                    }
+                    if (this.mdiClient != null) {
+                        this.mdiClient.ClientSizeChanged += new EventHandler(myMdiClient_ClientSizeChanged);
+                    }
+
+                    //PropertyInfo pi = this.mdiOwner.GetType().GetProperty("MdiClient", BindingFlags.Instance | BindingFlags.NonPublic);
+                    //if (pi != null) {
+                    //    mdiClient = (MdiClient)pi.GetValue(this.mdiOwner, null);
+                    //    if (mdiClient != null) {
+                    //        mdiClient.ClientSizeChanged += new EventHandler(myMdiClient_ClientSizeChanged);
+                    //    }
+                    //}
+                }
             }
 
             this.UpdateTransparency();
         }
 
+        void myMdiClient_ClientSizeChanged(object sender, EventArgs e) {
+            this.RecalculateBounds();
+            this.Invalidate();
+        }
+
+        MdiClient mdiClient;
         /// <summary>
         /// Made the overlay panel invisible
         /// </summary>
         public void HideGlass() {
             if (!this.isGlassShown)
                 return;
-
             this.isGlassShown = false;
             this.Bounds = new Rectangle(-10000, -10000, 1, 1);
         }
@@ -162,6 +202,8 @@ namespace BrightIdeasSoftware
             if (this.objectListView == null)
                 return;
 
+            this.objectListView.Disposed -= new EventHandler(objectListView_Disposed);
+            this.objectListView.LocationChanged -= new EventHandler(objectListView_LocationChanged);
             this.objectListView.SizeChanged -= new EventHandler(objectListView_SizeChanged);
             this.objectListView.VisibleChanged -= new EventHandler(objectListView_VisibleChanged);
             this.objectListView.ParentChanged -= new EventHandler(objectListView_ParentChanged);
@@ -176,12 +218,22 @@ namespace BrightIdeasSoftware
                 parent = parent.Parent;
             }
 
-            this.Owner = this.objectListView.TopLevelControl as Form;
-            if (this.Owner != null) {
-                this.Owner.LocationChanged -= new EventHandler(Owner_LocationChanged);
-                this.Owner.SizeChanged -= new EventHandler(Owner_SizeChanged);
-                this.Owner.ResizeBegin -= new EventHandler(Owner_ResizeBegin);
-                this.Owner.ResizeEnd -= new EventHandler(Owner_ResizeEnd);
+            if (this.myOwner != null) {
+                this.myOwner.LocationChanged -= new EventHandler(Owner_LocationChanged);
+                this.myOwner.SizeChanged -= new EventHandler(Owner_SizeChanged);
+                this.myOwner.ResizeBegin -= new EventHandler(Owner_ResizeBegin);
+                this.myOwner.ResizeEnd -= new EventHandler(Owner_ResizeEnd);
+            }
+
+            if (this.mdiOwner != null) {
+                this.mdiOwner.LocationChanged -= new EventHandler(Owner_LocationChanged);
+                this.mdiOwner.SizeChanged -= new EventHandler(Owner_SizeChanged);
+                this.mdiOwner.ResizeBegin -= new EventHandler(Owner_ResizeBegin);
+                this.mdiOwner.ResizeEnd -= new EventHandler(Owner_ResizeEnd);
+            }
+
+            if (this.mdiClient != null) {
+                this.mdiClient.ClientSizeChanged -= new EventHandler(myMdiClient_ClientSizeChanged);
             }
 
             this.objectListView = null;
@@ -190,6 +242,10 @@ namespace BrightIdeasSoftware
         #endregion
 
         #region Event Handlers
+
+        void objectListView_Disposed(object sender, EventArgs e) {
+            this.Unbind();
+        }
 
         /// <summary>
         /// Handle when the form that owns the ObjectListView begins to be resized
@@ -221,7 +277,10 @@ namespace BrightIdeasSoftware
         /// <param name="sender"></param>
         /// <param name="e"></param>
         void Owner_LocationChanged(object sender, EventArgs e) {
-            this.RecalculateBounds();
+            if (this.mdiOwner != null)
+                this.HideGlass();
+            else
+                this.RecalculateBounds();
         }
 
         /// <summary>
@@ -310,6 +369,13 @@ namespace BrightIdeasSoftware
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
             //g.DrawRectangle(new Pen(Color.Green, 4.0f), this.ClientRectangle);
 
+            // If we are part of an MDI app, make sure we don't draw outside the bounds
+            if (this.mdiClient != null) {
+                Rectangle r = mdiClient.RectangleToScreen(mdiClient.ClientRectangle);
+                Rectangle r2 = this.objectListView.RectangleToClient(r);
+                g.SetClip(r2, System.Drawing.Drawing2D.CombineMode.Intersect);
+            }
+
             this.Overlay.Draw(this.objectListView, g, this.objectListView.ClientRectangle);
         }
 
@@ -357,6 +423,10 @@ namespace BrightIdeasSoftware
         private bool isDuringResizeSequence;
         private bool isGlassShown;
         private bool wasGlassShownBeforeResize;
+
+        // Cache these so we can unsubscribe from events even when the OLV has been disposed.
+        private Form myOwner;
+        private Form mdiOwner;
 
         #endregion
 

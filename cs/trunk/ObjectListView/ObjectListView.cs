@@ -5,6 +5,18 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2010-03-23  JPP  - Added ObjectListView.HeaderFormatStyle and OLVColumn.HeaderFormatStyle.
+ *                    This makes This makes HeaderFont and HeaderForeColor properties unnecessary. 
+ *                    They will be marked obsolete in the next version and removed after that.
+ * 2010-03-16  JPP  - Changed object checking so that objects can be pre-checked before they
+ *                    are added to the list. Normal ObjectListViews managed "checkedness" in
+ *                    the ListViewItem, so this won't work for them, unless check state getters
+ *                    and putters have been installed. It will work on on virtual lists (thus fast lists and
+ *                    tree views) since they manage their own check state.
+ * 2010-03-06  JPP  - Hide "Items" and "Groups" from the IDE properties grid since they shouldn't be set like that.
+ *                    They can still be accessed through "Custom Commands" and there's nothing we can do
+ *                    about that.
+ * 2010-03-05  JPP  - Added filtering
  * 2010-01-18  JPP  - Overlays can be turned off. They also only work on 32-bit displays
  * v2.3
  * 2009-10-30  JPP  - Plugged possible resource leak by using using() with CreateGraphics()
@@ -786,7 +798,19 @@ namespace BrightIdeasSoftware
                 return r;
             }
         }
-        
+
+        /// <summary>
+        /// Gets or sets if the selected rows should be copied to the clipboard when the user presses Ctrl-C
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("Should the control copyy the selection to the clipboard when the user presses Ctrl-C?"),
+        DefaultValue(true)]
+        public virtual bool CopySelectionOnControlC {
+            get { return copySelectionOnControlC; }
+            set { copySelectionOnControlC = value; }
+        }
+        private bool copySelectionOnControlC = true;
+
         /// <summary>
         /// When owner drawing, this renderer will draw columns that do not have specific renderer
         /// given to them
@@ -975,6 +999,15 @@ namespace BrightIdeasSoftware
         private int freezeCount;
 
         /// <summary>
+        /// Hide the Groups collection so it's not visible in the Properties grid.
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        new public ListViewGroupCollection Groups {
+            get { return base.Groups; }
+        }
+
+        /// <summary>
         /// Gets or sets the image list from which group header will take their images
         /// </summary>
         [Category("Appearance - ObjectListView"),
@@ -1097,15 +1130,56 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the font in which the text of the column headers will be drawn
         /// </summary>
-        /// <remarks>Individual columns can override this through their HeaderFont property.</remarks>
-        [Category("Appearance - ObjectListView"),
-         Description("What font will be used to draw the text of the column headers"),
-         DefaultValue(null)]
+        /// <remarks>Individual columns can override this through their HeaderFormatStyle property.</remarks>
+        /// <remarks>This property will be made obsolete in v2.5. Use HeaderFormatStyle instead</remarks>
+        //[Category("Appearance - ObjectListView"),
+        // Description("What font will be used to draw the text of the column headers"),
+        [DefaultValue(null)]
+        [Browsable(false)]
         public Font HeaderFont {
-            get { return this.headerFont; }
-            set { this.headerFont = value; }
+            get { return this.HeaderFormatStyle == null ? null : this.HeaderFormatStyle.Normal.Font; }
+            set {
+                if (value == null && this.HeaderFormatStyle == null)
+                    return;
+
+                if (this.HeaderFormatStyle == null)
+                    this.HeaderFormatStyle = new HeaderFormatStyle();
+
+                this.HeaderFormatStyle.SetFont(value);
+            }
         }
-        private Font headerFont;
+
+        /// <summary>
+        /// Gets or sets the style that will be used to draw the columm headers of the listview
+        /// </summary>
+        /// <remarks>This is only uses when HeaderUsesThemes is false.</remarks>
+        /// <remarks>Individual columns can override this through their HeaderFormatStyle property.</remarks>
+        [Category("Appearance - ObjectListView"),
+         Description("What style will be used to draw the control's header"),
+         DefaultValue(null)]
+        public HeaderFormatStyle HeaderFormatStyle {
+            get { return this.headerFormatStyle; }
+            set { this.headerFormatStyle = value; }
+        }
+        private HeaderFormatStyle headerFormatStyle;
+
+        /// <summary>
+        /// Gets or sets whether the header will be drawn using OS's theming styles. If this is false, it will use
+        /// HeaderFormatStyle property to draw the header.
+        /// </summary>
+        /// <remarks>If this is set to false, the header
+        /// will not be drawn using the OS themed style, This is sometimes what's required
+        /// since themeing does not allow the background, frame or text color to be
+        /// changed. The effect of not being themed will be different from OS to OS. At
+        /// very least, the sort indicator will not be standard.</remarks>
+        [Category("Appearance - ObjectListView"),
+         Description("Will the column headers be drawn using OS theme?"),
+         DefaultValue(true)]
+        public bool HeaderUsesThemes {
+            get { return this.headerUsesThemes; }
+            set { this.headerUsesThemes = value; }
+        }
+        private bool headerUsesThemes = true;
 
         /// <summary>
         /// Gets or sets the whether the text in the header will be word wrapped.
@@ -1282,6 +1356,14 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Return true if the ObjectListView is being used within the development environment.
+        /// </summary>
+        [Browsable(false)]
+        public virtual bool IsDesignMode {
+            get { return this.DesignMode; }
+        }
+
+        /// <summary>
         /// When the user types into a list, should the values in the current sort column be searched to find a match?
         /// If this is false, the primary column will always be used regardless of the sort column.
         /// </summary>
@@ -1336,6 +1418,15 @@ namespace BrightIdeasSoftware
                 else
                     this.DragSource = null;
             }
+        }
+
+        /// <summary>
+        /// Hide the Items collection so it's not visible in the Properties grid.
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        new public ListViewItemCollection Items {
+            get { return base.Items; }
         }
 
         /// <summary>
@@ -1464,8 +1555,7 @@ namespace BrightIdeasSoftware
                     IList previousSelection = this.SelectedObjects;
                     this.SetObjects(value);
                     this.SelectedObjects = previousSelection;
-                }
-                finally {
+                } finally {
                     this.EndUpdate();
                 }
             }
@@ -1637,6 +1727,18 @@ namespace BrightIdeasSoftware
             set { this.secondarySortOrder = value; }
         }
         private SortOrder secondarySortOrder = SortOrder.None;
+
+        /// <summary>
+        /// Gets or sets if all rows should be selected when the user presses Ctrl-A
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("Should the control select all rows when the user presses Ctrl-A?"),
+        DefaultValue(true)]
+        public virtual bool SelectAllOnControlA {
+            get { return selectAllOnControlA; }
+            set { selectAllOnControlA = value; }
+        }
+        private bool selectAllOnControlA = true;
 
         /// <summary>
         /// When the user right clicks on the column headers, should a menu be presented which will allow
@@ -2116,8 +2218,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("Should FormatCell events be triggered to every cell that is built?"),
          DefaultValue(false)]
-        public bool UseCellFormatEvents
-        {
+        public bool UseCellFormatEvents {
             get { return useCellFormatEvents; }
             set { useCellFormatEvents = value; }
         }
@@ -2169,11 +2270,9 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("Should hyperlinks be shown on this control?"),
          DefaultValue(false)]
-        public bool UseHyperlinks
-        {
+        public bool UseHyperlinks {
             get { return this.useHyperlinks; }
-            set
-            {
+            set {
                 this.useHyperlinks = value;
                 if (value && this.HyperlinkStyle == null)
                     this.HyperlinkStyle = new HyperlinkStyle();
@@ -2189,8 +2288,7 @@ namespace BrightIdeasSoftware
         [Category("Behavior - ObjectListView"),
          Description("Should this control show overlays"),
          DefaultValue(true)]
-        public bool UseOverlays
-        {
+        public bool UseOverlays {
             get { return this.useOverlays; }
             set { this.useOverlays = value; }
         }
@@ -2268,14 +2366,132 @@ namespace BrightIdeasSoftware
          DefaultValue(false)]
         public bool UseExplorerTheme {
             get { return useExplorerTheme; }
-            set { 
+            set {
                 useExplorerTheme = value;
                 if (this.Created)
                     NativeMethods.SetWindowTheme(this.Handle, value ? "explorer" : "", null);
             }
         }
         private bool useExplorerTheme;
-        
+
+        /// <summary>
+        /// Gets or sets whether the list should enable filtering
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("Should the list enable filtering?"),
+        DefaultValue(false)]
+        virtual public bool UseFiltering {
+            get { return useFiltering; }
+            set {
+                useFiltering = value;
+                this.UpdateFiltering();
+            }
+        }
+        private bool useFiltering;
+
+        virtual protected IEnumerable FilterObjects(IEnumerable objects, IModelFilter aModelFilter, IListFilter aListFilter) {
+            // Being cautious
+            objects = objects ?? new ArrayList();
+
+            // Tell the world to filter the objects. If they do so, don't do anything else
+            FilterEventArgs args = new FilterEventArgs(objects);
+            this.OnFilter(args);
+            if (args.FilteredObjects != null)
+                return args.FilteredObjects;
+
+            // Apply a filter to the list as a whole
+            if (aListFilter != null)
+                objects = aListFilter.Filter(objects);
+
+            // Apply the object filter if there is one
+            if (aModelFilter != null) {
+                ArrayList filteredObjects = new ArrayList();
+                foreach (object model in objects) {
+                    if (aModelFilter.Filter(model))
+                        filteredObjects.Add(model);
+                }
+                objects = filteredObjects;
+            }
+
+            return objects;
+        }
+
+        /// <summary>
+        /// Gets the collection of objects that survive any filtering that may be in place.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This collection is the result of filtering the current list of objects. 
+        /// It is not a snapshot of the filtered list that was last used to build the control. 
+        /// </para>
+        /// <para>
+        /// Normal warnings apply when using this with virtual lists. It will work, but it
+        /// may take a while.
+        /// </para>
+        /// </remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        virtual public IEnumerable FilteredObjects {
+            get {
+                if (this.IsFiltering)
+                    return this.FilterObjects(this.Objects, this.ModelFilter, this.ListFilter);
+                else
+                    return this.Objects;
+            }
+        }
+
+        /// <summary>
+        /// Gets whether or not the current list is filtering its contents
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        virtual public bool IsFiltering {
+            get { return this.UseFiltering && (this.ModelFilter != null || this.ListFilter != null); }
+        }
+
+        /// <summary>
+        /// Gets or  sets the filter that is applied to each model objects in the list
+        /// </summary>
+        /// <remarks>
+        /// The list is updated immediately to reflect this filter. 
+        /// </remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual IModelFilter ModelFilter {
+            get { return modelFilter; }
+            set {
+                modelFilter = value;
+                if (this.UseFiltering)
+                    this.UpdateFiltering();
+            }
+        }
+        private IModelFilter modelFilter;
+
+        /// <summary>
+        /// Gets or  sets the filter that is applied to our whole list of objects.
+        /// </summary>
+        /// <remarks>
+        /// The list is updated immediately to reflect this filter. 
+        /// </remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual IListFilter ListFilter {
+            get { return listFilter; }
+            set {
+                listFilter = value;
+                if (this.UseFiltering)
+                    this.UpdateFiltering();
+            }
+        }
+        private IListFilter listFilter;
+
+        /// <summary>
+        /// When some setting related to filtering changes, this method is called.
+        /// </summary>
+        protected virtual void UpdateFiltering() {
+            this.BuildList(true);
+        }
+
         /// <summary>
         /// Gets or sets if the ObjectListView will use a translucent hot row highlighting mechanism like Vista.
         /// </summary>
@@ -2792,16 +3008,18 @@ namespace BrightIdeasSoftware
                     previousFocus = focusedItem.RowObject;
             }
 
+            IEnumerable objectsToDisplay = this.FilteredObjects;
+
             this.BeginUpdate();
             try {
                 this.Items.Clear();
                 this.ListViewItemSorter = null;
 
-                if (this.objects != null) {
+                if (objectsToDisplay != null) {
                     // Build a list of all our items and then display them. (Building
                     // a list and then doing one AddRange is about 10-15% faster than individual adds)
                     List<OLVListItem> itemList = new List<OLVListItem>();
-                    foreach (object rowObject in this.objects) {
+                    foreach (object rowObject in objectsToDisplay) {
                         OLVListItem lvi = new OLVListItem(rowObject);
                         this.FillInValues(lvi, rowObject);
                         itemList.Add(lvi);
@@ -2816,8 +3034,7 @@ namespace BrightIdeasSoftware
 
                     this.RefreshHotItem();
                 }
-            }
-            finally {
+            } finally {
                 this.EndUpdate();
             }
 
@@ -2868,8 +3085,8 @@ namespace BrightIdeasSoftware
             if (this.Columns.Count <= 0)
                 return;
 
-            List<OLVColumn> columns = this.AllColumns.FindAll(delegate(OLVColumn x) { 
-                return (x.Index == 0) || x.IsTileViewColumn; 
+            List<OLVColumn> columns = this.AllColumns.FindAll(delegate(OLVColumn x) {
+                return (x.Index == 0) || x.IsTileViewColumn;
             });
 
             int imageHeight = (this.LargeImageList == null ? 16 : this.LargeImageList.ImageSize.Height);
@@ -3143,9 +3360,18 @@ namespace BrightIdeasSoftware
                     return;
                 modelObjects = args.ObjectsToAdd;
 
-                this.ListViewItemSorter = null;
                 this.TakeOwnershipOfObjects();
                 ArrayList ourObjects = (ArrayList)this.Objects;
+
+                // If we are filtering the list, there is no way to efficiently
+                // insert the objects, so just put them into our collection and rebuild.
+                if (this.IsFiltering) {
+                    ourObjects.InsertRange(index, modelObjects);
+                    this.BuildList(true);
+                    return;
+                }
+
+                this.ListViewItemSorter = null;
                 index = Math.Max(0, Math.Min(index, this.GetItemCount()));
                 int i = index;
                 foreach (object modelObject in modelObjects) {
@@ -3168,8 +3394,7 @@ namespace BrightIdeasSoftware
 
                 // Tell the world that the list has changed
                 this.OnItemsChanged(new ItemsChangedEventArgs());
-            }
-            finally {
+            } finally {
                 this.EndUpdate();
             }
         }
@@ -3249,8 +3474,7 @@ namespace BrightIdeasSoftware
                     this.Items.RemoveAt(i);
                 }
                 this.InsertObjects(index, modelObjects);
-            }
-            finally {
+            } finally {
                 this.EndUpdate();
             }
         }
@@ -3266,8 +3490,7 @@ namespace BrightIdeasSoftware
             // with the hit testing. If the header shrinks
             try {
                 return base.HitTest(x, y);
-            }
-            catch (ArgumentOutOfRangeException) {
+            } catch (ArgumentOutOfRangeException) {
                 return new ListViewHitTestInfo(null, null, ListViewHitTestLocations.None);
             }
         }
@@ -3509,8 +3732,7 @@ namespace BrightIdeasSoftware
 
                 // Tell the world that the list has changed
                 this.OnItemsChanged(new ItemsChangedEventArgs());
-            }
-            finally {
+            } finally {
                 this.EndUpdate();
             }
         }
@@ -3529,8 +3751,19 @@ namespace BrightIdeasSoftware
         /// <remarks>The list is updated immediately</remarks>
         /// <param name="collection">The objects to be displayed</param>
         public virtual void SetObjects(IEnumerable collection) {
+            this.SetObjects(collection, false);
+        }
+
+        /// <summary>
+        /// Set the collection of objects that will be shown in this list view.
+        /// </summary>
+        /// <remark>This method can safely be called from background threads.</remark>
+        /// <remarks>The list is updated immediately</remarks>
+        /// <param name="collection">The objects to be displayed</param>
+        /// <param name="preserveState">Should the state of the list be preserved as far as is possible.</param>
+        public virtual void SetObjects(IEnumerable collection, bool preserveState) {
             if (this.InvokeRequired) {
-                this.Invoke((MethodInvoker)delegate { this.SetObjects(collection); });
+                this.Invoke((MethodInvoker)delegate { this.SetObjects(collection, preserveState); });
                 return;
             }
 
@@ -3545,7 +3778,7 @@ namespace BrightIdeasSoftware
             if (this.isOwnerOfObjects && this.objects != collection)
                 this.isOwnerOfObjects = false;
             this.objects = collection;
-            this.BuildList(false);
+            this.BuildList(preserveState);
 
             // Tell the world that the list has changed
             this.OnItemsChanged(new ItemsChangedEventArgs());
@@ -3618,8 +3851,7 @@ namespace BrightIdeasSoftware
                 ObjectListViewState olvState;
                 try {
                     olvState = deserializer.Deserialize(ms) as ObjectListViewState;
-                }
-                catch (System.Runtime.Serialization.SerializationException) {
+                } catch (System.Runtime.Serialization.SerializationException) {
                     return false;
                 }
                 // The number of columns has changed. We have no way to match old
@@ -3809,8 +4041,7 @@ namespace BrightIdeasSoftware
             this.BeginUpdate();
             try {
                 this.Sort(e.Column);
-            }
-            finally {
+            } finally {
                 this.EndUpdate();
             }
         }
@@ -3820,7 +4051,7 @@ namespace BrightIdeasSoftware
         #region Low level Windows Message handling
 
         /// <summary>
-        /// Override the basic m pump for this control
+        /// Override the basic message pump for this control
         /// </summary>
         /// <param name="m"></param>
         protected override void WndProc(ref Message m) {
@@ -3960,8 +4191,7 @@ namespace BrightIdeasSoftware
                     lvi.Selected = true;
                     lvi.Focused = true;
                     this.EnsureVisible(lvi.Index);
-                }
-                finally {
+                } finally {
                     this.EndUpdate();
                 }
             }
@@ -5263,11 +5493,21 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Change the check state of the given object to be the given state.
         /// </summary>
+        /// <remarks>
+        /// If the given model object isn't in the list, we still try to remember
+        /// its state, in case it is referenced in the future.</remarks>
         /// <param name="modelObject"></param>
         /// <param name="state"></param>
         protected virtual void SetObjectCheckedness(object modelObject, CheckState state) {
             OLVListItem olvi = this.ModelToItem(modelObject);
-            if (olvi == null || olvi.CheckState == state)
+
+            // If we didn't find the given, we still try to record the check state.
+            if (olvi == null) {
+                this.PutCheckState(modelObject, state);
+                return;
+            }
+
+            if (olvi.CheckState == state)
                 return;
 
             // Trigger checkbox changing event. We only need to do this for virtual
@@ -5393,10 +5633,10 @@ namespace BrightIdeasSoftware
                 case View.Details:
                 case View.Tile:
                     int index = 0;
-                    return this.AllColumns.FindAll(delegate(OLVColumn x) { 
-                        return (index++ == 0) || x.IsVisible; 
+                    return this.AllColumns.FindAll(delegate(OLVColumn x) {
+                        return (index++ == 0) || x.IsVisible;
                     });
-                    //return this.AllColumns.FindAll(delegate(OLVColumn x) { return (index++ == 0) || x.IsTileViewColumn; });
+                //return this.AllColumns.FindAll(delegate(OLVColumn x) { return (index++ == 0) || x.IsTileViewColumn; });
                 default:
                     return new List<OLVColumn>();
             }
@@ -6679,12 +6919,10 @@ namespace BrightIdeasSoftware
             try {
                 this.Cursor = Cursors.WaitCursor;
                 System.Diagnostics.Process.Start(args.Url);
-            }
-            catch (Win32Exception) {
+            } catch (Win32Exception) {
                 System.Media.SystemSounds.Beep.Play();
                 // ignore it
-            }
-            finally {
+            } finally {
                 this.Cursor = originalCursor;
             }
             this.MarkUrlVisited(args.Url);
@@ -6838,7 +7076,7 @@ namespace BrightIdeasSoftware
             // Treat F2 as a request to edit the primary column
             if (keyData == Keys.F2 && !this.IsCellEditing) {
                 this.EditSubItem((OLVListItem)this.FocusedItem, 0);
-                return true;
+                return base.ProcessDialogKey(keyData);
             }
 
             // We have to catch Return/Enter/Escape here since some types of controls
@@ -6855,9 +7093,17 @@ namespace BrightIdeasSoftware
                 return true;
             }
 
-            // Treat Ctrl-C as Copy To Clipboard. We still allow the default processing
-            if ((keyData & Keys.Control) == Keys.Control && (keyData & Keys.KeyCode) == Keys.C)
+            // Treat Ctrl-C as Copy To Clipboard. 
+            if (this.CopySelectionOnControlC && (keyData & Keys.Control) == Keys.Control && (keyData & Keys.KeyCode) == Keys.C) {
                 this.CopySelectionToClipboard();
+                return true;
+            }
+
+            // Treat Ctrl-A as Select All.
+            if (this.SelectAllOnControlA && (keyData & Keys.Control) == Keys.Control && (keyData & Keys.KeyCode) == Keys.A) {
+                this.SelectAll();
+                return true;
+            }
 
             return base.ProcessDialogKey(keyData);
         }
@@ -7030,8 +7276,7 @@ namespace BrightIdeasSoftware
             PropertyInfo pinfo = null;
             try {
                 pinfo = control.GetType().GetProperty("Value");
-            }
-            catch (AmbiguousMatchException) {
+            } catch (AmbiguousMatchException) {
                 // The lowest level class of the control must have overridden the "Value" property.
                 // We now have to specifically  look for only public instance properties declared in the lowest level class.
                 pinfo = control.GetType().GetProperty("Value", BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
@@ -7042,12 +7287,10 @@ namespace BrightIdeasSoftware
                 try {
                     pinfo.SetValue(control, value, null);
                     return;
-                }
-                catch (TargetInvocationException) {
+                } catch (TargetInvocationException) {
                     // Not a lot we can do about this one. Something went wrong in the bowels
                     // of the method. Let's take the ostrich approach and just ignore it :-)
-                }
-                catch (ArgumentException) {
+                } catch (ArgumentException) {
                 }
             }
 
@@ -7058,8 +7301,7 @@ namespace BrightIdeasSoftware
                     control.Text = stringValue;
                 else
                     control.Text = valueAsString;
-            }
-            catch (ArgumentOutOfRangeException) {
+            } catch (ArgumentOutOfRangeException) {
                 // The value couldn't be set via the Text property.
             }
         }
@@ -7089,11 +7331,9 @@ namespace BrightIdeasSoftware
 
             try {
                 return control.GetType().InvokeMember("Value", BindingFlags.GetProperty, null, control, null);
-            }
-            catch (MissingMethodException) { // Microsoft throws this
+            } catch (MissingMethodException) { // Microsoft throws this
                 return control.Text;
-            }
-            catch (MissingFieldException) { // Mono throws this
+            } catch (MissingFieldException) { // Mono throws this
                 return control.Text;
             }
         }
@@ -7349,6 +7589,9 @@ namespace BrightIdeasSoftware
         /// <remarks>This is the main entry point for hot item handling</remarks>
         protected virtual void UpdateHotItem(OlvListViewHitTestInfo hti) {
 
+            if (!this.UseHotItem && !this.UseHyperlinks)
+                return;
+
             int newHotRow = hti.RowIndex;
             int newHotColumn = hti.ColumnIndex;
             HitTestLocation newHotCellHitLocation = hti.HitTestLocation;
@@ -7399,8 +7642,7 @@ namespace BrightIdeasSoftware
                 if (this.UseHotItem && this.HotItemStyle != null && this.HotItemStyle.Overlay != null) {
                     this.RefreshOverlays();
                 }
-            }
-            finally {
+            } finally {
                 this.EndUpdate();
             }
         }
@@ -7799,6 +8041,15 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Refresh the display of just one overlays
+        /// </summary>
+        public virtual void RefreshOverlay(IOverlay overlay) {
+            GlassPanelForm glassPanel = this.FindGlassPanelForOverlay(overlay);
+            if (glassPanel != null)
+                glassPanel.Invalidate();
+        }
+
+        /// <summary>
         /// Remove the given decoration from this list
         /// </summary>
         /// <param name="decoration">The decoration to remove</param>
@@ -8080,7 +8331,7 @@ namespace BrightIdeasSoftware
             set { autoCompleteEditor = value; }
         }
         private bool autoCompleteEditor = true;
-        
+
         /// <summary>
         /// Should this column show a checkbox, rather than a string?
         /// </summary>
@@ -8285,32 +8536,57 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Gets or sets the font in which the header for this column will be drawn
+        /// Gets or sets the style that will be used to draw the header for this column
         /// </summary>
+        /// <remarks>This is only uses when the owning ObjectListView has HeaderUsesThemes set to false.</remarks>
         [Category("Appearance - ObjectListView"),
-         Description("What font will be used to draw the text of the header of this column"),
-         DefaultValue(false)]
-        public Font HeaderFont {
-            get { return this.headerFont; }
-            set { this.headerFont = value; }
+         Description("What style will be used to draw the header of this column"),
+         DefaultValue(null)]
+        public HeaderFormatStyle HeaderFormatStyle {
+            get { return this.headerFormatStyle; }
+            set { this.headerFormatStyle = value; }
         }
-        private Font headerFont;
+        private HeaderFormatStyle headerFormatStyle;
 
         /// <summary>
-        /// Gets or sets the color in which the header for this column will be drawn
+        /// Gets or sets the font in which the header for this column will be drawn
         /// </summary>
-        /// <remarks>If this is set to an value other than Color.Empty, the header
-        /// will not be properly themed, since themeing does not allow the color to be
-        /// changed. The effect of not being themed will be different from OS to OS. At
-        /// very least, the sort indicator will not be standard.</remarks>
-        [Category("Appearance - ObjectListView"),
-         Description("What color will be used to draw the text of the header of this column"),
-         DefaultValue(typeof(Color), "")]
-        public Color HeaderForeColor {
-            get { return this.headerForeColor; }
-            set { this.headerForeColor = value; }
+        /// <remarks>This property will be made obsolete in v2.5. Use HeaderFormatStyle instead</remarks>
+        /// <remarks>This is only uses when HeaderUsesThemes is false.</remarks>
+        [Browsable(false)]
+        [DefaultValue(null)]
+        public Font HeaderFont {
+            get { return this.HeaderFormatStyle == null ? null : this.HeaderFormatStyle.Normal.Font; }
+            set {
+                if (value == null && this.HeaderFormatStyle == null)
+                    return;
+
+                if (this.HeaderFormatStyle == null)
+                    this.HeaderFormatStyle = new HeaderFormatStyle();
+
+                this.HeaderFormatStyle.SetFont(value);
+            }
         }
-        private Color headerForeColor;
+
+        /// <summary>
+        /// Gets or sets the color in which the text of the header for this column will be drawn
+        /// </summary>
+        /// <remarks>This property will be made obsolete in v2.5. Use HeaderFormatStyle instead</remarks>
+        /// <remarks>This is only uses when HeaderUsesThemes is false.</remarks>
+        [Browsable(false)]
+        [DefaultValue(typeof(Color), "")]
+        public Color HeaderForeColor {
+            get { return this.HeaderFormatStyle == null ? Color.Empty : this.HeaderFormatStyle.Normal.ForeColor; }
+            set {
+                if (value.IsEmpty && this.HeaderFormatStyle == null)
+                    return;
+
+                if (this.HeaderFormatStyle == null)
+                    this.HeaderFormatStyle = new HeaderFormatStyle();
+
+                this.HeaderFormatStyle.SetForeColor(value);
+            }
+        }
 
         /// <summary>
         /// Gets or sets whether the text values in this column will act like hyperlinks
@@ -8585,6 +8861,22 @@ namespace BrightIdeasSoftware
             set { useInitialLetterForGroup = value; }
         }
         private bool useInitialLetterForGroup;
+
+        /// <summary>
+        /// What is the width of this column?
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("The width in pixels of this column"),
+        DefaultValue(60)]
+        new public int Width {
+            get { return base.Width; }
+            set {
+                if (this.MaximumWidth != -1 && value > this.MaximumWidth)
+                    base.Width = this.MaximumWidth;
+                else
+                    base.Width = Math.Max(this.MinimumWidth, value);
+            }
+        }
 
         #endregion
 
@@ -8913,8 +9205,7 @@ namespace BrightIdeasSoftware
             get {
                 try {
                     return base.Bounds;
-                }
-                catch (System.ArgumentException) {
+                } catch (System.ArgumentException) {
                     // If the item is part of a collapsed group, Bounds will throw an exception
                     return Rectangle.Empty;
                 }
@@ -9601,7 +9892,7 @@ namespace BrightIdeasSoftware
             else
                 return base.ContainsKey(key);
         }
-        
+
         new public IList Keys {
             get {
                 ArrayList list = new ArrayList(base.Keys);

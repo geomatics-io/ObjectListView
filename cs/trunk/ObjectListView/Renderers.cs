@@ -1108,7 +1108,7 @@ namespace BrightIdeasSoftware
                         il.Draw(g, r2.Location, selectorAsInt);
 
                         // Use this call instead of the above if you want to images to appear blended when selected
-                        //NativeMethods.DrawImageList(g, il, selectorAsInt, r2.X, r2.Y, this.IsItemSelected);
+                        //NativeMethods.DrawImageList(g, il, selectorAsInt, r.X, r.Y, this.IsItemSelected);
                         return il.ImageSize.Width;
                     }
                 }
@@ -1224,17 +1224,24 @@ namespace BrightIdeasSoftware
             TextRenderer.DrawText(g, txt, this.Font, r, this.GetForegroundColor(), backColor, flags);
         }
 
-        /// <summary>
-        /// Print the given text in the given rectangle using normal GDI+ .NET methods
-        /// </summary>
-        /// <remarks>Printing to a printer dc has to be done using this method.</remarks>
-        protected virtual void DrawTextGdiPlus(Graphics g, Rectangle r, String txt) {
-            using (StringFormat fmt = new StringFormat()) {
+        protected virtual StringFormat StringFormatForGdiPlus {
+            get {
+                StringFormat fmt = new StringFormat();
                 fmt.LineAlignment = StringAlignment.Center;
                 fmt.Trimming = StringTrimming.EllipsisCharacter;
                 fmt.Alignment = this.Column.TextStringAlign;
                 if (!this.CanWrap)
                     fmt.FormatFlags = StringFormatFlags.NoWrap;
+                return fmt;
+            }
+        }
+
+        /// <summary>
+        /// Print the given text in the given rectangle using normal GDI+ .NET methods
+        /// </summary>
+        /// <remarks>Printing to a printer dc has to be done using this method.</remarks>
+        protected virtual void DrawTextGdiPlus(Graphics g, Rectangle r, String txt) {
+            using (StringFormat fmt = this.StringFormatForGdiPlus) {
                 // Draw the background of the text as selected, if it's the primary column
                 // and it's selected and it's not in FullRowSelect mode.
                 Font f = this.Font;
@@ -1261,6 +1268,163 @@ namespace BrightIdeasSoftware
             //        r.Width = size.Width;
             //    this.Event.DrawFocusRectangle(r);
             //}
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// This renderer highlights substrings that match a given text string. 
+    /// </summary>
+    public class HighlightTextRenderer : BaseRenderer
+    {
+        #region Life and death
+
+        public HighlightTextRenderer() {
+            this.StringComparison = StringComparison.CurrentCultureIgnoreCase;
+            this.FramePen = Pens.DarkBlue;
+            this.FillBrush = new SolidBrush(Color.FromArgb(96, Color.CornflowerBlue));
+        }
+
+        public HighlightTextRenderer(string text) : this() {
+            this.TextToHighlight = text;
+        }
+
+        #endregion
+
+        #region Configuration properties
+
+        /// <summary>
+        /// Gets or set the text that will be highlighted
+        /// </summary>
+        public string TextToHighlight {
+            get { return textToHighlight; }
+            set { textToHighlight = value; }
+        }
+        private string textToHighlight;
+
+        /// <summary>
+        /// Gets or sets the manner in which substring will be compared.
+        /// </summary>
+        /// <remarks>
+        /// Use this to control if substring matches are case sensitive or insensitive.</remarks>
+        public StringComparison StringComparison {
+            get { return stringComparison; }
+            set { stringComparison = value; }
+        }
+        private StringComparison stringComparison;
+
+        /// <summary>
+        /// Gets or set the pen will be used to frame the matched substrings.
+        /// Set this to null to not draw a frame.
+        /// </summary>
+        public Pen FramePen {
+            get { return framePen; }
+            set { framePen = value; }
+        }
+        private Pen framePen;
+
+        /// <summary>
+        /// Gets or set the brush will be used to paint over the matched substrings.
+        /// Set this to null to not fill the frame.
+        /// </summary>
+        /// <remarks>
+        /// This is used to literally paint over the substring, so it must have be 
+        /// transluscent if you want to substring to be legible.
+        /// </remarks>
+        public Brush FillBrush {
+            get { return fillBrush; }
+            set { fillBrush = value; }
+        }
+        private Brush fillBrush;
+
+        #endregion
+
+        #region Rendering
+
+        // This class has two implement two highlighting schemes: one for GDI, another for GDI+.
+        // Naturally, GDI+ makes the task easier, but we have to provide something for GDI
+        // since that it is what is normally used.
+
+        protected override void DrawTextGdi(Graphics g, Rectangle r, string txt) {
+            base.DrawTextGdi(g, r, txt);
+            if (!String.IsNullOrEmpty(this.TextToHighlight))
+                this.DrawGdiTextHighlighting(g, r, txt);
+        }
+
+        protected virtual void DrawGdiTextHighlighting(Graphics g, Rectangle r, string txt) {
+            TextFormatFlags flags = TextFormatFlags.NoPrefix |
+                TextFormatFlags.VerticalCenter | TextFormatFlags.PreserveGraphicsTranslateTransform;
+
+            // TextRenderer puts horizontal padding around the strings, so we need to take
+            // that into account when measuring strings
+            int paddingAdjustment = 6;
+
+            // Find the substrings we want to highlight
+            int start = 0;
+            int found = txt.IndexOf(this.TextToHighlight, start, this.StringComparison);
+            while (found >= 0) {
+                // Measure the text that comes before our substring
+                Size precedingTextSize = Size.Empty;
+                if (found > 0) {
+                    string precedingText = txt.Substring(0, found);
+                    precedingTextSize = TextRenderer.MeasureText(g, precedingText, this.Font, r.Size, flags);
+                    precedingTextSize.Width -= paddingAdjustment;
+                }
+
+                // Measure the length of our substring (may be different each time due to case differences)
+                string highlightText = txt.Substring(found, this.TextToHighlight.Length);
+                Size textToHighlightSize = TextRenderer.MeasureText(g, highlightText, this.Font, r.Size, flags);
+                textToHighlightSize.Width -= paddingAdjustment;
+
+                // Draw a filled frame around our substring
+                Rectangle bounds = new Rectangle(r.X + precedingTextSize.Width + 1, r.Top, textToHighlightSize.Width, r.Height - 2);
+                if (this.FramePen != null)
+                    g.DrawRectangle(this.FramePen, bounds);
+                if (this.FillBrush != null)
+                    g.FillRectangle(this.FillBrush, bounds);
+
+                // Find our next match
+                start = found + this.TextToHighlight.Length;
+                found = txt.IndexOf(this.TextToHighlight, start, StringComparison.CurrentCultureIgnoreCase);
+            }
+        }
+
+        protected override void DrawTextGdiPlus(Graphics g, Rectangle r, string txt) {
+            base.DrawTextGdiPlus(g, r, txt);
+            if (!String.IsNullOrEmpty(this.TextToHighlight))
+                this.DrawGdiPlusTextHighlighting(g, r, txt);
+        }
+
+        protected virtual void DrawGdiPlusTextHighlighting(Graphics g, Rectangle r, string txt) {
+            // Find the substrings we want to highlight
+            List<CharacterRange> ranges = new List<CharacterRange>();
+            int start = 0;
+            int found = 0;
+            while (found >= 0) {
+                found = txt.IndexOf(this.TextToHighlight, start, this.StringComparison);
+                if (found >= 0) {
+                    ranges.Add(new CharacterRange(found, this.TextToHighlight.Length));
+                    start = found + this.TextToHighlight.Length;
+                } 
+            }
+            
+            if (ranges.Count == 0)
+                return;
+
+            using (StringFormat fmt = this.StringFormatForGdiPlus) {
+                RectangleF rf = r;
+                fmt.SetMeasurableCharacterRanges(ranges.ToArray());
+                Region[] stringRegions = g.MeasureCharacterRanges(txt, this.Font, rf, fmt);
+
+                foreach (Region region in stringRegions) {
+                    RectangleF bounds = region.GetBounds(g);
+                    if (this.FramePen != null)
+                        g.DrawRectangle(this.FramePen, bounds.X - 1, bounds.Y - 1, bounds.Width + 2, bounds.Height);
+                    if (this.FillBrush != null)
+                        g.FillRectangle(this.FillBrush, bounds.X - 1, bounds.Y - 1, bounds.Width + 2, bounds.Height);
+                }
+            }
         }
 
         #endregion
