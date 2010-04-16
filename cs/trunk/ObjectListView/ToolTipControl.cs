@@ -533,7 +533,7 @@ namespace BrightIdeasSoftware
         /// <returns>True if the message has been handled</returns>
         /// <remarks>This cannot call base.WndProc() since the msg may have come from another control.</remarks>
         public virtual bool HandleLinkClick(ref Message msg) {
-            System.Diagnostics.Trace.WriteLine("HandleLinkClick");
+            //System.Diagnostics.Trace.WriteLine("HandleLinkClick");
             return false;
         }
 
@@ -544,7 +544,7 @@ namespace BrightIdeasSoftware
         /// <returns>True if the message has been handled</returns>
         /// <remarks>This cannot call base.WndProc() since the msg may have come from another control.</remarks>
         public virtual bool HandlePop(ref Message msg) {
-            System.Diagnostics.Trace.WriteLine("HandlePop");
+            //System.Diagnostics.Trace.WriteLine("HandlePop");
             this.PopSettings();
             return true;
         }
@@ -556,7 +556,7 @@ namespace BrightIdeasSoftware
         /// <returns>True if the message has been handled</returns>
         /// <remarks>This cannot call base.WndProc() since the msg may have come from another control.</remarks>
         public virtual bool HandleShow(ref Message msg) {
-            System.Diagnostics.Trace.WriteLine("HandleShow");
+            //System.Diagnostics.Trace.WriteLine("HandleShow");
             return false;
         }
 
@@ -570,22 +570,22 @@ namespace BrightIdeasSoftware
             NativeMethods.NMHEADER nmheader = (NativeMethods.NMHEADER)msg.GetLParam(typeof(NativeMethods.NMHEADER));
             switch (nmheader.nhdr.code) {
                 case TTN_SHOW:
-                    System.Diagnostics.Trace.WriteLine("reflect TTN_SHOW");
+                    //System.Diagnostics.Trace.WriteLine("reflect TTN_SHOW");
                     if (this.HandleShow(ref msg))
                         return true;
                     break;
                 case TTN_POP:
-                    System.Diagnostics.Trace.WriteLine("reflect TTN_POP");
+                    //System.Diagnostics.Trace.WriteLine("reflect TTN_POP");
                     if (this.HandlePop(ref msg))
                         return true;
                     break;
                 case TTN_LINKCLICK:
-                    System.Diagnostics.Trace.WriteLine("reflect TTN_LINKCLICK");
+                    //System.Diagnostics.Trace.WriteLine("reflect TTN_LINKCLICK");
                     if (this.HandleLinkClick(ref msg))
                         return true;
                     break;
                 case TTN_GETDISPINFO:
-                    System.Diagnostics.Trace.WriteLine("reflect TTN_GETDISPINFO");
+                    //System.Diagnostics.Trace.WriteLine("reflect TTN_GETDISPINFO");
                     if (this.HandleGetDispInfo(ref msg))
                         return true;
                     break;
