@@ -5,6 +5,8 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * v2.4
+ * 2010-04-01   JPP  - Support filtering
  * v2.3
  * 2009-08-28   JPP  - BIG CHANGE. Virtual lists can now have groups!
  *                   - Objects property now uses "yield return" -- much more efficient for big lists
@@ -26,7 +28,7 @@
  * 2008-10-02   JPP  - MAJOR CHANGE: Use IVirtualListDataSource
  * 2008-09-27   JPP  - Separated from ObjectListView.cs
  * 
- * Copyright (C) 2006-2009 Phillip Piper
+ * Copyright (C) 2006-2010 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -326,26 +328,26 @@ namespace BrightIdeasSoftware
 
             const int LVM_ENABLEGROUPVIEW = 0x1000 + 157;
             x = NativeMethods.SendMessage(this.Handle, LVM_ENABLEGROUPVIEW, 1, 0);
-            System.Diagnostics.Debug.WriteLine(x);
+            //System.Diagnostics.Debug.WriteLine(x);
         }
         private OwnerDataCallbackImpl ownerDataCallbackImpl;
 
         /// <summary>
-        /// Do the plumbing to enable groups on a virtual list
+        /// Do the plumbing to disable groups on a virtual list
         /// </summary>
         protected void DisableVirtualGroups() {
             IntPtr x;
 
             int err = NativeMethods.ClearGroups(this);
-            System.Diagnostics.Debug.WriteLine(err);
+            //System.Diagnostics.Debug.WriteLine(err);
 
             const int LVM_ENABLEGROUPVIEW = 0x1000 + 157;
             x = NativeMethods.SendMessage(this.Handle, LVM_ENABLEGROUPVIEW, 0, 0);
-            System.Diagnostics.Debug.WriteLine(x);
+            //System.Diagnostics.Debug.WriteLine(x);
 
             const int LVM_SETOWNERDATACALLBACK = 0x10BB;
             x = NativeMethods.SendMessage(this.Handle, LVM_SETOWNERDATACALLBACK, 0, 0);
-            System.Diagnostics.Debug.WriteLine(x);
+            //System.Diagnostics.Debug.WriteLine(x);
         }
 
         protected override void CreateGroups(IList<OLVGroup> groups) {
