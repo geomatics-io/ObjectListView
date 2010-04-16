@@ -6,12 +6,15 @@
  * Date: 15/08/2009 22:01
  *
  * Change log:
+ * v2.4
+ * 2010-04-14  JPP  - Allow Name property to be set
+ * 
  * v2.3
  * 2009-08-15  JPP  - Initial version
  *
  * To do:
  * 
- * Copyright (C) 2009 Phillip Piper
+ * Copyright (C) 2009-2010 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -152,6 +155,12 @@ namespace BrightIdeasSoftware
             set { minimumWidth = value; }
         }
         private int minimumWidth = -1;
+
+        public String Name {
+            get { return name; }
+            set { name = value; }
+        }
+        private String name;
 
         public HorizontalAlignment TextAlign {
             get { return this.textAlign; }

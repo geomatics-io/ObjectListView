@@ -5,12 +5,15 @@
  * Date: 15/08/2009 22:37
  *
  * Change log:
+ * v2.4
+ * 2010-04-14  JPP  - Allow Name property to be set
+ *                  - Don't double set the Text property
  * v2.3
  * 2009-08-15  JPP  - Initial version
  *
  * To do:
  * 
- * Copyright (C) 2009 Phillip Piper
+ * Copyright (C) 2009-2010 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,13 +85,14 @@ namespace BrightIdeasSoftware
         }
 
         private static OLVColumn MakeColumnFromAttribute(string aspectName, OLVColumnAttribute attr, bool editable) {
-            string title = attr.Title;
-            if (String.IsNullOrEmpty(title))
-                title = aspectName;
+            string title = String.IsNullOrEmpty(attr.Title) ? aspectName : attr.Title;
             OLVColumn column = new OLVColumn(title, aspectName);
             column.AspectToStringFormat = attr.AspectToStringFormat;
             column.CheckBoxes = attr.CheckBoxes;
             column.DisplayIndex = attr.DisplayIndex;
+            column.FillsFreeSpace = attr.FillsFreeSpace;
+            if (attr.FreeSpaceProportion.HasValue)
+                column.FreeSpaceProportion = attr.FreeSpaceProportion.Value;
             column.GroupWithItemCountFormat = attr.GroupWithItemCountFormat;
             column.GroupWithItemCountSingularFormat = attr.GroupWithItemCountSingularFormat;
             column.Hyperlink = attr.Hyperlink;
@@ -98,19 +102,16 @@ namespace BrightIdeasSoftware
             else
                 column.IsEditable = editable;
             column.IsTileViewColumn = attr.IsTileViewColumn;
-            column.UseInitialLetterForGroup = attr.UseInitialLetterForGroup;
-            column.ToolTipText = attr.ToolTipText;
             column.IsVisible = attr.IsVisible;
-            column.FillsFreeSpace = attr.FillsFreeSpace;
-            if (attr.FreeSpaceProportion.HasValue)
-                column.FreeSpaceProportion = attr.FreeSpaceProportion.Value;
             column.MaximumWidth = attr.MaximumWidth;
             column.MinimumWidth = attr.MinimumWidth;
-            column.Width = attr.Width;
-            column.Text = attr.Title;
-            column.TextAlign = attr.TextAlign;
+            column.Name = String.IsNullOrEmpty(attr.Name) ? aspectName : attr.Name;
             column.Tag = attr.Tag;
+            column.TextAlign = attr.TextAlign;
+            column.ToolTipText = attr.ToolTipText;
             column.TriStateCheckBoxes = attr.TriStateCheckBoxes;
+            column.UseInitialLetterForGroup = attr.UseInitialLetterForGroup;
+            column.Width = attr.Width;
             if (attr.GroupCutoffs != null && attr.GroupDescriptions != null)
                 column.MakeGroupies(attr.GroupCutoffs, attr.GroupDescriptions);
             return column;
