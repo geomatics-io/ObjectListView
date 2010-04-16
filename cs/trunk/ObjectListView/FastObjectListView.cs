@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * v2.4
  * 2010-04-05   JPP  - Added filtering
  * v2.3
  * 2009-08-27   JPP  - Added GroupingStrategy
@@ -13,7 +14,7 @@
  * 2009-01-07   JPP  - Made all public and protected methods virtual
  * 2008-09-27   JPP  - Separated from ObjectListView.cs
  *
- * Copyright (C) 2006-2008 Phillip Piper
+ * Copyright (C) 2006-2010 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

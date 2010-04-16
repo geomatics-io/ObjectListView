@@ -5,12 +5,14 @@
  * Date: 28/08/2009 11:10am
  *
  * Change log:
+ * v2.4
+ * 2010-04-01   JPP  - Added IFilterableDataSource
  * v2.3
  * 2009-08-28   JPP  - Initial version (Separated from VirtualObjectListView.cs)
  *
  * To do:
  *
- * Copyright (C) 2009 Phillip Piper
+ * Copyright (C) 2009-2010 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
