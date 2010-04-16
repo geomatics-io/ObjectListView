@@ -40,11 +40,14 @@ namespace BrightIdeasSoftware
         Rectangle GetRectangle();
     }
 
+    /// <summary>
+    /// A safe do-nothing implementation of IRectangleLocator plus some useful utilities
+    /// </summary>
     public class AbstractRectangleLocator : IRectangleLocator
     {
         #region Properties
 
-        public Point Expansion { get; set; }
+        public Point Expansion ;
 
         public ISprite Sprite {
             get { return this.sprite; }
@@ -159,8 +162,8 @@ namespace BrightIdeasSoftware
 
         #region Configuration properties
 
-        protected IPointLocator TopLeftLocator { get; set; }
-        protected IPointLocator BottomRightLocator { get; set; }
+        protected IPointLocator TopLeftLocator ;
+        protected IPointLocator BottomRightLocator ;
 
         #endregion
 
@@ -193,7 +196,7 @@ namespace BrightIdeasSoftware
             this.Rectangle = new Rectangle(x, y, width, height);
         }
 
-        protected Rectangle Rectangle { get; set; }
+        protected Rectangle Rectangle ;
 
         public override Rectangle GetRectangle() {
             return this.Expand(this.Rectangle);

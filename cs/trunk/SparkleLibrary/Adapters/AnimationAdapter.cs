@@ -5,6 +5,8 @@
  * Date: 08/02/2010 6:18 PM
  *
  * Change log:
+ * 2010-03-30   JPP  - Optimize invalidating so that we don't call Invalidate
+ *                     dozens of times unnecessarily
  * 2010-02-08   JPP  - Initial version
  *
  * To do:
@@ -85,24 +87,41 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the control on which the animation will be drawn
         /// </summary>
-        public Control Control { get; private set; }
+        public Control Control {
+            get { return control; }
+            private set { control = value; }
+        }
+        private Control control;
 
         /// <summary>
         /// Gets or sets the control on which the animation will be drawn
         /// </summary>
-        public Animation Animation { get; private set; }
+        public Animation Animation {
+            get { return animation; }
+            private set { animation = value; }
+        }
+        private Animation animation;
 
         /// <summary>
         /// Gets or sets the smoothing mode that will be applied to the 
         /// graphic context that is used to draw the animation
         /// </summary>
-        public SmoothingMode SmoothingMode { get; set; }
+        public SmoothingMode SmoothingMode {
+            get { return smoothingMode; }
+            private set { smoothingMode = value; }
+        }
+        private SmoothingMode smoothingMode;
 
         /// <summary>
         /// Gets or sets the text rendering hint that will be applied to the 
         /// graphic context that is used to draw the animation
         /// </summary>
-        public TextRenderingHint TextRenderingHint { get; set; }
+        public TextRenderingHint TextRenderingHint {
+            get { return textRenderingHint; }
+            private set { textRenderingHint = value; }
+        }
+        private TextRenderingHint textRenderingHint;
+
 
         #endregion
 
@@ -113,17 +132,36 @@ namespace BrightIdeasSoftware
         }
 
         protected virtual void Control_Paint(object sender, PaintEventArgs e) {
-            Graphics g = e.Graphics;
-            g.TextRenderingHint = this.TextRenderingHint;
-            g.SmoothingMode = this.SmoothingMode;
-            this.Animation.Draw(g);
+
+            // Lock this section so we are aren't troubled by interrupts from the ticker thread
+            lock (myLock) {
+
+                // Setup the graphics context and draw the animation
+                Graphics g = e.Graphics;
+                g.TextRenderingHint = this.TextRenderingHint;
+                g.SmoothingMode = this.SmoothingMode;
+                this.Animation.Draw(g);
+
+                // Allow new invalidates on the control
+                allowInvalidate = true;
+            }
         }
 
         protected virtual void Animation_Started(object sender, StartAnimationEventArgs e) {
-            this.Animation.Bounds = this.Control.ClientRectangle;
+            this.SetAnimationBounds();
 
             this.Control.Paint += new PaintEventHandler(Control_Paint);
             this.Control.Disposed += new EventHandler(Control_Disposed);
+        }
+
+        /// <summary>
+        /// Give the animation its outer bounds. 
+        /// </summary>
+        /// <remarks>
+        /// This is normally the DisplayRectangle of the underlying Control.
+        /// </remarks>
+        protected virtual void SetAnimationBounds() {
+            this.Animation.Bounds = this.Control.DisplayRectangle;
         }
 
         protected virtual void Animation_Stopped(object sender, StopAnimationEventArgs e) {
@@ -132,11 +170,24 @@ namespace BrightIdeasSoftware
         }
 
         protected virtual void Animation_Redraw(object sender, RedrawEventArgs e) {
-            this.Control.Invalidate();
+            // Don't trigger multiple invalidates
+            lock (myLock) {
+                if (allowInvalidate) {
+                    this.Control.Invalidate();
+                    allowInvalidate = false;
+                }
+            }
         }
+        object myLock = new object();
 
         protected virtual void Animation_Ticked(object sender, TickEventArgs e) {
         }
+
+        #endregion
+
+        #region Private variables
+
+        private bool allowInvalidate = true;
 
         #endregion
     }

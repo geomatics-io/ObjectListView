@@ -5,12 +5,14 @@
  * Date: 08/02/2010 6:18 PM
  *
  * Change log:
+ * 2010-03-31   JPP  - Correctly calculate the height of wrapped text
+ *                   - Cleaned up
+ * 2010-02-29   JPP  - Add more formatting options (wrap, border, background)
  * 2010-02-08   JPP  - Initial version
  *
  * To do:
- * 2010-02-08   Given TextSprite more formatting options
  *
- * Copyright (C) 2009-2010 Phillip Piper
+ * Copyright (C) 2010 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,18 +89,30 @@ namespace BrightIdeasSoftware
         /// Gets or sets the font in which the text will be rendered.
         /// This will be scaled before being used to draw the text.
         /// </summary>
-        public Font Font { get; set; }
+        public Font Font {
+            get { return this.font; }
+            set { this.font = value; }
+        }
+        private Font font;
 
         /// <summary>
         /// Gets or sets the color of the text
         /// </summary>
-        public Color ForeColor { get; set; }
+        public Color ForeColor {
+            get { return this.foreColor; }
+            set { this.foreColor = value; }
+        }
+        private Color foreColor = Color.Empty;
 
         /// <summary>
         /// Gets or sets the background color of the text
         /// Set this to Color.Empty to not draw a background
         /// </summary>
-        public Color BackColor { get; set; }
+        public Color BackColor {
+            get { return this.backColor; }
+            set { this.backColor = value; }
+        }
+        private Color backColor = Color.Empty;
 
         /// <summary>
         /// Gets or sets the color of the border around the billboard.
@@ -188,7 +202,11 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets whether the text will wrap when it exceeds its bounds
         /// </summary>
-        public bool Wrap { get; set; }
+        public bool Wrap {
+            get { return wrap; }
+            set { wrap = value; }
+        }
+        private bool wrap;
 
         #endregion
 
@@ -204,13 +222,14 @@ namespace BrightIdeasSoftware
                 if (String.IsNullOrEmpty(this.Text))
                     return Size.Empty;
 
-                TextFormatFlags flags = TextFormatFlags.Default | TextFormatFlags.EndEllipsis | TextFormatFlags.HorizontalCenter;
-                if (!this.Wrap)
-                    flags |= TextFormatFlags.SingleLine;
-                return TextRenderer.MeasureText(this.Text, this.ActualFont, new Size(this.CalcMaxLineWidth(), 1000), flags);
+                // This is a stupid hack to get a Graphics object. How should this be done?
+                using (Graphics g = Graphics.FromImage(this.dummyImage)) {
+                    return g.MeasureString(this.Text, this.ActualFont, this.CalcMaxLineWidth(), this.StringFormat).ToSize();
+                }
             }
             set { }
         }
+        private Image dummyImage = new Bitmap(1, 1);
 
         #endregion
 
@@ -220,14 +239,13 @@ namespace BrightIdeasSoftware
         /// Gets the font that will be used to draw the text. This takes
         /// scaling into account.
         /// </summary>
-        /// <remarks>TODO: We could cache this font and discard it when
-        /// either Font or Scale changed.</remarks>
         protected Font ActualFont {
             get {
                 if (this.Scale == 1.0f)
                     return this.Font;
                 else
-                    return new Font(this.Font.FontFamily, this.Font.SizeInPoints * this.Scale);
+                    // TODO: Cache this font and discard it when either Font or Scale changed.
+                    return new Font(this.Font.FontFamily, this.Font.SizeInPoints * this.Scale, this.Font.Style);
             }
         }
 
@@ -248,13 +266,13 @@ namespace BrightIdeasSoftware
 
         #region Drawing methods
 
-        private void DrawText(Graphics g, string s, float opacity) {
+        protected void DrawText(Graphics g, string s, float opacity) {
             Font f = this.ActualFont;
             SizeF textSize = g.MeasureString(s, f, this.CalcMaxLineWidth(), this.StringFormat);
             this.DrawBorderedText(g, new Rectangle(0, 0, 1+(int)textSize.Width, 1+(int)textSize.Height), s, f, opacity);
         }
 
-        private int CalcMaxLineWidth() {
+        protected int CalcMaxLineWidth() {
             return this.MaximumTextWidth > 0 ? (int)(this.MaximumTextWidth * this.Scale) : Int32.MaxValue;
         }
 
@@ -265,14 +283,14 @@ namespace BrightIdeasSoftware
                 return new SolidBrush(this.ForeColor);
         }
 
-        public Brush GetBackgroundBrush(float opacity) {
+        protected Brush GetBackgroundBrush(float opacity) {
             if (opacity < 1.0f)
                 return new SolidBrush(Color.FromArgb((int)(opacity * 255), this.BackColor));
             else
                 return new SolidBrush(this.BackColor);
         }
 
-        public Pen GetBorderPen(float opacity) {
+        protected Pen GetBorderPen(float opacity) {
             if (opacity < 1.0f)
                 return new Pen(Color.FromArgb((int)(opacity * 255), this.BorderColor), this.BorderWidth);
             else
@@ -312,18 +330,6 @@ namespace BrightIdeasSoftware
 
         }
 
-        /// <summary>
-        /// Return the rectangle that will be the precise bounds of the displayed text
-        /// </summary>
-        /// <param name="g"></param>
-        /// <param name="r"></param>
-        /// <returns>The bounds of the text</returns>
-        //protected Rectangle CalculateTextBounds(Graphics g, Rectangle r, string text) {
-        //    int maxWidth = this.MaximumTextWidth <= 0 ? r.Width : this.MaximumTextWidth;
-        //    SizeF sizeF = g.MeasureString(text, this.FontOrDefault, maxWidth, this.StringFormat);
-        //    Size size = new Size(1 + (int)sizeF.Width, 1 + (int)sizeF.Height);
-        //    return this.CreateAlignedRectangle(r, size);
-        //}
 
         #endregion
     }

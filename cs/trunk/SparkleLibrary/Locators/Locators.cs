@@ -64,14 +64,38 @@ namespace BrightIdeasSoftware
             return Locators.SpriteAligned(corner, corner, Point.Empty);
         }
 
+        /// <summary>
+        /// The same as SpriteAligned(Corner) but offset by a constant amount.
+        /// </summary>
+        /// <param name="corner"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
         public static IPointLocator SpriteAligned(Corner corner, Point offset) {
             return Locators.SpriteAligned(corner, corner, offset);
         }
 
+        /// <summary>
+        /// Create a PointLocator that will align the given corner of a sprite
+        /// at the given corner of the animation.
+        /// </summary>
+        /// <remarks>For example,
+        /// Locators.SpriteAligned(Corners.MiddleCenter, Corner.BottomRight) means the center
+        /// of the sprite will be placed at the bottom right corner of the animation.
+        /// </remarks>
+        /// <param name="spriteCorner">The corner of the sprite to be aligned</param>
+        /// <param name="corner">The corner at which it will be aligned</param>
+        /// <returns>A point locator</returns>
         public static IPointLocator SpriteAligned(Corner spriteCorner, Corner animationCorner) {
             return Locators.SpriteAligned(spriteCorner, animationCorner, Point.Empty);
         }
 
+        /// <summary>
+        /// The same as SpriteAligned(Corner, Corner) but offset by a constant amount.
+        /// </summary>
+        /// <param name="spriteCorner"></param>
+        /// <param name="animationCorner"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
         public static IPointLocator SpriteAligned(Corner spriteCorner, Corner animationCorner, Point offset) {
             return new AlignedSpriteLocator(
                 Locators.AnimationBoundsPoint(animationCorner),
@@ -79,10 +103,30 @@ namespace BrightIdeasSoftware
                 offset);
         }
 
+        /// <summary>
+        /// Create a PointLocator that will align the given corner of a sprite
+        /// at the proportional location of bounds of the animation.
+        /// </summary>
+        /// <remarks>For example,
+        /// Locators.SpriteAligned(Corners.MiddleCenter, 0.6f, 0.7f) means the center
+        /// of the sprite will be placed 60% across and 70% down the animation.
+        /// </remarks>
+        /// <param name="spriteCorner">The corner of the sprite to be aligned</param>
+        /// <param name="proportionX">The x axis proportion</param>
+        /// <param name="proportionY">The y axis proportion</param>
+        /// <returns>A point locator</returns>
         public static IPointLocator SpriteAligned(Corner spriteCorner, float proportionX, float proportionY) {
             return Locators.SpriteAligned(spriteCorner, proportionX, proportionY, Point.Empty);
         }
 
+        /// <summary>
+        /// The same as SpriteAligned(Corner, float, float) but offset by a constant amount.
+        /// </summary>
+        /// <param name="spriteCorner"></param>
+        /// <param name="proportionX"></param>
+        /// <param name="proportionY"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
         public static IPointLocator SpriteAligned(Corner spriteCorner, float proportionX, float proportionY, Point offset) {
             return new AlignedSpriteLocator(
                 Locators.AnimationBoundsPoint(proportionX, proportionY),
@@ -101,30 +145,87 @@ namespace BrightIdeasSoftware
             return new FixedRectangleLocator(r);
         }
 
+        /// <summary>
+        /// Create a Locator that gives the bounds of the animation
+        /// </summary>
+        /// <returns></returns>
         public static IRectangleLocator AnimationBounds() {
             return new AnimationBoundsLocator();
         }
 
+        /// <summary>
+        /// Create a Locator that gives the bounds of the animation inset by a fixed amount
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public static IRectangleLocator AnimationBounds(int x, int y) {
             return new AnimationBoundsLocator(x, y);
         }
 
+        /// <summary>
+        /// Create a Locator that gives the bounds of the sprite
+        /// </summary>
+        /// <returns></returns>
+        public static IRectangleLocator SpriteBounds() {
+            return new SpriteBoundsLocator();
+        }
+
+        /// <summary>
+        /// Create a Locator that gives the bounds of the sprite inset by a fixed amount
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
+        public static IRectangleLocator SpriteBounds(int x, int y) {
+            return new SpriteBoundsLocator(x, y);
+        }
+
+        /// <summary>
+        /// Returns a Locator that gives a point on the bounds of a sprite
+        /// </summary>
+        /// <param name="corner"></param>
+        /// <returns></returns>
         public static IPointLocator SpriteBoundsPoint(Corner corner) {
             return new PointOnRectangleLocator(new SpriteBoundsLocator(), corner);
         }
 
+        /// <summary>
+        /// Returns a Locator that gives a point proportional to the bounds of a sprite
+        /// </summary>
+        /// <param name="proportionX"></param>
+        /// <param name="proportionY"></param>
+        /// <returns></returns>
         public static IPointLocator SpriteBoundsPoint(float proportionX, float proportionY) {
             return new PointOnRectangleLocator(new SpriteBoundsLocator(), proportionX, proportionY);
         }
 
+        /// <summary>
+        /// Returns a Locator which gives a corner of the bounds of the animation
+        /// </summary>
+        /// <param name="corner"></param>
+        /// <returns></returns>
         public static IPointLocator AnimationBoundsPoint(Corner corner) {
             return new PointOnRectangleLocator(new AnimationBoundsLocator(), corner);
         }
 
+        /// <summary>
+        /// Returns a Locator which gives a corner of the bounds of the animation inset by a fixed amount
+        /// </summary>
+        /// <param name="corner"></param>
+        /// <param name="xOffset"></param>
+        /// <param name="yOffset"></param>
+        /// <returns></returns>
         public static IPointLocator AnimationBoundsPoint(Corner corner, int xOffset, int yOffset) {
             return new PointOnRectangleLocator(new AnimationBoundsLocator(), corner, new Point(xOffset, yOffset));
         }
 
+        /// <summary>
+        /// Returns a Locator that gives a point proportional to the bounds of the animation.
+        /// </summary>
+        /// <param name="proportionX"></param>
+        /// <param name="proportionY"></param>
+        /// <returns></returns>
         public static IPointLocator AnimationBoundsPoint(float proportionX, float proportionY) {
             return new PointOnRectangleLocator(new AnimationBoundsLocator(), proportionX, proportionY);
         }

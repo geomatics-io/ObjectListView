@@ -80,7 +80,12 @@ namespace BrightIdeasSoftware
     {
         #region IEffect interface
 
-        public ISprite Sprite { get; set; }
+        public ISprite Sprite {
+            get { return sprite; }
+            set { sprite = value; }
+        }
+        private ISprite sprite;
+
 
         public virtual void Start() { }
         public virtual void Apply(float fractionDone) { }
@@ -389,8 +394,8 @@ namespace BrightIdeasSoftware
 
         #region Configuration properties
 
-        protected IPointLocator From { get; set; }
-        protected IPointLocator To { get; set; }
+        protected IPointLocator From;
+        protected IPointLocator To;
 
         #endregion
 
@@ -443,8 +448,8 @@ namespace BrightIdeasSoftware
 
         #region Configuration properties
 
-        protected float From { get; set; }
-        protected float To { get; set; }
+        protected float From;
+        protected float To;
 
         #endregion
 
@@ -483,8 +488,8 @@ namespace BrightIdeasSoftware
 
         #region Configuration properties
 
-        protected float From { get; set; }
-        protected float To { get; set; }
+        protected float From;
+        protected float To ;
 
         #endregion
 
@@ -540,10 +545,10 @@ namespace BrightIdeasSoftware
 
         #region Configuration properties
 
-        protected int FadeIn { get; set; }
-        protected int FadeOut { get; set; }
-        protected int Visible { get; set; }
-        protected int Invisible { get; set; }
+        protected int FadeIn ;
+        protected int FadeOut ;
+        protected int Visible ;
+        protected int Invisible ;
 
         #endregion
 
@@ -606,8 +611,8 @@ namespace BrightIdeasSoftware
 
         #region Configuration properties
 
-        protected float From { get; set; }
-        protected float To { get; set; }
+        protected float From ;
+        protected float To ;
 
         #endregion
 
@@ -650,8 +655,8 @@ namespace BrightIdeasSoftware
 
         #region Configuration properties
 
-        protected IRectangleLocator From { get; set; }
-        protected IRectangleLocator To { get; set; }
+        protected IRectangleLocator From ;
+        protected IRectangleLocator To ;
 
         #endregion
 
@@ -724,25 +729,25 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the rectangle around which the sprite will be walked
         /// </summary>
-        protected IRectangleLocator RectangleLocator { get; set; }
+        protected IRectangleLocator RectangleLocator ;
 
         /// <summary>
         /// Gets or sets the locator which will return the point on
         /// rectangle where the "walk" will begin.
         /// </summary>
         /// <remarks>If this is null, the walk will start in the top left.</remarks>
-        protected IPointLocator StartPointLocator { get; set; }
+        protected IPointLocator StartPointLocator ;
 
         /// <summary>
         /// Get or set the locator which will return the point of the sprite
         /// that will be walked around the rectangle
         /// </summary>
-        protected IPointLocator AlignmentPointLocator { get; set; }
+        protected IPointLocator AlignmentPointLocator ;
 
         /// <summary>
         /// Gets or sets in what direction the walk will proceed
         /// </summary>
-        protected WalkDirection WalkDirection { get; set; }
+        protected WalkDirection WalkDirection ;
 
         #endregion
 
@@ -807,7 +812,7 @@ namespace BrightIdeasSoftware
         /// Get or set the locator which will return the point of the sprite
         /// that will be walked around the rectangle
         /// </summary>
-        protected IPointLocator AlignmentPointLocator { get; set; }
+        protected IPointLocator AlignmentPointLocator ;
 
         #endregion
 
@@ -852,8 +857,8 @@ namespace BrightIdeasSoftware
             this.EndString = endString;
         }
 
-        protected string StartString { get; set; }
-        public string EndString { get; set; }
+        protected string StartString ;
+        public string EndString ;
 
         protected TextSprite TextSprite {
             get { return (TextSprite)this.Sprite; }
@@ -894,8 +899,8 @@ namespace BrightIdeasSoftware
             this.Effect = effect;
         }
 
-        public int Repetitions { get; set; }
-        public IEffect Effect { get; set; }
+        public int Repetitions ;
+        public IEffect Effect ;
 
         public override void Start() {
             this.InitializeEffect(this.Effect);
@@ -953,12 +958,12 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or set the starting value for this effect
         /// </summary>
-        public object From { get; set; }
+        public object From ;
 
         /// <summary>
         /// Gets or sets the ending value
         /// </summary>
-        public object To { get; set; }
+        public object To ;
 
         #endregion
 

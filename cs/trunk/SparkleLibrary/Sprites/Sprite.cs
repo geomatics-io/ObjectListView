@@ -66,37 +66,61 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets where the sprite is located
         /// </summary>
-        public virtual Point Location { get; set; }
+        public virtual Point Location {
+            get { return location; }
+            set { location = value; }
+        }
+        private Point location;
 
         /// <summary>
         /// Gets or sets how transparent the sprite is. 
         /// 0.0 is completely transparent, 1.0 is completely opaque.
         /// </summary>
-        public virtual float Opacity { get; set; }
+        public virtual float Opacity {
+            get { return opacity; }
+            set { opacity = value; }
+        }
+        private float opacity;
 
         /// <summary>
         /// Gets or sets the scaling that is applied to the extent of the sprite.
         /// The location of the sprite is not scaled.
         /// </summary>
-        public virtual float Scale { get; set; }
+        public virtual float Scale {
+            get { return scale; }
+            set { scale = value; }
+        }
+        private float scale;
 
         /// <summary>
         /// Gets or sets the size of the sprite
         /// </summary>
-        public virtual Size Size { get; set; }
+        public virtual Size Size {
+            get { return size; }
+            set { size = value; }
+        }
+        private Size size;
 
         /// <summary>
         /// Gets or sets the angle in degrees of the sprite.
         /// 0 means no angle, 90 means right edge lifted vertical.
         /// </summary>
-        public virtual float Spin { get; set; }
+        public virtual float Spin {
+            get { return spin; }
+            set { spin = value; }
+        }
+        private float spin;
 
         /// <summary>
         /// Gets or set if the spinning should be done around the
         /// top left of the sprite. If this is false, the sprite
         /// will spin around the center of the sprite.
         /// </summary>
-        public bool SpinAroundOrigin { get; set; }
+        public bool SpinAroundOrigin {
+            get { return spinAroundOrigin; }
+            set { spinAroundOrigin = value; }
+        }
+        private bool spinAroundOrigin;
 
         /// <summary>
         /// Gets or sets the point at which this sprite will always be placed.
@@ -174,7 +198,11 @@ namespace BrightIdeasSoftware
         /// Gets or sets the locator that will calculate the reference rectangle 
         /// for the sprite.
         /// </summary>
-        public virtual IRectangleLocator ReferenceBoundsLocator { get; set; }
+        public virtual IRectangleLocator ReferenceBoundsLocator {
+            get { return referenceBoundsLocator; }
+            set { referenceBoundsLocator = value; }
+        }
+        private IRectangleLocator referenceBoundsLocator;
 
         #endregion
 
@@ -355,18 +383,18 @@ namespace BrightIdeasSoftware
                 this.Effect = effect;
             }
 
-            public long ScheduledStartTick { get; set; }
-            public long Duration { get; set; }
+            public long ScheduledStartTick;
+            public long Duration ;
 
-            public bool Started { get; set; }
-            public bool Stopped { get; set; }
+            public bool Started ;
+            public bool Stopped ;
 
-            public long StartTick { get; set; }
+            public long StartTick ;
             public long ScheduledEndTick {
                 get { return this.StartTick + this.Duration; }
             }
 
-            public IEffect Effect { get; set; }
+            public IEffect Effect ;
         }
     }
 }
