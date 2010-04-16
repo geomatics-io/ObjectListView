@@ -5,6 +5,7 @@
  * Date: 17/10/2008 9:15 PM
  *
  * Change log:
+ * v2.4
  * 2010-03-04   JPP  - Added filtering events
  * v2.3
  * 2009-08-16   JPP  - Added group events
@@ -26,7 +27,7 @@
  * 2008-12-01   JPP  - Added secondary sort information to Before/AfterSorting events
  * 2008-10-17   JPP  - Separated from ObjectListView.cs
  * 
- * Copyright (C) 2006-2009 Phillip Piper
+ * Copyright (C) 2006-2010 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

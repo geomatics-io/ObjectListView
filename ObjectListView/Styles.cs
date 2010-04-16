@@ -5,6 +5,7 @@
  * Date: 29/07/2009 23:09
  *
  * Change log:
+ * v2.4
  * 2010-03-23  JPP  - Added HeaderFormatStyle and support
  * v2.3
  * 2009-08-15  JPP  - Added Decoration and Overlay properties to HotItemStyle
@@ -15,7 +16,7 @@
  *       this.olv.GetItem(i).Style = new ItemStyle();
  *       this.olv.GetItem(i).GetSubItem(j).Style = new CellStyle();
  * 
- * Copyright (C) 2009 Phillip Piper
+ * Copyright (C) 2009-2010 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -5,6 +5,7 @@
  * Date: 25/11/2008 17:15 
  *
  * Change log:
+ * v2.4
  * 2010-03-22  JPP  - Draw header using header styles
  * 2009-10-30  JPP  - Plugged GDI resource leak, where font handles were created during custom
  *                    drawing, but never destroyed
