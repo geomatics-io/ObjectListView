@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * v2.4
  * 2009-10-30   JPP  - Plugged possible resource leak by using using() with CreateGraphics()
  * v2.3
  * 2009-09-28   JPP  - Added DescribedTaskRenderer
@@ -53,7 +54,7 @@
  * 2008-10-26   JPP  - Don't owner draw when in Design mode
  * 2008-09-27   JPP  - Separated from ObjectListView.cs
  * 
- * Copyright (C) 2006-2008 Phillip Piper
+ * Copyright (C) 2006-2010 Phillip Piper
  * 
  * TO DO:
  * - Hit detection on renderers doesn't change the controls standard selection behavior
