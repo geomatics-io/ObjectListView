@@ -5,9 +5,20 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2010-04-14  JPP  - Prevent object disposed errors when mouse event handlers cause the
+ *                    ObjectListView to be destroyed (e.g. closing a form during a 
+ *                    double click event).
+ *                  - Avoid checkbox munging bug in standard ListView when shift clicking on non-primary
+ *                    columns when FullRowSelect is true.
+ * 2010-04-12  JPP  - Fixed bug in group sorting (thanks Mike).
+ * 2010-04-07  JPP  - Prevent hyperlink processing from triggering spurious MouseUp events.
+ *                    This showed itself by launching the same url multiple times.
+ * 2010-04-06  JPP  - Space filling columns correctly resize upon initial display
+ *                  - ShowHeaderInAllViews is better but still not working reliably.
+ *                    See comments on property for more details.
  * 2010-03-23  JPP  - Added ObjectListView.HeaderFormatStyle and OLVColumn.HeaderFormatStyle.
- *                    This makes This makes HeaderFont and HeaderForeColor properties unnecessary. 
- *                    They will be marked obsolete in the next version and removed after that.
+ *                    This makes HeaderFont and HeaderForeColor properties unnecessary -- 
+ *                    they will be marked obsolete in the next version and removed after that.
  * 2010-03-16  JPP  - Changed object checking so that objects can be pre-checked before they
  *                    are added to the list. Normal ObjectListViews managed "checkedness" in
  *                    the ListViewItem, so this won't work for them, unless check state getters
@@ -1959,14 +1970,48 @@ namespace BrightIdeasSoftware
         /// Gets or sets whether the control will show column headers in all
         /// views (true), or only in Details view (false)
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This property is not working correctly. JPP 2010/04/06.
+        /// It works fine if it is set before the control is created.
+        /// But if it turned off once the control is created, the control
+        /// loses its checkboxes (weird!)
+        /// </para>
+        /// <para>
+        /// To changed this setting after the control is created, things
+        /// are complicated. If it is off and we want it on, we have
+        /// to change the View and the header will appear. If it is currently
+        /// on and we want to turn it off, we have to both change the view
+        /// AND recreate the handle. Recreating the handle is a problem 
+        /// since it makes our checkbox style disappear. 
+        /// </para>
+        /// </remarks>
         [Category("Behavior - ObjectListView"),
         Description("Will the control will show column headers in all views?"),
         DefaultValue(true)]
         public bool ShowHeaderInAllViews {
             get { return showHeaderInAllViews; }
             set {
+                if (showHeaderInAllViews == value)
+                    return;
+
                 showHeaderInAllViews = value;
-                this.ApplyExtendedStyles();
+
+                // If the control isn't already created, everything is fine.
+                if (!this.Created)
+                    return;
+
+                // If the header is being hidden, we have to recreate the control
+                // to remove the style (not sure why this is)
+                if (!showHeaderInAllViews)
+                    this.RecreateHandle();
+
+                // Still more complications. The change doesn't become visible until the View is changed
+                if (this.View != View.Details) {
+                    View temp = this.View;
+                    this.View = View.Details;
+                    this.View = temp;
+                }
             }
         }
         private bool showHeaderInAllViews = true;
@@ -2961,7 +3006,7 @@ namespace BrightIdeasSoftware
             }
 
             // Sort the groups
-            groups.Sort(new OLVGroupComparer(parms.PrimarySortOrder));
+            groups.Sort(new OLVGroupComparer(parms.GroupByOrder));
 
             return groups;
         }
@@ -3057,7 +3102,9 @@ namespace BrightIdeasSoftware
         /// </para>
         /// <para>
         /// Normally, we would override CreateParms parameter and update
-        /// the ExStyle member, but when we set the LVS_EX_HEADERINALLVIEWS value, bad things happen.
+        /// the ExStyle member, but ListView seems to ignore all ExStyles that
+        /// it doesn't already know about. Worse, when we set the LVS_EX_HEADERINALLVIEWS 
+        /// value, bad things happen (the control crashes!).
         /// </para>
         /// </remarks>
         protected virtual void ApplyExtendedStyles() {
@@ -3917,6 +3964,19 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// The application is idle. Trigger a SelectionChanged event.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected virtual void HandleApplicationIdle_ResizeColumns(object sender, EventArgs e) {
+            // Remove the handler before triggering the event
+            Application.Idle -= new EventHandler(HandleApplicationIdle_ResizeColumns);
+            this.hasResizeColumnsHandler = false;
+
+            this.ResizeFreeSpaceFillingColumns();
+        }
+
+        /// <summary>
         /// Handle the BeginScroll listview notification
         /// </summary>
         /// <param name="m"></param>
@@ -4055,6 +4115,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="m"></param>
         protected override void WndProc(ref Message m) {
+            //System.Diagnostics.Debug.WriteLine(m.Msg);
             switch (m.Msg) {
                 case 2: // WM_DESTROY
                     if (!this.HandleDestroy(ref m))
@@ -4688,6 +4749,7 @@ namespace BrightIdeasSoftware
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the m has been handled</returns>
         protected virtual bool HandleReflectNotify(ref Message m) {
+            const int NM_CLICK = -2;
             const int NM_DBLCLK = -3;
             const int NM_RDBLCLK = -6;
             const int NM_CUSTOMDRAW = -12;
@@ -4706,6 +4768,14 @@ namespace BrightIdeasSoftware
             //System.Diagnostics.Debug.WriteLine(String.Format("rn: {0}", nmhdr->code));
 
             switch (nmhdr.code) {
+                case NM_CLICK:
+                    // The standard ListView does some strange stuff here when the list has checkboxes.
+                    // If you shift click on non-primary columns when FullRowSelect is true, the 
+                    // checkedness of the selected rows changes. 
+                    // We avoid all that by just saying we've handled this message.
+                    isMsgHandled = true;
+                    break;
+
                 case LVN_BEGINSCROLL:
                     isMsgHandled = this.HandleBeginScroll(ref m);
                     break;
@@ -5314,8 +5384,9 @@ namespace BrightIdeasSoftware
         protected virtual void HandleLayout(object sender, LayoutEventArgs e) {
             // We have to delay executing the recalculation of the columns, since virtual lists
             // get terribly confused if we resize the column widths during this event.
-            if (this.Created) {
-                this.BeginInvoke(new MethodInvoker(this.ResizeFreeSpaceFillingColumns));
+            if (!this.hasResizeColumnsHandler) {
+                this.hasResizeColumnsHandler = true;
+                Application.Idle += new EventHandler(HandleApplicationIdle_ResizeColumns);
             }
         }
 
@@ -6632,6 +6703,9 @@ namespace BrightIdeasSoftware
                 this.StateImageList.ImageSize = new Size(16, this.RowHeight);
             }
 
+            if (!this.CheckBoxes)
+                return;
+
             if (this.StateImageList.Images.Count == 0)
                 this.AddCheckStateBitmap(this.StateImageList, UNCHECKED_KEY, CheckBoxState.UncheckedNormal);
             if (this.StateImageList.Images.Count <= 1)
@@ -6790,15 +6864,14 @@ namespace BrightIdeasSoftware
 
         #region OnEvent Handling
 
-
         /// <summary>
         /// We need the click count in the mouse up event, but that is always 1.
         /// So we have to remember the click count from the preceding mouse down event.
         /// </summary>
         /// <param name="e"></param>
         protected override void OnMouseDown(MouseEventArgs e) {
-            base.OnMouseDown(e);
             this.lastMouseDownClickCount = e.Clicks;
+            base.OnMouseDown(e);
         }
         private int lastMouseDownClickCount;
 
@@ -6808,6 +6881,10 @@ namespace BrightIdeasSoftware
         /// <param name="e"></param>
         protected override void OnMouseLeave(EventArgs e) {
             base.OnMouseLeave(e);
+
+            if (!this.Created)
+                return;
+
             this.UpdateHotItem(new Point(-1, -1));
         }
 
@@ -6826,6 +6903,9 @@ namespace BrightIdeasSoftware
         protected override void OnMouseMove(MouseEventArgs e) {
             base.OnMouseMove(e);
 
+            if (!this.Created)
+                return;
+
             CellOverEventArgs args = new CellOverEventArgs();
             this.BuildCellEvent(args, e.Location);
             this.OnCellOver(args);
@@ -6841,6 +6921,9 @@ namespace BrightIdeasSoftware
         /// <param name="e"></param>
         protected override void OnMouseUp(MouseEventArgs e) {
             base.OnMouseUp(e);
+
+            if (!this.Created)
+                return;
 
             if (e.Button == MouseButtons.Right) {
                 this.OnRightMouseUp(e);
@@ -6871,7 +6954,9 @@ namespace BrightIdeasSoftware
                 args.HitTest.HitTestLocation == HitTestLocation.Text &&
                 args.SubItem != null &&
                 !String.IsNullOrEmpty(args.SubItem.Url)) {
-                this.ProcessHyperlinkClicked(args);
+                // We have to delay the running of this process otherwise we can generate
+                // a series of MouseUp events (don't ask me why)
+                this.BeginInvoke((MethodInvoker)delegate { ProcessHyperlinkClicked(args); });
             }
 
             // No one handled it so check to see if we should start editing.
@@ -8083,6 +8168,7 @@ namespace BrightIdeasSoftware
         private Rectangle lastUpdateRectangle; // remember the update rect from the last WM_PAINT message
         private bool isOwnerOfObjects; // does this ObjectListView own the Objects collection?
         private bool hasIdleHandler; // has an Idle handler already been installed?
+        private bool hasResizeColumnsHandler; // has an idle handler been installed which will handle column resizing?
         private bool isInWmPaintEvent; // is a WmPaint event currently being handled?
         private bool shouldDoCustomDrawing; // should the list do its custom drawing?
         private bool isMarqueSelecting; // Is a marque selection in progress?
@@ -8539,7 +8625,7 @@ namespace BrightIdeasSoftware
         /// Gets or sets the style that will be used to draw the header for this column
         /// </summary>
         /// <remarks>This is only uses when the owning ObjectListView has HeaderUsesThemes set to false.</remarks>
-        [Category("Appearance - ObjectListView"),
+        [Category("Behavior - ObjectListView"),
          Description("What style will be used to draw the header of this column"),
          DefaultValue(null)]
         public HeaderFormatStyle HeaderFormatStyle {
