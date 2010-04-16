@@ -67,15 +67,16 @@ namespace BrightIdeasSoftware
     /// A Animateable is the base class for any item that can be 
     /// placed within an Animation.
     /// </summary>
-    /// <remarks>
-    /// TODO: Make an interface
-    /// </remarks>
     public class Animateable : IAnimateable
     {
         /// <summary>
         /// Gets or sets the animation that this component belongs to
         /// </summary>
-        public Animation Animation { get; set; }
+        public Animation Animation {
+            get { return animation; }
+            set { animation = value; }
+        }
+        private Animation animation;
 
         /// <summary>
         /// This component is being started. It should acquire any resources that it needs

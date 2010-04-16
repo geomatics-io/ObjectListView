@@ -74,13 +74,17 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Create a Mover that will move a sprite so that the given corner moves from the given
+        /// Create a Mover that will move a sprite so that the middle of the sprite moves from the given
         /// proportional location of the animation bounds to the other given proportional location.
         /// </summary>
         public static MoveEffect Move(float fromProportionX, float fromProportionY, float toProportionX, float toProportionY) {
             return Effects.Move(Corner.MiddleCenter, fromProportionX, fromProportionY, toProportionX, toProportionY);
         }
 
+        /// <summary>
+        /// Create a Mover that will move a sprite so that the given corner moves from the given
+        /// proportional location of the animation bounds to the other given proportional location.
+        /// </summary>
         public static MoveEffect Move(Corner spriteCorner, float fromProportionX, float fromProportionY, float toProportionX, float toProportionY) {
             return new MoveEffect(
                 Locators.SpriteAligned(spriteCorner, fromProportionX, fromProportionY),
@@ -148,16 +152,16 @@ namespace BrightIdeasSoftware
             return new Repeater(repetitions, effect);
         }
 
-        public static BlinkEffect Blink(int fadeIn, int visible, int fadeOut, int invisible) {
+        public static BlinkEffect OneBlink(int fadeIn, int visible, int fadeOut, int invisible) {
             return new BlinkEffect(fadeIn, visible, fadeOut, invisible);
         }
 
-        public static BlinkEffect Blink(int fading, int visible) {
-            return Effects.Blink(fading, visible, fading, 0);
+        public static Repeater Blink(int repetitions, int fading, int visible) {
+            return Effects.Repeat(repetitions, Effects.OneBlink(fading, visible, fading, 0));
         }
 
         public static Repeater Blink(int repetitions) {
-            return Effects.Repeat(repetitions, Effects.Blink(2, 4, 2, 1));
+            return Effects.Repeat(repetitions, Effects.OneBlink(2, 4, 2, 1));
         }
     }
 }
