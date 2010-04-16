@@ -61,7 +61,7 @@ namespace BrightIdeasSoftware
         public Animation() {
             this.Timer = new System.Timers.Timer();
             this.Stopwatch = new System.Diagnostics.Stopwatch();
-            this.Interval = 20;
+            this.Interval = 30;
         }
 
         #endregion
@@ -72,7 +72,11 @@ namespace BrightIdeasSoftware
         /// Gets or sets the outer bounds of the animation. All locations will be calculated
         /// with reference to these bounds.
         /// </summary>
-        public Rectangle Bounds { get; set; }
+        public Rectangle Bounds {
+            get { return bounds; }
+            set { bounds = value; }
+        }
+        private Rectangle bounds;
 
         /// <summary>
         /// Gets or sets the "tick" interval of the animation in milliseconds.
@@ -103,13 +107,21 @@ namespace BrightIdeasSoftware
         /// when it has been started and not yet stopped. A paused animation
         /// is still running.
         /// </summary>
-        public bool Running { get; protected set; }
+        public bool Running {
+            get { return running; }
+            protected set { running = value; }
+        }
+        private bool running;
 
         /// <summary>
         /// Gets or sets how the animation will behave when it reaches the
         /// end of the animation.
         /// </summary>
-        public Repeat Repeat { get; set; }
+        public Repeat Repeat {
+            get { return repeat; }
+            set { repeat = value; }
+        }
+        private Repeat repeat;
 
         #endregion
 
@@ -152,6 +164,13 @@ namespace BrightIdeasSoftware
         /// </summary>
         public void Invalidate() {
             this.OnRedraw(new RedrawEventArgs());
+        }
+
+        /// <summary>
+        /// Force the animation to be redrawn
+        /// </summary>
+        public void Invalidate(Rectangle r) {
+            this.OnRedraw(new RedrawEventArgs(r));
         }
 
         /// <summary>
@@ -327,7 +346,7 @@ namespace BrightIdeasSoftware
         public void Draw(Graphics g) {
             // Draw each started sprite
             foreach (AnimateableControlBlock cb in this.ControlBlocks) {
-                if (cb.Sprite != null && cb.Started && !cb.Stopped) {
+                if (cb.Sprite != null && cb.Started) {
                     cb.Sprite.Draw(g);
                 }
             }
@@ -351,30 +370,29 @@ namespace BrightIdeasSoftware
                 this.Sprite = sprite;
             }
 
-            public long ScheduledStartTick { get; set; }
-            public long StartTick { get; set; }
-            public bool Stopped { get; set; }
+            public IAnimateable Component;
+            public long ScheduledStartTick;
+            public long StartTick;
+            public bool Stopped;
 
             public bool Started {
                 get { return this.StartTick != 0; }
             }
-
-            public IAnimateable Component { get; set; }
 
             /// <summary>
             /// Gets or sets the sprite that is managed by this control block.
             /// </summary>
             /// <remarks>Almost all components are sprites so we keep this property to
             /// prevent the use of casts.</remarks>
-            public ISprite Sprite { get; set; }
+            public ISprite Sprite;
         }
 
         #endregion
 
         #region Private variables
 
-        private System.Timers.Timer Timer { get; set; }
-        private System.Diagnostics.Stopwatch Stopwatch { get; set; }
+        private System.Timers.Timer Timer;
+        private System.Diagnostics.Stopwatch Stopwatch;
         private List<AnimateableControlBlock> ControlBlocks = new List<AnimateableControlBlock>();
         
         #endregion

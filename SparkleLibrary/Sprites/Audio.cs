@@ -41,8 +41,11 @@ namespace BrightIdeasSoftware
     /// points within a animation.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// This class uses the SoundPlayer class internally, and thus can
     /// only handle system sounds and WAV sound files.
+    /// </para>
+    /// <para>A sound that is already playing cannot be paused.</para>
     /// </remarks>
     public class Audio : Animateable
     {
@@ -90,10 +93,10 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the name of the audio file that will be played.
         /// </summary>
-        protected string FileName { get; set; }
-        protected SoundPlayer Player { get; set; }
-        protected string ResourceName { get; set; }
-        protected SystemSound SystemSound { get; set; }
+        protected string FileName ;
+        protected SoundPlayer Player ;
+        protected string ResourceName ;
+        protected SystemSound SystemSound ;
 
         #endregion
 

@@ -176,16 +176,16 @@ namespace BrightIdeasSoftware
 
         #region Public properties
 
-        protected Shapes Shape { get; set; }
-        public float PenWidth { get; set; }
-        public Color ForeColor { get; set; }
-        public Color BackColor { get; set; }
+        protected Shapes Shape ;
+        public float PenWidth ;
+        public Color ForeColor ;
+        public Color BackColor ;
 
         /// <summary>
         /// How rounded should the corners of a rounded rectangle be?
         /// Has no impact on other shapes
         /// </summary>
-        public float CornerRounding { get; set; }
+        public float CornerRounding ;
 
         #endregion
 
@@ -350,13 +350,13 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the length of the parallel size of the shape
         /// </summary>
-        public int HorizontalSide { get; set; }
+        public int HorizontalSide ;
 
         /// <summary>
         /// Gets or sets if the slope of the parallelogram is forward
         /// (left edge of bottom is left of the left edge of the top
         /// </summary>
-        public bool SlopeForward { get; set; }
+        public bool SlopeForward ;
 
         protected override GraphicsPath GetGraphicsPath(Rectangle r) {
             GraphicsPath path = new GraphicsPath();

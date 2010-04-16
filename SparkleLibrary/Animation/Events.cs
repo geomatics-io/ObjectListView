@@ -44,13 +44,13 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets if the tick event was completely handled
         /// </summary>
-        public bool Handled { get; set; }
+        public bool Handled;
     }
 
     public class RedrawEventArgs : EventArgs
     {
         public RedrawEventArgs() {
-            this.Damage = new Rectangle(Int32.MinValue, Int32.MinValue, Int32.MaxValue, Int32.MaxValue);
+            this.Damage = new Rectangle(-100000, -100000, 200000, 200000);
         }
 
         public RedrawEventArgs(Rectangle r) {
@@ -60,7 +60,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets the area of the animation that was damaged
         /// </summary>
-        public Rectangle Damage { get; protected set;  }
+        public Rectangle Damage;
     }
 
     public class StopAnimationEventArgs : EventArgs

@@ -117,8 +117,27 @@ namespace BrightIdeasSoftware
         /// <param name="g"></param>
         void Draw(Graphics g);
 
+        /// <summary>
+        /// Add an Effect to this sprite. This effect will run at the beginning of
+        /// the sprite and will have 0 duration.
+        /// </summary>
+        /// <param name="effect">The effect to be applied to the sprite</param>
         void Add(IEffect effect);
+
+        /// <summary>
+        /// Add an Effect to this sprite. This effect will commences startTick's
+        /// after the sprite begins and will have 0 duration
+        /// </summary>
+        /// <param name="startTick">When will the effect begins?</param>
+        /// <param name="effect">What effect will be applied?</param>
         void Add(long startTick, IEffect effect);
+
+        /// <summary>
+        /// The main entry point for adding effects to Sprites.
+        /// </summary>
+        /// <param name="startTick">When will the effect begin?</param>
+        /// <param name="duration">For how long will it last?</param>
+        /// <param name="effect">What effect will be applied?</param>
         void Add(long startTick, long duration, IEffect effect);
     }
 }
