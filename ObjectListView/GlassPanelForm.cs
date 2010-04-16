@@ -6,7 +6,10 @@
  * Date: 14/04/2009 4:36 PM
  *
  * Change log:
- * 2010-03-11   JPP  - Work correctly in MDI applications (more or less)
+ * v2.4
+ * 2010-03-11   JPP  - Work correctly in MDI applications -- more or less. Actually, less than more.
+ *                     They don't crash but they don't correctly handle overlapping MDI children.
+ *                     Overlays from one control are shown on top of other other windows.
  * 2010-03-09   JPP  - Correctly Unbind() when the related ObjectListView is disposed.
  * 2009-10-28   JPP  - Use FindForm() rather than TopMostControl, since the latter doesn't work
  *                     as I expected when the OLV is part of an MDI child window. Thanks to
@@ -20,7 +23,7 @@
  *
  * To do:
  * 
- * Copyright (C) 2009 Phillip Piper
+ * Copyright (C) 2009-2010 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -146,14 +149,6 @@ namespace BrightIdeasSoftware
                     if (this.mdiClient != null) {
                         this.mdiClient.ClientSizeChanged += new EventHandler(myMdiClient_ClientSizeChanged);
                     }
-
-                    //PropertyInfo pi = this.mdiOwner.GetType().GetProperty("MdiClient", BindingFlags.Instance | BindingFlags.NonPublic);
-                    //if (pi != null) {
-                    //    mdiClient = (MdiClient)pi.GetValue(this.mdiOwner, null);
-                    //    if (mdiClient != null) {
-                    //        mdiClient.ClientSizeChanged += new EventHandler(myMdiClient_ClientSizeChanged);
-                    //    }
-                    //}
                 }
             }
 
