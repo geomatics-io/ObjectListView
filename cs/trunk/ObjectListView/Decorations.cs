@@ -5,6 +5,8 @@
  * Date: 19/08/2009 10:56 PM
  *
  * Change log:
+ * v2.4
+ * 2010-04-15   JPP  - Tweaked LightBoxDecoration a little
  * v2.3
  * 2009-09-23   JPP  - Added LeftColumn and RightColumn to RowBorderDecoration
  * 2009-08-23   JPP  - Added LightBoxDecoration
@@ -385,7 +387,7 @@ namespace BrightIdeasSoftware
 
     /// <summary>
     /// This decoration causes everything except the decoration row to be overpainted
-    /// with a tint. The dark and more opaque the fill color, the more obvious the
+    /// with a tint. The darker and more opaque the fill color, the more obvious the
     /// decorated row becomes.
     /// </summary>
     public class LightBoxDecoration : BorderDecoration
@@ -393,15 +395,18 @@ namespace BrightIdeasSoftware
         public LightBoxDecoration() {
             this.BoundsPadding = new Size(-1, 4);
             this.CornerRounding = 8.0f;
-            this.FillBrush = new SolidBrush(Color.FromArgb(48, Color.Black));
+            this.FillBrush = new SolidBrush(Color.FromArgb(72, Color.Black));
         }
 
         public override void Draw(ObjectListView olv, Graphics g, Rectangle r) {
             if (!r.Contains(olv.PointToClient(Cursor.Position)))
                 return;
 
+            Rectangle bounds = this.RowBounds;
+            if (bounds.IsEmpty)
+                return;
+
             using (Region newClip = new Region(r)) {
-                Rectangle bounds = this.RowBounds;
                 bounds.Inflate(this.BoundsPadding);
                 newClip.Exclude(this.GetRoundedRect(bounds, this.CornerRounding));
                 Region originalClip = g.Clip;
