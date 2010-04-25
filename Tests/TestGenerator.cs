@@ -27,6 +27,7 @@ namespace BrightIdeasSoftware.Tests
             IsVisible = true,
             MaximumWidth = 1000,
             MinimumWidth = 100,
+            Name="ColumnName",
             Tag = "Tag",
             TextAlign = HorizontalAlignment.Right,
             ToolTipText = "ToolTipText",
@@ -150,6 +151,7 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual(true, columns[0].IsVisible);
             Assert.AreEqual(1000, columns[0].MaximumWidth);
             Assert.AreEqual(100, columns[0].MinimumWidth);
+            Assert.AreEqual("ColumnName", columns[0].Name);
             Assert.AreEqual("Primary", columns[0].Text);
             Assert.AreEqual("Tag", columns[0].Tag);
             Assert.AreEqual(HorizontalAlignment.Right, columns[0].TextAlign);
@@ -172,6 +174,7 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual(false, columns[1].IsVisible);
             Assert.AreEqual(-1, columns[1].MaximumWidth);
             Assert.AreEqual(-1, columns[1].MinimumWidth);
+            Assert.AreEqual("OLVSecondaryColumn", columns[1].Name);
             Assert.AreEqual("Secondary", columns[1].Text);
             Assert.AreEqual("!Tag", columns[1].Tag);
             Assert.AreEqual(HorizontalAlignment.Left, columns[1].TextAlign);
