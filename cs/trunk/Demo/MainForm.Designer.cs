@@ -88,6 +88,8 @@ namespace ObjectListViewDemo
             this.olvColumn34 = new BrightIdeasSoftware.OLVColumn();
             this.hyperlinkStyle1 = new BrightIdeasSoftware.HyperlinkStyle();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.label38 = new System.Windows.Forms.Label();
+            this.comboBox15 = new System.Windows.Forms.ComboBox();
             this.groupBox10 = new System.Windows.Forms.GroupBox();
             this.textBoxFilterComplex = new System.Windows.Forms.TextBox();
             this.button16 = new System.Windows.Forms.Button();
@@ -100,7 +102,6 @@ namespace ObjectListViewDemo
             this.button5 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
-            this.checkBox2 = new System.Windows.Forms.CheckBox();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.olvComplex = new BrightIdeasSoftware.ObjectListView();
             this.personColumn = new BrightIdeasSoftware.OLVColumn();
@@ -139,6 +140,7 @@ namespace ObjectListViewDemo
             this.olvColumn42 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumnGif = new BrightIdeasSoftware.OLVColumn();
             this.imageRenderer1 = new BrightIdeasSoftware.ImageRenderer();
+            this.olvColumnFiller = new BrightIdeasSoftware.OLVColumn();
             this.headerFormatStyleData = new BrightIdeasSoftware.HeaderFormatStyle();
             this.checkBox7 = new System.Windows.Forms.CheckBox();
             this.checkBox8 = new System.Windows.Forms.CheckBox();
@@ -483,7 +485,7 @@ namespace ObjectListViewDemo
             this.tabControl1.Location = new System.Drawing.Point(13, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(827, 529);
+            this.tabControl1.Size = new System.Drawing.Size(819, 529);
             this.tabControl1.TabIndex = 0;
             this.tabControl1.Selected += new System.Windows.Forms.TabControlEventHandler(this.tabControl1_Selected);
             // 
@@ -498,7 +500,7 @@ namespace ObjectListViewDemo
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(819, 503);
+            this.tabPage1.Size = new System.Drawing.Size(811, 503);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Simple Example";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -507,7 +509,7 @@ namespace ObjectListViewDemo
             // 
             this.groupBox9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox9.Controls.Add(this.textBoxFilterSimple);
-            this.groupBox9.Location = new System.Drawing.Point(696, 7);
+            this.groupBox9.Location = new System.Drawing.Point(688, 7);
             this.groupBox9.Name = "groupBox9";
             this.groupBox9.Size = new System.Drawing.Size(117, 44);
             this.groupBox9.TabIndex = 17;
@@ -533,7 +535,7 @@ namespace ObjectListViewDemo
             this.groupBox8.Controls.Add(this.checkBox4);
             this.groupBox8.Location = new System.Drawing.Point(6, 446);
             this.groupBox8.Name = "groupBox8";
-            this.groupBox8.Size = new System.Drawing.Size(342, 48);
+            this.groupBox8.Size = new System.Drawing.Size(334, 48);
             this.groupBox8.TabIndex = 16;
             this.groupBox8.TabStop = false;
             this.groupBox8.Text = "Settings";
@@ -601,7 +603,7 @@ namespace ObjectListViewDemo
             this.groupBox7.Controls.Add(this.button1);
             this.groupBox7.Controls.Add(this.button4);
             this.groupBox7.Controls.Add(this.button6);
-            this.groupBox7.Location = new System.Drawing.Point(554, 446);
+            this.groupBox7.Location = new System.Drawing.Point(546, 446);
             this.groupBox7.Name = "groupBox7";
             this.groupBox7.Size = new System.Drawing.Size(254, 48);
             this.groupBox7.TabIndex = 15;
@@ -654,7 +656,7 @@ namespace ObjectListViewDemo
             this.groupBox6.Controls.Add(this.button29);
             this.groupBox6.Controls.Add(this.button30);
             this.groupBox6.Controls.Add(this.button31);
-            this.groupBox6.Location = new System.Drawing.Point(354, 446);
+            this.groupBox6.Location = new System.Drawing.Point(346, 446);
             this.groupBox6.Name = "groupBox6";
             this.groupBox6.Size = new System.Drawing.Size(194, 48);
             this.groupBox6.TabIndex = 14;
@@ -699,7 +701,7 @@ namespace ObjectListViewDemo
             this.label1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label1.Location = new System.Drawing.Point(6, 6);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(683, 46);
+            this.label1.Size = new System.Drawing.Size(675, 46);
             this.label1.TabIndex = 1;
             this.label1.Text = resources.GetString("label1.Text");
             // 
@@ -729,6 +731,7 @@ namespace ObjectListViewDemo
             this.olvColumn34});
             this.olvSimple.ContextMenuStrip = this.contextMenuStrip1;
             this.olvSimple.Cursor = System.Windows.Forms.Cursors.Default;
+            this.olvSimple.FullRowSelect = true;
             this.olvSimple.HeaderUsesThemes = false;
             this.olvSimple.HeaderWordWrap = true;
             this.olvSimple.HideSelection = false;
@@ -746,7 +749,7 @@ namespace ObjectListViewDemo
             this.olvSimple.ShowCommandMenuOnRightClick = true;
             this.olvSimple.ShowGroups = false;
             this.olvSimple.ShowItemToolTips = true;
-            this.olvSimple.Size = new System.Drawing.Size(807, 383);
+            this.olvSimple.Size = new System.Drawing.Size(799, 383);
             this.olvSimple.SortGroupItemsByPrimaryColumn = false;
             this.olvSimple.TabIndex = 0;
             this.olvSimple.TriStateCheckBoxes = true;
@@ -840,6 +843,8 @@ namespace ObjectListViewDemo
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.label38);
+            this.tabPage2.Controls.Add(this.comboBox15);
             this.tabPage2.Controls.Add(this.groupBox10);
             this.tabPage2.Controls.Add(this.button16);
             this.tabPage2.Controls.Add(this.button17);
@@ -851,22 +856,48 @@ namespace ObjectListViewDemo
             this.tabPage2.Controls.Add(this.button5);
             this.tabPage2.Controls.Add(this.button2);
             this.tabPage2.Controls.Add(this.label2);
-            this.tabPage2.Controls.Add(this.checkBox2);
             this.tabPage2.Controls.Add(this.checkBox1);
             this.tabPage2.Controls.Add(this.olvComplex);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(819, 503);
+            this.tabPage2.Size = new System.Drawing.Size(811, 503);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Complex Example";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // label38
+            // 
+            this.label38.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label38.AutoSize = true;
+            this.label38.Location = new System.Drawing.Point(395, 479);
+            this.label38.Name = "label38";
+            this.label38.Size = new System.Drawing.Size(50, 13);
+            this.label38.TabIndex = 19;
+            this.label38.Text = "Hot Item:";
+            // 
+            // comboBox15
+            // 
+            this.comboBox15.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.comboBox15.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox15.FormattingEnabled = true;
+            this.comboBox15.Items.AddRange(new object[] {
+            "None",
+            "Text Color",
+            "Border",
+            "Translucent",
+            "Lightbox"});
+            this.comboBox15.Location = new System.Drawing.Point(446, 474);
+            this.comboBox15.Name = "comboBox15";
+            this.comboBox15.Size = new System.Drawing.Size(86, 21);
+            this.comboBox15.TabIndex = 20;
+            this.comboBox15.SelectedIndexChanged += new System.EventHandler(this.comboBox15_SelectedIndexChanged);
             // 
             // groupBox10
             // 
             this.groupBox10.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox10.Controls.Add(this.textBoxFilterComplex);
-            this.groupBox10.Location = new System.Drawing.Point(696, 6);
+            this.groupBox10.Location = new System.Drawing.Point(688, 6);
             this.groupBox10.Name = "groupBox10";
             this.groupBox10.Size = new System.Drawing.Size(117, 44);
             this.groupBox10.TabIndex = 18;
@@ -884,7 +915,7 @@ namespace ObjectListViewDemo
             // button16
             // 
             this.button16.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button16.Location = new System.Drawing.Point(560, 474);
+            this.button16.Location = new System.Drawing.Point(552, 474);
             this.button16.Name = "button16";
             this.button16.Size = new System.Drawing.Size(46, 23);
             this.button16.TabIndex = 8;
@@ -895,7 +926,7 @@ namespace ObjectListViewDemo
             // button17
             // 
             this.button17.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button17.Location = new System.Drawing.Point(608, 474);
+            this.button17.Location = new System.Drawing.Point(600, 474);
             this.button17.Name = "button17";
             this.button17.Size = new System.Drawing.Size(57, 23);
             this.button17.TabIndex = 9;
@@ -913,7 +944,7 @@ namespace ObjectListViewDemo
             "Single Click",
             "Double Click",
             "F2 Only"});
-            this.comboBox5.Location = new System.Drawing.Point(276, 473);
+            this.comboBox5.Location = new System.Drawing.Point(205, 474);
             this.comboBox5.Name = "comboBox5";
             this.comboBox5.Size = new System.Drawing.Size(71, 21);
             this.comboBox5.TabIndex = 5;
@@ -923,7 +954,7 @@ namespace ObjectListViewDemo
             // 
             this.label20.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(226, 477);
+            this.label20.Location = new System.Drawing.Point(155, 478);
             this.label20.Name = "label20";
             this.label20.Size = new System.Drawing.Size(48, 13);
             this.label20.TabIndex = 4;
@@ -933,7 +964,7 @@ namespace ObjectListViewDemo
             // 
             this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(352, 477);
+            this.label6.Location = new System.Drawing.Point(286, 478);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(33, 13);
             this.label6.TabIndex = 6;
@@ -950,7 +981,7 @@ namespace ObjectListViewDemo
             "List",
             "Tile",
             "Details"});
-            this.comboBox1.Location = new System.Drawing.Point(386, 473);
+            this.comboBox1.Location = new System.Drawing.Point(320, 474);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(63, 21);
             this.comboBox1.TabIndex = 7;
@@ -961,7 +992,7 @@ namespace ObjectListViewDemo
             this.checkBox6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.checkBox6.Checked = true;
             this.checkBox6.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox6.Location = new System.Drawing.Point(143, 473);
+            this.checkBox6.Location = new System.Drawing.Point(68, 474);
             this.checkBox6.Name = "checkBox6";
             this.checkBox6.Size = new System.Drawing.Size(86, 21);
             this.checkBox6.TabIndex = 3;
@@ -972,7 +1003,7 @@ namespace ObjectListViewDemo
             // button5
             // 
             this.button5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button5.Location = new System.Drawing.Point(667, 474);
+            this.button5.Location = new System.Drawing.Point(659, 474);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(88, 23);
             this.button5.TabIndex = 10;
@@ -983,7 +1014,7 @@ namespace ObjectListViewDemo
             // button2
             // 
             this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button2.Location = new System.Drawing.Point(757, 474);
+            this.button2.Location = new System.Drawing.Point(749, 474);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(56, 23);
             this.button2.TabIndex = 11;
@@ -999,25 +1030,14 @@ namespace ObjectListViewDemo
             this.label2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label2.Location = new System.Drawing.Point(6, 6);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(684, 48);
+            this.label2.Size = new System.Drawing.Size(676, 48);
             this.label2.TabIndex = 3;
             this.label2.Text = resources.GetString("label2.Text");
-            // 
-            // checkBox2
-            // 
-            this.checkBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.checkBox2.Location = new System.Drawing.Point(74, 473);
-            this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(78, 21);
-            this.checkBox2.TabIndex = 2;
-            this.checkBox2.Text = "Hot Row";
-            this.checkBox2.UseVisualStyleBackColor = true;
-            this.checkBox2.CheckedChanged += new System.EventHandler(this.CheckBox2CheckedChanged);
             // 
             // checkBox1
             // 
             this.checkBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.checkBox1.Location = new System.Drawing.Point(6, 473);
+            this.checkBox1.Location = new System.Drawing.Point(6, 474);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(62, 21);
             this.checkBox1.TabIndex = 1;
@@ -1083,7 +1103,7 @@ namespace ObjectListViewDemo
             this.olvComplex.ShowImagesOnSubItems = true;
             this.olvComplex.ShowItemCountOnGroups = true;
             this.olvComplex.ShowItemToolTips = true;
-            this.olvComplex.Size = new System.Drawing.Size(807, 409);
+            this.olvComplex.Size = new System.Drawing.Size(799, 409);
             this.olvComplex.SmallImageList = this.imageList1;
             this.olvComplex.SpaceBetweenGroups = 20;
             this.olvComplex.TabIndex = 0;
@@ -1217,7 +1237,7 @@ namespace ObjectListViewDemo
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(819, 503);
+            this.tabPage3.Size = new System.Drawing.Size(811, 503);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "DataSet Example";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -1226,7 +1246,7 @@ namespace ObjectListViewDemo
             // 
             this.groupBox13.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox13.Controls.Add(this.textBoxFilterData);
-            this.groupBox13.Location = new System.Drawing.Point(696, 6);
+            this.groupBox13.Location = new System.Drawing.Point(688, 6);
             this.groupBox13.Name = "groupBox13";
             this.groupBox13.Size = new System.Drawing.Size(117, 44);
             this.groupBox13.TabIndex = 18;
@@ -1259,7 +1279,7 @@ namespace ObjectListViewDemo
             this.groupBox3.Controls.Add(this.checkBox8);
             this.groupBox3.Location = new System.Drawing.Point(6, 263);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(807, 234);
+            this.groupBox3.Size = new System.Drawing.Size(799, 234);
             this.groupBox3.TabIndex = 15;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Data List View";
@@ -1268,7 +1288,7 @@ namespace ObjectListViewDemo
             // 
             this.label22.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(697, 133);
+            this.label22.Location = new System.Drawing.Point(689, 133);
             this.label22.Name = "label22";
             this.label22.Size = new System.Drawing.Size(48, 13);
             this.label22.TabIndex = 7;
@@ -1284,7 +1304,7 @@ namespace ObjectListViewDemo
             "Single Click",
             "Double Click",
             "F2 Only"});
-            this.comboBox7.Location = new System.Drawing.Point(697, 148);
+            this.comboBox7.Location = new System.Drawing.Point(689, 148);
             this.comboBox7.Name = "comboBox7";
             this.comboBox7.Size = new System.Drawing.Size(104, 21);
             this.comboBox7.TabIndex = 8;
@@ -1295,7 +1315,7 @@ namespace ObjectListViewDemo
             this.checkBoxPause.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxPause.Checked = true;
             this.checkBoxPause.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxPause.Location = new System.Drawing.Point(697, 73);
+            this.checkBoxPause.Location = new System.Drawing.Point(689, 73);
             this.checkBoxPause.Name = "checkBoxPause";
             this.checkBoxPause.Size = new System.Drawing.Size(113, 19);
             this.checkBoxPause.TabIndex = 4;
@@ -1306,7 +1326,7 @@ namespace ObjectListViewDemo
             // rowHeightUpDown
             // 
             this.rowHeightUpDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.rowHeightUpDown.Location = new System.Drawing.Point(697, 187);
+            this.rowHeightUpDown.Location = new System.Drawing.Point(689, 187);
             this.rowHeightUpDown.Maximum = new decimal(new int[] {
             128,
             0,
@@ -1331,7 +1351,7 @@ namespace ObjectListViewDemo
             // 
             this.label11.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(697, 172);
+            this.label11.Location = new System.Drawing.Point(689, 172);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(66, 13);
             this.label11.TabIndex = 9;
@@ -1341,7 +1361,7 @@ namespace ObjectListViewDemo
             // 
             this.label8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(697, 93);
+            this.label8.Location = new System.Drawing.Point(689, 93);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(33, 13);
             this.label8.TabIndex = 5;
@@ -1358,7 +1378,7 @@ namespace ObjectListViewDemo
             "List",
             "Tile",
             "Details"});
-            this.comboBox3.Location = new System.Drawing.Point(697, 108);
+            this.comboBox3.Location = new System.Drawing.Point(689, 108);
             this.comboBox3.Name = "comboBox3";
             this.comboBox3.Size = new System.Drawing.Size(104, 21);
             this.comboBox3.TabIndex = 6;
@@ -1369,7 +1389,7 @@ namespace ObjectListViewDemo
             this.checkBox5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBox5.Checked = true;
             this.checkBox5.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox5.Location = new System.Drawing.Point(697, 55);
+            this.checkBox5.Location = new System.Drawing.Point(689, 55);
             this.checkBox5.Name = "checkBox5";
             this.checkBox5.Size = new System.Drawing.Size(113, 19);
             this.checkBox5.TabIndex = 3;
@@ -1386,6 +1406,7 @@ namespace ObjectListViewDemo
             this.olvData.AllColumns.Add(this.heightColumn);
             this.olvData.AllColumns.Add(this.olvColumn42);
             this.olvData.AllColumns.Add(this.olvColumnGif);
+            this.olvData.AllColumns.Add(this.olvColumnFiller);
             this.olvData.AllowColumnReorder = true;
             this.olvData.AllowDrop = true;
             this.olvData.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
@@ -1399,7 +1420,8 @@ namespace ObjectListViewDemo
             this.salaryColumn,
             this.heightColumn,
             this.olvColumn42,
-            this.olvColumnGif});
+            this.olvColumnGif,
+            this.olvColumnFiller});
             this.olvData.Cursor = System.Windows.Forms.Cursors.Default;
             this.olvData.DataSource = null;
             this.olvData.EmptyListMsg = "Add rows to the above table to see them here";
@@ -1421,7 +1443,7 @@ namespace ObjectListViewDemo
             this.olvData.ShowGroups = false;
             this.olvData.ShowImagesOnSubItems = true;
             this.olvData.ShowItemToolTips = true;
-            this.olvData.Size = new System.Drawing.Size(685, 209);
+            this.olvData.Size = new System.Drawing.Size(677, 209);
             this.olvData.SmallImageList = this.imageList1;
             this.olvData.TabIndex = 0;
             this.olvData.UseCellFormatEvents = true;
@@ -1508,6 +1530,11 @@ namespace ObjectListViewDemo
             this.olvColumnGif.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumnGif.Width = 96;
             // 
+            // olvColumnFiller
+            // 
+            this.olvColumnFiller.FillsFreeSpace = true;
+            this.olvColumnFiller.Text = "";
+            // 
             // headerFormatStyleData
             // 
             headerStateStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
@@ -1525,7 +1552,7 @@ namespace ObjectListViewDemo
             // checkBox7
             // 
             this.checkBox7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkBox7.Location = new System.Drawing.Point(697, 18);
+            this.checkBox7.Location = new System.Drawing.Point(689, 18);
             this.checkBox7.Name = "checkBox7";
             this.checkBox7.Size = new System.Drawing.Size(104, 20);
             this.checkBox7.TabIndex = 1;
@@ -1536,7 +1563,7 @@ namespace ObjectListViewDemo
             // checkBox8
             // 
             this.checkBox8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkBox8.Location = new System.Drawing.Point(697, 37);
+            this.checkBox8.Location = new System.Drawing.Point(689, 37);
             this.checkBox8.Name = "checkBox8";
             this.checkBox8.Size = new System.Drawing.Size(113, 19);
             this.checkBox8.TabIndex = 2;
@@ -1552,7 +1579,7 @@ namespace ObjectListViewDemo
             this.groupBox1.Controls.Add(this.button3);
             this.groupBox1.Location = new System.Drawing.Point(6, 56);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(807, 201);
+            this.groupBox1.Size = new System.Drawing.Size(799, 201);
             this.groupBox1.TabIndex = 13;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Source Data Table";
@@ -1565,13 +1592,13 @@ namespace ObjectListViewDemo
             this.dataGridView1.Location = new System.Drawing.Point(6, 19);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            this.dataGridView1.Size = new System.Drawing.Size(678, 176);
+            this.dataGridView1.Size = new System.Drawing.Size(670, 176);
             this.dataGridView1.TabIndex = 0;
             // 
             // button3
             // 
             this.button3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button3.Location = new System.Drawing.Point(697, 19);
+            this.button3.Location = new System.Drawing.Point(689, 19);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(104, 23);
             this.button3.TabIndex = 1;
@@ -1587,7 +1614,7 @@ namespace ObjectListViewDemo
             this.label3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label3.Location = new System.Drawing.Point(6, 6);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(684, 46);
+            this.label3.Size = new System.Drawing.Size(676, 46);
             this.label3.TabIndex = 9;
             this.label3.Text = resources.GetString("label3.Text");
             // 
@@ -1607,7 +1634,7 @@ namespace ObjectListViewDemo
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(819, 503);
+            this.tabPage4.Size = new System.Drawing.Size(811, 503);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Virtual List";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -1666,7 +1693,7 @@ namespace ObjectListViewDemo
             // button9
             // 
             this.button9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button9.Location = new System.Drawing.Point(657, 471);
+            this.button9.Location = new System.Drawing.Point(649, 471);
             this.button9.Name = "button9";
             this.button9.Size = new System.Drawing.Size(75, 23);
             this.button9.TabIndex = 6;
@@ -1677,7 +1704,7 @@ namespace ObjectListViewDemo
             // button8
             // 
             this.button8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button8.Location = new System.Drawing.Point(738, 471);
+            this.button8.Location = new System.Drawing.Point(730, 471);
             this.button8.Name = "button8";
             this.button8.Size = new System.Drawing.Size(75, 23);
             this.button8.TabIndex = 7;
@@ -1733,7 +1760,7 @@ namespace ObjectListViewDemo
             this.label4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label4.Location = new System.Drawing.Point(6, 6);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(807, 48);
+            this.label4.Size = new System.Drawing.Size(799, 48);
             this.label4.TabIndex = 5;
             this.label4.Text = resources.GetString("label4.Text");
             // 
@@ -1774,7 +1801,7 @@ namespace ObjectListViewDemo
             this.olvVirtual.ShowGroups = false;
             this.olvVirtual.ShowImagesOnSubItems = true;
             this.olvVirtual.ShowItemToolTips = true;
-            this.olvVirtual.Size = new System.Drawing.Size(807, 409);
+            this.olvVirtual.Size = new System.Drawing.Size(799, 409);
             this.olvVirtual.SmallImageList = this.imageList1;
             this.olvVirtual.TabIndex = 0;
             this.olvVirtual.TintSortColumn = true;
@@ -1861,7 +1888,7 @@ namespace ObjectListViewDemo
             this.tabPage5.Location = new System.Drawing.Point(4, 22);
             this.tabPage5.Name = "tabPage5";
             this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(819, 503);
+            this.tabPage5.Size = new System.Drawing.Size(811, 503);
             this.tabPage5.TabIndex = 4;
             this.tabPage5.Text = "File Explorer";
             this.tabPage5.UseVisualStyleBackColor = true;
@@ -1907,7 +1934,7 @@ namespace ObjectListViewDemo
             // buttonSaveState
             // 
             this.buttonSaveState.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSaveState.Location = new System.Drawing.Point(556, 474);
+            this.buttonSaveState.Location = new System.Drawing.Point(548, 474);
             this.buttonSaveState.Name = "buttonSaveState";
             this.buttonSaveState.Size = new System.Drawing.Size(87, 23);
             this.buttonSaveState.TabIndex = 10;
@@ -1919,7 +1946,7 @@ namespace ObjectListViewDemo
             // 
             this.buttonRestoreState.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonRestoreState.Enabled = false;
-            this.buttonRestoreState.Location = new System.Drawing.Point(649, 474);
+            this.buttonRestoreState.Location = new System.Drawing.Point(641, 474);
             this.buttonRestoreState.Name = "buttonRestoreState";
             this.buttonRestoreState.Size = new System.Drawing.Size(83, 23);
             this.buttonRestoreState.TabIndex = 11;
@@ -1930,7 +1957,7 @@ namespace ObjectListViewDemo
             // button13
             // 
             this.button13.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button13.Location = new System.Drawing.Point(738, 474);
+            this.button13.Location = new System.Drawing.Point(730, 474);
             this.button13.Name = "button13";
             this.button13.Size = new System.Drawing.Size(75, 23);
             this.button13.TabIndex = 12;
@@ -1941,7 +1968,7 @@ namespace ObjectListViewDemo
             // buttonUp
             // 
             this.buttonUp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonUp.Location = new System.Drawing.Point(738, 55);
+            this.buttonUp.Location = new System.Drawing.Point(730, 55);
             this.buttonUp.Name = "buttonUp";
             this.buttonUp.Size = new System.Drawing.Size(75, 23);
             this.buttonUp.TabIndex = 3;
@@ -1952,7 +1979,7 @@ namespace ObjectListViewDemo
             // buttonGo
             // 
             this.buttonGo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonGo.Location = new System.Drawing.Point(657, 55);
+            this.buttonGo.Location = new System.Drawing.Point(649, 55);
             this.buttonGo.Name = "buttonGo";
             this.buttonGo.Size = new System.Drawing.Size(75, 23);
             this.buttonGo.TabIndex = 2;
@@ -1966,7 +1993,7 @@ namespace ObjectListViewDemo
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxFolderPath.Location = new System.Drawing.Point(56, 57);
             this.textBoxFolderPath.Name = "textBoxFolderPath";
-            this.textBoxFolderPath.Size = new System.Drawing.Size(587, 20);
+            this.textBoxFolderPath.Size = new System.Drawing.Size(579, 20);
             this.textBoxFolderPath.TabIndex = 1;
             this.textBoxFolderPath.TextChanged += new System.EventHandler(this.TextBoxFolderPathTextChanged);
             this.textBoxFolderPath.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBoxFolderPath_KeyPress);
@@ -2039,7 +2066,7 @@ namespace ObjectListViewDemo
             this.label5.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label5.Location = new System.Drawing.Point(6, 6);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(807, 46);
+            this.label5.Size = new System.Drawing.Size(799, 46);
             this.label5.TabIndex = 6;
             this.label5.Text = resources.GetString("label5.Text");
             // 
@@ -2075,7 +2102,7 @@ namespace ObjectListViewDemo
             this.olvFiles.ShowCommandMenuOnRightClick = true;
             this.olvFiles.ShowGroups = false;
             this.olvFiles.ShowItemToolTips = true;
-            this.olvFiles.Size = new System.Drawing.Size(807, 385);
+            this.olvFiles.Size = new System.Drawing.Size(799, 385);
             this.olvFiles.SmallImageList = this.imageList1;
             this.olvFiles.TabIndex = 13;
             this.olvFiles.UseCompatibleStateImageBehavior = false;
@@ -2149,7 +2176,7 @@ namespace ObjectListViewDemo
             this.tabPage6.Location = new System.Drawing.Point(4, 22);
             this.tabPage6.Name = "tabPage6";
             this.tabPage6.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage6.Size = new System.Drawing.Size(819, 503);
+            this.tabPage6.Size = new System.Drawing.Size(811, 503);
             this.tabPage6.TabIndex = 5;
             this.tabPage6.Text = "Printing ListViews";
             this.tabPage6.UseVisualStyleBackColor = true;
@@ -2334,7 +2361,7 @@ namespace ObjectListViewDemo
             this.groupBox4.Controls.Add(this.label13);
             this.groupBox4.Location = new System.Drawing.Point(451, 39);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(362, 109);
+            this.groupBox4.Size = new System.Drawing.Size(354, 109);
             this.groupBox4.TabIndex = 2;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Print Settings";
@@ -2345,7 +2372,7 @@ namespace ObjectListViewDemo
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.tbFooter.Location = new System.Drawing.Point(73, 61);
             this.tbFooter.Name = "tbFooter";
-            this.tbFooter.Size = new System.Drawing.Size(283, 20);
+            this.tbFooter.Size = new System.Drawing.Size(275, 20);
             this.tbFooter.TabIndex = 5;
             this.tbFooter.Text = "{1:F}\\t\\tPage: {0}";
             // 
@@ -2363,7 +2390,7 @@ namespace ObjectListViewDemo
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.tbHeader.Location = new System.Drawing.Point(73, 39);
             this.tbHeader.Name = "tbHeader";
-            this.tbHeader.Size = new System.Drawing.Size(283, 20);
+            this.tbHeader.Size = new System.Drawing.Size(275, 20);
             this.tbHeader.TabIndex = 3;
             this.tbHeader.Text = "Easy Printing ListView";
             // 
@@ -2381,7 +2408,7 @@ namespace ObjectListViewDemo
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.tbWatermark.Location = new System.Drawing.Point(73, 83);
             this.tbWatermark.Name = "tbWatermark";
-            this.tbWatermark.Size = new System.Drawing.Size(283, 20);
+            this.tbWatermark.Size = new System.Drawing.Size(275, 20);
             this.tbWatermark.TabIndex = 7;
             this.tbWatermark.Text = "SLOTHFUL!";
             // 
@@ -2399,7 +2426,7 @@ namespace ObjectListViewDemo
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.tbTitle.Location = new System.Drawing.Point(73, 17);
             this.tbTitle.Name = "tbTitle";
-            this.tbTitle.Size = new System.Drawing.Size(283, 20);
+            this.tbTitle.Size = new System.Drawing.Size(275, 20);
             this.tbTitle.TabIndex = 1;
             this.tbTitle.Text = "List View printer demo";
             // 
@@ -2484,14 +2511,14 @@ namespace ObjectListViewDemo
             this.label12.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label12.Location = new System.Drawing.Point(6, 6);
             this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(807, 30);
+            this.label12.Size = new System.Drawing.Size(799, 30);
             this.label12.TabIndex = 12;
             this.label12.Text = resources.GetString("label12.Text");
             // 
             // button12
             // 
             this.button12.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button12.Location = new System.Drawing.Point(714, 224);
+            this.button12.Location = new System.Drawing.Point(706, 224);
             this.button12.Name = "button12";
             this.button12.Size = new System.Drawing.Size(93, 23);
             this.button12.TabIndex = 5;
@@ -2502,7 +2529,7 @@ namespace ObjectListViewDemo
             // button11
             // 
             this.button11.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button11.Location = new System.Drawing.Point(714, 195);
+            this.button11.Location = new System.Drawing.Point(706, 195);
             this.button11.Name = "button11";
             this.button11.Size = new System.Drawing.Size(93, 23);
             this.button11.TabIndex = 4;
@@ -2513,7 +2540,7 @@ namespace ObjectListViewDemo
             // button10
             // 
             this.button10.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button10.Location = new System.Drawing.Point(714, 166);
+            this.button10.Location = new System.Drawing.Point(706, 166);
             this.button10.Name = "button10";
             this.button10.Size = new System.Drawing.Size(95, 23);
             this.button10.TabIndex = 3;
@@ -2531,7 +2558,7 @@ namespace ObjectListViewDemo
             this.printPreviewControl1.Document = this.listViewPrinter1;
             this.printPreviewControl1.Location = new System.Drawing.Point(7, 154);
             this.printPreviewControl1.Name = "printPreviewControl1";
-            this.printPreviewControl1.Size = new System.Drawing.Size(701, 328);
+            this.printPreviewControl1.Size = new System.Drawing.Size(693, 328);
             this.printPreviewControl1.TabIndex = 6;
             this.printPreviewControl1.UseAntiAlias = true;
             this.printPreviewControl1.Zoom = 0.25834046193327631;
@@ -2587,7 +2614,7 @@ namespace ObjectListViewDemo
             this.tabPage7.Location = new System.Drawing.Point(4, 22);
             this.tabPage7.Name = "tabPage7";
             this.tabPage7.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage7.Size = new System.Drawing.Size(819, 503);
+            this.tabPage7.Size = new System.Drawing.Size(811, 503);
             this.tabPage7.TabIndex = 6;
             this.tabPage7.Text = "Fast List";
             this.tabPage7.UseVisualStyleBackColor = true;
@@ -2596,7 +2623,7 @@ namespace ObjectListViewDemo
             // 
             this.groupBox11.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox11.Controls.Add(this.textBoxFilterFast);
-            this.groupBox11.Location = new System.Drawing.Point(696, 6);
+            this.groupBox11.Location = new System.Drawing.Point(688, 6);
             this.groupBox11.Name = "groupBox11";
             this.groupBox11.Size = new System.Drawing.Size(117, 44);
             this.groupBox11.TabIndex = 20;
@@ -2625,7 +2652,7 @@ namespace ObjectListViewDemo
             // button19
             // 
             this.button19.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button19.Location = new System.Drawing.Point(503, 474);
+            this.button19.Location = new System.Drawing.Point(495, 474);
             this.button19.Name = "button19";
             this.button19.Size = new System.Drawing.Size(90, 23);
             this.button19.TabIndex = 17;
@@ -2636,7 +2663,7 @@ namespace ObjectListViewDemo
             // button18
             // 
             this.button18.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button18.Location = new System.Drawing.Point(658, 474);
+            this.button18.Location = new System.Drawing.Point(650, 474);
             this.button18.Name = "button18";
             this.button18.Size = new System.Drawing.Size(72, 23);
             this.button18.TabIndex = 7;
@@ -2652,7 +2679,7 @@ namespace ObjectListViewDemo
             this.label26.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label26.Location = new System.Drawing.Point(6, 6);
             this.label26.Name = "label26";
-            this.label26.Size = new System.Drawing.Size(684, 45);
+            this.label26.Size = new System.Drawing.Size(676, 45);
             this.label26.TabIndex = 16;
             this.label26.Text = resources.GetString("label26.Text");
             // 
@@ -2666,7 +2693,7 @@ namespace ObjectListViewDemo
             "Single Click",
             "Double Click",
             "F2 Only"});
-            this.comboBox9.Location = new System.Drawing.Point(196, 472);
+            this.comboBox9.Location = new System.Drawing.Point(188, 472);
             this.comboBox9.Name = "comboBox9";
             this.comboBox9.Size = new System.Drawing.Size(83, 21);
             this.comboBox9.TabIndex = 3;
@@ -2676,7 +2703,7 @@ namespace ObjectListViewDemo
             // 
             this.label24.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(151, 477);
+            this.label24.Location = new System.Drawing.Point(143, 477);
             this.label24.Name = "label24";
             this.label24.Size = new System.Drawing.Size(48, 13);
             this.label24.TabIndex = 2;
@@ -2686,7 +2713,7 @@ namespace ObjectListViewDemo
             // 
             this.label25.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(285, 477);
+            this.label25.Location = new System.Drawing.Point(277, 477);
             this.label25.Name = "label25";
             this.label25.Size = new System.Drawing.Size(33, 13);
             this.label25.TabIndex = 4;
@@ -2703,7 +2730,7 @@ namespace ObjectListViewDemo
             "List",
             "Tile",
             "Details"});
-            this.comboBox10.Location = new System.Drawing.Point(320, 472);
+            this.comboBox10.Location = new System.Drawing.Point(312, 472);
             this.comboBox10.Name = "comboBox10";
             this.comboBox10.Size = new System.Drawing.Size(83, 21);
             this.comboBox10.TabIndex = 5;
@@ -2725,7 +2752,7 @@ namespace ObjectListViewDemo
             // button15
             // 
             this.button15.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button15.Location = new System.Drawing.Point(598, 474);
+            this.button15.Location = new System.Drawing.Point(590, 474);
             this.button15.Name = "button15";
             this.button15.Size = new System.Drawing.Size(54, 23);
             this.button15.TabIndex = 6;
@@ -2736,7 +2763,7 @@ namespace ObjectListViewDemo
             // button14
             // 
             this.button14.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button14.Location = new System.Drawing.Point(736, 474);
+            this.button14.Location = new System.Drawing.Point(728, 474);
             this.button14.Name = "button14";
             this.button14.Size = new System.Drawing.Size(77, 23);
             this.button14.TabIndex = 8;
@@ -2790,7 +2817,7 @@ namespace ObjectListViewDemo
             this.olvFast.ShowGroups = false;
             this.olvFast.ShowImagesOnSubItems = true;
             this.olvFast.ShowItemToolTips = true;
-            this.olvFast.Size = new System.Drawing.Size(807, 414);
+            this.olvFast.Size = new System.Drawing.Size(799, 414);
             this.olvFast.SmallImageList = this.imageList1;
             this.olvFast.SpaceBetweenGroups = 25;
             this.olvFast.TabIndex = 0;
@@ -2894,7 +2921,7 @@ namespace ObjectListViewDemo
             this.tabPage9.Location = new System.Drawing.Point(4, 22);
             this.tabPage9.Name = "tabPage9";
             this.tabPage9.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage9.Size = new System.Drawing.Size(819, 503);
+            this.tabPage9.Size = new System.Drawing.Size(811, 503);
             this.tabPage9.TabIndex = 8;
             this.tabPage9.Text = "TreeListView";
             this.tabPage9.UseVisualStyleBackColor = true;
@@ -2903,7 +2930,7 @@ namespace ObjectListViewDemo
             // 
             this.groupBox12.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox12.Controls.Add(this.textBoxFilterTree);
-            this.groupBox12.Location = new System.Drawing.Point(696, 5);
+            this.groupBox12.Location = new System.Drawing.Point(688, 5);
             this.groupBox12.Name = "groupBox12";
             this.groupBox12.Size = new System.Drawing.Size(117, 44);
             this.groupBox12.TabIndex = 21;
@@ -2932,7 +2959,7 @@ namespace ObjectListViewDemo
             // button25
             // 
             this.button25.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button25.Location = new System.Drawing.Point(516, 474);
+            this.button25.Location = new System.Drawing.Point(508, 474);
             this.button25.Name = "button25";
             this.button25.Size = new System.Drawing.Size(87, 23);
             this.button25.TabIndex = 10;
@@ -2944,7 +2971,7 @@ namespace ObjectListViewDemo
             // 
             this.button26.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button26.Enabled = false;
-            this.button26.Location = new System.Drawing.Point(609, 474);
+            this.button26.Location = new System.Drawing.Point(601, 474);
             this.button26.Name = "button26";
             this.button26.Size = new System.Drawing.Size(83, 23);
             this.button26.TabIndex = 11;
@@ -2955,7 +2982,7 @@ namespace ObjectListViewDemo
             // button27
             // 
             this.button27.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button27.Location = new System.Drawing.Point(698, 474);
+            this.button27.Location = new System.Drawing.Point(690, 474);
             this.button27.Name = "button27";
             this.button27.Size = new System.Drawing.Size(115, 23);
             this.button27.TabIndex = 12;
@@ -2971,7 +2998,7 @@ namespace ObjectListViewDemo
             this.label32.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label32.Location = new System.Drawing.Point(6, 6);
             this.label32.Name = "label32";
-            this.label32.Size = new System.Drawing.Size(684, 46);
+            this.label32.Size = new System.Drawing.Size(676, 46);
             this.label32.TabIndex = 6;
             this.label32.Text = "This is like the File Explorer tab, except that it shows the directory structure," +
                 " rooted on the available disks.";
@@ -3012,7 +3039,7 @@ namespace ObjectListViewDemo
             this.treeListView.ShowGroups = false;
             this.treeListView.ShowImagesOnSubItems = true;
             this.treeListView.ShowItemToolTips = true;
-            this.treeListView.Size = new System.Drawing.Size(807, 413);
+            this.treeListView.Size = new System.Drawing.Size(799, 413);
             this.treeListView.SmallImageList = this.imageList3;
             this.treeListView.TabIndex = 13;
             this.treeListView.UseCompatibleStateImageBehavior = false;
@@ -3095,7 +3122,7 @@ namespace ObjectListViewDemo
             this.tabPage8.Location = new System.Drawing.Point(4, 22);
             this.tabPage8.Name = "tabPage8";
             this.tabPage8.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage8.Size = new System.Drawing.Size(819, 503);
+            this.tabPage8.Size = new System.Drawing.Size(811, 503);
             this.tabPage8.TabIndex = 9;
             this.tabPage8.Text = "Drag and drop";
             this.tabPage8.UseVisualStyleBackColor = true;
@@ -3103,7 +3130,7 @@ namespace ObjectListViewDemo
             // checkBox22
             // 
             this.checkBox22.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkBox22.Location = new System.Drawing.Point(592, 474);
+            this.checkBox22.Location = new System.Drawing.Point(584, 474);
             this.checkBox22.Name = "checkBox22";
             this.checkBox22.Size = new System.Drawing.Size(86, 21);
             this.checkBox22.TabIndex = 21;
@@ -3139,7 +3166,7 @@ namespace ObjectListViewDemo
             this.tableLayoutPanel1.RowCount = 2;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(807, 410);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(799, 410);
             this.tableLayoutPanel1.TabIndex = 19;
             // 
             // label34
@@ -3159,7 +3186,7 @@ namespace ObjectListViewDemo
             this.label35.AutoSize = true;
             this.label35.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label35.ForeColor = System.Drawing.Color.RoyalBlue;
-            this.label35.Location = new System.Drawing.Point(406, 3);
+            this.label35.Location = new System.Drawing.Point(402, 3);
             this.label35.Margin = new System.Windows.Forms.Padding(3);
             this.label35.Name = "label35";
             this.label35.Size = new System.Drawing.Size(78, 14);
@@ -3212,7 +3239,7 @@ namespace ObjectListViewDemo
             this.olvGeeks.ShowGroups = false;
             this.olvGeeks.ShowImagesOnSubItems = true;
             this.olvGeeks.ShowItemToolTips = true;
-            this.olvGeeks.Size = new System.Drawing.Size(394, 384);
+            this.olvGeeks.Size = new System.Drawing.Size(390, 384);
             this.olvGeeks.SmallImageList = this.imageList1;
             this.olvGeeks.TabIndex = 8;
             this.olvGeeks.UseAlternatingBackColors = true;
@@ -3327,7 +3354,7 @@ namespace ObjectListViewDemo
             this.olvFroods.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this.olvFroods.HideSelection = false;
             this.olvFroods.LargeImageList = this.imageList2;
-            this.olvFroods.Location = new System.Drawing.Point(409, 23);
+            this.olvFroods.Location = new System.Drawing.Point(405, 23);
             this.olvFroods.Margin = new System.Windows.Forms.Padding(6, 3, 3, 3);
             this.olvFroods.Name = "olvFroods";
             this.olvFroods.OverlayImage.Image = global::ObjectListViewDemo.Resource1.redback1;
@@ -3337,7 +3364,7 @@ namespace ObjectListViewDemo
             this.olvFroods.ShowGroups = false;
             this.olvFroods.ShowImagesOnSubItems = true;
             this.olvFroods.ShowItemToolTips = true;
-            this.olvFroods.Size = new System.Drawing.Size(395, 384);
+            this.olvFroods.Size = new System.Drawing.Size(391, 384);
             this.olvFroods.SmallImageList = this.imageList1;
             this.olvFroods.TabIndex = 13;
             this.olvFroods.UseAlternatingBackColors = true;
@@ -3420,7 +3447,7 @@ namespace ObjectListViewDemo
             // 
             this.label33.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label33.AutoSize = true;
-            this.label33.Location = new System.Drawing.Point(684, 477);
+            this.label33.Location = new System.Drawing.Point(676, 477);
             this.label33.Name = "label33";
             this.label33.Size = new System.Drawing.Size(33, 13);
             this.label33.TabIndex = 16;
@@ -3437,7 +3464,7 @@ namespace ObjectListViewDemo
             "List",
             "Tile",
             "Details"});
-            this.comboBox13.Location = new System.Drawing.Point(723, 474);
+            this.comboBox13.Location = new System.Drawing.Point(715, 474);
             this.comboBox13.Name = "comboBox13";
             this.comboBox13.Size = new System.Drawing.Size(89, 21);
             this.comboBox13.TabIndex = 15;
@@ -3478,7 +3505,7 @@ namespace ObjectListViewDemo
             this.label30.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label30.Location = new System.Drawing.Point(6, 7);
             this.label30.Name = "label30";
-            this.label30.Size = new System.Drawing.Size(807, 48);
+            this.label30.Size = new System.Drawing.Size(799, 48);
             this.label30.TabIndex = 10;
             this.label30.Text = resources.GetString("label30.Text");
             // 
@@ -3488,7 +3515,7 @@ namespace ObjectListViewDemo
             this.toolStripStatusLabel1});
             this.statusStrip1.Location = new System.Drawing.Point(0, 544);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(852, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(844, 22);
             this.statusStrip1.TabIndex = 3;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -3850,7 +3877,7 @@ namespace ObjectListViewDemo
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(852, 566);
+            this.ClientSize = new System.Drawing.Size(844, 566);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.tabControl1);
             this.Name = "MainForm";
@@ -3995,8 +4022,7 @@ namespace ObjectListViewDemo
 		private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
 		private System.Windows.Forms.StatusStrip statusStrip1;
 		private System.Windows.Forms.Label label2;
-		private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.CheckBox checkBox2;
+        private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.CheckBox checkBox1;
 		private System.Windows.Forms.TabPage tabPage2;
 		private System.Windows.Forms.TabPage tabPage1;
@@ -4209,6 +4235,9 @@ namespace ObjectListViewDemo
         private TextBox textBoxFilterData;
         private HighlightTextRenderer highlightTextRenderer1;
         private HeaderFormatStyle headerFormatStyleData;
+        private OLVColumn olvColumnFiller;
+        private Label label38;
+        private ComboBox comboBox15;
 
 	}
 }
