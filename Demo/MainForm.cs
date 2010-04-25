@@ -261,11 +261,15 @@ namespace ObjectListViewDemo
                 e.ListView.RefreshObjects(e.SourceModels);
             });
 
-            checkBox2.Checked = true;
+            // Which hot item style to use?
+            if (ObjectListView.IsVista)
+                this.comboBox15.Items.Add("Vista");
+            this.comboBox15.SelectedIndex = 3;
 
-            comboBox1.SelectedIndex = 4;
-            comboBox5.SelectedIndex = 0;
-            olvComplex.SetObjects(list);
+            this.comboBox1.SelectedIndex = 4;
+            this.comboBox5.SelectedIndex = 0;
+
+            this.olvComplex.SetObjects(list);
         }
 
         /// <summary>
@@ -1021,6 +1025,8 @@ namespace ObjectListViewDemo
             this.olvComplex.CopySelectionToClipboard();
             olvComplex.SelectedObjects = olvSimple.SelectedObjects;
             olvComplex.Select();
+            //this.olvComplex.ShowHeaderInAllViews = !this.olvComplex.ShowHeaderInAllViews;
+
 		}
 
 		void CheckBox6CheckedChanged(object sender, EventArgs e)
@@ -2117,48 +2123,71 @@ namespace ObjectListViewDemo
         }
 
         private void comboBox14_SelectedIndexChanged(object sender, EventArgs e) {
-            ComboBox cb = (ComboBox)sender;
-            ObjectListView olv = this.olvFiles;
+            this.ChangeHotItemStyle(this.olvFiles, (ComboBox)sender);
+        }
 
+        private void comboBox15_SelectedIndexChanged(object sender, EventArgs e) {
+            this.ChangeHotItemStyle(this.olvComplex, (ComboBox)sender);
+
+
+            // Make the hot item show an overlay when it changes
+            if (this.olvComplex.UseTranslucentHotItem) {
+                this.olvComplex.HotItemStyle.Overlay = new BusinessCardOverlay();
+                this.olvComplex.HotItemStyle = this.olvComplex.HotItemStyle;
+            }
+
+            this.olvComplex.UseTranslucentSelection = this.olvComplex.UseTranslucentHotItem;
+
+            this.olvComplex.Invalidate();
+        }
+
+        private void ChangeHotItemStyle(ObjectListView olv, ComboBox cb) {
+
+            olv.UseTranslucentHotItem = false;
             olv.UseHotItem = true;
-            olv.FullRowSelect = false;
+            olv.FullRowSelect = olv == this.olvComplex; // olvComplex should be full row select
             olv.UseExplorerTheme = false;
-            HotItemStyle his = new HotItemStyle();
 
             switch (cb.SelectedIndex) {
                 case 0:
                     olv.UseHotItem = false;
                     break;
                 case 1:
-                    his.ForeColor = Color.AliceBlue;
-                    his.BackColor = Color.DarkGray;
-                    olv.HotItemStyle = his;
+                    HotItemStyle hotItemStyle = new HotItemStyle();
+                    hotItemStyle.ForeColor = Color.AliceBlue;
+                    hotItemStyle.BackColor = Color.FromArgb(255, 64, 64, 64);
+                    olv.HotItemStyle = hotItemStyle;
                     break;
                 case 2:
                     RowBorderDecoration rbd = new RowBorderDecoration();
                     rbd.BorderPen = new Pen(Color.SeaGreen, 2);
                     rbd.FillBrush = null;
                     rbd.CornerRounding = 4.0f;
-                    his.Decoration = rbd;
-                    olv.HotItemStyle = his;
+                    HotItemStyle hotItemStyle2 = new HotItemStyle();
+                    hotItemStyle2.Decoration = rbd;
+                    olv.HotItemStyle = hotItemStyle2;
                     break;
                 case 3:
                     olv.UseTranslucentHotItem = true;
                     break;
                 case 4:
-                    LightBoxDecoration lbd = new LightBoxDecoration();
-                    his.Decoration = lbd;
-                    olv.HotItemStyle = his;
+                    HotItemStyle hotItemStyle3 = new HotItemStyle();
+                    hotItemStyle3.Decoration = new LightBoxDecoration();
+                    olv.HotItemStyle = hotItemStyle3;
                     break;
                 case 5:
-                    this.checkBox10.Checked = false;
                     olv.FullRowSelect = true;
                     olv.UseHotItem = false;
                     olv.UseExplorerTheme = true;
+
+                    // Using Explorer theme doesn't work in owner drawn mode
+                    if (olv == this.olvFiles)
+                        this.checkBox10.Checked = false;
+                    if (olv == this.olvComplex)
+                        this.checkBox6.Checked = false;
                     break;
             }
             olv.Invalidate();
-
         }
 
         private void olvFastList_IsHyperlink(object sender, IsHyperlinkEventArgs e) {
@@ -2311,6 +2340,7 @@ namespace ObjectListViewDemo
         private void listViewSimple_Scroll(object sender, ScrollEventArgs e) {
 
         }
+
     }
 
     enum MaritalStatus
