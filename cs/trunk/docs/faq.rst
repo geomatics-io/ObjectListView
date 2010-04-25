@@ -12,6 +12,8 @@ several of the most common questions. Please read the questions before asking qu
 the Forum. Several people have been known to have blood pressure problems.
 
 
+.. _rows-of-different-heights:
+
 Can an ObjectListView have rows of different heights?
 -----------------------------------------------------
 

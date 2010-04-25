@@ -12,6 +12,7 @@ return on investment? This page tries to document the useful features of an
 ObjectListView. Not all features are equally useful, but it's better to be aware
 of what's available so that you can use it when the need arises.
 
+* `Animations`_
 * `Alternate rows background colors`_
 * `Automatic grouping`_
 * `Automatic sorting`_
@@ -27,6 +28,7 @@ of what's available so that you can use it when the need arises.
 * `Drag and drop`_
 * `Ease of use`_
 * `Editing cell values`_
+* `Filtering`_
 * `Header formatting`_
 * `Header visible in all views`_
 * `Hot item tracking`_
@@ -369,10 +371,11 @@ Row height can be changed
 -------------------------
 
 With a normal ListView, the row height is calculated from a combination of the control
-font and the SmallImageList height. It cannot be changed. But, an ObjectListView has a
-RowHeight property which allows the height of each row to be specified.
+font and the `SmallImageList` height. It cannot be changed. But, an `ObjectListView` has a
+`RowHeight` property which allows the height of all rows to be specified.
 
-Every row has the same height. No variable height rows are allowed.
+N.B. Every row has the same height. No variable height rows are allowed. 
+See :ref:`rows-of-different-heights` to understand why. 
 
 
 Custom selection colours
@@ -441,8 +444,9 @@ then react appropriately.
 Header formatting
 -----------------
 
-Each column header can be given its own font and color. These can be set
-all headers at once using propeties on the `ObjectListView` itself.
+Each column header can be given its own font, text color, background color
+and border. These can be set per column or on 
+all headers at once using `HeaderFormatStyle` on the `ObjectListView` itself.
 
 The text of column header can also be word wrapped, rather than truncated.
 
@@ -457,3 +461,25 @@ how to sort the items. To help with this, `ObjectListView` has a
 `ShowHeaderInAllView` property, which if set to *true*, shows the header
 in all views, not just *Details*, so that the items can be sorted however
 the user wants.
+
+Animations
+----------
+
+`ObjectListView` integrates with the `Sparkle` library to allow animations
+on cells, rows, or whole lists.
+
+See :ref:`animations-label`.
+
+Filtering
+---------
+
+`ObjectListViews` (in all flavours) support filtering of their contents. 
+This filtering is done by installing `ModelFilters` (or less often `ListFilters`)
+which select which rows will be shown in the list. See :ref:`recipe-filtering`.
+
+`ObjectListView` comes with some standard filters, most usefully a text match
+filter which includes only rows that contains a certain string in any cell.
+This can be combined with a special renderer to highlight the text matches.
+See :ref:`recipe-text-filtering`.
+
+These filters are of course extensible. 

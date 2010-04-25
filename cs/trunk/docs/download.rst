@@ -12,15 +12,15 @@ OK. Now that you're interested, how do you actually get the code?
 Stable releases
 ---------------
 
-v2.3 released on 12 October 2009 is the most recent stable release.
+v2.4 released on 14 April 2010 is the most recent stable release.
 
 `Click here to download the full package`_, which includes the ObjectListView control, demos, documentation and unit tests (916 KB).
 
-.. _Click here to download the full package: http://sourceforge.net/projects/objectlistview/files/objectlistview/v2.3/ObjectListViewFull-2.3.zip/download
+.. _Click here to download the full package: http://sourceforge.net/projects/objectlistview/files/objectlistview/v2.4/ObjectListViewFull-2.4.zip/download
 
 `Click here`_ to download just the source code of the ObjectListView project (349 KB).
 
-.. _Click here: http://sourceforge.net/projects/objectlistview/files/objectlistview/v2.3/ObjectListView-2.3.zip/download
+.. _Click here: http://sourceforge.net/projects/objectlistview/files/objectlistview/v2.4/ObjectListView-2.4.zip/download
 
 `Click here to see all releases`_.
 
