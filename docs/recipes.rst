@@ -1440,6 +1440,21 @@ The `IFilterableDataSource` is very simple::
 
 The data source should store the given filters, and apply them to all subsequent operations.
 
+Filtering and TreeListViews
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Filtering and `TreeListViews` interact in a predictable but perhaps unexpected fashion. 
+
+Filtering considers only rows that are currently exposed (that is, all their ancestorss 
+are expanded).
+
+Within those rows, rows will be included by the filtering process if they **or any of their
+descendents** will be included by the filtering. (Yes, this is recursive). If a bottom level
+child matches the filtering criteria, then all its ancestors will be considered to have
+matched as well and thus will be shown in the control.
+
+In the majority of situations, this gives the most predictable and useful visual results.
+
 
 .. _recipe-text-filtering:
 
@@ -1479,4 +1494,38 @@ You can change the highlighting by playing with the `FrameColor` and `FillColor`
 on the `HighlightTextRenderer.`
 
 Remember: the list has to be owner drawn for the renderer to have any effect.
+
+.. _recipe-animations:
+
+34. How do I put something animated onto my ObjectListView?
+-----------------------------------------------------------
+
+This needs a whole page to itself: :ref:`animations-label`
+
+.. _recipe-state:
+
+35. How can I save and restore the state of the ObjectListView?
+---------------------------------------------------------------
+
+    *In my app, I want to remember the ordering and size
+	of the columns in the list so they can be restored when
+	the user reruns the app. Is there a way to do that?*
+
+Use the `StateState()` and `RestoreState()` methods. 
+
+`SaveState()`
+returns a byte array which contains the state of the `ObjectListView`.
+Store this where you want (file, XML, registry), and when you next
+run your app, reload this byte array and give it to `RestoreState()`.
+
+These methods store the following characteristics:
+
+  * current view (i.e. Details, Tile, Large Icon...)
+  * sort column and direction
+  * column order
+  * column widths
+  * column visibility
+
+It does not include selection or scroll position.
+
 

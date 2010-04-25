@@ -7,6 +7,45 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
+10 April 2010 - Version 2.4
+---------------------------
+
+New features
+^^^^^^^^^^^^
+
+* :ref:`Filtering <recipe-filtering>`.
+
+* :ref:`Animations <animations-label>` on cells, rows, or the whole list.
+
+* :ref:`Header styles <recipe-headerformatting>`. This makes `HeaderFont` and `HeaderForeColor` properties unnecessary. They will be marked obsolete in the next version and removed after that.
+
+* [Minor] Ctrl-A now selects all rows (no surprises there). Set `SelectAllOnControlA` to `false` to disable.
+
+* [Minor] Ctrl-C copies all selected rows to the clipboard (as it always did), but this can now be disabled by setting `CopySelectionOnControlC` to `false`.
+
+
+Bug fixes 
+^^^^^^^^^
+
+* Changed object checking so that objects can be pre-checked before they are added to the list. Normal ObjectListViews managed "checkedness" in the ListViewItem, so this won't work for them, unless check state getters and putters have been installed. It will work on on virtual lists (thus fast lists and tree views) since they manage their own check state.
+
+* Overlays can be turned off (set `UseOverlays` to `false`). They also only draw themselves on 32-bit displays.
+
+* ObjectListViews' overlays now play nicer with MDI, but it's still not great. When an ObjectListView overlay is used within an MDI
+  application, it doesn't crash any more, but it still doesn't handle overlapping windows. Overlays from one ObjectListView are 
+  drawn over other controls too. Current advice: don't use overlays within MDI applications.
+
+* `F2` key presses are no longer silently swallowed.
+
+* `ShowHeaderInAllViews` is better but not perfect. Setting it before the control is created or setting it
+  to `true` work perfectly. However, if it is set to `false`, the primary checkboxes disappear! I could just ignore changes once
+  the control is created, but it's probably better to let people change it on the fly and just document the idiosyncracies.
+  
+* Fixed bug in group sorting so that it actually uses `GroupByOrder` as it should always have done (thank to Michael Ehrt).
+
+* Destroying the `ObjectListView` during an mouse event (for example, closing a form in a double click handler) 
+  no longer throws a "disposed object" exception.
+
 12 October 2009 - Version 2.3
 -----------------------------
 

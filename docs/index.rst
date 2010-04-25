@@ -67,6 +67,7 @@ OK, here's the bullet point feature list:
 * Supports :ref:`groups on virtual lists <recipe-virtualgroups>` (Vista only).
 * Supports :ref:`transluscent hot item and selection <recipe-vistascheme>` like Vista even on XP.
 * Supports :ref:`filtering <recipe-filtering>`, including the very common :ref:`iTunes-like text filtering <recipe-text-filtering>`.
+* Supports :ref:`animations <animations-label>` on cells, row, and the entire list.
 * The `DataListView` version supports data binding.
 * The `FastObjectListView` version can build a list of 10,000 objects in less than 0.1 seconds.
 * The `VirtualObjectListView` version supports millions of rows through ListView's virtual mode.
@@ -261,3 +262,4 @@ Site contents
    Technical Blog <blog>
    changelog
    samples
+   animations
