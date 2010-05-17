@@ -9,7 +9,7 @@ Change Log
 
 Version Index
 -------------
-* `v2.4 - 18 April 2010`_
+* `v2.4 - 17 April 2010`_
 * `v2.3 - 14 October 2009`_
 * `v2.2.1 - 08 August 2009`_
 * `v2.2 - 08 June 2009`_
@@ -31,8 +31,29 @@ Version Index
 * `Previous versions - 04 April 2007`_
 
 
-v2.4 - 18 April 2010
+v2.4 - 17 April 2010
 --------------------
+
+2010-04-16 18:06 (#971) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Gave complex tab a "hot style" combo box
+
+2010-04-16 18:05 (#970) - ObjectListView/ObjectListView.cs
+  - Avoid checkbox munging bug in standard ListView when shift clicking on non-primary columns when FullRowSelect is true.
+
+2010-04-16 18:04 (#969) - ObjectListView/Decorations.cs
+  - Tweaked LightBoxDecoration a little
+
+2010-04-14 21:34 (#964) - ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs, ObjectListView/VirtualListDataSource.cs, ObjectListView/Styles.cs, ObjectListView/Events.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Attributes.cs, ObjectListView/Generator.cs, ObjectListView/Filters.cs, ObjectListView/HeaderControl.cs, ObjectListView/Renderers.cs, ObjectListView/FastObjectListView.cs
+  - Prevent object disposed errors when mouse event handlers cause the ObjectListView to be destroyed (e.g. closing a form during a double click event).
+
+2010-04-14 21:14 (#963) - docs/.static/objectlistview-animations.html, docs/.static/swfobject_modified.js, docs/whatsnew.rst, docs/.static/sparkle-garish-example.swf, docs/.static/sparkle-animations.html, docs/animations.rst, docs/.static/objectListView-animation.swf, docs/recipes.rst, docs/.static/expressInstall.swf, docs/.static/objectListView-simple-animation.swf, docs/.static/sparkle-simple-example.swf
+  - Added animations and graphics
+
+2010-04-12 22:45 (#961) - docs/features.rst, docs/whatsnew.rst, docs/.templates/layout.html, docs/changelog.rst, docs/faq.rst, docs/recipes.rst
+  - Still more changes for v2.4
+
+2010-04-12 22:45 (#960) - ObjectListView/ObjectListView.cs
+  - Fixed group sorting order bug
 
 2010-04-11 22:29 (#959) - ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Properties/AssemblyInfo.cs, ObjectListView/ToolTipControl.cs
   - Prevent hyperlink processing from triggering spurious MouseUp events
