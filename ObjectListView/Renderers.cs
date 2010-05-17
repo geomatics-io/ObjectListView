@@ -1274,6 +1274,7 @@ namespace BrightIdeasSoftware
         #endregion
     }
 
+
     /// <summary>
     /// This renderer highlights substrings that match a given text string. 
     /// </summary>
