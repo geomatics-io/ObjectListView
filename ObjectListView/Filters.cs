@@ -33,19 +33,40 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace BrightIdeasSoftware
 {
+    /// <summary>
+    /// Interface for model-by-model filtering
+    /// </summary>
     public interface IModelFilter
     {
+        /// <summary>
+        /// Should the given model be included when this filter is installed
+        /// </summary>
+        /// <param name="modelObject">The model object to consider</param>
+        /// <returns>Returns true if the model will be included by the filter</returns>
         bool Filter(object modelObject);
     }
 
+    /// <summary>
+    /// Interface for whole list filtering
+    /// </summary>
     public interface IListFilter
     {
+        /// <summary>
+        /// Return a subset of the given list of model objects as the new
+        /// contents of the ObjectListView
+        /// </summary>
+        /// <param name="modelObjects">The collection of model objects that the list will possibly display</param>
+        /// <returns>The filtered collection that holds the model objects that will be displayed.</returns>
         IEnumerable Filter(IEnumerable modelObjects);
     }
 
+    /// <summary>
+    /// Base class for model-by-model filters
+    /// </summary>
     public class AbstractModelFilter : IModelFilter
     {
         virtual public bool Filter(object modelObject) {
@@ -53,19 +74,34 @@ namespace BrightIdeasSoftware
         }
     }
 
+    /// <summary>
+    /// This filter calls a given Predicate to decide if a model object should be included
+    /// </summary>
     public class ModelFilter : IModelFilter
     {
+        /// <summary>
+        /// Create a filter based on the given predicate
+        /// </summary>
+        /// <param name="predicate">The function that will filter objects</param>
         public ModelFilter(Predicate<object> predicate) {
             this.Predicate = predicate;
         }
 
         protected Predicate<object> Predicate;
 
+        /// <summary>
+        /// Should the given model object be included?
+        /// </summary>
+        /// <param name="modelObject"></param>
+        /// <returns></returns>
         virtual public bool Filter(object modelObject) {
-            return this.Predicate(modelObject);
+            return this.Predicate == null ? true : this.Predicate(modelObject);
         }
     }
 
+    /// <summary>
+    /// Base class for whole list filters
+    /// </summary>
     public class AbstractListFilter : IListFilter
     {
         virtual public IEnumerable Filter(IEnumerable modelObjects) {
@@ -89,6 +125,9 @@ namespace BrightIdeasSoftware
         }
     }
 
+    /// <summary>
+    /// Instance of this class implement delegate based whole list filtering
+    /// </summary>
     public class ListFilter : AbstractListFilter
     {
         public delegate IEnumerable ListFilterDelegate(IEnumerable rowObjects);
@@ -104,18 +143,36 @@ namespace BrightIdeasSoftware
         }
     }
 
+    /// <summary>
+    /// Filter the list so only the last N entries are displayed
+    /// </summary>
     public class TailFilter : AbstractListFilter
     {
+        /// <summary>
+        /// Create a no-op tail filter
+        /// </summary>
         public TailFilter() {
-
         }
 
+        /// <summary>
+        /// Create a filter that includes on the last N model objects
+        /// </summary>
+        /// <param name="numberOfObjects"></param>
         public TailFilter(int numberOfObjects) {
             this.Count = numberOfObjects;
         }
 
+        /// <summary>
+        /// Gets or sets the number of model objects that will be 
+        /// returned from the tail of the list
+        /// </summary>
         public int Count;
 
+        /// <summary>
+        /// Return the last N subset of the model objects
+        /// </summary>
+        /// <param name="modelObjects"></param>
+        /// <returns></returns>
         public override IEnumerable Filter(IEnumerable modelObjects) {
             if (this.Count <= 0)
                 return modelObjects;
@@ -131,45 +188,219 @@ namespace BrightIdeasSoftware
         }
     }
 
+    /// <summary>
+    /// Instances of this class include only those rows of the listview
+    /// that contain a given string.
+    /// </summary>
     public class TextMatchFilter : AbstractModelFilter
     {
+        public enum MatchKind
+        {
+            Text = 0,
+            StringStart = 2,
+            Regex = 4
+        }
+
+        #region Life and death
+
         public TextMatchFilter() {
-
         }
 
-        public TextMatchFilter(ObjectListView olv) {
-            this.ListView = olv;
+        public TextMatchFilter(ObjectListView olv) 
+            : this(olv, null, null) {
         }
 
-        public TextMatchFilter(ObjectListView olv, string text) {
+        public TextMatchFilter(ObjectListView olv, string text)
+            : this(olv, text, null) {
+        }
+
+        public TextMatchFilter(ObjectListView olv, string text, StringComparison comparison)
+            : this(olv, text, null, MatchKind.Text, comparison) {
+        }
+
+        public TextMatchFilter(ObjectListView olv, string text, MatchKind match)
+            : this(olv, text, null, match, StringComparison.InvariantCultureIgnoreCase) {
+        }
+
+        public TextMatchFilter(ObjectListView olv, string text, MatchKind match, StringComparison comparison)
+            : this(olv, text, null, match, comparison) {
+        }
+
+        public TextMatchFilter(ObjectListView olv, string text, OLVColumn[] columns)
+            : this(olv, text, columns, MatchKind.Text, StringComparison.InvariantCultureIgnoreCase) {
+        }
+
+        public TextMatchFilter(ObjectListView olv, string text, OLVColumn[] columns, MatchKind matchKind, StringComparison comparison) {
             this.ListView = olv;
             this.Text = text;
-        }
-
-        public TextMatchFilter(ObjectListView olv, string text, StringComparison comparison) {
-            this.ListView = olv;
-            this.Text = text;
+            this.Match = matchKind;
             this.StringComparison = comparison;
+            this.Columns = columns;
         }
 
-        public string Text;
-        public StringComparison StringComparison = StringComparison.InvariantCultureIgnoreCase;
+        #endregion
+
+        #region Configuration properties
+
+        /// <summary>
+        /// Gets or sets the text that will be matched
+        /// </summary>
+        public string Text {
+            get { return this.text; }
+            set {
+                this.text = value;
+                this.Regex = null;
+            }
+        }
+        private string text;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public StringComparison StringComparison {
+            get { return this.stringComparison; }
+            set {
+                this.stringComparison = value;
+                this.Regex = null;
+            }
+        }
+        private StringComparison stringComparison = StringComparison.InvariantCultureIgnoreCase;
+
+        /// <summary>
+        /// Which columns will be used for the comparisons? If this is null, all columns will be used
+        /// </summary>
+        public OLVColumn[] Columns {
+            get { return columns; }
+            set { columns = value; }
+        }
+        private OLVColumn[] columns;
+
+        /// <summary>
+        /// Gets or sets how the filter string will be matched to the values in the cells.
+        /// </summary>
+        /// <remarks>
+        /// If this is set to Regex, but Text is not a valid regular expression,
+        /// the filter will NOT throw an exception. Instead, it will treat Text as a simple text match.</remarks>
+        public MatchKind Match {
+            get { return match; }
+            set { 
+                match = value;
+                this.Regex = null;
+            }
+        }
+        private MatchKind match;
+
+        /// <summary>
+        /// Gets or sets the options that will be used when compiling the regular expression.
+        /// This is only used when MatchKind is Regex.
+        /// If this is not set specifically, the appropriate options are chosen to match the
+        /// StringComparison setting (culture invariant, case sensitive).
+        /// </summary>
+        public RegexOptions RegexOptions {
+            get {
+                if (!regexOptions.HasValue) {
+                    switch (this.StringComparison) {
+                        case StringComparison.CurrentCulture:
+                            regexOptions = RegexOptions.None;
+                            break;
+                        case StringComparison.CurrentCultureIgnoreCase:
+                            regexOptions = RegexOptions.IgnoreCase;
+                            break;
+                        case StringComparison.InvariantCulture:
+                            regexOptions = RegexOptions.CultureInvariant;
+                            break;
+                        case StringComparison.InvariantCultureIgnoreCase:
+                            regexOptions = RegexOptions.CultureInvariant | RegexOptions.IgnoreCase;
+                            break;
+                        default:
+                            regexOptions = RegexOptions.None;
+                            break;
+                    }
+                }
+                return regexOptions.Value; 
+            }
+            set { 
+                regexOptions = value;
+                this.Regex = null;
+            }
+        }
+        private RegexOptions? regexOptions;
+
+        #endregion
+
+        #region Implementation properties
 
         protected ObjectListView ListView;
+
+        /// <summary>
+        /// Gets or sets a compilex regular expression, based on our current Text and RegexOptions.
+        /// </summary>
+        /// <remarks>
+        /// If Text fails to compile as a regular expression, this will return a Regex object
+        /// that will match all strings.
+        /// </remarks>
+        protected Regex Regex {
+            get {
+                if (this.regex == null && this.Match == MatchKind.Regex) {
+                    try {
+                        this.regex = new Regex(this.Text, this.RegexOptions);
+                    } catch (ArgumentException) {
+                        this.regex = new Regex(".*");
+                    }
+                    return this.regex;
+                }
+                return this.regex;
+            }
+            set {
+                this.regex = value;
+            }
+        }
+        private Regex regex;
+
+        #endregion
+
+        #region Implementation
+
 
         public override bool Filter(object modelObject) {
             if (this.ListView == null || String.IsNullOrEmpty(this.Text))
                 return true;
 
-            foreach (OLVColumn column in this.ListView.Columns) {
-                if (column.IsVisible) {
-                    string cellText = column.GetStringValue(modelObject);
-                    if (cellText.IndexOf(this.Text, this.StringComparison) != -1)
-                        return true;
+            foreach (OLVColumn column in this.IterateColumns()) {
+                if (!column.IsVisible) 
+                    continue;
+
+                string cellText = column.GetStringValue(modelObject);
+
+                switch (this.Match) {
+                    case MatchKind.Text:
+                        if (cellText.IndexOf(this.Text, this.StringComparison) != -1)
+                            return true;
+                        break;
+                    case MatchKind.StringStart:
+                        if (cellText.StartsWith(this.Text, this.StringComparison))
+                            return true;
+                        break;
+                    case MatchKind.Regex:
+                        if (this.Regex.Match(cellText).Success)
+                            return true;
+                        break;
                 }
             }
 
             return false;
         }
+
+        protected IEnumerable<OLVColumn> IterateColumns() {
+            if (this.Columns == null) {
+                foreach (OLVColumn column in this.ListView.Columns)
+                    yield return column;
+            } else {
+                foreach (OLVColumn column in this.Columns)
+                    yield return column;
+            }
+        }
+
+        #endregion
     }
 }
