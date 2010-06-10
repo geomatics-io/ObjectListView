@@ -9173,10 +9173,10 @@ namespace BrightIdeasSoftware
         public string ValueToString(object value) {
             // CONSIDER: Should we give aspect-to-string converters a chance to work on a null value?
             if (value == null)
-                return "";
+                return String.Empty;
 
-            if (this.AspectToStringConverter != null)
-                return this.AspectToStringConverter(value);
+            if (this.AspectToStringConverter != null) 
+                return this.AspectToStringConverter(value) ?? String.Empty;
 
             string fmt = this.AspectToStringFormat;
             if (String.IsNullOrEmpty(fmt))
