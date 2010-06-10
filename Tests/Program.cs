@@ -29,10 +29,9 @@ namespace BrightIdeasSoftware.Tests
             MyGlobals g = new MyGlobals();
             g.RunBeforeAnyTests();
 
-            TestTreeView t = new TestTreeView();
+            TestFilters t = new TestFilters();
             t.Init();
-            t.InitEachTest();
-            t.TestExpand();
+            t.Test_TextFilter_Regex();
 
             g.RunAfterAnyTests();
         }

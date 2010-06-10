@@ -1,6 +1,7 @@
 ﻿
 using System.Collections;
 using NUnit.Framework;
+using System;
 
 namespace BrightIdeasSoftware.Tests
 {
@@ -91,6 +92,108 @@ namespace BrightIdeasSoftware.Tests
             this.olv.UseFiltering = true;
             this.olv.ListFilter = new TailFilter(1000000);
             Assert.AreEqual(PersonDb.All.Count, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_CaseInsensitive() {
+            this.olv.SetObjects(PersonDb.All);
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv, PersonDb.LastAlphabeticalName.ToLowerInvariant());
+            Assert.AreEqual(1, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_CaseSensitive() {
+            this.olv.SetObjects(PersonDb.All);
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv, PersonDb.LastAlphabeticalName.ToLowerInvariant(), StringComparison.InvariantCulture);
+            Assert.AreEqual(0, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_Prefix() {
+            this.olv.SetObjects(PersonDb.All);
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv,
+                PersonDb.LastAlphabeticalName.ToLowerInvariant().Substring(0, 4),
+                TextMatchFilter.MatchKind.StringStart);
+            Assert.AreEqual(1, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_Prefix_CaseSensitive() {
+            this.olv.SetObjects(PersonDb.All);
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv,
+                PersonDb.LastAlphabeticalName.ToLowerInvariant().Substring(0, 4),
+                TextMatchFilter.MatchKind.StringStart, StringComparison.InvariantCulture);
+            Assert.AreEqual(1, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_Prefix_NoMatch() {
+            this.olv.SetObjects(PersonDb.All);
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv,
+                PersonDb.LastAlphabeticalName.ToLowerInvariant().Substring(1, 4),
+                TextMatchFilter.MatchKind.StringStart);
+            Assert.AreEqual(0, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_NoMatch() {
+            this.olv.SetObjects(PersonDb.All);
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv, PersonDb.LastAlphabeticalName + "WILL NOT MATCH");
+            Assert.AreEqual(0, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_Regex() {
+            this.olv.SetObjects(PersonDb.All);
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv, "[z]+", TextMatchFilter.MatchKind.Regex);
+            Assert.AreEqual(1, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_Regex_CaseInsensitive() {
+            this.olv.SetObjects(PersonDb.All);
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv, "Z+", TextMatchFilter.MatchKind.Regex, StringComparison.CurrentCultureIgnoreCase);
+            Assert.AreEqual(1, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_Regex_CaseSensitive() {
+            this.olv.SetObjects(PersonDb.All);
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv, "Z+", TextMatchFilter.MatchKind.Regex, StringComparison.CurrentCulture);
+            Assert.AreEqual(0, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_Regex_Invalid() {
+            this.olv.SetObjects(PersonDb.All);
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv, @"[\*", TextMatchFilter.MatchKind.Regex);
+            Assert.AreEqual(PersonDb.All.Count, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_Columns() {
+            this.olv.SetObjects(PersonDb.All);
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv, "occup", new OLVColumn[] { this.olv.GetColumn(1), this.olv.GetColumn(2) });
+            Assert.AreEqual(PersonDb.All.Count, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_Columns_NoMatch() {
+            this.olv.SetObjects(PersonDb.All);
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv, "occup", new OLVColumn[] { this.olv.GetColumn(0), this.olv.GetColumn(2) });
+            Assert.AreEqual(0, this.olv.GetItemCount());
         }
 
         [TestFixtureSetUp]
