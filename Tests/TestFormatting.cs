@@ -133,7 +133,6 @@ namespace BrightIdeasSoftware.Tests
             this.olv.SetObjects(PersonDb.All);
             for (int j = 0; j < this.olv.GetItemCount(); j++) {
                 OLVListItem item = this.olv.GetItem(j);
-                //Assert.IsFalse(item.UseItemStyleForSubItems);
                 for (int i = 0; i < this.olv.Columns.Count; i++) {
                     OLVColumn column = this.olv.GetColumn(i);
                     if (column.Hyperlink) {
