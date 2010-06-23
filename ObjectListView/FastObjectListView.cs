@@ -164,6 +164,7 @@ namespace BrightIdeasSoftware
             foreach (int i in indicesToRemove)
                 this.fullObjectList.RemoveAt(i);
 
+            this.FilterObjects();
             this.RebuildIndexMap();
         }
 
