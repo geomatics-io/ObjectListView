@@ -2,6 +2,8 @@
 using System.Collections;
 using NUnit.Framework;
 using System;
+using System.Drawing;
+using System.Collections.Generic;
 
 namespace BrightIdeasSoftware.Tests
 {
@@ -194,6 +196,62 @@ namespace BrightIdeasSoftware.Tests
             this.olv.UseFiltering = true;
             this.olv.ModelFilter = new TextMatchFilter(this.olv, "occup", new OLVColumn[] { this.olv.GetColumn(0), this.olv.GetColumn(2) });
             Assert.AreEqual(0, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_FindAll_Text() {
+            TextMatchFilter filter = new TextMatchFilter(this.olv, "abc");
+            List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("x-abcd-ABCD"));
+            Assert.AreEqual(2, ranges.Count);
+            Assert.AreEqual(2, ranges[0].First);
+            Assert.AreEqual(3, ranges[0].Length);
+            Assert.AreEqual(7, ranges[1].First);
+            Assert.AreEqual(3, ranges[1].Length);
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_FindAll_Text_NoMatch() {
+            TextMatchFilter filter = new TextMatchFilter(this.olv, "xyz");
+            List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("x-abcd-ABCD"));
+            Assert.AreEqual(0, ranges.Count);
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_FindAll_StringStart() {
+            TextMatchFilter filter = new TextMatchFilter(this.olv, "abc", TextMatchFilter.MatchKind.StringStart);
+            List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("abcd-ABCD"));
+            Assert.AreEqual(1, ranges.Count);
+            Assert.AreEqual(0, ranges[0].First);
+            Assert.AreEqual(3, ranges[0].Length);
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_FindAll_StringStart_NoMatch() {
+            TextMatchFilter filter = new TextMatchFilter(this.olv, "abc", TextMatchFilter.MatchKind.StringStart);
+            List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("x-abcd-ABCD"));
+            Assert.AreEqual(0, ranges.Count);
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_FindAll_Regex() {
+            TextMatchFilter filter = new TextMatchFilter(this.olv, "[abcd]+", TextMatchFilter.MatchKind.Regex);
+            List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("nada-abcd-ab-ABCD"));
+            Assert.AreEqual(4, ranges.Count);
+            Assert.AreEqual(1, ranges[0].First);
+            Assert.AreEqual(3, ranges[0].Length);
+            Assert.AreEqual(5, ranges[1].First);
+            Assert.AreEqual(4, ranges[1].Length);
+            Assert.AreEqual(10, ranges[2].First);
+            Assert.AreEqual(2, ranges[2].Length);
+            Assert.AreEqual(13, ranges[3].First);
+            Assert.AreEqual(4, ranges[3].Length);
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_FindAll_Regex_NoMatch() {
+            TextMatchFilter filter = new TextMatchFilter(this.olv, "[yz]+", TextMatchFilter.MatchKind.Regex);
+            List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("x-abcd-ABCD"));
+            Assert.AreEqual(0, ranges.Count);
         }
 
         [TestFixtureSetUp]
