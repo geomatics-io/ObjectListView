@@ -106,7 +106,7 @@ namespace BrightIdeasSoftware
         public override bool CanShowGroups {
             get {
                 // Virtual lists need Vista and a grouping strategy to show groups
-                return (ObjectListView.IsVista && this.GroupingStrategy != null);
+                return (ObjectListView.IsVistaOrLater && this.GroupingStrategy != null);
             }
         }
 
@@ -298,7 +298,7 @@ namespace BrightIdeasSoftware
         override public bool ShowGroups {
             get {
                 // Pre-Vista, virtual lists cannot show groups
-                if (ObjectListView.IsVista)
+                if (ObjectListView.IsVistaOrLater)
                     return showGroups;
                 else
                     return false;
