@@ -229,6 +229,7 @@ namespace ObjectListViewDemo
             this.listViewPrinter1 = new BrightIdeasSoftware.ListViewPrinter();
             this.tabPage7 = new System.Windows.Forms.TabPage();
             this.groupBox11 = new System.Windows.Forms.GroupBox();
+            this.comboBox16 = new System.Windows.Forms.ComboBox();
             this.textBoxFilterFast = new System.Windows.Forms.TextBox();
             this.checkBox20 = new System.Windows.Forms.CheckBox();
             this.button19 = new System.Windows.Forms.Button();
@@ -1111,6 +1112,7 @@ namespace ObjectListViewDemo
             this.olvComplex.UseCompatibleStateImageBehavior = false;
             this.olvComplex.UseFiltering = true;
             this.olvComplex.UseHotItem = true;
+            this.olvComplex.UseHyperlinks = true;
             this.olvComplex.UseSubItemCheckBoxes = true;
             this.olvComplex.View = System.Windows.Forms.View.Details;
             this.olvComplex.CellEditStarting += new BrightIdeasSoftware.CellEditEventHandler(this.listViewComplex_CellEditStarting);
@@ -1139,6 +1141,7 @@ namespace ObjectListViewDemo
             // occupationColumn
             // 
             this.occupationColumn.AspectName = "Occupation";
+            this.occupationColumn.Hyperlink = true;
             this.occupationColumn.IsTileViewColumn = true;
             this.occupationColumn.Text = "Occupation";
             this.occupationColumn.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -1467,8 +1470,7 @@ namespace ObjectListViewDemo
             // highlightTextRenderer1
             // 
             this.highlightTextRenderer1.CanWrap = true;
-            this.highlightTextRenderer1.StringComparison = System.StringComparison.CurrentCultureIgnoreCase;
-            this.highlightTextRenderer1.TextToHighlight = null;
+            this.highlightTextRenderer1.Filter = null;
             this.highlightTextRenderer1.UseGdiTextRendering = false;
             // 
             // olvColumn2
@@ -2622,17 +2624,32 @@ namespace ObjectListViewDemo
             // groupBox11
             // 
             this.groupBox11.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox11.Controls.Add(this.comboBox16);
             this.groupBox11.Controls.Add(this.textBoxFilterFast);
-            this.groupBox11.Location = new System.Drawing.Point(688, 6);
+            this.groupBox11.Location = new System.Drawing.Point(591, 6);
             this.groupBox11.Name = "groupBox11";
-            this.groupBox11.Size = new System.Drawing.Size(117, 44);
+            this.groupBox11.Size = new System.Drawing.Size(214, 44);
             this.groupBox11.TabIndex = 20;
             this.groupBox11.TabStop = false;
             this.groupBox11.Text = "Filter";
             // 
+            // comboBox16
+            // 
+            this.comboBox16.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox16.FormattingEnabled = true;
+            this.comboBox16.Items.AddRange(new object[] {
+            "Any text",
+            "Prefix",
+            "Regex"});
+            this.comboBox16.Location = new System.Drawing.Point(114, 18);
+            this.comboBox16.Name = "comboBox16";
+            this.comboBox16.Size = new System.Drawing.Size(94, 21);
+            this.comboBox16.TabIndex = 1;
+            this.comboBox16.SelectedIndexChanged += new System.EventHandler(this.comboBox16_SelectedIndexChanged);
+            // 
             // textBoxFilterFast
             // 
-            this.textBoxFilterFast.Location = new System.Drawing.Point(7, 20);
+            this.textBoxFilterFast.Location = new System.Drawing.Point(7, 18);
             this.textBoxFilterFast.Name = "textBoxFilterFast";
             this.textBoxFilterFast.Size = new System.Drawing.Size(100, 20);
             this.textBoxFilterFast.TabIndex = 0;
@@ -2641,7 +2658,7 @@ namespace ObjectListViewDemo
             // checkBox20
             // 
             this.checkBox20.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.checkBox20.Location = new System.Drawing.Point(6, 472);
+            this.checkBox20.Location = new System.Drawing.Point(3, 476);
             this.checkBox20.Name = "checkBox20";
             this.checkBox20.Size = new System.Drawing.Size(60, 21);
             this.checkBox20.TabIndex = 18;
@@ -2679,7 +2696,7 @@ namespace ObjectListViewDemo
             this.label26.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label26.Location = new System.Drawing.Point(6, 6);
             this.label26.Name = "label26";
-            this.label26.Size = new System.Drawing.Size(676, 45);
+            this.label26.Size = new System.Drawing.Size(579, 45);
             this.label26.TabIndex = 16;
             this.label26.Text = resources.GetString("label26.Text");
             // 
@@ -2693,7 +2710,7 @@ namespace ObjectListViewDemo
             "Single Click",
             "Double Click",
             "F2 Only"});
-            this.comboBox9.Location = new System.Drawing.Point(188, 472);
+            this.comboBox9.Location = new System.Drawing.Point(222, 475);
             this.comboBox9.Name = "comboBox9";
             this.comboBox9.Size = new System.Drawing.Size(83, 21);
             this.comboBox9.TabIndex = 3;
@@ -2703,7 +2720,7 @@ namespace ObjectListViewDemo
             // 
             this.label24.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(143, 477);
+            this.label24.Location = new System.Drawing.Point(177, 480);
             this.label24.Name = "label24";
             this.label24.Size = new System.Drawing.Size(48, 13);
             this.label24.TabIndex = 2;
@@ -2713,7 +2730,7 @@ namespace ObjectListViewDemo
             // 
             this.label25.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(277, 477);
+            this.label25.Location = new System.Drawing.Point(311, 480);
             this.label25.Name = "label25";
             this.label25.Size = new System.Drawing.Size(33, 13);
             this.label25.TabIndex = 4;
@@ -2730,7 +2747,7 @@ namespace ObjectListViewDemo
             "List",
             "Tile",
             "Details"});
-            this.comboBox10.Location = new System.Drawing.Point(312, 472);
+            this.comboBox10.Location = new System.Drawing.Point(346, 475);
             this.comboBox10.Name = "comboBox10";
             this.comboBox10.Size = new System.Drawing.Size(83, 21);
             this.comboBox10.TabIndex = 5;
@@ -2741,9 +2758,9 @@ namespace ObjectListViewDemo
             this.checkBox13.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.checkBox13.Checked = true;
             this.checkBox13.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox13.Location = new System.Drawing.Point(67, 472);
+            this.checkBox13.Location = new System.Drawing.Point(72, 476);
             this.checkBox13.Name = "checkBox13";
-            this.checkBox13.Size = new System.Drawing.Size(113, 21);
+            this.checkBox13.Size = new System.Drawing.Size(87, 21);
             this.checkBox13.TabIndex = 1;
             this.checkBox13.Text = "Owner &Draw";
             this.checkBox13.UseVisualStyleBackColor = true;
@@ -4238,6 +4255,7 @@ namespace ObjectListViewDemo
         private OLVColumn olvColumnFiller;
         private Label label38;
         private ComboBox comboBox15;
+        private ComboBox comboBox16;
 
 	}
 }

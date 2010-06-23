@@ -60,7 +60,7 @@ namespace ObjectListViewDemo
 		void InitializeExamples()
 		{
             // Use different font under Vista
-            if (ObjectListView.IsVista)
+            if (ObjectListView.IsVistaOrLater)
                 this.Font = new Font("Segoe UI", 9);
 
 			masterList = new List<Person>();
@@ -262,7 +262,7 @@ namespace ObjectListViewDemo
             });
 
             // Which hot item style to use?
-            if (ObjectListView.IsVista)
+            if (ObjectListView.IsVistaOrLater)
                 this.comboBox15.Items.Add("Vista");
             this.comboBox15.SelectedIndex = 3;
 
@@ -674,7 +674,7 @@ namespace ObjectListViewDemo
             this.olvColumnAttributes.Renderer = attributesRenderer;
 
             // Which hot item style to use?
-            if (ObjectListView.IsVista)
+            if (ObjectListView.IsVistaOrLater)
                 this.comboBox14.Items.Add("Vista");
             this.comboBox14.SelectedIndex = 3;
 
@@ -1568,6 +1568,7 @@ namespace ObjectListViewDemo
 
             comboBox9.SelectedIndex = 0;
             comboBox10.SelectedIndex = 4;
+            comboBox16.SelectedIndex = 2;
 
             this.olvFast.SetObjects(list);
         }
@@ -1911,7 +1912,7 @@ namespace ObjectListViewDemo
             OLVColumn col = e.Column ?? e.ListView.GetColumn(0);
             string stringValue = col.GetStringValue(e.Model);
             if (stringValue.StartsWith("m", StringComparison.InvariantCultureIgnoreCase)) {
-                e.IsBalloon = !ObjectListView.IsVista; // balloons don't work reliably on vista
+                e.IsBalloon = !ObjectListView.IsVistaOrLater; // balloons don't work reliably on vista
                 e.ToolTipControl.SetMaxWidth(400);
                 e.Title = "WARNING";
                 e.StandardIcon = ToolTipControl.StandardIcons.InfoLarge;
@@ -2105,7 +2106,7 @@ namespace ObjectListViewDemo
         }
 
         private void checkBox20_CheckedChanged(object sender, EventArgs e) {
-            if (ObjectListView.IsVista) {
+            if (ObjectListView.IsVistaOrLater) {
                 this.olvFast.ShowGroups = !this.olvFast.ShowGroups;
                 this.olvFast.BuildList();
             } else {
@@ -2293,7 +2294,13 @@ namespace ObjectListViewDemo
         }
 
         private void textBoxFilterFast_TextChanged(object sender, EventArgs e) {
-            this.TimedFilter(this.olvFast, textBoxFilterFast.Text);
+            TextMatchFilter.MatchKind matchKind = TextMatchFilter.MatchKind.Text;
+            switch (comboBox16.SelectedIndex) {
+                case 0: matchKind = TextMatchFilter.MatchKind.Text; break;
+                case 1: matchKind = TextMatchFilter.MatchKind.StringStart; break;
+                case 2: matchKind = TextMatchFilter.MatchKind.Regex; break;
+            }
+            this.TimedFilter(this.olvFast, textBoxFilterFast.Text, matchKind);
         }
 
         private void textBoxFilterData_TextChanged(object sender, EventArgs e) {
@@ -2305,20 +2312,28 @@ namespace ObjectListViewDemo
         }
 
         void TimedFilter(ObjectListView olv, string txt) {
+            this.TimedFilter(olv, txt, TextMatchFilter.MatchKind.Text);
+        }
+
+        void TimedFilter(ObjectListView olv, string txt, TextMatchFilter.MatchKind matchKind) {
             TextMatchFilter filter = null;
             if (!String.IsNullOrEmpty(txt))
-                filter = new TextMatchFilter(olv, txt);
+                filter = new TextMatchFilter(olv, txt, matchKind);
 
             // Setup a default renderer to draw the filter matches
-            if (filter == null) 
+            if (filter == null)
                 olv.DefaultRenderer = null;
-            else 
-                olv.DefaultRenderer = new HighlightTextRenderer(txt);
+            else {
+                olv.DefaultRenderer = new HighlightTextRenderer(filter);
+
+                // Uncomment this line to see how the GDI+ rendering looks
+                //olv.DefaultRenderer = new HighlightTextRenderer { Filter = filter, UseGdiTextRendering = false };
+            }
 
             // Some lists have renderers already installed
             HighlightTextRenderer highlightingRenderer = olv.GetColumn(0).Renderer as HighlightTextRenderer;
             if (highlightingRenderer != null)
-                highlightingRenderer.TextToHighlight = txt;
+                highlightingRenderer.Filter = filter;
 
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -2339,6 +2354,11 @@ namespace ObjectListViewDemo
 
         private void listViewSimple_Scroll(object sender, ScrollEventArgs e) {
 
+        }
+
+        private void comboBox16_SelectedIndexChanged(object sender, EventArgs e) {
+            // Fake a TextChanged event so the filter updates
+            this.textBoxFilterFast_TextChanged(null, null);
         }
 
     }
