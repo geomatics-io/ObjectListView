@@ -325,14 +325,6 @@ namespace BrightIdeasSoftware
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct NMLVSCROLL
-        {
-            public NativeMethods.NMHDR hdr;
-            public int dx;
-            public int dy;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
         public struct NMCUSTOMDRAW
         {
             public NativeMethods.NMHDR nmcd;
@@ -369,15 +361,6 @@ namespace BrightIdeasSoftware
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = L_MAX_URL_LENGTH)]
             public string szUrl;
         }
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct NMLVLINK
-        {
-            public NMHDR hdr;
-            public LITEM link;
-            public int iItem;
-            public int iSubItem;
-        } 
 
         [StructLayout(LayoutKind.Sequential)]
         public struct NMLISTVIEW
@@ -417,6 +400,49 @@ namespace BrightIdeasSoftware
         }
 
         [StructLayout(LayoutKind.Sequential)]
+        public struct NMLVGETINFOTIP
+        {
+            public NativeMethods.NMHDR hdr;
+            public int dwFlags;
+            public string pszText;
+            public int cchTextMax;
+            public int iItem;
+            public int iSubItem;
+            public IntPtr lParam;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct NMLVLINK
+        {
+            public NMHDR hdr;
+            public LITEM link;
+            public int iItem;
+            public int iSubItem;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct NMLVSCROLL
+        {
+            public NativeMethods.NMHDR hdr;
+            public int dx;
+            public int dy;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        public struct NMTTDISPINFO
+        {
+            public NativeMethods.NMHDR hdr;
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string lpszText;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
+            public string szText;
+            public IntPtr hinst;
+            public int uFlags;
+            public IntPtr lParam;
+            //public int hbmp; This is documented but doesn't work
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
         public struct RECT
         {
             public int left;
@@ -448,20 +474,6 @@ namespace BrightIdeasSoftware
             public IntPtr hinst = IntPtr.Zero;
             public IntPtr lpszText;
             public IntPtr lParam = IntPtr.Zero;
-        }
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        public struct NMTTDISPINFO
-        {
-            public NativeMethods.NMHDR hdr;
-            [MarshalAs(UnmanagedType.LPTStr)]
-            public string lpszText;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
-            public string szText;
-            public IntPtr hinst;
-            public int uFlags;
-            public IntPtr lParam;
-            //public int hbmp; This is documented but doesn't work
         }
 
         [StructLayout(LayoutKind.Sequential)]
