@@ -5,6 +5,14 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2010-06-21  JPP  - Avoid bug in underlying ListView control where virtual lists in SmallIcon view
+ *                    generate GETTOOLINFO msgs with invalid item indicies.
+ *                  - Fixed bug where FastObjectListView would throw an exception when showing hyperlinks
+ *                    in any view except Details.
+ * 2010-06-15  JPP  - Fixed bug in ChangeToFilteredColumns() that resulted in column display order
+ *                    being lost when a column was hidden.
+ *                  - Renamed IsVista property to IsVistaOrLater which more accurately describes its function.
+ * v2.4
  * 2010-04-14  JPP  - Prevent object disposed errors when mouse event handlers cause the
  *                    ObjectListView to be destroyed (e.g. closing a form during a 
  *                    double click event).
@@ -484,14 +492,14 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets whether the program running on Vista or later?
         /// </summary>
-        static public bool IsVista {
+        static public bool IsVistaOrLater {
             get {
-                if (!ObjectListView.isVista.HasValue)
-                    ObjectListView.isVista = Environment.OSVersion.Version.Major >= 6;
-                return ObjectListView.isVista.Value;
+                if (!ObjectListView.isVistaOrLater.HasValue)
+                    ObjectListView.isVistaOrLater = Environment.OSVersion.Version.Major >= 6;
+                return ObjectListView.isVistaOrLater.Value;
             }
         }
-        static private bool? isVista;
+        static private bool? isVistaOrLater;
 
         /// <summary>
         /// Gets or sets how should text be renderered?
@@ -2580,10 +2588,6 @@ namespace BrightIdeasSoftware
                 } else {
                     this.Freeze();
 
-                    // If we are switching to a Detail or Tile view, setup the columns needed for that view
-                    //if (value == View.Details || value == View.Tile) {
-                    //    this.ChangeToFilteredColumns(value);
-
                     if (value == View.Tile)
                         this.CalculateReasonableTileSize();
 
@@ -3154,18 +3158,21 @@ namespace BrightIdeasSoftware
 
             this.Freeze();
             this.Clear();
-            List<OLVColumn> cols = this.GetFilteredColumns(view);
+            List<OLVColumn> columns = this.GetFilteredColumns(view);
             if (view == View.Details) {
-                // Where should each column be shown? We try to put it back where it last was,
-                // but if that's not possible, it appears at the end of the columns
-                foreach (OLVColumn x in cols) {
-                    if (x.LastDisplayIndex == -1 || x.LastDisplayIndex > cols.Count - 1)
-                        x.DisplayIndex = cols.Count - 1;
-                    else
-                        x.DisplayIndex = x.LastDisplayIndex;
-                }
+                // ListView will ignore DisplayIndex FOR ALL COLUMNS if there are any errors, 
+                // e.g. duplicates (two columns with the same DisplayIndex) or gaps. 
+                // LastDisplayIndex isn't guaranteed to be unique, so we just sort the columns by
+                // the last position they were displayed and use that to generate a sequence 
+                // we can use for the DisplayIndex values.
+                List<OLVColumn> columnsInDisplayOrder = new List<OLVColumn>(columns);
+                columnsInDisplayOrder.Sort(delegate(OLVColumn x, OLVColumn y) { return (x.LastDisplayIndex - y.LastDisplayIndex); });
+                int i = 0;
+                foreach (OLVColumn col in columnsInDisplayOrder)
+                    col.DisplayIndex = i++;
             }
-            this.Columns.AddRange(cols.ToArray());
+
+            this.Columns.AddRange(columns.ToArray());
             if (view == View.Details)
                 this.ShowSortIndicator();
             this.BuildList();
@@ -3720,10 +3727,6 @@ namespace BrightIdeasSoftware
         /// Rebuild the columns based upon its current view and column visibility settings
         /// </summary>
         public virtual void RebuildColumns() {
-            // THINK: Do we need this here? 2009/06/12
-            //if (this.UseCustomSelectionColors)
-            //    this.EnableCustomSelectionColors();
-
             this.ChangeToFilteredColumns(this.View);
         }
 
@@ -4016,7 +4019,7 @@ namespace BrightIdeasSoftware
             // KB 813791, but I couldn't find it anywhere. You can follow this thread to see the discussion
             // http://www.ureader.com/msg/1484143.aspx
 
-            if (!ObjectListView.IsVista && Control.MouseButtons == MouseButtons.Left && this.GridLines) {
+            if (!ObjectListView.IsVistaOrLater && Control.MouseButtons == MouseButtons.Left && this.GridLines) {
                 this.Invalidate();
                 this.Update();
             }
@@ -4172,7 +4175,7 @@ namespace BrightIdeasSoftware
                         base.WndProc(ref m);
                     break;
                 case 0x202:  /*WM_LBUTTONUP*/
-                    if (ObjectListView.IsVista && this.HasCollapsibleGroups)
+                    if (ObjectListView.IsVistaOrLater && this.HasCollapsibleGroups)
                         base.DefWndProc(ref m);
                     base.WndProc(ref m);
                     break;
@@ -4756,7 +4759,8 @@ namespace BrightIdeasSoftware
             const int NM_RELEASEDCAPTURE = -16;
             const int LVN_ITEMCHANGED = -101;
             const int LVN_ITEMCHANGING = -100;
-            const int LVN_MARQUEBEGIN = -156;
+            const int LVN_MARQUEEBEGIN = -156;
+            const int LVN_GETINFOTIP = -158;
             const int LVN_BEGINSCROLL = -180;
             const int LVN_ENDSCROLL = -181;
             const int LVN_LINKCLICK = -184;
@@ -4788,9 +4792,16 @@ namespace BrightIdeasSoftware
                     isMsgHandled = this.HandleLinkClick(ref m);
                     break;
 
-                case LVN_MARQUEBEGIN:
-                    //System.Diagnostics.Debug.WriteLine("LVN_MARQUEBEGIN");
+                case LVN_MARQUEEBEGIN:
+                    //System.Diagnostics.Debug.WriteLine("LVN_MARQUEEBEGIN");
                     this.isMarqueSelecting = true;
+                    break;
+
+                case LVN_GETINFOTIP:
+                    //System.Diagnostics.Debug.WriteLine("LVN_GETINFOTIP");
+                    // When virtual lists are in SmallIcon view, they generates tooltip message with invalid item indicies.
+                    NativeMethods.NMLVGETINFOTIP nmGetInfoTip = (NativeMethods.NMLVGETINFOTIP)m.GetLParam(typeof(NativeMethods.NMLVGETINFOTIP));
+                    isMsgHandled = nmGetInfoTip.iItem >= this.GetItemCount();
                     break;
 
                 case NM_RELEASEDCAPTURE:
@@ -5287,13 +5298,10 @@ namespace BrightIdeasSoftware
             strip.ItemClicked += new ToolStripItemClickedEventHandler(ColumnSelectMenu_ItemClicked);
             strip.Closing += new ToolStripDropDownClosingEventHandler(ColumnSelectMenu_Closing);
 
-            List<OLVColumn> columns = new List<OLVColumn>(this.AllColumns);
-            // Sort columns alphabetically
-            //columns.Sort(delegate(OLVColumn x, OLVColumn y) { return String.Compare(x.Text, y.Text, true); });
-
             // Sort columns by display order
             if (this.AllColumns.Count > 0 && this.AllColumns[0].LastDisplayIndex == -1)
                 this.RememberDisplayIndicies();
+            List<OLVColumn> columns = new List<OLVColumn>(this.AllColumns);
             columns.Sort(delegate(OLVColumn x, OLVColumn y) { return (x.LastDisplayIndex - y.LastDisplayIndex); });
 
             // Build menu from sorted columns
@@ -6324,6 +6332,8 @@ namespace BrightIdeasSoftware
 
             for (int i = 0; i < this.Columns.Count; i++) {
                 OLVListSubItem subItem = olvi.GetSubItem(i);
+                if (subItem == null)
+                    continue;
                 OLVColumn column = this.GetColumn(i);
                 subItem.BackColor = itemBackColor;
                 if (column.Hyperlink && !String.IsNullOrEmpty(subItem.Url)) {
@@ -7092,6 +7102,8 @@ namespace BrightIdeasSoftware
             NativeMethods.SetGroupImageList(this, this.GroupImageList);
 
             this.UseExplorerTheme = this.UseExplorerTheme;
+
+            this.RememberDisplayIndicies();
         }
 
         #endregion
@@ -7126,6 +7138,7 @@ namespace BrightIdeasSoftware
         /// <param name="keyData"></param>
         /// <returns></returns>
         protected override bool ProcessDialogKey(Keys keyData) {
+
             bool isSimpleTabKey = ((keyData & Keys.KeyCode) == Keys.Tab) && ((keyData & (Keys.Alt | Keys.Control)) == Keys.None);
 
             if (isSimpleTabKey && this.IsCellEditing) { // Tab key while editing
