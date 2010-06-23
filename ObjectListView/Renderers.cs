@@ -5,6 +5,9 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2010-06-23   JPP  - Major rework of HighlightTextRenderer. Now uses TextMatchFilter directly.
+ *                     Draw highlighting underneath text to improve legibility. Works with new
+ *                     TextMatchFilter capabilities.
  * v2.4
  * 2009-10-30   JPP  - Plugged possible resource leak by using using() with CreateGraphics()
  * v2.3
@@ -1276,20 +1279,24 @@ namespace BrightIdeasSoftware
 
 
     /// <summary>
-    /// This renderer highlights substrings that match a given text string. 
+    /// This renderer highlights substrings that match a given text filter. 
     /// </summary>
     public class HighlightTextRenderer : BaseRenderer
     {
         #region Life and death
 
         public HighlightTextRenderer() {
-            this.StringComparison = StringComparison.CurrentCultureIgnoreCase;
-            this.FramePen = Pens.DarkBlue;
-            this.FillBrush = new SolidBrush(Color.FromArgb(96, Color.CornflowerBlue));
+            this.FramePen = Pens.DarkGreen;
+            this.FillBrush = Brushes.Yellow;
         }
 
-        public HighlightTextRenderer(string text) : this() {
-            this.TextToHighlight = text;
+        public HighlightTextRenderer(TextMatchFilter filter)
+            : this() {
+            this.Filter = filter;
+        }
+
+        [Obsolete("Use HighlightTextRenderer(TextMatchFilter) instead", true)]
+        public HighlightTextRenderer(string text) {
         }
 
         #endregion
@@ -1297,29 +1304,47 @@ namespace BrightIdeasSoftware
         #region Configuration properties
 
         /// <summary>
-        /// Gets or set the text that will be highlighted
+        /// Gets or set how rounded will be the corners of the text match frame
         /// </summary>
-        public string TextToHighlight {
-            get { return textToHighlight; }
-            set { textToHighlight = value; }
+        [Category("Appearance"),
+         DefaultValue(3.0f),
+         Description("How rounded will be the corners of the text match frame?")]
+        public float CornerRoundness {
+            get { return cornerRoundness; }
+            set { cornerRoundness = value; }
         }
-        private string textToHighlight;
+        private float cornerRoundness = 3.0f;
 
         /// <summary>
-        /// Gets or sets the manner in which substring will be compared.
+        /// Gets or set the brush will be used to paint behind the matched substrings.
+        /// Set this to null to not fill the frame.
         /// </summary>
-        /// <remarks>
-        /// Use this to control if substring matches are case sensitive or insensitive.</remarks>
-        public StringComparison StringComparison {
-            get { return stringComparison; }
-            set { stringComparison = value; }
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public Brush FillBrush {
+            get { return fillBrush; }
+            set { fillBrush = value; }
         }
-        private StringComparison stringComparison;
+        private Brush fillBrush;
+
+        /// <summary>
+        /// Gets or sets the filter that is filtering the ObjectListView and for
+        /// which this renderer should highlight text
+        /// </summary>
+        [Browsable(false), 
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public TextMatchFilter Filter {
+            get { return filter; }
+            set { filter = value; }
+        }
+        private TextMatchFilter filter;
 
         /// <summary>
         /// Gets or set the pen will be used to frame the matched substrings.
         /// Set this to null to not draw a frame.
         /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Pen FramePen {
             get { return framePen; }
             set { framePen = value; }
@@ -1327,18 +1352,42 @@ namespace BrightIdeasSoftware
         private Pen framePen;
 
         /// <summary>
-        /// Gets or set the brush will be used to paint over the matched substrings.
-        /// Set this to null to not fill the frame.
+        /// Gets or sets whether the frame around a text match will have rounded corners
+        /// </summary>
+        [Category("Appearance"),
+         DefaultValue(true),
+         Description("Will the frame around a text match will have rounded corners?")]
+        public bool UseRoundedRectangle {
+            get { return useRoundedRectangle; }
+            set { useRoundedRectangle = value; }
+        }
+        private bool useRoundedRectangle = true;
+
+        #endregion
+
+        #region Compatibility properties
+
+        /// <summary>
+        /// Gets or set the text that will be highlighted
+        /// </summary>
+        [Obsolete("Set the Filter directly rather than just the text", true)]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public string TextToHighlight {
+            get { return String.Empty; }
+            set { }
+        }
+
+        /// <summary>
+        /// Gets or sets the manner in which substring will be compared.
         /// </summary>
         /// <remarks>
-        /// This is used to literally paint over the substring, so it must have be 
-        /// transluscent if you want to substring to be legible.
-        /// </remarks>
-        public Brush FillBrush {
-            get { return fillBrush; }
-            set { fillBrush = value; }
+        /// Use this to control if substring matches are case sensitive or insensitive.</remarks>
+        [Obsolete("Set the Filter directly rather than just this setting", true)]
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public StringComparison StringComparison {
+            get { return StringComparison.CurrentCultureIgnoreCase; }
+            set { }
         }
-        private Brush fillBrush;
 
         #endregion
 
@@ -1349,9 +1398,10 @@ namespace BrightIdeasSoftware
         // since that it is what is normally used.
 
         protected override void DrawTextGdi(Graphics g, Rectangle r, string txt) {
-            base.DrawTextGdi(g, r, txt);
-            if (!String.IsNullOrEmpty(this.TextToHighlight))
+            if (this.Filter != null && !String.IsNullOrEmpty(this.Filter.Text))
                 this.DrawGdiTextHighlighting(g, r, txt);
+
+            base.DrawTextGdi(g, r, txt);
         }
 
         protected virtual void DrawGdiTextHighlighting(Graphics g, Rectangle r, string txt) {
@@ -1362,54 +1412,62 @@ namespace BrightIdeasSoftware
             // that into account when measuring strings
             int paddingAdjustment = 6;
 
-            // Find the substrings we want to highlight
-            int start = 0;
-            int found = txt.IndexOf(this.TextToHighlight, start, this.StringComparison);
-            while (found >= 0) {
+            // Cache the font
+            Font f = this.Font;
+
+            foreach (CharacterRange range in this.Filter.FindAllMatchedRanges(txt)) {
                 // Measure the text that comes before our substring
                 Size precedingTextSize = Size.Empty;
-                if (found > 0) {
-                    string precedingText = txt.Substring(0, found);
-                    precedingTextSize = TextRenderer.MeasureText(g, precedingText, this.Font, r.Size, flags);
+                if (range.First > 0) {
+                    string precedingText = txt.Substring(0, range.First);
+                    precedingTextSize = TextRenderer.MeasureText(g, precedingText, f, r.Size, flags);
                     precedingTextSize.Width -= paddingAdjustment;
                 }
 
                 // Measure the length of our substring (may be different each time due to case differences)
-                string highlightText = txt.Substring(found, this.TextToHighlight.Length);
-                Size textToHighlightSize = TextRenderer.MeasureText(g, highlightText, this.Font, r.Size, flags);
+                string highlightText = txt.Substring(range.First, range.Length);
+                Size textToHighlightSize = TextRenderer.MeasureText(g, highlightText, f, r.Size, flags);
                 textToHighlightSize.Width -= paddingAdjustment;
 
                 // Draw a filled frame around our substring
-                Rectangle bounds = new Rectangle(r.X + precedingTextSize.Width + 1, r.Top, textToHighlightSize.Width, r.Height - 2);
-                if (this.FramePen != null)
-                    g.DrawRectangle(this.FramePen, bounds);
-                if (this.FillBrush != null)
-                    g.FillRectangle(this.FillBrush, bounds);
+                this.DrawSubstringFrame(g, r.X + precedingTextSize.Width + 1, r.Top,
+                        textToHighlightSize.Width, r.Height - 2);
+            }
+        }
 
-                // Find our next match
-                start = found + this.TextToHighlight.Length;
-                found = txt.IndexOf(this.TextToHighlight, start, StringComparison.CurrentCultureIgnoreCase);
+        /// <summary>
+        /// Draw an indication around the given frame that shows a text match
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        protected virtual void DrawSubstringFrame(Graphics g, float x, float y, float width, float height) {
+            if (this.UseRoundedRectangle) {
+                GraphicsPath path = this.GetRoundedRect(x, y, width, height, 3.0f);
+                if (this.FillBrush != null)
+                    g.FillPath(this.FillBrush, path);
+                if (this.FramePen != null)
+                    g.DrawPath(this.FramePen, path);
+            } else {
+                if (this.FillBrush != null)
+                    g.FillRectangle(this.FillBrush, x, y, width, height);
+                if (this.FramePen != null)
+                    g.DrawRectangle(this.FramePen, x, y, width, height);
             }
         }
 
         protected override void DrawTextGdiPlus(Graphics g, Rectangle r, string txt) {
-            base.DrawTextGdiPlus(g, r, txt);
-            if (!String.IsNullOrEmpty(this.TextToHighlight))
+            if (this.Filter != null && !String.IsNullOrEmpty(this.Filter.Text))
                 this.DrawGdiPlusTextHighlighting(g, r, txt);
+
+            base.DrawTextGdiPlus(g, r, txt);
         }
 
         protected virtual void DrawGdiPlusTextHighlighting(Graphics g, Rectangle r, string txt) {
             // Find the substrings we want to highlight
-            List<CharacterRange> ranges = new List<CharacterRange>();
-            int start = 0;
-            int found = 0;
-            while (found >= 0) {
-                found = txt.IndexOf(this.TextToHighlight, start, this.StringComparison);
-                if (found >= 0) {
-                    ranges.Add(new CharacterRange(found, this.TextToHighlight.Length));
-                    start = found + this.TextToHighlight.Length;
-                } 
-            }
+            List<CharacterRange> ranges = new List<CharacterRange>(this.Filter.FindAllMatchedRanges(txt));
             
             if (ranges.Count == 0)
                 return;
@@ -1421,12 +1479,42 @@ namespace BrightIdeasSoftware
 
                 foreach (Region region in stringRegions) {
                     RectangleF bounds = region.GetBounds(g);
-                    if (this.FramePen != null)
-                        g.DrawRectangle(this.FramePen, bounds.X - 1, bounds.Y - 1, bounds.Width + 2, bounds.Height);
-                    if (this.FillBrush != null)
-                        g.FillRectangle(this.FillBrush, bounds.X - 1, bounds.Y - 1, bounds.Width + 2, bounds.Height);
+                    this.DrawSubstringFrame(g, bounds.X - 1, bounds.Y - 1, bounds.Width + 2, bounds.Height);
                 }
             }
+        }
+
+        #endregion
+
+        #region Utilities
+
+        /// <summary>
+        /// Return a GraphicPath that is a round cornered rectangle
+        /// </summary>
+        /// <param name="rect">The rectangle</param>
+        /// <param name="diameter">The diameter of the corners</param>
+        /// <returns>A round cornered rectagle path</returns>
+        /// <remarks>If I could rely on people using C# 3.0+, this should be
+        /// an extension method of GraphicsPath.</remarks>
+        protected GraphicsPath GetRoundedRect(float x, float y, float width, float height, float diameter) {
+            RectangleF rect = new RectangleF(x, y, width, height);
+            GraphicsPath path = new GraphicsPath();
+
+            if (diameter > 0) {
+                RectangleF arc = new RectangleF(rect.X, rect.Y, diameter, diameter);
+                path.AddArc(arc, 180, 90);
+                arc.X = rect.Right - diameter;
+                path.AddArc(arc, 270, 90);
+                arc.Y = rect.Bottom - diameter;
+                path.AddArc(arc, 0, 90);
+                arc.X = rect.Left;
+                path.AddArc(arc, 90, 90);
+                path.CloseFigure();
+            } else {
+                path.AddRectangle(rect);
+            }
+
+            return path;
         }
 
         #endregion
