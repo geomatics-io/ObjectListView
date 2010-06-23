@@ -5,6 +5,8 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2010-06-15  JPP  - Fixed bug in Tree.RemoveObjects() which resulted in removed objects
+ *                    being reported as still existing.
  * v2.3
  * 2009-09-01  JPP  - Fixed off-by-one error that was messing up hit detection
  * 2009-08-27  JPP  - Fixed bug when dragging a node from one place to another in the tree
@@ -912,8 +914,10 @@ namespace BrightIdeasSoftware
                 ArrayList newRoots = new ArrayList();
                 foreach (Object x in this.treeView.Roots)
                     newRoots.Add(x);
-                foreach (Object x in modelObjects)
+                foreach (Object x in modelObjects) {
                     newRoots.Remove(x);
+                    this.mapObjectToIndex.Remove(x);
+                }
                 this.SetObjects(newRoots);
             }
 
