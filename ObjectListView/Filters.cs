@@ -5,6 +5,7 @@
  * Date: 03/03/2010 17:00 
  *
  * Change log:
+ * 2010-06-23  JPP  Extended TextMatchFilter to handle regular expressions and string prefix matching.
  * v2.4
  * 2010-03-03  JPP  Initial version
  *
@@ -34,6 +35,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Drawing;
 
 namespace BrightIdeasSoftware
 {
@@ -330,7 +332,7 @@ namespace BrightIdeasSoftware
 
         #region Implementation properties
 
-        protected ObjectListView ListView;
+        internal ObjectListView ListView;
 
         /// <summary>
         /// Gets or sets a compilex regular expression, based on our current Text and RegexOptions.
@@ -345,9 +347,8 @@ namespace BrightIdeasSoftware
                     try {
                         this.regex = new Regex(this.Text, this.RegexOptions);
                     } catch (ArgumentException) {
-                        this.regex = new Regex(".*");
+                        this.regex = TextMatchFilter.InvalidRegexMarker;
                     }
-                    return this.regex;
                 }
                 return this.regex;
             }
@@ -357,40 +358,96 @@ namespace BrightIdeasSoftware
         }
         private Regex regex;
 
+        /// <summary>
+        /// Gets whether or not our current regular expression is a valid regex
+        /// </summary>
+        protected bool IsRegexInvalid {
+            get {
+                return this.Regex == TextMatchFilter.InvalidRegexMarker;
+            }
+        }
+        static private Regex InvalidRegexMarker = new Regex(".*");
+
         #endregion
 
         #region Implementation
-
 
         public override bool Filter(object modelObject) {
             if (this.ListView == null || String.IsNullOrEmpty(this.Text))
                 return true;
 
+            // Don't do anything if the Regex is invalid
+            if (this.Match == MatchKind.Regex && this.IsRegexInvalid)
+                return true;
+
             foreach (OLVColumn column in this.IterateColumns()) {
-                if (!column.IsVisible) 
-                    continue;
-
-                string cellText = column.GetStringValue(modelObject);
-
-                switch (this.Match) {
-                    case MatchKind.Text:
-                        if (cellText.IndexOf(this.Text, this.StringComparison) != -1)
-                            return true;
-                        break;
-                    case MatchKind.StringStart:
-                        if (cellText.StartsWith(this.Text, this.StringComparison))
-                            return true;
-                        break;
-                    case MatchKind.Regex:
-                        if (this.Regex.Match(cellText).Success)
-                            return true;
-                        break;
+                if (column.IsVisible) {
+                    string cellText = column.GetStringValue(modelObject);
+                    if (this.MatchesText(cellText))
+                        return true;
                 }
             }
 
             return false;
         }
 
+        /// <summary>
+        /// Does the given text match the filter
+        /// </summary>
+        /// <param name="cellText"></param>
+        /// <returns></returns>
+        protected bool MatchesText(string cellText) {
+            switch (this.Match) {
+                case MatchKind.Text:
+                    return (cellText.IndexOf(this.Text, this.StringComparison) != -1);
+                case MatchKind.StringStart:
+                    return (cellText.StartsWith(this.Text, this.StringComparison));
+                case MatchKind.Regex:
+                    return (this.Regex.Match(cellText).Success);
+            }
+            // Should never reach here
+            return false;
+        }
+
+        /// <summary>
+        /// Find all the ways in which this filter matches the given string.
+        /// </summary>
+        /// <remarks>This is used by the renderer to decide which bits of
+        /// the string should be highlighted</remarks>
+        /// <param name="cellText"></param>
+        /// <returns>A list of character ranges indicating the matched substrings</returns>
+        public IEnumerable<CharacterRange> FindAllMatchedRanges(string cellText) {
+            List<CharacterRange> ranges = new List<CharacterRange>();
+
+            switch (this.Match) {
+                case MatchKind.Text:
+                    int matchIndex = cellText.IndexOf(this.Text, this.StringComparison);
+                    while (matchIndex != -1) {
+                        ranges.Add(new CharacterRange(matchIndex, this.Text.Length));
+                        matchIndex = cellText.IndexOf(this.Text, matchIndex + this.Text.Length, this.StringComparison);
+                    }
+                    break;
+                case MatchKind.StringStart:
+                    if (cellText.StartsWith(this.Text, this.StringComparison))
+                        ranges.Add(new CharacterRange(0, this.Text.Length));
+                    break;
+                case MatchKind.Regex:
+                    if (!this.IsRegexInvalid) {
+                        foreach (Match match in this.Regex.Matches(cellText)) {
+                            if (match.Length > 0)
+                                ranges.Add(new CharacterRange(match.Index, match.Length));
+                        }
+                    }
+                    break;
+            }
+
+            return ranges;
+        }
+
+        /// <summary>
+        /// Loop over the columns that are being considering by the filter
+        /// </summary>
+        /// <returns></returns>
         protected IEnumerable<OLVColumn> IterateColumns() {
             if (this.Columns == null) {
                 foreach (OLVColumn column in this.ListView.Columns)
@@ -400,6 +457,25 @@ namespace BrightIdeasSoftware
                     yield return column;
             }
         }
+
+        /// <summary>
+        /// Is the given column one of the columns being used by this filter?
+        /// </summary>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        internal bool IsIncluded(OLVColumn column) {
+            if (this.Columns == null) {
+                return column.ListView == this.ListView;
+            }
+
+            foreach (OLVColumn x in this.Columns) {
+                if (x == column)
+                    return true;
+            }
+
+            return false;
+        }
+
 
         #endregion
     }
