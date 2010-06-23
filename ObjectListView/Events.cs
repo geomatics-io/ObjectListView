@@ -529,7 +529,8 @@ namespace BrightIdeasSoftware
 
             // Also, this timed response stops us from sending a series of validation events
             // if the user clicks and holds on the OLV scroll bar.
-            if ((Environment.TickCount - lastValidatingEvent) < 500) {
+            //System.Diagnostics.Debug.WriteLine(Environment.TickCount - lastValidatingEvent);
+            if ((Environment.TickCount - lastValidatingEvent) < 100) {
                 e.Cancel = true;
             } else {
                 lastValidatingEvent = Environment.TickCount;
