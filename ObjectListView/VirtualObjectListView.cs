@@ -413,9 +413,9 @@ namespace BrightIdeasSoftware
             if (this.DataSource == null || modelObject == null)
                 return null;
 
-            int idx = this.DataSource.GetObjectIndex(modelObject);
-            if (idx >= 0)
-                return this.GetItem(idx);
+            int index = this.DataSource.GetObjectIndex(modelObject);
+            if (index >= 0)
+                return this.GetItem(index);
             else
                 return null;
         }
@@ -603,13 +603,18 @@ namespace BrightIdeasSoftware
         #region Implementation
 
         /// <summary>
-        /// Invalidate any cached information when we rebuild the list.
+        /// Rebuild the list with its current contents.
         /// </summary>
+        /// <remarks>
+        /// Invalidate any cached information when we rebuild the list.
+        /// </remarks>
         public override void BuildList(bool shouldPreserveSelection) {
             this.UpdateVirtualListSize();
             this.ClearCachedInfo();
             if (this.ShowGroups)
                 this.BuildGroups();
+            else
+                this.Sort();
             this.Invalidate();
         }
 
@@ -639,7 +644,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Make a list of groups that should be shown according to the given parameters
         /// </summary>
-        /// <param name="parms"></param>
+        /// <param name="parmameters"></param>
         /// <returns></returns>
         protected override IList<OLVGroup> MakeGroups(GroupingParameters parms) {
             if (this.GroupingStrategy == null)
