@@ -284,11 +284,11 @@ namespace BrightIdeasSoftware
             if (this.GetItemCount() == 0)
                 return;
             IList selection = this.SelectedObjects;
-            int idx = this.TreeModel.Collapse(model);
-            if (idx >= 0) {
+            int index = this.TreeModel.Collapse(model);
+            if (index >= 0) {
                 this.UpdateVirtualListSize();
                 this.SelectedObjects = selection;
-                this.RedrawItems(idx, this.GetItemCount() - 1, false);
+                this.RedrawItems(index, this.GetItemCount() - 1, false);
             }
         }
 
@@ -299,11 +299,11 @@ namespace BrightIdeasSoftware
             if (this.GetItemCount() == 0)
                 return;
             IList selection = this.SelectedObjects;
-            int idx = this.TreeModel.CollapseAll();
-            if (idx >= 0) {
+            int index = this.TreeModel.CollapseAll();
+            if (index >= 0) {
                 this.UpdateVirtualListSize();
                 this.SelectedObjects = selection;
-                this.RedrawItems(idx, this.GetItemCount() - 1, false);
+                this.RedrawItems(index, this.GetItemCount() - 1, false);
             }
         }
 
@@ -338,8 +338,8 @@ namespace BrightIdeasSoftware
             IList selection = this.SelectedObjects;
 
             // Expand the model first
-            int idx = this.TreeModel.Expand(model);
-            if (idx < 0)
+            int index = this.TreeModel.Expand(model);
+            if (index < 0)
                 return;
 
             // Update the size of the list and restore the selection
@@ -347,18 +347,18 @@ namespace BrightIdeasSoftware
             this.SelectedObjects = selection;
 
             // Redraw the items that were changed by the expand operation
-            this.RedrawItems(idx, this.GetItemCount() - 1, false);
+            this.RedrawItems(index, this.GetItemCount() - 1, false);
 
-            if (this.RevealAfterExpand && idx > 0) {
+            if (this.RevealAfterExpand && index > 0) {
                 // TODO: This should be a separate method
                 this.BeginUpdate();
                 try {
                     int countPerPage = NativeMethods.GetCountPerPage(this);
                     int descedentCount = this.TreeModel.GetVisibleDescendentCount(model);
                     if (descedentCount < countPerPage)
-                        this.EnsureVisible(idx + descedentCount);
+                        this.EnsureVisible(index + descedentCount);
                     else
-                        this.TopItemIndex = idx;
+                        this.TopItemIndex = index;
                 }
                 finally {
                     this.EndUpdate();
@@ -375,11 +375,11 @@ namespace BrightIdeasSoftware
             if (this.GetItemCount() == 0)
                 return;
             IList selection = this.SelectedObjects;
-            int idx = this.TreeModel.ExpandAll();
-            if (idx >= 0) {
+            int index = this.TreeModel.ExpandAll();
+            if (index >= 0) {
                 this.UpdateVirtualListSize();
                 this.SelectedObjects = selection;
-                this.RedrawItems(idx, this.GetItemCount() - 1, false);
+                this.RedrawItems(index, this.GetItemCount() - 1, false);
             }
         }
 
@@ -402,9 +402,9 @@ namespace BrightIdeasSoftware
             int firstChange = Int32.MaxValue;
             foreach (Object model in modelObjects) {
                 if (model != null) {
-                    int idx = this.TreeModel.RebuildChildren(model);
-                    if (idx >= 0)
-                        firstChange = Math.Min(firstChange, idx);
+                    int index = this.TreeModel.RebuildChildren(model);
+                    if (index >= 0)
+                        firstChange = Math.Min(firstChange, index);
                 }
             }
 
@@ -702,10 +702,10 @@ namespace BrightIdeasSoftware
                 br.Collapse();
 
                 // Remove the visible descendents from after the branch itself
-                int idx = this.GetObjectIndex(model);
-                this.objectList.RemoveRange(idx + 1, count);
-                this.RebuildObjectMap(idx + 1);
-                return idx;
+                int index = this.GetObjectIndex(model);
+                this.objectList.RemoveRange(index + 1, count);
+                this.RebuildObjectMap(index + 1);
+                return index;
             }
 
             /// <summary>
@@ -735,9 +735,9 @@ namespace BrightIdeasSoftware
                 if (br == null || !br.CanExpand || br.IsExpanded|| !br.Visible)
                     return -1;
 
-                int idx = this.GetObjectIndex(model);
-                this.InsertChildren(br, idx + 1);
-                return idx;
+                int index = this.GetObjectIndex(model);
+                this.InsertChildren(br, index + 1);
+                return index;
             }
 
             /// <summary>
@@ -795,12 +795,12 @@ namespace BrightIdeasSoftware
                 br.ClearCachedInfo();
 
                 // Remove the visible descendents from after the branch itself
-                int idx = this.GetObjectIndex(model);
+                int index = this.GetObjectIndex(model);
                 if (count > 0)
-                    this.objectList.RemoveRange(idx + 1, count);
+                    this.objectList.RemoveRange(index + 1, count);
                 if (br.IsExpanded)
-                    this.InsertChildren(br, idx + 1);
-                return idx;
+                    this.InsertChildren(br, index + 1);
+                return index;
             }
 
             //------------------------------------------------------------------------------------------
@@ -810,15 +810,15 @@ namespace BrightIdeasSoftware
             /// Insert the children of the given branch into the given position
             /// </summary>
             /// <param name="br">The branch whose children should be inserted</param>
-            /// <param name="idx">The index where the children should be inserted</param>
-            protected virtual void InsertChildren(Branch br, int idx) {
+            /// <param name="index">The index where the children should be inserted</param>
+            protected virtual void InsertChildren(Branch br, int index) {
                 // Expand the branch
                 br.Expand();
                 br.Sort(this.GetBranchComparer());
 
                 // Insert the branch's visible descendents after the branch itself
-                this.objectList.InsertRange(idx, br.Flatten());
-                this.RebuildObjectMap(idx);
+                this.objectList.InsertRange(index, br.Flatten());
+                this.RebuildObjectMap(index);
             }
 
             /// <summary>
@@ -865,10 +865,10 @@ namespace BrightIdeasSoftware
             }
 
             public virtual int GetObjectIndex(object model) {
-                int idx;
+                int index;
 
-                if (model != null && this.mapObjectToIndex.TryGetValue(model, out idx))
-                    return idx;
+                if (model != null && this.mapObjectToIndex.TryGetValue(model, out index))
+                    return index;
                 else
                     return -1;
             }
@@ -883,6 +883,8 @@ namespace BrightIdeasSoftware
             public virtual void Sort(OLVColumn column, SortOrder order) {
                 this.lastSortColumn = column;
                 this.lastSortOrder = order;
+
+                // TODO: Need to raise an AboutToSortEvent here
 
                 // Sorting is going to change the order of the branches so clear
                 // the "first branch" flag

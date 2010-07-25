@@ -534,7 +534,7 @@ namespace BrightIdeasSoftware
         public static extern bool GetClientRect(IntPtr hWnd, ref Rectangle r);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
-        public static extern bool GetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO si);
+        public static extern bool GetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO scrollInfo);
 
         [DllImport("user32.dll", EntryPoint = "GetUpdateRect", CharSet = CharSet.Auto)]
         private static extern int GetUpdateRectInternal(IntPtr hWnd, ref Rectangle r, bool eraseBackground);
@@ -543,7 +543,7 @@ namespace BrightIdeasSoftware
         private static extern bool ImageList_Draw(IntPtr himl, int i, IntPtr hdcDst, int x, int y, int fStyle);
 
         //[DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
-        //public static extern bool SetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO si, bool fRedraw);
+        //public static extern bool SetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO scrollInfo, bool fRedraw);
 
         [DllImport("user32.dll")]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
@@ -869,10 +869,10 @@ namespace BrightIdeasSoftware
         public static int GetScrollPosition(ListView lv, bool horizontalBar) {
             int fnBar = (horizontalBar ? SB_HORZ : SB_VERT);
 
-            SCROLLINFO si = new SCROLLINFO();
-            si.fMask = SIF_POS;
-            if (GetScrollInfo(lv.Handle, fnBar, si))
-                return si.nPos;
+            SCROLLINFO scrollInfo = new SCROLLINFO();
+            scrollInfo.fMask = SIF_POS;
+            if (GetScrollInfo(lv.Handle, fnBar, scrollInfo))
+                return scrollInfo.nPos;
             else
                 return -1;
         }

@@ -41,6 +41,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using System.Security.Permissions;
 
 namespace BrightIdeasSoftware
 {
@@ -598,7 +599,8 @@ namespace BrightIdeasSoftware
         /// Mess with the basic message pump of the tooltip
         /// </summary>
         /// <param name="msg"></param>
-        override protected void WndProc(ref Message msg) {
+		[SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]       
+		override protected void WndProc(ref Message msg) {
             //System.Diagnostics.Trace.WriteLine(String.Format("xx {0:x}", msg.Msg));
             switch (msg.Msg) {
                 case 0x4E: // WM_NOTIFY
@@ -619,7 +621,14 @@ namespace BrightIdeasSoftware
 
         #region Events
 
+        /// <summary>
+        /// Tell the world that a tooltip is about to show
+        /// </summary>
         public event EventHandler<ToolTipShowingEventArgs> Showing;
+
+        /// <summary>
+        /// Tell the world that a tooltip is about to disappear
+        /// </summary>
         public event EventHandler<EventArgs> Pop;
 
         protected virtual void OnShowing(ToolTipShowingEventArgs e) {
