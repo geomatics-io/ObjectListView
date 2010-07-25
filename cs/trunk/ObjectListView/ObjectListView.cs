@@ -5,6 +5,9 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2010-07-25  JPP  - Correctly trigger a Click event when the mouse is clicked.
+ * 2010-07-16  JPP  - Invalidate the control before and after cell editing to make sure it looks right
+ * 2010-06-23  JPP  - Right mouse clicks on checkboxes no longer confuse them
  * 2010-06-21  JPP  - Avoid bug in underlying ListView control where virtual lists in SmallIcon view
  *                    generate GETTOOLINFO msgs with invalid item indicies.
  *                  - Fixed bug where FastObjectListView would throw an exception when showing hyperlinks
@@ -659,6 +662,17 @@ namespace BrightIdeasSoftware
             set { cellEditActivation = value; }
         }
         private CellEditActivateMode cellEditActivation = CellEditActivateMode.None;
+
+        /// <summary>
+        /// Gets the control that is currently being used for editing a cell.
+        /// </summary>
+        /// <remarks>This will obviously be null if no cell is being edited.</remarks>
+        [Browsable(false)]
+        public Control CellEditor {
+            get {
+                return this.cellEditor;
+            }
+        }
 
         /// <summary>
         /// Gets the tool tip that shows tips for the cells
@@ -2969,7 +2983,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Make a list of groups that should be shown according to the given parameters
         /// </summary>
-        /// <param name="parms"></param>
+        /// <param name="parmameters"></param>
         /// <returns></returns>
         protected virtual IList<OLVGroup> MakeGroups(GroupingParameters parms) {
             // Separate the list view items into groups, using the group key as the descrimanent
@@ -4152,8 +4166,21 @@ namespace BrightIdeasSoftware
                     if (this.PossibleFinishCellEditing() && !this.HandleLButtonDown(ref m))
                         base.WndProc(ref m);
                     break;
+                case 0x202:  // WM_LBUTTONUP
+                    if (ObjectListView.IsVistaOrLater && this.HasCollapsibleGroups)
+                        base.DefWndProc(ref m);
+                    base.WndProc(ref m);
+                    break;
                 case 0x0203: // WM_LBUTTONDBLCLK
                     if (this.PossibleFinishCellEditing() && !this.HandleLButtonDoubleClick(ref m))
+                        base.WndProc(ref m);
+                    break;
+                case 0x0204: // WM_RBUTTONDOWN
+                    if (this.PossibleFinishCellEditing() && !this.HandleRButtonDown(ref m))
+                        base.WndProc(ref m);
+                    break;
+                case 0x0206: // WM_RBUTTONDBLCLK
+                    if (this.PossibleFinishCellEditing() && !this.HandleRButtonDoubleClick(ref m))
                         base.WndProc(ref m);
                     break;
                 case 0x204E: // WM_REFLECT_NOTIFY
@@ -4173,11 +4200,6 @@ namespace BrightIdeasSoftware
                 case 0x7B: // WM_CONTEXTMENU
                     if (!this.HandleContextMenu(ref m))
                         base.WndProc(ref m);
-                    break;
-                case 0x202:  /*WM_LBUTTONUP*/
-                    if (ObjectListView.IsVistaOrLater && this.HasCollapsibleGroups)
-                        base.DefWndProc(ref m);
-                    base.WndProc(ref m);
                     break;
                 default:
                     base.WndProc(ref m);
@@ -4687,7 +4709,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Handle a mouse down at the given hit test location
+        /// Handle a left mouse down at the given hit test location
         /// </summary>
         /// <remarks>Subclasses can override this to do something unique</remarks>
         /// <param name="hti"></param>
@@ -4723,6 +4745,32 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Catch the Right Button down event.
+        /// </summary>
+        /// <param name="m">The m to be processed</param>
+        /// <returns>bool to indicate if the m has been handled</returns>
+        protected virtual bool HandleRButtonDown(ref Message m) {
+            int x = m.LParam.ToInt32() & 0xFFFF;
+            int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
+
+            return this.ProcessRButtonDown(this.OlvHitTest(x, y));
+        }
+
+        /// <summary>
+        /// Handle a left mouse down at the given hit test location
+        /// </summary>
+        /// <remarks>Subclasses can override this to do something unique</remarks>
+        /// <param name="hti"></param>
+        /// <returns>True if the message has been handled</returns>
+        protected virtual bool ProcessRButtonDown(OlvListViewHitTestInfo hti) {
+            if (hti.Item == null)
+                return false;
+
+            // Ignore clicks on checkboxes
+            return (this.View == View.Details && hti.HitTestLocation == HitTestLocation.CheckBox);
+        }
+
+        /// <summary>
         /// Catch the Left Button double click event.
         /// </summary>
         /// <param name="m">The m to be processed</param>
@@ -4741,6 +4789,30 @@ namespace BrightIdeasSoftware
         /// <param name="hti"></param>
         /// <returns>True if the message has been handled</returns>
         protected virtual bool ProcessLButtonDoubleClick(OlvListViewHitTestInfo hti) {
+
+            // If the user double clicked on a checkbox, ignore it
+            return (hti.HitTestLocation == HitTestLocation.CheckBox);
+        }
+
+        /// <summary>
+        /// Catch the right Button double click event.
+        /// </summary>
+        /// <param name="m">The m to be processed</param>
+        /// <returns>bool to indicate if the m has been handled</returns>
+        protected virtual bool HandleRButtonDoubleClick(ref Message m) {
+            int x = m.LParam.ToInt32() & 0xFFFF;
+            int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
+
+            return this.ProcessRButtonDoubleClick(this.OlvHitTest(x, y));
+        }
+
+        /// <summary>
+        /// Handle a right mouse double click at the given hit test location
+        /// </summary>
+        /// <remarks>Subclasses can override this to do something unique</remarks>
+        /// <param name="hti"></param>
+        /// <returns>True if the message has been handled</returns>
+        protected virtual bool ProcessRButtonDoubleClick(OlvListViewHitTestInfo hti) {
 
             // If the user double clicked on a checkbox, ignore it
             return (hti.HitTestLocation == HitTestLocation.CheckBox);
@@ -4768,6 +4840,8 @@ namespace BrightIdeasSoftware
 
             bool isMsgHandled = false;
 
+            // TODO: Don't do any logic in this method. Create separate methods for each message
+
             NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
             //System.Diagnostics.Debug.WriteLine(String.Format("rn: {0}", nmhdr->code));
 
@@ -4777,7 +4851,9 @@ namespace BrightIdeasSoftware
                     // If you shift click on non-primary columns when FullRowSelect is true, the 
                     // checkedness of the selected rows changes. 
                     // We avoid all that by just saying we've handled this message.
+                    //System.Diagnostics.Debug.WriteLine("NM_CLICK");
                     isMsgHandled = true;
+                    this.OnClick(EventArgs.Empty);
                     break;
 
                 case LVN_BEGINSCROLL:
@@ -4830,10 +4906,11 @@ namespace BrightIdeasSoftware
                     break;
 
                 case LVN_ITEMCHANGED:
+                    //System.Diagnostics.Debug.WriteLine("LVN_ITEMCHANGED");
                     NativeMethods.NMLISTVIEW nmlistviewPtr2 = (NativeMethods.NMLISTVIEW)m.GetLParam(typeof(NativeMethods.NMLISTVIEW));
                     if ((nmlistviewPtr2.uChanged & LVIF_STATE) != 0) {
-                        CheckState currentValue = this.CalculateState(nmlistviewPtr2.uOldState);
-                        CheckState newCheckValue = this.CalculateState(nmlistviewPtr2.uNewState);
+                        CheckState currentValue = this.CalculateCheckState(nmlistviewPtr2.uOldState);
+                        CheckState newCheckValue = this.CalculateCheckState(nmlistviewPtr2.uNewState);
                         if (currentValue != newCheckValue) {
                             // Remove the state indicies so that we don't trigger the OnItemChecked method
                             // when we call our base method after exiting this method
@@ -4845,10 +4922,11 @@ namespace BrightIdeasSoftware
                     break;
 
                 case LVN_ITEMCHANGING:
+                    //System.Diagnostics.Debug.WriteLine("LVN_ITEMCHANGING");
                     NativeMethods.NMLISTVIEW nmlistviewPtr = (NativeMethods.NMLISTVIEW)m.GetLParam(typeof(NativeMethods.NMLISTVIEW));
                     if ((nmlistviewPtr.uChanged & LVIF_STATE) != 0) {
-                        CheckState currentValue = this.CalculateState(nmlistviewPtr.uOldState);
-                        CheckState newCheckValue = this.CalculateState(nmlistviewPtr.uNewState);
+                        CheckState currentValue = this.CalculateCheckState(nmlistviewPtr.uOldState);
+                        CheckState newCheckValue = this.CalculateCheckState(nmlistviewPtr.uNewState);
 
                         if (currentValue != newCheckValue) {
                             // Prevent the base method from seeing the state change,
@@ -4863,7 +4941,7 @@ namespace BrightIdeasSoftware
             return isMsgHandled;
         }
 
-        private CheckState CalculateState(int state) {
+        private CheckState CalculateCheckState(int state) {
             switch ((state & 0xf000) >> 12) {
                 case 1:
                     return CheckState.Unchecked;
@@ -5276,12 +5354,9 @@ namespace BrightIdeasSoftware
                 }
             } else {
                 label = String.Format(this.MenuLabelUnsort, column.Text);
-                if (!String.IsNullOrEmpty(label)) {
+                if (!String.IsNullOrEmpty(label) && this.PrimarySortOrder != SortOrder.None) {
                     strip.Items.Add(label, null, (EventHandler)delegate(object sender, EventArgs args) {
-                        this.ShowGroups = false;
-                        this.PrimarySortColumn = null;
-                        this.PrimarySortOrder = SortOrder.None;
-                        this.BuildList();
+                        this.Unsort();
                     });
                 }
             }
@@ -5798,9 +5873,9 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="modelObject">The model object to be revealed</param>
         public virtual void EnsureModelVisible(Object modelObject) {
-            int idx = this.IndexOf(modelObject);
-            if (idx >= 0)
-                this.EnsureVisible(idx);
+            int index = this.IndexOf(modelObject);
+            if (index >= 0)
+                this.EnsureVisible(index);
         }
 
         /// <summary>
@@ -6098,10 +6173,6 @@ namespace BrightIdeasSoftware
             if (args.Canceled)
                 return;
 
-            // Sanity checks
-            if (args.ColumnToSort == null || args.SortOrder == SortOrder.None)
-                return;
-
             // Virtual lists don't preserve selection, so we have to do it specifically
             // THINK: Do we need to preserve focus too?
             IList selection = new ArrayList();
@@ -6112,14 +6183,17 @@ namespace BrightIdeasSoftware
 
             // Finally, do the work of sorting, unless an event handler has already done the sorting for us
             if (!args.Handled) {
-                if (this.ShowGroups)
-                    this.BuildGroups(args.ColumnToGroupBy, args.GroupByOrder, args.ColumnToSort, args.SortOrder,
-                        args.SecondaryColumnToSort, args.SecondarySortOrder);
-                else if (this.CustomSorter != null)
-                    this.CustomSorter(columnToSort, order);
-                else
-                    this.ListViewItemSorter = new ColumnComparer(args.ColumnToSort, args.SortOrder,
-                        args.SecondaryColumnToSort, args.SecondarySortOrder);
+                // Sanity checks
+                if (args.ColumnToSort != null && args.SortOrder != SortOrder.None) {
+                    if (this.ShowGroups)
+                        this.BuildGroups(args.ColumnToGroupBy, args.GroupByOrder, args.ColumnToSort, args.SortOrder,
+                            args.SecondaryColumnToSort, args.SecondarySortOrder);
+                    else if (this.CustomSorter != null)
+                        this.CustomSorter(columnToSort, order);
+                    else
+                        this.ListViewItemSorter = new ColumnComparer(args.ColumnToSort, args.SortOrder,
+                            args.SecondaryColumnToSort, args.SecondarySortOrder);
+                }
             }
 
             if (this.ShowSortIndicators)
@@ -6169,7 +6243,7 @@ namespace BrightIdeasSoftware
 
             // Set the image for each column
             for (int i = 0; i < this.Columns.Count; i++) {
-                if (i == columnToSort.Index)
+                if (columnToSort != null && i == columnToSort.Index)
                     NativeMethods.SetColumnImage(this, i, sortOrder, imageIndex);
                 else
                     NativeMethods.SetColumnImage(this, i, SortOrder.None, -1);
@@ -6230,6 +6304,16 @@ namespace BrightIdeasSoftware
             Graphics g = Graphics.FromImage(bm);
             g.FillPolygon(new SolidBrush(Color.Gray), pts);
             return bm;
+        }
+
+        /// <summary>
+        /// Remove any sorting and revert to the given order of the model objects
+        /// </summary>
+        public virtual void Unsort() {
+            this.ShowGroups = false;
+            this.PrimarySortColumn = null;
+            this.PrimarySortOrder = SortOrder.None;
+            this.BuildList();
         }
 
         #endregion
@@ -6402,10 +6486,10 @@ namespace BrightIdeasSoftware
 
             // Show the URL in the tooltip if it's different to the text
             if (columnIndex >= 0) {
-                OLVListSubItem si = this.GetSubItem(rowIndex, columnIndex);
-                if (si != null && !String.IsNullOrEmpty(si.Url) && si.Url != si.Text &&
+                OLVListSubItem subItem = this.GetSubItem(rowIndex, columnIndex);
+                if (subItem != null && !String.IsNullOrEmpty(subItem.Url) && subItem.Url != subItem.Text &&
                     this.HotCellHitLocation == HitTestLocation.Text)
-                    return si.Url;
+                    return subItem.Url;
             }
 
             return null;
@@ -7261,6 +7345,7 @@ namespace BrightIdeasSoftware
             if (this.View != View.Tile && this.cellEditor.Height != r.Height)
                 this.cellEditor.Top += (r.Height - this.cellEditor.Height) / 2;
 
+            this.Invalidate();
             this.Controls.Add(this.cellEditor);
             this.ConfigureControl();
             this.PauseAnimations(true);
@@ -7652,6 +7737,7 @@ namespace BrightIdeasSoftware
             this.cellEditor = null;
             this.Select();
             this.PauseAnimations(false);
+            this.Invalidate();
         }
 
         #endregion
@@ -7766,8 +7852,8 @@ namespace BrightIdeasSoftware
 
             if (this.UseHyperlinks) {
                 OLVColumn column = this.GetColumn(columnIndex);
-                OLVListSubItem si = olvi.GetSubItem(columnIndex);
-                if (column.Hyperlink && hitLocation == HitTestLocation.Text && !String.IsNullOrEmpty(si.Url)) {
+                OLVListSubItem subItem = olvi.GetSubItem(columnIndex);
+                if (column.Hyperlink && hitLocation == HitTestLocation.Text && !String.IsNullOrEmpty(subItem.Url)) {
                     this.ApplyCellStyle(olvi, columnIndex, this.HyperlinkStyle.Over);
                     this.Cursor = this.HyperlinkStyle.OverCursor ?? Cursors.Default;
                 } else {
@@ -7836,18 +7922,18 @@ namespace BrightIdeasSoftware
 
             olvi.UseItemStyleForSubItems = false;
 
-            ListViewItem.ListViewSubItem si = olvi.SubItems[columnIndex];
+            ListViewItem.ListViewSubItem subItem = olvi.SubItems[columnIndex];
             if (style.Font != null)
-                si.Font = style.Font;
+                subItem.Font = style.Font;
 
             if (style.FontStyle != FontStyle.Regular)
-                si.Font = new Font(si.Font ?? olvi.Font ?? this.Font, style.FontStyle);
+                subItem.Font = new Font(subItem.Font ?? olvi.Font ?? this.Font, style.FontStyle);
 
             if (!style.ForeColor.IsEmpty)
-                si.ForeColor = style.ForeColor;
+                subItem.ForeColor = style.ForeColor;
 
             if (!style.BackColor.IsEmpty)
-                si.BackColor = style.BackColor;
+                subItem.BackColor = style.BackColor;
         }
 
         protected virtual void UnapplyHotItem(int index) {
@@ -9023,10 +9109,9 @@ namespace BrightIdeasSoftware
             if (!this.CheckBoxes)
                 return CheckState.Unchecked;
 
-            Object aspect = this.GetValue(rowObject);
-            bool? aspectAsBool = aspect as bool?;
+            bool? aspectAsBool = this.GetValue(rowObject) as bool?;
             if (aspectAsBool.HasValue) {
-                if ((bool)aspectAsBool)
+                if (aspectAsBool.Value)
                     return CheckState.Checked;
                 else
                     return CheckState.Unchecked;
