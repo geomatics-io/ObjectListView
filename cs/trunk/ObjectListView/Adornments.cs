@@ -241,16 +241,16 @@ namespace BrightIdeasSoftware
         /// Given the item and the subitem, calculate its bounds.
         /// </summary>
         /// <param name="item"></param>
-        /// <param name="si"></param>
+        /// <param name="subItem"></param>
         /// <returns></returns>
-        public Rectangle CalculateItemBounds(OLVListItem item, OLVListSubItem si) {
+        public Rectangle CalculateItemBounds(OLVListItem item, OLVListSubItem subItem) {
             if (item == null)
                 return Rectangle.Empty;
 
-            if (si == null)
+            if (subItem == null)
                 return item.Bounds;
             else
-                return item.GetSubItemBounds(item.SubItems.IndexOf(si));
+                return item.GetSubItemBounds(item.SubItems.IndexOf(subItem));
         }
 
         #endregion

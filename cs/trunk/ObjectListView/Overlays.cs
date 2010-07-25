@@ -245,9 +245,9 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// A Billboard overlay is positioned at an absolute point
     /// </summary>
-    public class BillboardOverylay : TextOverlay
+    public class BillboardOverlay : TextOverlay
     {
-        public BillboardOverylay() {
+        public BillboardOverlay() {
             this.Transparency = 255;
             this.BackColor = Color.PeachPuff;
             this.TextColor = Color.Black;
