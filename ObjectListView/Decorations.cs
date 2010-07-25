@@ -386,6 +386,80 @@ namespace BrightIdeasSoftware
     }
 
     /// <summary>
+    /// This decoration puts a border around the cell being edited and
+    /// optionally "lightboxes" the cell (makes the rest of the control dark).
+    /// </summary>
+    public class EditingCellBorderDecoration : BorderDecoration
+    {
+        #region Life and death
+
+        public EditingCellBorderDecoration() {
+            this.FillBrush = null;
+            this.BorderPen = new Pen(Color.DarkBlue, 2);
+            this.CornerRounding = 8;
+            this.BoundsPadding = new Size(10, 8);
+
+        }
+
+        #endregion 
+
+        #region Configuration properties
+
+        /// <summary>
+        /// Gets or set whether the decoration should make the rest of
+        /// the control dark when a cell is being edited
+        /// </summary>
+        /// <remarks>If this is true, FillBrush is used to overpaint
+        /// the control.</remarks>
+        public bool UseLightbox {
+            get { return this.useLightbox; }
+            set {
+                if (this.useLightbox == value)
+                    return;
+                this.useLightbox = value;
+                if (this.useLightbox) {
+                    if (this.FillBrush == null)
+                        this.FillBrush = new SolidBrush(Color.FromArgb(64, Color.Black));
+                }
+            }
+        }
+        private bool useLightbox;
+
+        #endregion
+
+        #region Implementation
+
+        public override void Draw(ObjectListView olv, Graphics g, Rectangle r) {
+            if (!olv.IsCellEditing) 
+                return;
+
+            Rectangle bounds = olv.CellEditor.Bounds;
+            if (bounds.IsEmpty)
+                return;
+
+            bounds.Inflate(this.BoundsPadding);
+            GraphicsPath path = this.GetRoundedRect(bounds, this.CornerRounding);
+            if (this.FillBrush != null) {
+                if (this.UseLightbox) {
+                    using (Region newClip = new Region(r)) {
+                        newClip.Exclude(path);
+                        Region originalClip = g.Clip;
+                        g.Clip = newClip;
+                        g.FillRectangle(this.FillBrush, r);
+                        g.Clip = originalClip;
+                    }
+                } else {
+                    g.FillPath(this.FillBrush, path);
+                }
+            }
+            if (this.BorderPen != null)
+                g.DrawPath(this.BorderPen, path);
+        }
+
+        #endregion
+    }
+
+    /// <summary>
     /// This decoration causes everything except the decoration row to be overpainted
     /// with a tint. The darker and more opaque the fill color, the more obvious the
     /// decorated row becomes.
