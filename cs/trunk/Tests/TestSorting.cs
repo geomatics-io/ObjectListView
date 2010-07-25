@@ -200,6 +200,16 @@ namespace BrightIdeasSoftware.Tests
                 Assert.Contains(x, PersonDb.All);
         }
 
+        [Test]
+        public void TestUnsort() {
+            this.olv.Sort(this.olv.GetColumn(0), SortOrder.Ascending);
+            Assert.AreEqual(PersonDb.FirstAlphabeticalName, ((Person)this.olv.GetModelObject(0)).Name);
+            this.olv.Unsort();
+            Assert.IsNull(this.olv.PrimarySortColumn);
+            //Assert.AreEqual(SortOrder.None, this.olv.PrimarySortOrder);
+            Assert.AreEqual(PersonDb.All[0].Name, ((Person)this.olv.GetModelObject(0)).Name);
+        }
+
         [TestFixtureSetUp]
         public void Init()
         {
