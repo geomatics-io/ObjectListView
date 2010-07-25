@@ -88,6 +88,16 @@ namespace BrightIdeasSoftware
             }
             set { base.Objects = value; }
         }
+
+        /// <summary>
+        /// Remove any sorting and revert to the given order of the model objects
+        /// </summary>
+        public override void Unsort() {
+            this.ShowGroups = false;
+            this.PrimarySortColumn = null;
+            this.PrimarySortOrder = SortOrder.None;
+            this.SetObjects(this.Objects);
+        }
     }
 
     /// <summary>
