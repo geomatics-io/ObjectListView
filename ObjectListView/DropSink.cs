@@ -259,7 +259,7 @@ namespace BrightIdeasSoftware
             //this.CanDropBetween = true;
 
             this.FeedbackColor = Color.FromArgb(180, Color.MediumBlue);
-            this.billboard = new BillboardOverylay();
+            this.billboard = new BillboardOverlay();
         }
 
         #endregion
@@ -290,11 +290,11 @@ namespace BrightIdeasSoftware
         /// messages during a drag operation. 
         /// </summary>
         /// <remarks>Set this to null to stop the feedback.</remarks>
-        public BillboardOverylay Billboard {
+        public BillboardOverlay Billboard {
             get { return this.billboard; }
             set { this.billboard = value; }
         }
-        private BillboardOverylay billboard;
+        private BillboardOverlay billboard;
 
         /// <summary>
         /// Get or set whether a drop can occur between items of the list

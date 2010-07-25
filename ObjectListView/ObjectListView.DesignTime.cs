@@ -39,6 +39,7 @@ using System.Windows.Forms.Design;
 
 namespace BrightIdeasSoftware.Design
 {
+    /*
     /// <summary>
     /// A specialised designer for the ObjectListView.
     /// </summary>
@@ -83,7 +84,7 @@ namespace BrightIdeasSoftware.Design
             }
         }
     }
-
+    */
     /// <summary>
     /// This class works in conjunction with the OLVColumns property to allow OLVColumns
     /// to be added to the ObjectListView.
@@ -173,7 +174,7 @@ namespace BrightIdeasSoftware.Design
             return base.ConvertTo(context, culture, value, destinationType);
         }
     }
-
+    /*
     // Everything from this point to the end of the file is a hack to get around
     // the fact that .NET's ListViewDesigner is internal. Being internal means that we cannot
     // subclass it or even reference it as our base designer class. So what follows 
@@ -257,7 +258,7 @@ namespace BrightIdeasSoftware.Design
                         try {
                             ((IComponentChangeService)this.GetService(typeof(IComponentChangeService))).OnComponentChanged(base.Component, null, null, null);
                         }
-                        catch (InvalidOperationException /*exception*/) {
+                        catch (InvalidOperationException) {
                             //if (!this.inShowErrorDialog)
                             //{
                             //    IUIService service = (IUIService) base.Component.Site.GetService(typeof(IUIService));
@@ -507,4 +508,5 @@ namespace BrightIdeasSoftware.Design
     }
 
     #endregion
+    */
 }

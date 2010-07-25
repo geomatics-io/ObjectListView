@@ -61,6 +61,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the font that will be applied by this style
         /// </summary>
+        [DefaultValue(null)]
         public Font Font {
             get { return this.font; }
             set { this.font = value; }
