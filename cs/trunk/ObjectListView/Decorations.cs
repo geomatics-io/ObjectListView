@@ -477,8 +477,11 @@ namespace BrightIdeasSoftware
                 return;
 
             Rectangle bounds = this.RowBounds;
-            if (bounds.IsEmpty)
+            if (bounds.IsEmpty) {
+                if (olv.View == View.Tile)
+                    g.FillRectangle(this.FillBrush, r);
                 return;
+            }
 
             using (Region newClip = new Region(r)) {
                 bounds.Inflate(this.BoundsPadding);
