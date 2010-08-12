@@ -5,6 +5,7 @@
  * Date: 25/11/2008 17:15 
  *
  * Change log:
+ * 2010-08-08  JPP  - Added ability to have image in header
  * v2.4
  * 2010-03-22  JPP  - Draw header using header styles
  * 2009-10-30  JPP  - Plugged GDI resource leak, where font handles were created during custom
@@ -171,6 +172,8 @@ namespace BrightIdeasSoftware
                     r.Width -= 6; // Match the "tweaking" done in CustomRender
                     if (this.HasNonThemedSortIndicator(column))
                         r.Width -= 16;
+                    if (column.HasHeaderImage)
+                        r.Width -= column.ImageList.ImageSize.Width +3;
                     SizeF size = TextRenderer.MeasureText(g, column.Text, f, new Size(r.Width, 100), flags);
                     height = Math.Max(height, size.Height);
                 } else {
@@ -354,7 +357,7 @@ namespace BrightIdeasSoftware
 
                     if (this.cachedNeedsCustomDraw) {
                         using (Graphics g = Graphics.FromHdc(nmcustomdraw.hdc)) {
-                            g.TextRenderingHint = ObjectListView.TextRendereringHint;
+                            g.TextRenderingHint = ObjectListView.TextRenderingHint;
                             this.CustomDrawHeaderCell(g, columnIndex, nmcustomdraw.uItemState);
                         }
                         m.Result = (IntPtr)CDRF_SKIPDEFAULT;
@@ -400,7 +403,7 @@ namespace BrightIdeasSoftware
             NativeMethods.WINDOWPOS wpos = (NativeMethods.WINDOWPOS)Marshal.PtrToStructure(hdlayout.pwpos, typeof(NativeMethods.WINDOWPOS));
 
             using (Graphics g = this.ListView.CreateGraphics()) {
-                g.TextRenderingHint = ObjectListView.TextRendereringHint;
+                g.TextRenderingHint = ObjectListView.TextRenderingHint;
                 int height = this.CalculateHeight(g);
                 wpos.hwnd = this.Handle;
                 wpos.hwndInsertAfter = IntPtr.Zero;
@@ -455,7 +458,7 @@ namespace BrightIdeasSoftware
                 return true;
             
             foreach (OLVColumn column in this.ListView.Columns) {
-                if (this.NeedsCustomDraw(column.HeaderFormatStyle))
+                if (column.HasHeaderImage || this.NeedsCustomDraw(column.HeaderFormatStyle))
                     return true;
             }
             return false;
@@ -520,7 +523,7 @@ namespace BrightIdeasSoftware
             }
 
             // Finally draw the text
-            this.DrawHeaderText(g, r, column, stateStyle);
+            this.DrawHeaderImageAndText(g, r, column, stateStyle);
         }
 
         protected void DrawUnthemedBackground(Graphics g, Rectangle r, int columnIndex, bool isSelected, HeaderStateStyle stateStyle) {
@@ -609,7 +612,7 @@ namespace BrightIdeasSoftware
             return r;
         }
 
-        protected void DrawHeaderText(Graphics g, Rectangle r, OLVColumn column, HeaderStateStyle stateStyle) {
+        protected void DrawHeaderImageAndText(Graphics g, Rectangle r, OLVColumn column, HeaderStateStyle stateStyle) {
             TextFormatFlags flags = this.TextFormatFlags;
             if (column.TextAlign == HorizontalAlignment.Center)
                 flags |= TextFormatFlags.HorizontalCenter;
@@ -624,8 +627,26 @@ namespace BrightIdeasSoftware
             // Tweak the text rectangle a little to improve aethestics
             r.Inflate(-3, 0);
             r.Y -= 2;
+            Rectangle textRect = r;
+            const int imageTextGap = 3;
 
-            TextRenderer.DrawText(g, column.Text, f, r, color, Color.Transparent, flags);
+            // Does the column have a header image and is there space for it?
+            if (column.HasHeaderImage && r.Width > column.ImageList.ImageSize.Width * 2) {
+                textRect.X += (column.ImageList.ImageSize.Width + imageTextGap);
+                textRect.Width -= (column.ImageList.ImageSize.Width + imageTextGap);
+
+                Size textSize = TextRenderer.MeasureText(g, column.Text, f, textRect.Size, flags);
+                int imageY = r.Top + ((r.Height - column.ImageList.ImageSize.Height) / 2);
+                int imageX = textRect.Left;
+                if (column.TextAlign == HorizontalAlignment.Center)
+                    imageX = textRect.Left + ((textRect.Width - textSize.Width) / 2);
+                if (column.TextAlign == HorizontalAlignment.Right)
+                    imageX = textRect.Right - textSize.Width;
+                imageX -= (column.ImageList.ImageSize.Width + imageTextGap);
+                column.ImageList.Draw(g, imageX, imageY, column.ImageList.Images.IndexOfKey(column.HeaderImageKey));
+            }
+
+            TextRenderer.DrawText(g, column.Text, f, textRect, color, Color.Transparent, flags);
         }
 
         protected HeaderStateStyle CalculateStyle(OLVColumn column, bool isHot, bool isPressed) {
