@@ -360,8 +360,8 @@ namespace BrightIdeasSoftware
                 return;
 
             Graphics g = e.Graphics;
-            g.TextRenderingHint = ObjectListView.TextRendereringHint;
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+            g.TextRenderingHint = ObjectListView.TextRenderingHint;
+            g.SmoothingMode = ObjectListView.SmoothingMode;
             //g.DrawRectangle(new Pen(Color.Green, 4.0f), this.ClientRectangle);
 
             // If we are part of an MDI app, make sure we don't draw outside the bounds
