@@ -5,6 +5,7 @@
  * Date: 17/10/2008 9:15 PM
  *
  * Change log:
+ * 2010-08-08   JPP  - CellEdit validation and finish events now have NewValue property.
  * v2.4
  * 2010-03-04   JPP  - Added filtering events
  * v2.3
@@ -622,6 +623,16 @@ namespace BrightIdeasSoftware
             get { return this.listViewItem; }
         }
         private OLVListItem listViewItem;
+
+        /// <summary>
+        /// The data value of the cell as it stands in the control.
+        /// </summary>
+        /// <remarks>Only validate during Validating and Finishing events.</remarks>
+        public Object NewValue {
+            get { return this.newValue; }
+            set { this.newValue = value; }
+        }
+        private Object newValue;
 
         /// <summary>
         /// The index of the cell that is going to be or has been edited.
