@@ -5,6 +5,16 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2010-08-08  JPP  - Added OLVColumn.HeaderImageKey to allow column headers to have an image.
+ *                  - CellEdit validation and finish events now have NewValue property.
+ * 2010-08-03  JPP  - Subitem checkboxes improvments: obey IsEditable, can be hot, can be disabled.
+ *                  - No more flickering of selection when tabbing between cells
+ *                  - Added EditingCellBorderDecoration to make it clearer which cell is being edited.
+ * 2010-08-01  JPP  - Added ObjectListView.SmoothingMode to control the smoothing of all graphics
+ *                    operations
+ *                  - Columns now cache their group item format strings so that they still work as 
+ *                    grouping columns after they have been removed from the listview. This cached
+ *                    value is only used when the column is not part of the listview.
  * 2010-07-25  JPP  - Correctly trigger a Click event when the mouse is clicked.
  * 2010-07-16  JPP  - Invalidate the control before and after cell editing to make sure it looks right
  * 2010-06-23  JPP  - Right mouse clicks on checkboxes no longer confuse them
@@ -54,7 +64,7 @@
  *                    changed when switching to/from Tile view.
  * 2009-09-11  JPP  - Added OLVColumn.AutoCompleteEditor to allow the autocomplete of cell editors
  *                    to be disabled.
- * 2009-09-01  JPP  - Added ObjectListView.TextRendereringHint property which controls the
+ * 2009-09-01  JPP  - Added ObjectListView.TextRenderingHint property which controls the
  *                    text rendering hint of all drawn text.
  * 2009-08-28  JPP  - [BIG] Added group formatting to supercharge what is possible with groups
  *                  - [BIG] Virtual groups now work
@@ -505,9 +515,19 @@ namespace BrightIdeasSoftware
         static private bool? isVistaOrLater;
 
         /// <summary>
-        /// Gets or sets how should text be renderered?
+        /// Gets or sets how what smoothing mode will be applied to graphic operations.
         /// </summary>
-        static public System.Drawing.Text.TextRenderingHint TextRendereringHint {
+        static public System.Drawing.Drawing2D.SmoothingMode SmoothingMode {
+            get { return ObjectListView.smoothingMode; }
+            set { ObjectListView.smoothingMode = value; }
+        }
+        static private System.Drawing.Drawing2D.SmoothingMode smoothingMode =
+            System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+
+        /// <summary>
+        /// Gets or sets how should text be renderered.
+        /// </summary>
+        static public System.Drawing.Text.TextRenderingHint TextRenderingHint {
             get { return ObjectListView.textRendereringHint; }
             set { ObjectListView.textRendereringHint = value; }
         }
@@ -659,7 +679,11 @@ namespace BrightIdeasSoftware
         DefaultValue(CellEditActivateMode.None)]
         public virtual CellEditActivateMode CellEditActivation {
             get { return cellEditActivation; }
-            set { cellEditActivation = value; }
+            set { 
+                cellEditActivation = value;
+                if (this.Created)
+                    this.Invalidate();
+            }
         }
         private CellEditActivateMode cellEditActivation = CellEditActivateMode.None;
 
@@ -778,7 +802,8 @@ namespace BrightIdeasSoftware
         /// Gets Columns for this list. We hide the original so we can associate
         /// a specialised editor with it.
         /// </summary>
-        [Editor(typeof(BrightIdeasSoftware.Design.OLVColumnCollectionEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor("BrightIdeasSoftware.Design.OLVColumnCollectionEditor", "System.Drawing.Design.UITypeEditor")]
+        //[Editor(typeof(BrightIdeasSoftware.Design.OLVColumnCollectionEditor), typeof(System.Drawing.Design.UITypeEditor))]
         new public ListView.ColumnHeaderCollection Columns {
             get {
                 return base.Columns;
@@ -1200,11 +1225,18 @@ namespace BrightIdeasSoftware
         /// Gets or sets whether the header will be drawn using OS's theming styles. If this is false, it will use
         /// HeaderFormatStyle property to draw the header.
         /// </summary>
-        /// <remarks>If this is set to false, the header
+        /// <remarks>
+        /// <para>
+        /// If this is set to true, the header will be rendered completely by the system, without
+        /// any of ObjectListViews fancy processing.
+        /// </para>
+        /// <para>If this is set to false, the header
         /// will not be drawn using the OS themed style, This is sometimes what's required
         /// since themeing does not allow the background, frame or text color to be
         /// changed. The effect of not being themed will be different from OS to OS. At
-        /// very least, the sort indicator will not be standard.</remarks>
+        /// very least, the sort indicator will not be standard.
+        /// </para>
+        /// </remarks>
         [Category("Appearance - ObjectListView"),
          Description("Will the column headers be drawn using OS theme?"),
          DefaultValue(true)]
@@ -1498,6 +1530,26 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets or sets the list of groups shown by the listview.
+        /// </summary>
+        /// <remarks>
+        /// This property does not work like the .NET Groups property. It should
+        /// be treated as a read-only property.
+        /// Changes made to the list are NOT reflected in the ListView itself -- it is pointless to add
+        /// or remove groups to/from this list. Such modifications will do nothing.
+        /// To do such things, you must listen for
+        /// BeforeCreatingGroups or AboutToCreateGroups events, and change the list of
+        /// groups in those events.
+        /// </remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public IList<OLVGroup> OLVGroups {
+            get { return this.olvGroups; }
+            set { this.olvGroups = value; }
+        }
+        private IList<OLVGroup> olvGroups;
+
+        /// <summary>
         /// Gets or sets whether the user wants to owner draw the header control
         /// themselves. If this is false (the default), ObjectListView will use
         /// custom drawing to render the header, if needed.
@@ -1530,26 +1582,6 @@ namespace BrightIdeasSoftware
             }
         }
         private OLVColumn primarySortColumn;
-
-        /// <summary>
-        /// Gets or sets the list of groups shown by the listview.
-        /// </summary>
-        /// <remarks>
-        /// This property does not work like the .NET Groups property. It should
-        /// be treated as a read-only property.
-        /// Changes made to the list are NOT reflected in the ListView itself -- it is pointless to add
-        /// or remove groups to/from this list. Such modifications will do nothing.
-        /// To do such things, you must listen for
-        /// BeforeCreatingGroups or AboutToCreateGroups events, and change the list of
-        /// groups in those events.
-        /// </remarks>
-        [Browsable(false),
-        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public IList<OLVGroup> OLVGroups {
-            get { return this.olvGroups; }
-            set { this.olvGroups = value; }
-        }
-        private IList<OLVGroup> olvGroups;
 
         /// <summary>
         /// Which direction did we last sort
@@ -1674,6 +1706,21 @@ namespace BrightIdeasSoftware
         private List<IDecoration> decorations = new List<IDecoration>();
 
         /// <summary>
+        /// Gets or sets if non-editable checkboxes are drawn as disabled.
+        /// </summary>
+        /// <remarks>
+        /// <para>This only has effect in owner drawn mode.</para>
+        /// </remarks>
+        [Category("Appearance - ObjectListView"),
+         Description("Should non-editable checkboxes be drawn as disabled?"),
+         DefaultValue(false)]
+        public virtual bool RenderNonEditableCheckboxesAsDisabled {
+            get { return renderNonEditableCheckboxesAsDisabled; }
+            set { renderNonEditableCheckboxesAsDisabled = value; }
+        }
+        private bool renderNonEditableCheckboxesAsDisabled = false;
+
+        /// <summary>
         /// Specify the height of each row in the control in pixels.
         /// </summary>
         /// <remarks><para>The row height in a listview is normally determined by the font size and the small image list size.
@@ -1693,6 +1740,8 @@ namespace BrightIdeasSoftware
                     rowHeight = -1;
                 else
                     rowHeight = value;
+                if (this.DesignMode)
+                    return;
                 this.SetupBaseImageList();
                 if (this.CheckBoxes)
                     this.InitializeStateImageList();
@@ -3010,7 +3059,11 @@ namespace BrightIdeasSoftware
                 string title = parms.GroupByColumn.ConvertGroupKeyToTitle(key);
                 if (!String.IsNullOrEmpty(parms.TitleFormat)) {
                     int count = map[key].Count;
-                    title = String.Format((count == 1 ? parms.TitleSingularFormat : parms.TitleFormat), title, count);
+                    try {
+                        title = String.Format((count == 1 ? parms.TitleSingularFormat : parms.TitleFormat), title, count);
+                    } catch (FormatException) {
+                        title = "Invalid group format: " + (count == 1 ? parms.TitleSingularFormat : parms.TitleFormat);
+                    }
                 }
 
                 OLVGroup lvg = new OLVGroup(title);
@@ -4724,7 +4777,8 @@ namespace BrightIdeasSoftware
 
             // Did they click a sub item checkbox?
             if (hti.Column.Index > 0) {
-                this.ToggleSubItemCheckBox(hti.RowObject, hti.Column);
+                if (hti.Column.IsEditable)
+                    this.ToggleSubItemCheckBox(hti.RowObject, hti.Column);
                 return true;
             }
 
@@ -5710,18 +5764,31 @@ namespace BrightIdeasSoftware
         /// <param name="rowObject"></param>
         /// <param name="column"></param>
         public virtual void ToggleSubItemCheckBox(object rowObject, OLVColumn column) {
-            if (column.TriStateCheckBoxes) {
-                if (column.GetCheckState(rowObject) == CheckState.Checked)
+            CheckState currentState = column.GetCheckState(rowObject);
+            CheckState newState = CalculateToggledCheckState(column, currentState);
+
+            // TODO: Fire event
+
+            switch (newState) {
+                case CheckState.Checked:
+                    this.CheckSubItem(rowObject, column);
+                    break;
+                case CheckState.Indeterminate:
                     this.CheckIndeterminateSubItem(rowObject, column);
-                else if (column.GetCheckState(rowObject) == CheckState.Indeterminate)
+                    break;
+                case CheckState.Unchecked:
                     this.UncheckSubItem(rowObject, column);
-                else
-                    this.CheckSubItem(rowObject, column);
-            } else
-                if (this.IsSubItemChecked(rowObject, column))
-                    this.UncheckSubItem(rowObject, column);
-                else
-                    this.CheckSubItem(rowObject, column);
+                    break;
+            }
+        }
+
+        CheckState CalculateToggledCheckState(OLVColumn column, CheckState currentState) {
+            switch (currentState) {
+                case CheckState.Checked: return column.TriStateCheckBoxes ? CheckState.Indeterminate : CheckState.Unchecked;
+                case CheckState.Indeterminate: return CheckState.Unchecked;
+                case CheckState.Unchecked: 
+                default: return CheckState.Checked;
+            }
         }
 
         /// <summary>
@@ -6800,6 +6867,9 @@ namespace BrightIdeasSoftware
             if (!this.CheckBoxes)
                 return;
 
+            // The internal logic of ListView cycles through the state images when the primary
+            // checkbox is clicked. So we have to get exactly the right number of images in the 
+            // image list.
             if (this.StateImageList.Images.Count == 0)
                 this.AddCheckStateBitmap(this.StateImageList, UNCHECKED_KEY, CheckBoxState.UncheckedNormal);
             if (this.StateImageList.Images.Count <= 1)
@@ -6839,7 +6909,8 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Make sure the small image list for this control has checkbox images
+        /// Make sure the small image list for this control has checkbox images 
+        /// (used for sub-item checkboxes).
         /// </summary>
         /// <remarks>This gives the ListView a small image list, if it doesn't already have one.</remarks>
         protected virtual void InitializeCheckBoxImages() {
@@ -6941,8 +7012,8 @@ namespace BrightIdeasSoftware
             }
 
             // Default to high quality drawing
-            g.TextRenderingHint = ObjectListView.TextRendereringHint;
-            g.SmoothingMode = SmoothingMode.HighQuality;
+            g.TextRenderingHint = ObjectListView.TextRenderingHint;
+            g.SmoothingMode = ObjectListView.SmoothingMode;
 
             // Finally, give the renderer a chance to draw something
             e.DrawDefault = !renderer.RenderSubItem(e, g, r, ((OLVListItem)e.Item).RowObject);
@@ -7324,9 +7395,7 @@ namespace BrightIdeasSoftware
             c.Bounds = r;
 
             // Try to align the control as the column is aligned. Not all controls support this property
-            PropertyInfo pinfo = c.GetType().GetProperty("TextAlign");
-            if (pinfo != null)
-                pinfo.SetValue(c, column.TextAlign, null);
+            Munger.PutProperty(c, "TextAlign", column.TextAlign);
 
             // Give the control the value from the model
             this.SetControlValue(c, column.GetValue(item.RowObject), column.GetStringValue(item.RowObject));
@@ -7455,27 +7524,9 @@ namespace BrightIdeasSoftware
                 return;
             }
 
-            // Look for a property called "Value". We have to look twice, the first time might get an ambiguous
-            PropertyInfo pinfo = null;
-            try {
-                pinfo = control.GetType().GetProperty("Value");
-            } catch (AmbiguousMatchException) {
-                // The lowest level class of the control must have overridden the "Value" property.
-                // We now have to specifically  look for only public instance properties declared in the lowest level class.
-                pinfo = control.GetType().GetProperty("Value", BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
-            }
 
-            // If we found it, use it to assign a value, otherwise simply set the text
-            if (pinfo != null) {
-                try {
-                    pinfo.SetValue(control, value, null);
-                    return;
-                } catch (TargetInvocationException) {
-                    // Not a lot we can do about this one. Something went wrong in the bowels
-                    // of the method. Let's take the ostrich approach and just ignore it :-)
-                } catch (ArgumentException) {
-                }
-            }
+            if (Munger.PutProperty(control, "Value", value))
+                return;
 
             // There wasn't a Value property, or we couldn't set it, so set the text instead
             try {
@@ -7503,6 +7554,9 @@ namespace BrightIdeasSoftware
         /// <param name="c"></param>
         /// <returns></returns>
         protected virtual Object GetControlValue(Control control) {
+            if (control == null)
+                return null;
+
             if (control is TextBox)
                 return ((TextBox)control).Text;
 
@@ -7528,6 +7582,7 @@ namespace BrightIdeasSoftware
         /// <param name="e"></param>
         protected virtual void CellEditor_Validating(object sender, CancelEventArgs e) {
             this.cellEditEventArgs.Cancel = false;
+            this.cellEditEventArgs.NewValue = this.GetControlValue(this.cellEditor);
             this.OnCellEditorValidating(this.cellEditEventArgs);
 
             if (this.cellEditEventArgs.Cancel) {
@@ -7673,6 +7728,7 @@ namespace BrightIdeasSoftware
 
             // Let the world know that the user has cancelled the edit operation
             this.cellEditEventArgs.Cancel = true;
+            this.cellEditEventArgs.NewValue = this.GetControlValue(this.cellEditor);
             this.OnCellEditFinishing(this.cellEditEventArgs);
 
             // Now cleanup the editing process
@@ -7689,15 +7745,17 @@ namespace BrightIdeasSoftware
         /// or use IsCellEditing property after calling this method to see if the user is still
         /// editing a cell.</remarks>
         public virtual bool PossibleFinishCellEditing() {
-            if (this.IsCellEditing) {
-                this.cellEditEventArgs.Cancel = false;
-                this.OnCellEditorValidating(this.cellEditEventArgs);
+            if (!this.IsCellEditing)
+                return true;
 
-                if (this.cellEditEventArgs.Cancel)
-                    return false;
+            this.cellEditEventArgs.Cancel = false;
+            this.cellEditEventArgs.NewValue = this.GetControlValue(this.cellEditor);
+            this.OnCellEditorValidating(this.cellEditEventArgs);
 
-                this.FinishCellEdit();
-            }
+            if (this.cellEditEventArgs.Cancel)
+                return false;
+
+            this.FinishCellEdit();
 
             return true;
         }
@@ -7712,6 +7770,7 @@ namespace BrightIdeasSoftware
                 return;
 
             this.cellEditEventArgs.Cancel = false;
+            this.cellEditEventArgs.NewValue = this.GetControlValue(this.cellEditor);
             this.OnCellEditFinishing(this.cellEditEventArgs);
 
             // If someone doesn't cancel the editing process, write the value back into the model
@@ -7732,12 +7791,32 @@ namespace BrightIdeasSoftware
                 return;
 
             this.cellEditor.Validating -= new CancelEventHandler(CellEditor_Validating);
-            this.Controls.Remove(this.cellEditor);
-            //this.cellEditor.Dispose(); //THINK: do we need to call this?
+
+            Control soonToBeOldCellEditor = this.cellEditor;
             this.cellEditor = null;
-            this.Select();
-            this.PauseAnimations(false);
-            this.Invalidate();
+
+            // Delay cleaning up the cell editor so that if we are immediately going to 
+            // start a new cell edit (because the user pressed Tab) the new cell editor
+            // has a chance to grab the focus. Without this, the ListView gains focus
+            // momentarily (after the cell editor is remove and before the new one is created)
+            // causing the list's selection to flash momentarily.
+            EventHandler toBeRun = null;
+            toBeRun = delegate(object sender, EventArgs e) {
+                Application.Idle -= toBeRun;
+                this.Controls.Remove(soonToBeOldCellEditor);
+                this.Invalidate();
+
+                if (!this.IsCellEditing) {
+                    this.Select();
+                    this.PauseAnimations(false);
+                }
+            };
+
+            Application.Idle += toBeRun;
+        }
+
+        void Application_Idle(object sender, EventArgs e) {
+            throw new NotImplementedException();
         }
 
         #endregion
@@ -8046,8 +8125,8 @@ namespace BrightIdeasSoftware
         /// <param name="g">A Graphics</param>
         /// <param name="drawnItems">The items that were redrawn and whose decorations should also be redrawn</param>
         protected virtual void DrawAllDecorations(Graphics g, List<OLVListItem> drawnItems) {
-            g.TextRenderingHint = ObjectListView.TextRendereringHint;
-            g.SmoothingMode = SmoothingMode.HighQuality;
+            g.TextRenderingHint = ObjectListView.TextRenderingHint;
+            g.SmoothingMode = ObjectListView.SmoothingMode;
 
             Rectangle contentRectangle = this.ContentRectangle;
 
@@ -8666,7 +8745,7 @@ namespace BrightIdeasSoftware
         /// <item>{0} - the original group title</item>
         /// <item>{1} - the number of items in the group</item>
         /// </list>
-        /// <para>If this value is not set, the values from the list view will be used</para>
+        /// </para>
         /// </remarks>
         /// <example>"{0} [{1} items]"</example>
         [Category("Behavior - ObjectListView"),
@@ -8680,22 +8759,29 @@ namespace BrightIdeasSoftware
         private string groupWithItemCountFormat;
 
         /// <summary>
-        /// Return this.GroupWithItemCountFormat or a reasonable default
+        /// Gets this.GroupWithItemCountFormat or a reasonable default
         /// </summary>
+        /// <remarks>
+        /// <para>If GroupWithItemCountFormat is not set, its value will be taken from the ObjectListView if possible.
+        /// </remarks>
         [Browsable(false)]
         public string GroupWithItemCountFormatOrDefault {
             get {
-                if (String.IsNullOrEmpty(this.GroupWithItemCountFormat))
-                    // There is one rare but pathelogically possible case where the ListView can
-                    // be null, so we have to provide a workable default for that rare case.
-                    if (this.ListView == null)
-                        return "{0} [{1} items]";
-                    else
-                        return ((ObjectListView)this.ListView).GroupWithItemCountFormatOrDefault;
-                else
+                if (!String.IsNullOrEmpty(this.GroupWithItemCountFormat))
                     return this.GroupWithItemCountFormat;
+
+                if (this.ListView != null) {
+                    cachedGroupWithItemCountFormat = ((ObjectListView)this.ListView).GroupWithItemCountFormatOrDefault;
+                    return cachedGroupWithItemCountFormat;
+                }
+
+                // There is one rare but pathelogically possible case where the ListView can
+                // be null (if the column is grouping a ListView, but is not one of the columns
+                // for that ListView) so we have to provide a workable default for that rare case.
+                return cachedGroupWithItemCountFormat ?? "{0} [{1} items]";
             }
         }
+        private string cachedGroupWithItemCountFormat;
 
         /// <summary>
         /// When the listview is grouped by this column and a group title has an item count,
@@ -8707,7 +8793,6 @@ namespace BrightIdeasSoftware
         /// <item>{0} - the original group title</item>
         /// <item>{1} - the number of items in the group (always 1)</item>
         /// </list>
-        /// <para>If this value is not set, the values from the list view will be used</para>
         /// </remarks>
         /// <example>"{0} [{1} item]"</example>
         [Category("Behavior - ObjectListView"),
@@ -8721,22 +8806,29 @@ namespace BrightIdeasSoftware
         private string groupWithItemCountSingularFormat;
 
         /// <summary>
-        /// Return this.GroupWithItemCountSingularFormat or a reasonable default
+        /// Get this.GroupWithItemCountSingularFormat or a reasonable default
         /// </summary>
+        /// <remarks>
+        /// <para>If this value is not set, the values from the list view will be used</para>
+        /// </remarks>
         [Browsable(false)]
         public string GroupWithItemCountSingularFormatOrDefault {
             get {
-                if (String.IsNullOrEmpty(this.GroupWithItemCountSingularFormat))
-                    // There is one pathelogically rare but still possible case where the ListView can
-                    // be null, so we have to provide a workable default for that rare case.
-                    if (this.ListView == null)
-                        return "{0} [{1} item]";
-                    else
-                        return ((ObjectListView)this.ListView).GroupWithItemCountSingularFormatOrDefault;
-                else
+                if (!String.IsNullOrEmpty(this.GroupWithItemCountSingularFormat))
                     return this.GroupWithItemCountSingularFormat;
+
+                if (this.ListView != null) {
+                    cachedGroupWithItemCountSingularFormat = ((ObjectListView)this.ListView).GroupWithItemCountSingularFormat;
+                    return cachedGroupWithItemCountSingularFormat;
+                }
+
+                // There is one rare but pathelogically possible case where the ListView can
+                // be null (if the column is grouping a ListView, but is not one of the columns
+                // for that ListView) so we have to provide a workable default for that rare case.
+                return cachedGroupWithItemCountSingularFormat ?? "{0} [{1} item]";
             }
         }
+        private string cachedGroupWithItemCountSingularFormat;
 
         /// <summary>
         /// Gets or sets the style that will be used to draw the header for this column
@@ -8788,6 +8880,34 @@ namespace BrightIdeasSoftware
                     this.HeaderFormatStyle = new HeaderFormatStyle();
 
                 this.HeaderFormatStyle.SetForeColor(value);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the text values in this column will act like hyperlinks
+        /// </summary>
+        /// <remarks>This is only taken into account when HeaderUsesThemes is false.</remarks>
+        [Category("Behavior - ObjectListView"),
+         Description("Name of the image that will be shown in the column header."),
+         DefaultValue(null),
+         TypeConverter(typeof(ImageKeyConverter)), 
+         Editor("System.Windows.Forms.Design.ImageIndexEditor, System.Design, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", typeof(System.Drawing.Design.UITypeEditor)), 
+         RefreshProperties(RefreshProperties.Repaint)]
+        public string HeaderImageKey {
+            get { return headerImageKey; }
+            set { headerImageKey = value; }
+        }
+        private string headerImageKey = "compass";
+
+        /// <summary>
+        /// Gets whether or not this column has an image in the header
+        /// </summary>
+        [Browsable(false)]
+        public bool HasHeaderImage {
+            get {
+                return (this.ListView != null &&
+                    this.ListView.SmallImageList != null &&
+                    this.ListView.SmallImageList.Images.ContainsKey(this.HeaderImageKey));
             }
         }
 
@@ -9184,6 +9304,7 @@ namespace BrightIdeasSoftware
                 return this.imageAspectMunger.GetValue(rowObject);
             }
 
+            // I think this is wrong. ImageKey is meant for the image in the header, not in the rows
             if (!String.IsNullOrEmpty(this.ImageKey))
                 return this.ImageKey;
 
