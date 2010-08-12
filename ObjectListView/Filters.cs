@@ -245,30 +245,6 @@ namespace BrightIdeasSoftware
         #region Configuration properties
 
         /// <summary>
-        /// Gets or sets the text that will be matched
-        /// </summary>
-        public string Text {
-            get { return this.text; }
-            set {
-                this.text = value;
-                this.Regex = null;
-            }
-        }
-        private string text;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public StringComparison StringComparison {
-            get { return this.stringComparison; }
-            set {
-                this.stringComparison = value;
-                this.Regex = null;
-            }
-        }
-        private StringComparison stringComparison = StringComparison.InvariantCultureIgnoreCase;
-
-        /// <summary>
         /// Which columns will be used for the comparisons? If this is null, all columns will be used
         /// </summary>
         public OLVColumn[] Columns {
@@ -277,12 +253,22 @@ namespace BrightIdeasSoftware
         }
         private OLVColumn[] columns;
 
+		/// <summary>
+		/// Gets or set the ObjectListView upon which this filter will work
+		/// </summary>
+		/// <remarks>
+		/// You cannot really rebase a filter after it is created, so do not change this value.
+		/// It is included so that it can be set in an object initializer.
+		/// </remarks>
+        public ObjectListView ListView {
+			get { return listView; }
+			set { listView = value; }
+		}
+        private ObjectListView listView;
+		
         /// <summary>
         /// Gets or sets how the filter string will be matched to the values in the cells.
         /// </summary>
-        /// <remarks>
-        /// If this is set to Regex, but Text is not a valid regular expression,
-        /// the filter will NOT throw an exception. Instead, it will treat Text as a simple text match.</remarks>
         public MatchKind Match {
             get { return match; }
             set { 
@@ -328,11 +314,37 @@ namespace BrightIdeasSoftware
         }
         private RegexOptions? regexOptions;
 
+        /// <summary>
+        /// Gets or  sets how the filter will match text
+        /// </summary>
+        public StringComparison StringComparison {
+            get { return this.stringComparison; }
+            set {
+                this.stringComparison = value;
+                this.Regex = null;
+            }
+        }
+        private StringComparison stringComparison = StringComparison.InvariantCultureIgnoreCase;
+
+        /// <summary>
+        /// Gets or sets the text that will be matched
+        /// </summary>
+        /// <remarks>
+        /// If the filter is set to Regex, but Text is not a valid regular expression,
+        /// the filter will NOT throw an exception. Instead, it will simply match everything.
+		/// </remarks>
+        public string Text {
+            get { return this.text; }
+            set {
+                this.text = value;
+                this.Regex = null;
+            }
+        }
+        private string text;
+
         #endregion
 
         #region Implementation properties
-
-        internal ObjectListView ListView;
 
         /// <summary>
         /// Gets or sets a compilex regular expression, based on our current Text and RegexOptions.
