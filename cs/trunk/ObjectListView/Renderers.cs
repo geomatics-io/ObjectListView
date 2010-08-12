@@ -1664,7 +1664,53 @@ namespace BrightIdeasSoftware
         public override void Render(Graphics g, Rectangle r) {
             this.DrawBackground(g, r);
             r = this.CalculateCheckBoxBounds(g, r);
-            this.DrawImage(g, r, this.Column.GetCheckStateImage(this.RowObject));
+            CheckBoxRenderer.DrawCheckBox(g, r.Location, this.GetCheckBoxState(this.Column.GetCheckState(this.RowObject)));
+        }
+
+        /// <summary>
+        /// Calculate the renderer checkboxstate we need to correctly draw the given state
+        /// </summary>
+        /// <param name="checkState"></param>
+        /// <returns></returns>
+        protected virtual CheckBoxState GetCheckBoxState(CheckState checkState) {
+
+            // Should the checkbox be drawn as disabled?
+            bool isDisabled =
+                this.ListView.RenderNonEditableCheckboxesAsDisabled &&
+                (this.ListView.CellEditActivation == ObjectListView.CellEditActivateMode.None ||
+                !this.Column.IsEditable);
+
+            if (isDisabled) {
+                switch (checkState) {
+                    case CheckState.Checked: return CheckBoxState.CheckedDisabled;
+                    case CheckState.Unchecked: return CheckBoxState.UncheckedDisabled;
+                    default: return CheckBoxState.MixedDisabled;
+                }
+            }
+            
+            // Is the cursor currently over this checkbox?
+            bool isHot =
+                this.ListView != null &&
+                this.ListItem != null &&
+                this.ListView.HotRowIndex == this.ListItem.Index &&
+                this.ListView.HotColumnIndex == this.Column.Index &&
+                this.ListView.HotCellHitLocation == HitTestLocation.CheckBox;
+
+            if (isHot) {
+                switch (checkState) {
+                    case CheckState.Checked: return CheckBoxState.CheckedHot;
+                    case CheckState.Unchecked: return CheckBoxState.UncheckedHot;
+                    default: return CheckBoxState.MixedHot;
+                }
+            }
+
+            // Not hot and not disabled -- just draw it normally
+            switch (checkState) {
+                case CheckState.Checked: return CheckBoxState.CheckedNormal;
+                case CheckState.Unchecked: return CheckBoxState.UncheckedNormal;
+                default: return CheckBoxState.MixedNormal;
+            }
+
         }
 
         protected override Rectangle HandleGetEditRectangle(Graphics g, Rectangle cellBounds, OLVListItem item, int subItemIndex) {
