@@ -8897,7 +8897,7 @@ namespace BrightIdeasSoftware
             get { return headerImageKey; }
             set { headerImageKey = value; }
         }
-        private string headerImageKey = "compass";
+        private string headerImageKey = null;
 
         /// <summary>
         /// Gets whether or not this column has an image in the header
