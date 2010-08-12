@@ -527,7 +527,7 @@ namespace BrightIdeasSoftware
         /// <param name="g">A Graphic for drawing</param>
         /// <param name="bounds">The contents bounds of the ListView (not including any header)</param>
         public override void DrawFeedback(Graphics g, Rectangle bounds) {
-            g.SmoothingMode = SmoothingMode.HighQuality;
+            g.SmoothingMode = ObjectListView.SmoothingMode;
 
             switch (this.DropTargetLocation) {
                 case DropTargetLocation.Background:
