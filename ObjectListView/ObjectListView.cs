@@ -5,6 +5,10 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2010-08-18  JPP  - Fixed long standing bug where having 0 columns caused a InvalidCast exception.
+ *                  - Added IncludeAllColumnsInDataObject property
+ *                  - Improved BuildList(bool) so that it preserves scroll position even when
+ *                    the listview is grouped.
  * 2010-08-08  JPP  - Added OLVColumn.HeaderImageKey to allow column headers to have an image.
  *                  - CellEdit validation and finish events now have NewValue property.
  * 2010-08-03  JPP  - Subitem checkboxes improvments: obey IsEditable, can be hot, can be disabled.
@@ -1411,6 +1415,20 @@ namespace BrightIdeasSoftware
                     return this.HighlightForegroundColor;
             }
         }
+
+        /// <summary>
+        /// Gets or sets whether or not hidden columns should be included in the text representation
+        /// of rows that are copied or dragged to another application. If this is false (the default),
+        /// only visible columns will be included.
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+        Description("When rows are copied or dragged, will data in hidden columns be included in the text? If this is false, only visible columns will be included."),
+        DefaultValue(false)]
+        public virtual bool IncludeHiddenColumnsInDataTransfer {
+            get { return includeHiddenColumnsInDataTransfer; }
+            set { includeHiddenColumnsInDataTransfer = value; }
+        }
+        private bool includeHiddenColumnsInDataTransfer = false;
 
         /// <summary>
         /// Return true if a cell edit operation is currently happening
@@ -3115,6 +3133,8 @@ namespace BrightIdeasSoftware
             this.ApplyExtendedStyles();
             this.ClearHotItem();
             int previousTopIndex = this.TopItemIndex;
+            Point currentScrollPosition = this.LowLevelScrollPosition;
+
             IList previousSelection = new ArrayList();
             Object previousFocus = null;
             if (shouldPreserveState && this.objects != null) {
@@ -3157,8 +3177,15 @@ namespace BrightIdeasSoftware
             // We can only restore the scroll position after the EndUpdate() because
             // of caching that the ListView does internally during a BeginUpdate/EndUpdate pair.
             if (shouldPreserveState) {
-                this.TopItemIndex = previousTopIndex;
                 this.RefreshHotItem();
+
+                // Restore the scroll position. TopItemIndex is best, but doesn't work
+                // when the control is grouped.
+                if (this.ShowGroups)
+                    this.LowLevelScroll(currentScrollPosition.X, currentScrollPosition.Y);
+                else
+                    this.TopItemIndex = previousTopIndex;
+
             }
         }
 
@@ -3551,6 +3578,12 @@ namespace BrightIdeasSoftware
             NativeMethods.Scroll(this, dx, dy);
         }
 
+        internal Point LowLevelScrollPosition {
+            get {
+                return new Point(NativeMethods.GetScrollPosition(this, true), NativeMethods.GetScrollPosition(this, false));
+            }
+        }
+
         /// <summary>
         /// Remember that the given URL has been visited
         /// </summary>
@@ -3563,6 +3596,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Move the given collection of objects to the given index.
         /// </summary>
+        /// <remarks>This operation only makes sense on non-grouped ObjectListViews.</remarks>
         /// <param name="index"></param>
         /// <param name="modelObjects"></param>
         public virtual void MoveObjects(int index, ICollection modelObjects) {
@@ -4486,9 +4520,11 @@ namespace BrightIdeasSoftware
 
                 case CDDS_ITEMPOSTPAINT:
                     //System.Diagnostics.Debug.WriteLine("CDDS_ITEMPOSTPAINT");
-                    OLVListItem olvi = this.GetItem((int)nmcustomdraw.nmcd.dwItemSpec);
-                    if (olvi != null)
-                        this.drawnItems.Add(olvi);
+                    if (this.Columns.Count > 0) {
+                        OLVListItem olvi = this.GetItem((int)nmcustomdraw.nmcd.dwItemSpec);
+                        if (olvi != null)
+                            this.drawnItems.Add(olvi);
+                    }
                     break;
 
                 case CDDS_SUBITEMPREPAINT:
@@ -7622,6 +7658,10 @@ namespace BrightIdeasSoftware
 
             // For non detail views, we just use the requested portion
             Rectangle r = this.GetItemRect(item.Index, portion);
+            if (r.Y < -10000000 || r.Y > 10000000) {
+                System.Diagnostics.Debug.WriteLine("here");
+                r.Y = item.Bounds.Y;
+            }
             if (this.View != View.Details)
                 return r;
 
