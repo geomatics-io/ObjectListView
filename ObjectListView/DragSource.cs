@@ -133,14 +133,25 @@ namespace BrightIdeasSoftware
 
     public class OLVDataObject : DataObject
     {
-        public OLVDataObject(ObjectListView olv) : this(olv, olv.SelectedObjects) {
+        #region Life and death
 
+        public OLVDataObject(ObjectListView olv) : this(olv, olv.SelectedObjects) {
         }
 
         public OLVDataObject(ObjectListView olv, IList modelObjects) {
             this.objectListView = olv;
             this.modelObjects = modelObjects;
+            this.includeHiddenColumns = olv.IncludeHiddenColumnsInDataTransfer;
         }
+
+        #endregion
+
+        #region Properties
+
+        public bool IncludeHiddenColumns {
+            get { return includeHiddenColumns; }
+        }
+        private bool includeHiddenColumns;
 
         public ObjectListView ListView {
             get { return objectListView; }
@@ -152,8 +163,10 @@ namespace BrightIdeasSoftware
         }
         private IList modelObjects = new ArrayList();
 
+        #endregion
+
         public void CreateTextFormats() {
-            List<OLVColumn> columns = this.ListView.ColumnsInDisplayOrder;
+            List<OLVColumn> columns = this.IncludeHiddenColumns ? this.ListView.AllColumns : this.ListView.ColumnsInDisplayOrder;
 
             // Build text and html versions of the selection
             StringBuilder sbText = new StringBuilder();
