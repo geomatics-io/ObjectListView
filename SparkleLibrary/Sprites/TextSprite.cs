@@ -223,13 +223,16 @@ namespace BrightIdeasSoftware
                     return Size.Empty;
 
                 // This is a stupid hack to get a Graphics object. How should this be done?
-                using (Graphics g = Graphics.FromImage(this.dummyImage)) {
-                    return g.MeasureString(this.Text, this.ActualFont, this.CalcMaxLineWidth(), this.StringFormat).ToSize();
+                lock (dummyImageLock) {
+                    using (Graphics g = Graphics.FromImage(this.dummyImage)) {
+                        return g.MeasureString(this.Text, this.ActualFont, this.CalcMaxLineWidth(), this.StringFormat).ToSize();
+                    }
                 }
             }
             set { }
         }
         private Image dummyImage = new Bitmap(1, 1);
+        private object dummyImageLock = new object();
 
         #endregion
 
