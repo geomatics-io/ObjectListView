@@ -6,6 +6,7 @@
  * Date: 14/04/2009 4:36 PM
  *
  * Change log:
+ * 2010-08-18   JPP  - Added WS_EX_TOOLWINDOW style so that the form won't appear in Alt-Tab list.
  * v2.4
  * 2010-03-11   JPP  - Work correctly in MDI applications -- more or less. Actually, less than more.
  *                     They don't crash but they don't correctly handle overlapping MDI children.
@@ -82,6 +83,7 @@ namespace BrightIdeasSoftware
             get {
                 CreateParams cp = base.CreateParams;
                 cp.ExStyle |= 0x20; // WS_EX_TRANSPARENT
+                cp.ExStyle |= 0x80; // WS_EX_TOOLWINDOW 
                 return cp;
             }
         }
