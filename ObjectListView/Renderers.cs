@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2010-08-24   JPP  - CheckBoxRenderer handles hot boxes and correctly vertically centers the box.
  * 2010-06-23   JPP  - Major rework of HighlightTextRenderer. Now uses TextMatchFilter directly.
  *                     Draw highlighting underneath text to improve legibility. Works with new
  *                     TextMatchFilter capabilities.
@@ -1724,11 +1725,9 @@ namespace BrightIdeasSoftware
         }
 
         private Rectangle CalculateCheckBoxBounds(Graphics g, Rectangle cellBounds) {
-            // We don't use this because the checkbox images were drawn into the small image list
-            //Size checkBoxSize = CheckBoxRenderer.GetGlyphSize(g, CheckBoxState.CheckedNormal);
-            Size checkBoxSize = this.ListView.SmallImageSize;
+            Size checkBoxSize = CheckBoxRenderer.GetGlyphSize(g, CheckBoxState.CheckedNormal);
             return this.AlignRectangle(cellBounds,
-                new Rectangle(0, 0, checkBoxSize.Width, cellBounds.Height));
+                new Rectangle(0, 0, checkBoxSize.Width, checkBoxSize.Height));
         }
     }
 
