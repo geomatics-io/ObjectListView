@@ -5,6 +5,7 @@
  * Date: 2009-03-17 5:15 PM
  *
  * Change log:
+ * 2010-08-24   JPP  - Moved AcceptExternal property up to SimpleDragSource.
  * v2.3
  * 2009-09-01   JPP  - Correctly handle case where RefreshObjects() is called for
  *                     objects that were children but are now roots.
@@ -19,7 +20,7 @@
  * 2009-04-15   JPP  - Separated DragDrop.cs into DropSink.cs
  * 2009-03-17   JPP  - Initial version
  * 
- * Copyright (C) 2009 Phillip Piper
+ * Copyright (C) 2009-2010 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -274,6 +275,15 @@ namespace BrightIdeasSoftware
             set { this.acceptableLocations = value; }
         }
         private DropTargetLocation acceptableLocations;
+        
+        /// <summary>
+        /// Gets or sets whether this sink allows model objects to be dragged from other lists
+        /// </summary>
+        public bool AcceptExternal {
+            get { return this.acceptExternal; }
+            set { this.acceptExternal = value; }
+        }
+        private bool acceptExternal = true;
 
         /// <summary>
         /// Gets or sets whether the ObjectListView should scroll when the user drags
@@ -632,6 +642,15 @@ namespace BrightIdeasSoftware
         }
 
         protected virtual void OnModelCanDrop(ModelDropEventArgs args) {
+
+            // Don't allow drops from other list, if that's what's configured
+            if (!this.AcceptExternal && args.SourceListView != null && args.SourceListView != this.ListView) {
+                args.Effect = DragDropEffects.None;
+                args.DropTargetLocation = DropTargetLocation.None;
+                args.InfoMessage = "This list doesn't accept drops from other lists";
+                return;
+            }
+
             if (this.ModelCanDrop != null)
                 this.ModelCanDrop(this, args);
         }
