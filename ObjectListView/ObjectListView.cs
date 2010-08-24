@@ -5,6 +5,9 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2010-08-24  JPP  - Added OLVColumn.IsHeaderVertical to make a column draw its header vertical.
+ *                  - Added OLVColumn.HeaderTextAlign to control the alignment of a column's header text.
+ *                  - Added HeaderMaximumHeight to limit how tall the header section can become
  * 2010-08-18  JPP  - Fixed long standing bug where having 0 columns caused a InvalidCast exception.
  *                  - Added IncludeAllColumnsInDataObject property
  *                  - Improved BuildList(bool) so that it preserves scroll position even when
@@ -1224,6 +1227,18 @@ namespace BrightIdeasSoftware
             set { this.headerFormatStyle = value; }
         }
         private HeaderFormatStyle headerFormatStyle;
+
+        /// <summary>
+        /// Gets or sets the maximum height of the header. -1 means no maximum.
+        /// </summary>
+        [Category("Appearance - ObjectListView"),
+         Description("What is the maximum height of the header? -1 means no maximum"),
+         DefaultValue(-1)]
+        public int HeaderMaximumHeight {
+            get { return headerMaximumHeight; }
+            set { headerMaximumHeight = value; }
+        }
+        private int headerMaximumHeight = -1;
 
         /// <summary>
         /// Gets or sets whether the header will be drawn using OS's theming styles. If this is false, it will use
@@ -8939,6 +8954,31 @@ namespace BrightIdeasSoftware
         }
         private string headerImageKey = null;
 
+
+        /// <summary>
+        /// Gets or sets how the text of the header will be drawn?
+        /// </summary>
+        [Category("Behavior - ObjectListView"),
+         Description("How will the header text be aligned?"),
+         DefaultValue(HorizontalAlignment.Left)]
+        public HorizontalAlignment HeaderTextAlign {
+            get { return headerTextAlign.HasValue ? headerTextAlign.Value : this.TextAlign; }
+            set { headerTextAlign = value; }
+        }
+        private HorizontalAlignment? headerTextAlign;
+
+        [Browsable(false)]
+        public StringAlignment HeaderTextAlignAsStringAlignment {
+            get {
+                switch (this.HeaderTextAlign) {
+                    case HorizontalAlignment.Left: return StringAlignment.Near;
+                    case HorizontalAlignment.Center: return StringAlignment.Center;
+                    case HorizontalAlignment.Right: return StringAlignment.Far;
+                    default: return StringAlignment.Near;
+                }
+            }
+        }
+
         /// <summary>
         /// Gets whether or not this column has an image in the header
         /// </summary>
@@ -9045,6 +9085,23 @@ namespace BrightIdeasSoftware
             set { isTileViewColumn = value; }
         }
         private bool isTileViewColumn;
+
+        /// <summary>
+        /// Gets or sets whether the text of this header should be
+        /// rendered vertically.
+        /// </summary>
+        /// <remarks>
+        /// <para>If this is true, it is a good idea to set ToolTipText to the name of the column so it's easy to read.</para>
+        /// <para>Currently (2010-08), vertical headers are text only. They do not draw their image.</para>
+        /// </remarks>
+        [Category("Behavior - ObjectListView"),
+         Description("Will the header for this column be drawn vertically?"),
+         DefaultValue(false)]
+        public bool IsHeaderVertical {
+            get { return isHeaderVertical; }
+            set { isHeaderVertical = value; }
+        }
+        private bool isHeaderVertical;
 
         /// <summary>
         /// Can this column be seen by the user?
