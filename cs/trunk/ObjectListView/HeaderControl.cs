@@ -5,6 +5,8 @@
  * Date: 25/11/2008 17:15 
  *
  * Change log:
+ * 2010-08-23  JPP  - Added ability to draw header vertically (thanks to Mark Fenwick)
+ *                  - Uses OLVColumn.HeaderTextAlign to decide how to align the column's header
  * 2010-08-08  JPP  - Added ability to have image in header
  * v2.4
  * 2010-03-22  JPP  - Draw header using header styles
@@ -47,6 +49,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Windows.Forms.VisualStyles;
+using System.Drawing.Drawing2D;
 
 namespace BrightIdeasSoftware
 {
@@ -129,6 +132,13 @@ namespace BrightIdeasSoftware
         private ObjectListView listView;
 
         /// <summary>
+        /// Gets the maximum height of the header. -1 means no maximum.
+        /// </summary>
+        public int MaximumHeight {
+            get { return this.ListView.HeaderMaximumHeight; }
+        }
+
+        /// <summary>
         /// Get or set the ToolTip that shows tips for the header
         /// </summary>
         public ToolTipControl ToolTip {
@@ -166,21 +176,28 @@ namespace BrightIdeasSoftware
             float height = 0.0f;
             for (int i = 0; i < this.ListView.Columns.Count; i++) {
                 OLVColumn column = this.ListView.GetColumn(i);
-                Font f = this.CalculateFont(column, i == columnUnderCursor, false);
-                if (this.WordWrap) {
-                    Rectangle r = this.GetItemRect(i);
-                    r.Width -= 6; // Match the "tweaking" done in CustomRender
-                    if (this.HasNonThemedSortIndicator(column))
-                        r.Width -= 16;
-                    if (column.HasHeaderImage)
-                        r.Width -= column.ImageList.ImageSize.Width +3;
-                    SizeF size = TextRenderer.MeasureText(g, column.Text, f, new Size(r.Width, 100), flags);
-                    height = Math.Max(height, size.Height);
-                } else {
-                    height = Math.Max(height, f.Height);
-                }
+                height = Math.Max(height, CalculateColumnHeight(g, column, flags, columnUnderCursor == i, i));
             }
-            return 7 + (int)height; // 7 is a magic constant that makes it perfectly match XP behavior
+            return this.MaximumHeight == -1 ? (int)height : Math.Min(this.MaximumHeight, (int)height);
+        }
+
+        private float CalculateColumnHeight(Graphics g, OLVColumn column, TextFormatFlags flags, bool isHot, int i) {
+            Font f = this.CalculateFont(column, isHot, false);
+            if (column.IsHeaderVertical)
+                return TextRenderer.MeasureText(g, column.Text, f, new Size(10000, 10000), flags).Width;
+
+            const int fudge = 9; // 9 is a magic constant that makes it perfectly match XP behavior
+            if (!this.WordWrap)
+                return f.Height + fudge;
+
+            Rectangle r = this.GetItemRect(i);
+            r.Width -= 6; // Match the "tweaking" done in CustomRender
+            if (this.HasNonThemedSortIndicator(column))
+                r.Width -= 16;
+            if (column.HasHeaderImage)
+                r.Width -= column.ImageList.ImageSize.Width + 3;
+            SizeF size = TextRenderer.MeasureText(g, column.Text, f, new Size(r.Width, 100), flags);
+            return size.Height + fudge;
         }
 
         /// <summary>
@@ -458,7 +475,10 @@ namespace BrightIdeasSoftware
                 return true;
             
             foreach (OLVColumn column in this.ListView.Columns) {
-                if (column.HasHeaderImage || this.NeedsCustomDraw(column.HeaderFormatStyle))
+                if (column.HasHeaderImage || 
+                    column.IsHeaderVertical || 
+                    column.TextAlign != column.HeaderTextAlign ||
+                    this.NeedsCustomDraw(column.HeaderFormatStyle))
                     return true;
             }
             return false;
@@ -614,9 +634,10 @@ namespace BrightIdeasSoftware
 
         protected void DrawHeaderImageAndText(Graphics g, Rectangle r, OLVColumn column, HeaderStateStyle stateStyle) {
             TextFormatFlags flags = this.TextFormatFlags;
-            if (column.TextAlign == HorizontalAlignment.Center)
+            flags |= TextFormatFlags.VerticalCenter;
+            if (column.HeaderTextAlign == HorizontalAlignment.Center)
                 flags |= TextFormatFlags.HorizontalCenter;
-            if (column.TextAlign == HorizontalAlignment.Right)
+            if (column.HeaderTextAlign == HorizontalAlignment.Right)
                 flags |= TextFormatFlags.Right;
 
             Font f = this.ListView.HeaderUsesThemes ? this.ListView.Font : stateStyle.Font ?? this.ListView.Font;
@@ -630,23 +651,47 @@ namespace BrightIdeasSoftware
             Rectangle textRect = r;
             const int imageTextGap = 3;
 
-            // Does the column have a header image and is there space for it?
-            if (column.HasHeaderImage && r.Width > column.ImageList.ImageSize.Width * 2) {
-                textRect.X += (column.ImageList.ImageSize.Width + imageTextGap);
-                textRect.Width -= (column.ImageList.ImageSize.Width + imageTextGap);
+            if (column.IsHeaderVertical) {
+                try {
+                    // Create a matrix transformation that will rotate the text 90 degrees vertically
+                    // AND place the text in the middle of where it was previously. [Think of tipping
+                    // a box over by its bottom left edge -- you have to move it back a bit so it's
+                    // in the same place as it started]
+                    Matrix m = new Matrix();
+                    m.RotateAt(-90, new Point(r.X, r.Bottom));
+                    m.Translate(0, r.Height);
+                    g.Transform = m;
+                    StringFormat fmt = new StringFormat(StringFormatFlags.NoWrap);
+                    fmt.Alignment = StringAlignment.Near;
+                    fmt.LineAlignment = column.HeaderTextAlignAsStringAlignment;
+                    //fmt.Trimming = StringTrimming.EllipsisCharacter;
 
-                Size textSize = TextRenderer.MeasureText(g, column.Text, f, textRect.Size, flags);
-                int imageY = r.Top + ((r.Height - column.ImageList.ImageSize.Height) / 2);
-                int imageX = textRect.Left;
-                if (column.TextAlign == HorizontalAlignment.Center)
-                    imageX = textRect.Left + ((textRect.Width - textSize.Width) / 2);
-                if (column.TextAlign == HorizontalAlignment.Right)
-                    imageX = textRect.Right - textSize.Width;
-                imageX -= (column.ImageList.ImageSize.Width + imageTextGap);
-                column.ImageList.Draw(g, imageX, imageY, column.ImageList.Images.IndexOfKey(column.HeaderImageKey));
+                    // The drawing is rotated 90 degrees, so switch our text boundaries
+                    textRect.Width = r.Height;
+                    textRect.Height = r.Width;
+                    g.DrawString(column.Text, f, new SolidBrush(color), textRect, fmt);
+                } finally {
+                    g.ResetTransform();
+                }
+            } else {
+                // Does the column have a header image and is there space for it?
+                if (column.HasHeaderImage && r.Width > column.ImageList.ImageSize.Width * 2) {
+                    textRect.X += (column.ImageList.ImageSize.Width + imageTextGap);
+                    textRect.Width -= (column.ImageList.ImageSize.Width + imageTextGap);
+
+                    Size textSize = TextRenderer.MeasureText(g, column.Text, f, textRect.Size, flags);
+                    int imageY = r.Top + ((r.Height - column.ImageList.ImageSize.Height) / 2);
+                    int imageX = textRect.Left;
+                    if (column.HeaderTextAlign == HorizontalAlignment.Center)
+                        imageX = textRect.Left + ((textRect.Width - textSize.Width) / 2);
+                    if (column.HeaderTextAlign == HorizontalAlignment.Right)
+                        imageX = textRect.Right - textSize.Width;
+                    imageX -= (column.ImageList.ImageSize.Width + imageTextGap);
+                    column.ImageList.Draw(g, imageX, imageY, column.ImageList.Images.IndexOfKey(column.HeaderImageKey));
+                }
+
+                TextRenderer.DrawText(g, column.Text, f, textRect, color, Color.Transparent, flags);
             }
-
-            TextRenderer.DrawText(g, column.Text, f, textRect, color, Color.Transparent, flags);
         }
 
         protected HeaderStateStyle CalculateStyle(OLVColumn column, bool isHot, bool isPressed) {
@@ -671,7 +716,6 @@ namespace BrightIdeasSoftware
                 TextFormatFlags flags = TextFormatFlags.EndEllipsis | 
                     TextFormatFlags.NoPrefix |
                     TextFormatFlags.WordEllipsis | 
-                    TextFormatFlags.VerticalCenter | 
                     TextFormatFlags.PreserveGraphicsTranslateTransform;
                 if (this.WordWrap)
                     flags |= TextFormatFlags.WordBreak;
