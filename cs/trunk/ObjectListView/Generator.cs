@@ -5,6 +5,8 @@
  * Date: 15/08/2009 22:37
  *
  * Change log:
+ * v2.4.1
+ * 2010-08-25  JPP  - Generator now also resets sort columns
  * v2.4
  * 2010-04-14  JPP  - Allow Name property to be set
  *                  - Don't double set the Text property
@@ -39,13 +41,20 @@ using System.Reflection.Emit;
 
 namespace BrightIdeasSoftware
 {
+    /// <summary>
+    /// The Generator class provides methods to dynamically create columns
+    /// for an ObjectListView based on the characteristics of a given collection
+    /// of model objects.
+    /// </summary>
     public static class Generator
     {
         static public void GenerateColumns(ObjectListView olv, IEnumerable enumerable) {
             // Generate columns based on the type of the first model in the collection and then quit
-            foreach (object model in enumerable) {
-                Generator.GenerateColumns(olv, model.GetType());
-                return;
+            if (enumerable != null) {
+                foreach (object model in enumerable) {
+                    Generator.GenerateColumns(olv, model.GetType());
+                    return;
+                }
             }
 
             // If we reach here, the collection was empty, so we clear the list
@@ -60,6 +69,8 @@ namespace BrightIdeasSoftware
         static private void ReplaceColumns(ObjectListView olv, IList<OLVColumn> columns) {
             olv.Clear();
             olv.AllColumns.Clear();
+            olv.PrimarySortColumn = null;
+            olv.SecondarySortColumn = null;
             if (columns.Count > 0) {
                 olv.AllColumns.AddRange(columns);
                 olv.RebuildColumns();
