@@ -72,11 +72,13 @@ namespace ObjectListViewDemo
         {
             if (listView.SmallImageList == null) {
                 listView.SmallImageList = new ImageList();
+                listView.SmallImageList.ColorDepth = ColorDepth.Depth32Bit;
                 listView.SmallImageList.ImageSize = new Size(16, 16);
             }
 
             if (listView.LargeImageList == null) {
                 listView.LargeImageList = new ImageList();
+                listView.LargeImageList.ColorDepth = ColorDepth.Depth32Bit;
                 listView.LargeImageList.ImageSize = new Size(32, 32);
             }
 

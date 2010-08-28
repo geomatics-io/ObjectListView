@@ -64,7 +64,7 @@ namespace ObjectListViewDemo
                 this.Font = new Font("Segoe UI", 9);
 
 			masterList = new List<Person>();
-            masterList.Add(new Person("Wilhelm Frat", "Gymnast", 19, new DateTime(1984, 9, 23), 45.67, false, "ak", "Aggressive, belligerent "));
+            masterList.Add(new Person("Wilhelm Frat", "Gymnast", 21, new DateTime(1984, 9, 23), 45.67, false, "ak", "Aggressive, belligerent "));
             masterList.Add(new Person("Alana Roderick", "Gymnast", 21, new DateTime(1974, 9, 23), 245.67, false, "gp", "Beautiful, exquisite"));
             masterList.Add(new Person("Frank Price", "Dancer", 30, new DateTime(1965, 11, 1), 75.5, false, "ns", "Competitive, spirited"));
             masterList.Add(new Person("Eric", "Half-a-bee", 1, new DateTime(1966, 10, 12), 12.25, true, "cp", "Diminutive, vertically challenged"));
@@ -97,10 +97,6 @@ namespace ObjectListViewDemo
             InitializeListPrinting();
             InitializeFastListExample(list);
             InitializeDragDropExample(list);
-
-            // As of 2008-03-23, grid lines on virtual lists on Windows Mono crashes the program
-            //this.listViewVirtual.GridLines = false;
-            //this.olvFastList.GridLines = false;
         }
 
 		void TimedRebuildList (ObjectListView olv)
@@ -131,12 +127,16 @@ namespace ObjectListViewDemo
             TypedColumn<Person> tcol = new TypedColumn<Person>(this.columnHeader16);
             tcol.AspectPutter = delegate(Person x, object newValue) { x.SetRate((double)newValue); };
 
+            // Uncomment this to see a fancy cell highlighting while editing
+            //this.olvSimple.AddDecoration(new EditingCellBorderDecoration { UseLightbox = true });
+
 			// Just one line of code make everything happen.
 			this.olvSimple.SetObjects(list);
 		}
 
 		void InitializeComplexExample(List<Person> list)
 		{
+            this.olvComplex.AddDecoration(new EditingCellBorderDecoration { UseLightbox = true });
 
             // The following line makes getting aspect about 10x faster. Since getting the aspect is
             // the slowest part of building the ListView, it is worthwhile BUT NOT NECESSARY to do.
@@ -310,8 +310,8 @@ namespace ObjectListViewDemo
                 BufferedGraphics buffered = BufferedGraphicsManager.Current.Allocate(g, itemBounds);
                 g = buffered.Graphics;
                 g.Clear(olv.BackColor);
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+                g.SmoothingMode = ObjectListView.SmoothingMode;
+                g.TextRenderingHint = ObjectListView.TextRenderingHint;
 
                 if (e.Item.Selected) {
                     this.BorderPen = Pens.Blue;
@@ -567,7 +567,6 @@ namespace ObjectListViewDemo
             // content with sorting the master list and showing that sorted. It gives the idea.
             this.olvVirtual.CustomSorter = delegate(OLVColumn col, SortOrder order) {
                 masterList.Sort(new MasterListSorter(col, order));
-                this.olvVirtual.BuildList();
             };
 
 			// Install aspect getters to optimize performance
@@ -1802,7 +1801,6 @@ namespace ObjectListViewDemo
         private void checkBox18_CheckedChanged(object sender, EventArgs e)
         {
             this.olvSimple.UseHotItem = ((CheckBox)sender).Checked;
-            //this.listViewSimple.FullRowSelect = ((CheckBox)sender).Checked;
         }
 
         private void treeListView_ItemChecked(object sender, ItemCheckedEventArgs e)
@@ -2361,6 +2359,104 @@ namespace ObjectListViewDemo
             this.textBoxFilterFast_TextChanged(null, null);
         }
 
+        private void olvSimple_ModelCanDrop(object sender, ModelDropEventArgs e) {
+            e.Effect = DragDropEffects.None;
+
+            // Only allow dropping if we are grouped on the cooking column
+            if (!olvSimple.ShowGroups || olvSimple.PrimarySortColumn != olvSimpleCookingColumn) 
+                return;
+
+            if (e.DropTargetLocation == DropTargetLocation.Item ||
+                e.DropTargetLocation == DropTargetLocation.AboveItem ||
+                e.DropTargetLocation == DropTargetLocation.BelowItem) {
+                e.Effect = DragDropEffects.Move;
+            } 
+        }
+
+        private void olvSimple_ModelDropped(object sender, ModelDropEventArgs e) {
+            // What item was dropped on?
+            Person target = e.TargetModel as Person;
+            if (target == null)
+                return;
+
+            foreach (Person source in e.SourceModels) {
+                source.CulinaryRating = target.CulinaryRating;
+            }
+
+            olvSimple.BuildList(true);
+        }
+
+        private void olvComplex_BeforeCreatingGroups(object sender, CreateGroupsEventArgs e) {
+            if (e.Parameters.PrimarySort == olvMarriedColumn && Control.ModifierKeys == Keys.Control) {
+                e.Parameters.GroupComparer = new StrangeGroupComparer(e.Parameters.PrimarySortOrder);
+                e.Parameters.ItemComparer = new StrangeItemComparer(this.olvComplex.GetColumn(0), e.Parameters.PrimarySortOrder);
+            }
+        }
+    }
+
+    /// <summary>
+    /// This comparer sort groups alphabetically by their header, BUT ignoring the first letter
+    /// </summary>
+    public class StrangeGroupComparer : IComparer<OLVGroup>
+    {
+        public StrangeGroupComparer(SortOrder order) {
+            this.sortOrder = order;
+        }
+
+        public int Compare(OLVGroup x, OLVGroup y) {
+
+            string xValue = x.Header;
+            string yValue = y.Header;
+
+            if (xValue.Length >= 2)
+                xValue = xValue.Substring(1);
+            if (yValue.Length >= 2)
+                yValue = yValue.Substring(1);
+
+            int result = String.Compare(xValue, yValue, StringComparison.CurrentCultureIgnoreCase);
+
+            if (this.sortOrder == SortOrder.Descending)
+                result = 0 - result;
+
+            return result;
+        }
+
+        private SortOrder sortOrder;
+    }
+
+    /// <summary>
+    /// StrangeItemComparer is an example of how to customize the ordering of items
+    /// within groups. It orders items by their text representation but ignoring
+    /// the first letter. This admittedly a pointless way to order items, but it
+    /// is simply an example.
+    /// </summary>
+    public class StrangeItemComparer : IComparer<OLVListItem>
+    {
+        public StrangeItemComparer(OLVColumn col, SortOrder order) {
+            this.column = col;
+            this.sortOrder = order;
+        }
+
+        public int Compare(OLVListItem x, OLVListItem y) {
+
+            string xValue = this.column.GetStringValue(x.RowObject);
+            string yValue = this.column.GetStringValue(y.RowObject);
+
+            if (xValue.Length >= 2)
+                xValue = xValue.Substring(1);
+            if (yValue.Length >= 2)
+                yValue = yValue.Substring(1);
+
+            int result = String.Compare(xValue, yValue, StringComparison.CurrentCultureIgnoreCase);
+
+            if (this.sortOrder == SortOrder.Descending)
+                result = 0 - result;
+
+            return result;
+        }
+
+        private OLVColumn column;
+        private SortOrder sortOrder;
     }
 
     enum MaritalStatus
