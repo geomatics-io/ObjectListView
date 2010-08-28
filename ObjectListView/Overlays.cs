@@ -96,7 +96,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// How transparent should this overlay be?
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("How transparent should this overlay be"),
          DefaultValue(128),
          NotifyParentProperty(true)]
@@ -112,7 +112,7 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// An overlay that will draw an image over the top of the ObjectListView
     /// </summary>
-    [TypeConverter(typeof(BrightIdeasSoftware.Design.OverlayConverter))]
+    [TypeConverter("BrightIdeasSoftware.Design.OverlayConverter")]
     public class ImageOverlay : ImageAdornment, ITransparentOverlay
     {
         public ImageOverlay() {
@@ -124,7 +124,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the horizontal inset by which the position of the overlay will be adjusted
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("The horizontal inset by which the position of the overlay will be adjusted"),
          DefaultValue(20),
          NotifyParentProperty(true)]
@@ -137,7 +137,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the vertical inset by which the position of the overlay will be adjusted
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("Gets or sets the vertical inset by which the position of the overlay will be adjusted"),
          DefaultValue(20),
          NotifyParentProperty(true)]
@@ -171,7 +171,7 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// An overlay that will draw text over the top of the ObjectListView
     /// </summary>
-    [TypeConverter(typeof(BrightIdeasSoftware.Design.OverlayConverter))]
+    [TypeConverter("BrightIdeasSoftware.Design.OverlayConverter")]
     public class TextOverlay : TextAdornment, ITransparentOverlay
     {
         public TextOverlay() {
@@ -183,7 +183,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the horizontal inset by which the position of the overlay will be adjusted
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("The horizontal inset by which the position of the overlay will be adjusted"),
          DefaultValue(20),
          NotifyParentProperty(true)]
@@ -196,7 +196,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the vertical inset by which the position of the overlay will be adjusted
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("Gets or sets the vertical inset by which the position of the overlay will be adjusted"),
          DefaultValue(20),
          NotifyParentProperty(true)]
