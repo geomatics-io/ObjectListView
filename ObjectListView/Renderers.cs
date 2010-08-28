@@ -1159,7 +1159,7 @@ namespace BrightIdeasSoftware
         /// <param name="g"></param>
         /// <param name="r"></param>
         /// <param name="imageSelectors"></param>
-        protected virtual void DrawImages(Graphics g, Rectangle r, ICollection imageSelectors) {
+        protected virtual int DrawImages(Graphics g, Rectangle r, ICollection imageSelectors) {
             // Collect the non-null images
             List<Image> images = new List<Image>();
             foreach (Object selector in imageSelectors) {
@@ -1185,6 +1185,9 @@ namespace BrightIdeasSoftware
                 g.DrawImage(image, pt);
                 pt.X += (image.Width + this.Spacing);
             }
+
+            // Return the width that the images occupy
+            return width;
         }
 
         /// <summary>
@@ -2138,7 +2141,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Should this bar be drawn in the system style?
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("Should this bar be drawn in the system style?"),
          DefaultValue(true)]
         public bool UseStandardBar {
@@ -2150,7 +2153,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// How many pixels in from our cell border will this bar be drawn
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("How many pixels in from our cell border will this bar be drawn"),
          DefaultValue(2)]
         public int Padding {
@@ -2163,7 +2166,7 @@ namespace BrightIdeasSoftware
         /// What color will be used to fill the interior of the control before the 
         /// progress bar is drawn?
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("The color of the interior of the bar"),
          DefaultValue(typeof(Color), "AliceBlue")]
         public Color BackgroundColor {
@@ -2175,7 +2178,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// What color should the frame of the progress bar be?
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("What color should the frame of the progress bar be"),
          DefaultValue(typeof(Color), "Black")]
         public Color FrameColor {
@@ -2187,7 +2190,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// How many pixels wide should the frame of the progress bar be?
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("How many pixels wide should the frame of the progress bar be"),
          DefaultValue(1.0f)]
         public float FrameWidth {
@@ -2200,7 +2203,7 @@ namespace BrightIdeasSoftware
         /// What color should the 'filled in' part of the progress bar be?
         /// </summary>
         /// <remarks>This is only used if GradientStartColor is Color.Empty</remarks>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("What color should the 'filled in' part of the progress bar be"),
          DefaultValue(typeof(Color), "BlueViolet")]
         public Color FillColor {
@@ -2212,7 +2215,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Use a gradient to fill the progress bar starting with this color
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("Use a gradient to fill the progress bar starting with this color"),
          DefaultValue(typeof(Color), "CornflowerBlue")]
         public Color GradientStartColor {
@@ -2226,7 +2229,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Use a gradient to fill the progress bar ending with this color
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("Use a gradient to fill the progress bar ending with this color"),
          DefaultValue(typeof(Color), "DarkBlue")]
         public Color GradientEndColor {
@@ -2675,7 +2678,7 @@ namespace BrightIdeasSoftware
         /// Gets or set the font that will be used to draw the title of the task
         /// </summary>
         /// <remarks>If this is null, the ListView's font will be used</remarks>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
         Description("The font that will be used to draw the title of the task"),
         DefaultValue(null)]
         public Font TitleFont {
@@ -2699,7 +2702,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>This color is used when the task is not selected or when the listview
         /// has a translucent selection mechanism.</remarks>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
         Description("The color of the title"),
         DefaultValue(typeof(Color), "")]
         public Color TitleColor {
@@ -2725,7 +2728,7 @@ namespace BrightIdeasSoftware
         /// Gets or set the font that will be used to draw the description of the task
         /// </summary>
         /// <remarks>If this is null, the ListView's font will be used</remarks>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
         Description("The font that will be used to draw the description of the task"),
         DefaultValue(null)]
         public Font DescriptionFont {
@@ -2749,7 +2752,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>This color is used when the task is not selected or when the listview
         /// has a translucent selection mechanism.</remarks>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
         Description("The color of the description"),
         DefaultValue(typeof(Color), "DimGray")]
         public Color DescriptionColor {
@@ -2774,7 +2777,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the number of pixels that renderer will leave empty around the edge of the cell
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
         Description("The number of pixels that renderer will leave empty around the edge of the cell"),
         DefaultValue(typeof(Size), "2,2")]
         public Size CellPadding {
@@ -2786,7 +2789,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the number of pixels that will be left between the image and the text
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
         Description("The number of pixels that that will be left between the image and the text"),
         DefaultValue(4)]
         public int ImageTextSpace {
@@ -2798,7 +2801,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the name of the aspect of the model object that contains the task description
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
         Description("The name of the aspect of the model object that contains the task description"),
         DefaultValue(null)]
         public string DescriptionAspectName {
