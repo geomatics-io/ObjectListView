@@ -30,6 +30,8 @@ of what's available so that you can use it when the need arises.
 * `Editing cell values`_
 * `Filtering`_
 * `Header formatting`_
+* `Header images`_
+* `Header drawn vertically`_
 * `Header visible in all views`_
 * `Hot item tracking`_
 * `Groups on virtual lists`_
@@ -450,8 +452,23 @@ all headers at once using `HeaderFormatStyle` on the `ObjectListView` itself.
 
 The text of column header can also be word wrapped, rather than truncated.
 
-See :ref:`recipe-headerformatting`
+See :ref:`recipe-headerformatting`.
 
+Header images
+-------------
+
+Each column can have an image drawn to the left of the text by setting
+the `HeaderImageKey` property.
+
+See :ref:`recipe-column-header-image`.
+
+Header drawn vertically
+-----------------------
+
+To save horizonal space, a header can be drawn vertically.
+
+See :ref:`recipe-column-header-vertical`.
+ 
 Header visible in all views
 ---------------------------
 

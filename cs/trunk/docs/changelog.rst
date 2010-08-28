@@ -9,6 +9,7 @@ Change Log
 
 Version Index
 -------------
+* `v2.4.1 - 27 August 2010`_
 * `v2.4 - 17 April 2010`_
 * `v2.3 - 14 October 2009`_
 * `v2.2.1 - 08 August 2009`_
@@ -29,6 +30,129 @@ Version Index
 * `v1.5 - 03 August 2007`_
 * `v1.4 - 30 April 2007`_
 * `Previous versions - 04 April 2007`_
+
+
+v2.4.1 - 27 August 2010
+-----------------------
+
+2010-08-24 21:16 (#1010) - ObjectListView/ObjectListView.cs
+  - Added OLVColumn.IsHeaderVertical to make a column draw its header vertical.
+  - Added OLVColumn.HeaderTextAlign to control the alignment of a column's header text.
+  - Added HeaderMaximumHeight to limit how tall the header section can become
+
+2010-08-24 21:15 (#1009) - ObjectListView/HeaderControl.cs
+  - Added ability to draw header vertically (thanks to Mark Fenwick)
+  - Uses OLVColumn.HeaderTextAlign to decide how to align the column's header
+
+2010-08-24 21:14 (#1008) - ObjectListView/Renderers.cs
+  - CheckBoxRenderer handles hot boxes and correctly vertically centers the box.
+
+2010-08-24 21:14 (#1007) - ObjectListView/DropSink.cs
+  - Moved AcceptExternal property up to SimpleDragSource.
+
+2010-08-18 20:17 (#1006) - docs/whatsnew.rst, docs/changelog.rst, docs/recipes.rst
+  - Getting ready for v2.4.1
+
+2010-08-18 20:17 (#1005) - ListViewPrinter/ListViewPrinter2008.csproj, ListViewPrinter/BrushForm.cs, ListViewPrinter/lvp-keyfile.snk
+  - Change to use snk file rather than password protected pfx
+
+2010-08-18 20:15 (#1003) - ObjectListView/DragSource.cs
+  - Allow values from hidden columns to be included in data object
+
+2010-08-18 20:15 (#1002) - ObjectListView/GlassPanelForm.cs
+  - Added WS_EX_TOOLWINDOW style so that the form won't appear in Alt-Tab list.
+
+2010-08-18 20:14 (#1001) - ObjectListView/ObjectListView.cs
+  - Fixed long standing bug where having 0 columns caused a InvalidCast exception.
+  - Added IncludeAllColumnsInDataObject property
+  - Improved BuildList(bool) so that it preserves scroll position even when the listview is grouped.
+
+2010-08-18 20:13 (#1000) - ObjectListView/olv-keyfile.snk, ObjectListView/keyfile.pfx, ObjectListView/ObjectListView2008.csproj
+  - Change to use snk file rather than password protected pfx
+
+2010-08-12 11:37 (#999) - Demo/ShellUtilities.cs
+  - SysImageListHelper uses 32-bit images by default
+
+2010-08-12 11:35 (#998) - Tests/Program.cs, Tests/TestMunger.cs
+  - Removed unused tests
+
+2010-08-12 11:34 (#997) - ObjectListView/ObjectListView.cs, ObjectListView/ObjectListView.DesignTime.cs, ObjectListView/Overlays.cs
+  - Changing RowHeight no longer messes with the image list at design time
+
+2010-08-12 11:33 (#996) - ObjectListView/Munger.cs
+  - Code cleanup before release
+  - Setting values now uses new scheme
+  - Refactored into Munger/SimpleMunger. 3x faster!
+
+2010-08-10 17:40 (#995) - ObjectListView/ObjectListView.cs, ObjectListView/Events.cs, ObjectListView/HeaderControl.cs
+  - Column headers can now have an image (via OLVColumn.HeaderImageKey)
+  - Cell editing event have NewValue property
+
+2010-08-10 17:35 (#994) - ObjectListView/CellEditors.cs
+  - Added new boolean editor
+
+2010-08-10 17:34 (#993) - ObjectListView/keyfile.pfx, ObjectListView/ObjectListView2008.csproj
+  - Made ObjectListView.dll signed
+
+2010-08-10 17:32 (#992) - Tests/Program.cs, Tests/Tests2008.csproj, Tests/TestMunger.cs
+  - Added new munger tests
+
+2010-08-10 17:31 (#991) - ObjectListView/Munger.cs
+  - Refactored into Munger/SimpleMunger
+
+2010-08-03 17:43 (#990) - ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs, ObjectListView/Filters.cs, ObjectListView/DropSink.cs, ObjectListView/HeaderControl.cs, ObjectListView/Renderers.cs, ObjectListView/Decorations.cs, ObjectListView/CustomDictionary.xml
+  - Subitem checkboxes improvments: obey IsEditable, can be hot, can be disabled.
+  - No more flickering of selection when tabbing between cells
+  - Added EditingCellBorderDecoration to make it clearer which cell is being edited.
+  - Added ObjectListView.SmoothingMode to control the smoothing of all graphics operations
+  - Columns now cache their group item format strings so that they still work as grouping columns after they have been removed from the listview.
+
+2010-07-25 15:06 (#989) - ObjectListView/ObjectListView.cs, ObjectListView/FastObjectListView.cs
+  - Added Unsort
+  - Trigger OnClick event
+  - Invalidate the control before and after cell editing to make sure it looks right
+
+2010-07-25 15:01 (#988) - ObjectListView/Decorations.cs
+  - Added EditingCellBorderDecoration
+
+2010-07-25 15:00 (#987) - ObjectListView/Styles.cs, ObjectListView/ObjectListView.DesignTime.cs, ObjectListView/Overlays.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/TreeListView.cs, ObjectListView/VirtualGroups.cs, ObjectListView/ObjectListView.FxCop, ObjectListView/DropSink.cs, ObjectListView/Adornments.cs, ObjectListView/NativeMethods.cs, ObjectListView/CustomDictionary.xml, ObjectListView/ToolTipControl.cs
+  - Correct some FxCop annoyances
+
+2010-07-25 14:56 (#986) - Tests/TestSorting.cs
+  - Added test for Unsort
+
+2010-06-23 21:58 (#985) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Gave filter on Fast tab the ability to use regex, prefix or normal matching
+
+2010-06-23 21:57 (#984) - ObjectListView/ObjectListView.cs, ObjectListView/NativeMethods.cs
+  - Avoid bug in underlying ListView control where virtual lists in SmallIcon view generate GETTOOLINFO msgs with invalid item indicies.
+  - Fixed bug where FastObjectListView would throw an exception when showing hyperlinks in any view except Details.
+  - Properly fix problems with ChangeToFilteredColumns() and hiding columns
+
+2010-06-23 21:54 (#983) - ObjectListView/Events.cs, ObjectListView/Filters.cs, ObjectListView/Renderers.cs
+  - Gave TextMatchFilter the ability to find all matches in a string
+  - Better handle invalid regexs in TextMatchFilter
+  - Major rework of HighlightTextRenderer. Now uses TextMatchFilter directly. Draw highlighting underneath text to improve legibility. Works with new TextMatchFilter FindAll capabilities.
+
+2010-06-23 21:50 (#982) - Tests/TestFilters.cs, Tests/TestFormatting.cs
+  - Added Filter FindAll tests
+
+2010-06-16 07:36 (#981) - Tests/TestBasics.cs
+  - Added tests for AddObjects and RemoveObjects
+
+2010-06-16 07:35 (#980) - ObjectListView/ObjectListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/TreeListView.cs, ObjectListView/FastObjectListView.cs, ObjectListView/ToolTipControl.cs
+  - Fixed bug in ChangeToFilteredColumns() that resulted in column display order being lost when a column was hidden
+  - Fixed bug in FOLV which prevented objects from being deleted
+  - Fixed bug in Tree.RemoveObjects() which resulted in removed objects being reported as still existing.
+  - Renamed ObjectListView.IsVista to ObjectListView.IsVistaOrLater
+
+2010-06-10 23:09 (#979) - Tests/Program.cs, ObjectListView/ObjectListView.cs, Tests/TestFilters.cs, ObjectListView/Filters.cs
+  - Upgrade TextMatchFilter. Now handles prefix matching and regex's
+  - OLVColumn.ValueToString() always returns a String (as it always should have)
+
+2010-05-01 17:14 (#976) - ObjectListView/ObjectListView.cs, ObjectListView/Renderers.cs
+  - Added OLVColumn.WordWrap property
+
 
 
 v2.4 - 17 April 2010

@@ -7,6 +7,71 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
+27 August 2010 - Version 2.4.1
+------------------------------
+
+New features
+^^^^^^^^^^^^
+
+* :ref:`Vertical column headers <recipe-column-header-vertical>` 
+
+* :ref:`Images on column headers <recipe-column-header-image>` 
+
+* Improved text filtering to allow for prefix matching and full regex expressions.
+
+* Subitem checkboxes improvements: check boxes now obey `IsEditable` setting on column, can be hot, can be disabled.
+
+* Added `EditingCellBorderDecoration` to make it clearer which cell is being edited.
+
+* Added `OLVColumn.Wrap` to easily word wrap a columns cells.
+
+* Added `OLVColumn.HeaderTextAlign` to control the alignment of a column's header text. This
+  allows the header to be aligned differently to the cell's contents.
+
+Small tweaks
+^^^^^^^^^^^^
+ 
+* No more flickering of selection when tabbing between cells.
+
+* Added `ObjectListView.SmoothingMode` to control the smoothing of all graphics operations.
+
+* Dll's are now signed.
+
+* Invalidate the control before and after cell editing to make sure it looks right.
+
+* `BuildList(true)` now maintains vertical scroll position even when showing groups.
+
+* CellEdit validation and finish events now have `NewValue` property.
+
+* Moved `AllowExternal` from `RearrangableDropSink` up the hierarchy to `SimpleDropSink`
+  since it could be generally useful. 
+ 
+* Added `ObjectListView.HeaderMaximumHeight` to limit how tall the header section can become
+
+Bug fixes 
+^^^^^^^^^
+
+* Avoid bug in standard `ListView` where virtual lists would send invalid item indicies for tool tip messages when in non-Details views.
+  
+* Fixed bug where `FastObjectListView` would throw an exception when showing hyperlinks in any view except Details.
+
+* Fixed bug in `ChangeToFilteredColumns()` that resulted in column display order being lost when a column was hidden.
+
+* Fixed long standing bug where having 0 columns caused an `InvalidCast` exception.
+
+* Columns now cache their group item format strings so that they still work as grouping columns after they have been removed from the listview. This cached value is only used when the column is not part of the listview.
+
+* Correctly trigger a `Click` event when the mouse is clicked.
+
+* Right mouse clicks on checkboxes no longer confuses them
+ 
+* Fixed bugs in `FastObjectListView` and `TreeListView` that prevented objects from being removed (or at least appeared to).
+
+* Avoid checkbox munging bug in standard `ListView` when shift clicking on non-primary columns when `FullRowSelect` is `true`.
+
+* `OLVColumn.ValueToString()` now always returns a `String` (as it always should have)
+
+
 10 April 2010 - Version 2.4
 ---------------------------
 
@@ -150,7 +215,7 @@ Small changes
   highlighting scheme used in Vista. This works fine on Vista and on XP when the
   list is `OwnerDrawn`, but only moderately well when non-`OwnerDrawn`, since
   the native control insists on drawing its normal selection scheme, in addition
-  to the transluscent selection.
+  to the translucent selection.
 
 * Added `ShowHeaderInAllViews` property. When this is *true*, the header is
   visible in all views, not just *Details*, and can be used to control the sorting
@@ -176,7 +241,7 @@ Small changes
   Be warned: setting this messes up several other properties. See
   :ref:`recipe-vistascheme`.
 
-* Added `OLVColumn.AutoCompleteEditor` which allows you to turn off autocompletion
+* Added `OLVColumn.AutoCompleteEditor` which allows you to turn off auto-completion
   on cell editors.  
 
 * `OlvHitTest()` now works correctly even when `FullRowSelect` is *false*. There
