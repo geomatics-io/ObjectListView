@@ -195,7 +195,7 @@ namespace BrightIdeasSoftware
         /// After expanding a branch, should the TreeListView attempts to show as much of the 
         /// revealed descendents as possible.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
          Description("Should the parent of an expand subtree be scrolled to the top revealing the children?"),
          DefaultValue(true)]
         public bool RevealAfterExpand {
@@ -246,7 +246,7 @@ namespace BrightIdeasSoftware
         /// <remarks>When this is true, the wait cursor will be shown whilst the children of the 
         /// branch are being fetched. If the children of the branch have already been cached, 
         /// the cursor will not change.</remarks>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("Should a wait cursor be shown when a branch is being expaned?"),
         DefaultValue(true)]
         public virtual bool UseWaitCursorWhenExpanding {
