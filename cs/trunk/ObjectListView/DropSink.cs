@@ -1062,15 +1062,6 @@ namespace BrightIdeasSoftware
             this.AcceptExternal = acceptDropsFromOtherLists;
         }
 
-        /// <summary>
-        /// Gets or sets whether this sink allows model objects to be dragged from other lists
-        /// </summary>
-        public bool AcceptExternal {
-            get { return this.acceptExternal; }
-            set { this.acceptExternal = value; }
-        }
-        private bool acceptExternal = false;
-
         protected override void OnModelCanDrop(ModelDropEventArgs args) {
             base.OnModelCanDrop(args);
 

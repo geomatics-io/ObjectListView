@@ -83,6 +83,11 @@ namespace BrightIdeasSoftware
                 c.Format = DateTimePickerFormat.Short;
                 return c;
             });
+            this.Register(typeof(Boolean), delegate(Object model, OLVColumn column, Object value) {
+                CheckBox c = new BooleanCellEditor2();
+                c.ThreeState = column.TriStateCheckBoxes;
+                return c;
+            });
         }
 
         #endregion
@@ -315,6 +320,56 @@ namespace BrightIdeasSoftware
             values.Add(new ComboBoxItem(true, "True"));
 
             this.DataSource = values;
+        }
+    }
+
+    /// <summary>
+    /// This editor simply shows and edits boolean values using a checkbox
+    /// </summary>
+    internal class BooleanCellEditor2 : CheckBox
+    {
+        public BooleanCellEditor2() {
+        }
+
+        public bool? Value {
+            get {
+                switch (this.CheckState) {
+                    case CheckState.Checked: return true;
+                    case CheckState.Indeterminate: return null;
+                    case CheckState.Unchecked: 
+                    default: return false;
+                }
+            }
+            set {
+                if (value.HasValue) 
+                    this.CheckState = value.Value ? CheckState.Checked : CheckState.Unchecked;
+                else
+                    this.CheckState = CheckState.Indeterminate;
+            }
+        }
+
+        public new HorizontalAlignment TextAlign {
+            get {
+                switch (this.CheckAlign) {
+                    case ContentAlignment.MiddleRight: return HorizontalAlignment.Right;
+                    case ContentAlignment.MiddleCenter: return HorizontalAlignment.Center;
+                    case ContentAlignment.MiddleLeft: 
+                    default: return HorizontalAlignment.Left;
+                }
+            }
+            set {
+                switch (value) {
+                    case HorizontalAlignment.Left:
+                        this.CheckAlign = ContentAlignment.MiddleLeft;
+                        break;
+                    case HorizontalAlignment.Center:
+                        this.CheckAlign = ContentAlignment.MiddleCenter;
+                        break;
+                    case HorizontalAlignment.Right:
+                        this.CheckAlign = ContentAlignment.MiddleRight;
+                        break;
+                }
+            }
         }
     }
 

@@ -62,7 +62,7 @@ namespace BrightIdeasSoftware
         /// Gets or sets location within the reference rectange where the adornment will be drawn
         /// </summary>
         /// <remarks>This is a simplied interface to ReferenceCorner && AdornmentCorner </remarks>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("How will the adornment be aligned"),
          DefaultValue(System.Drawing.ContentAlignment.BottomRight),
          NotifyParentProperty(true)]
@@ -79,7 +79,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the offset by which the position of the adornment will be adjusted
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("The offset by which the position of the adornment will be adjusted"),
          DefaultValue(typeof(Size), "0,0")]
         public Size Offset {
@@ -103,7 +103,7 @@ namespace BrightIdeasSoftware
         /// Gets or sets the degree of rotation by which the adornment will be transformed.
         /// The centre of rotation will be the center point of the adornment.
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("The degree of rotation that will be applied to the adornment."),
          DefaultValue(0),
          NotifyParentProperty(true)]
@@ -117,7 +117,7 @@ namespace BrightIdeasSoftware
         /// Gets or sets the transparency of the overlay. 
         /// 0 is completely transparent, 255 is completely opaque.
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("The transparency of this adornment. 0 is completely transparent, 255 is completely opaque."),
          DefaultValue(128)]
         public int Transparency {
@@ -295,7 +295,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the image that will be drawn
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("The image that will be drawn"),
          DefaultValue(null),
          NotifyParentProperty(true)]
@@ -308,7 +308,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets if the image will be shrunk to fit with its horizontal bounds
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("Will the image be shrunk to fit within its width?"),
          DefaultValue(false)]
         public bool ShrinkToWidth {
@@ -423,7 +423,7 @@ namespace BrightIdeasSoftware
         /// Gets or sets the background color of the text
         /// Set this to Color.Empty to not draw a background
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("The background color of the text"),
          DefaultValue(typeof(Color), "")]
         public Color BackColor {
@@ -446,7 +446,7 @@ namespace BrightIdeasSoftware
         /// Gets or sets the color of the border around the billboard.
         /// Set this to Color.Empty to remove the border
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("The color of the border around the text"),
          DefaultValue(typeof(Color), "")]
         public Color BorderColor {
@@ -468,7 +468,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the width of the border around the text
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("The width of the border around the text"),
          DefaultValue(0.0f)]
         public float BorderWidth {
@@ -481,7 +481,7 @@ namespace BrightIdeasSoftware
         /// How rounded should the corners of the border be? 0 means no rounding.
         /// </summary>
         /// <remarks>If this value is too large, the edges of the border will appear odd.</remarks>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("How rounded should the corners of the border be? 0 means no rounding."),
          DefaultValue(16.0f),
          NotifyParentProperty(true)]
@@ -494,7 +494,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the font that will be used to draw the text
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("The font that will be used to draw the text"),
          DefaultValue(null),
          NotifyParentProperty(true)]
@@ -538,7 +538,7 @@ namespace BrightIdeasSoftware
         /// Gets or sets the maximum width of the text. Text longer than this will wrap.
         /// 0 means no maximum.
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("The maximum width the text (0 means no maximum). Text longer than this will wrap"),
          DefaultValue(0)]
         public int MaximumTextWidth {
@@ -571,7 +571,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the text that will be drawn
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("The text that will be drawn over the top of the ListView"),
          DefaultValue(null),
          NotifyParentProperty(true),
@@ -595,7 +595,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the color of the text
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("The color of the text"),
          DefaultValue(typeof(Color), "DarkBlue"),
          NotifyParentProperty(true)]
@@ -608,7 +608,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets whether the text will wrap when it exceeds its bounds
         /// </summary>
-        [Category("Appearance - ObjectListView"),
+        [Category("ObjectListView"),
          Description("Will the text wrap?"),
          DefaultValue(true)]
         public bool Wrap {
