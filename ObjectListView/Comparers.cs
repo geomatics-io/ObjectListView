@@ -68,12 +68,12 @@ namespace BrightIdeasSoftware
 
         public int Compare(OLVListItem x, OLVListItem y)
         {
+            if (this.sortOrder == SortOrder.None)
+                return 0;
+
             int result = 0;
             object x1 = this.column.GetValue(x.RowObject);
             object y1 = this.column.GetValue(y.RowObject);
-
-            if (this.sortOrder == SortOrder.None)
-                return 0;
 
             // Handle nulls. Null values come last
             bool xIsNull = (x1 == null || x1 == System.DBNull.Value);
@@ -117,37 +117,6 @@ namespace BrightIdeasSoftware
         private ColumnComparer secondComparer;
     }
 
-    /// <summary>
-    /// This comparer sort list view groups.
-    /// It does this on the basis of the values in the Tags, if we can figure out how to compare
-    /// objects of that type. Failing that, it uses a case insensitive compare on the group header.
-    /// </summary>
-    public class ListViewGroupComparer : IComparer<ListViewGroup>
-    {
-        public ListViewGroupComparer(SortOrder order) {
-            this.sortOrder = order;
-        }
-
-        public int Compare(ListViewGroup x, ListViewGroup y) {
-            // If we know how to compare the tags, do that.
-            // Otherwise do a case insensitive compare on the group header.
-            // We have explicitly catch the "almost-null" value of DBNull.Value,
-            // since comparing to that value always produces a type exception.
-            int result;
-            IComparable comparable = x.Tag as IComparable;
-            if (comparable != null && y.Tag != null && y.Tag != System.DBNull.Value)
-                result = comparable.CompareTo(y.Tag);
-            else
-                result = String.Compare(x.Header, y.Header, StringComparison.CurrentCultureIgnoreCase);
-
-            if (this.sortOrder == SortOrder.Descending)
-                result = 0 - result;
-
-            return result;
-        }
-
-        private SortOrder sortOrder;
-    }
 
     /// <summary>
     /// This comparer sort list view groups.

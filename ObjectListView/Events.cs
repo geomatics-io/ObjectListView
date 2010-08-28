@@ -72,14 +72,14 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Triggered after a ObjectListView has been searched by the user typing into the list
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered after the control has done a search-by-typing action.")]
         public event EventHandler<AfterSearchingEventArgs> AfterSearching;
 
         /// <summary>
         /// Triggered after a ObjectListView has been sorted
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered after the items in the list have been sorted.")]
         public event EventHandler<AfterSortingEventArgs> AfterSorting;
 
@@ -90,7 +90,7 @@ namespace BrightIdeasSoftware
         /// Set Cancelled to true to prevent the searching from taking place.
         /// Changing StringToFind or StartSearchFrom will change the subsequent search.
         /// </remarks>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered before the control does a search-by-typing action.")]
         public event EventHandler<BeforeSearchingEventArgs> BeforeSearching;
 
@@ -101,14 +101,14 @@ namespace BrightIdeasSoftware
         /// Set Cancelled to true to prevent the sort from taking place.
         /// Changing ColumnToSort or SortOrder will change the subsequent sort.
         /// </remarks>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered before the items in the list are sorted.")]
         public event EventHandler<BeforeSortingEventArgs> BeforeSorting;
 
         /// <summary>
         /// Triggered after a ObjectListView has created groups
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered after the groups are created.")]
         public event EventHandler<CreateGroupsEventArgs> AfterCreatingGroups;
 
@@ -118,7 +118,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// Set Groups to prevent the default group creation process
         /// </remarks>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered before the groups are created.")]
         public event EventHandler<CreateGroupsEventArgs> BeforeCreatingGroups;
 
@@ -129,7 +129,7 @@ namespace BrightIdeasSoftware
         /// You can make changes to the groups, which have been created, before those
         /// groups are created within the listview.
         /// </remarks>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when the groups are just about to be created.")]
         public event EventHandler<CreateGroupsEventArgs> AboutToCreateGroups;
 
@@ -142,7 +142,7 @@ namespace BrightIdeasSoftware
         /// InfoMsg property. They can also change any of the DropTarget* setttings to change
         /// the target of the drop.
         /// </remarks>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("Can the user drop the currently dragged items at the current mouse location?")]
         public event EventHandler<OlvDropEventArgs> CanDrop;
 
@@ -153,7 +153,7 @@ namespace BrightIdeasSoftware
         /// Set Cancel to true to prevent the value from the cell being written into the model.
         /// You cannot prevent the editing from finishing within this event -- you need
         /// the CellEditValidating event for that.</remarks>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered cell edit operation is finishing.")]
         public event CellEditEventHandler CellEditFinishing;
 
@@ -162,7 +162,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>Set Cancel to true to prevent the cell being edited.
         /// You can change the the Control to be something completely different.</remarks>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when cell edit is about to begin.")]
         public event CellEditEventHandler CellEditStarting;
 
@@ -172,42 +172,42 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// If this event is cancelled, focus will remain on the cell editor.
         /// </remarks>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when a cell editor is about to lose focus and its new contents need to be validated.")]
         public event CellEditEventHandler CellEditValidating;
 
         /// <summary>
         /// Triggered when a cell is left clicked.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when the user left clicks a cell.")]
         public event EventHandler<CellClickEventArgs> CellClick;
 
         /// <summary>
         /// Triggered when the mouse is above a cell.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when the mouse is over a cell.")]
         public event EventHandler<CellOverEventArgs> CellOver;
 
         /// <summary>
         /// Triggered when a cell is right clicked.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when the user right clicks a cell.")]
         public event EventHandler<CellRightClickEventArgs> CellRightClick;
 
         /// <summary>
         /// This event is triggered when a cell needs a tool tip.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when a cell needs a tool tip.")]
         public event EventHandler<ToolTipShowingEventArgs> CellToolTipShowing;
 
         /// <summary>
         /// Triggered when a column header is right clicked.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when the user right clicks a column header.")]
         public event ColumnRightClickEventHandler ColumnRightClick;
 
@@ -215,77 +215,77 @@ namespace BrightIdeasSoftware
         /// This event is triggered when the user releases a drag over an ObjectListView that
         /// has a SimpleDropSink installed as the drop handler.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when the user dropped items onto the control.")]
         public event EventHandler<OlvDropEventArgs> Dropped;
 
         /// <summary>
         /// This event is triggered when the control needs to filter its collection of objects.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when the control needs to filter its collection of objects.")]
         public event EventHandler<FilterEventArgs> Filter;
 
         /// <summary>
         /// This event is triggered when a cell needs to be formatted.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when a cell needs to be formatted.")]
         public event EventHandler<FormatCellEventArgs> FormatCell;
 
         /// <summary>
         /// This event is triggered when a row needs to be formatted.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when a row needs to be formatted.")]
         public event EventHandler<FormatRowEventArgs> FormatRow;
 
         /// <summary>
         /// This event is triggered when a header needs a tool tip.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when a header needs a tool tip.")]
         public event EventHandler<ToolTipShowingEventArgs> HeaderToolTipShowing;
 
         /// <summary>
         /// Triggered when the "hot" item changes
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when the hot item changed.")]
         public event EventHandler<HotItemChangedEventArgs> HotItemChanged;
 
         /// <summary>
         /// Triggered when a hyperlink cell is clicked.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when a hyperlink cell is clicked.")]
         public event EventHandler<HyperlinkClickedEventArgs> HyperlinkClicked;
 
         /// <summary>
         /// Triggered when the task text of a group is clicked.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when the task text of a group is clicked.")]
         public event EventHandler<GroupTaskClickedEventArgs> GroupTaskClicked;
 
         /// <summary>
         /// Is the value in the given cell a hyperlink.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when the control needs to know if a given cell contains a hyperlink.")]
         public event EventHandler<IsHyperlinkEventArgs> IsHyperlink;
 
         /// <summary>
         /// Some new objects are about to be added to an ObjectListView.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when objects are about to be added to the control")]
         public event EventHandler<ItemsAddingEventArgs> ItemsAdding;
 
         /// <summary>
         /// The contents of the ObjectListView has changed.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when the contents of the control have changed.")]
         public event EventHandler<ItemsChangedEventArgs> ItemsChanged;
 
@@ -295,14 +295,14 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// <para>Set Cancelled to true to prevent the contents of the list changing. This does not work with virtual lists.</para>
         /// </remarks>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when the contents of the control changes.")]
         public event EventHandler<ItemsChangingEventArgs> ItemsChanging;
 
         /// <summary>
         /// Some objects are about to be removed from an ObjectListView.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when objects are removed from the control.")]
         public event EventHandler<ItemsRemovingEventArgs> ItemsRemoving;
 
@@ -316,7 +316,7 @@ namespace BrightIdeasSoftware
         /// InfoMsg property. They can also change any of the DropTarget* setttings to change
         /// the target of the drop.
         /// </remarks>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("Can the dragged collection of model objects be dropped at the current mouse location")]
         public event EventHandler<ModelDropEventArgs> ModelCanDrop;
 
@@ -325,7 +325,7 @@ namespace BrightIdeasSoftware
         /// has a SimpleDropSink installed as the drop handler and when the source control
         /// for the drag was an ObjectListView.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("A collection of model objects from a ObjectListView has been dropped on this control")]
         public event EventHandler<ModelDropEventArgs> ModelDropped;
 
@@ -333,14 +333,14 @@ namespace BrightIdeasSoftware
         /// This event is triggered once per user action that changes the selection state
         /// of one or more rows.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered once per user action that changes the selection state of one or more rows.")]
         public event EventHandler SelectionChanged;
 
         /// <summary>
         /// This event is triggered when the contents of the ObjectListView has scrolled.
         /// </summary>
-        [Category("Behavior - ObjectListView"),
+        [Category("ObjectListView"),
         Description("This event is triggered when the contents of the ObjectListView has scrolled.")]
         public event EventHandler<ScrollEventArgs> Scroll;
 
