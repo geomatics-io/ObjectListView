@@ -296,8 +296,9 @@ Another improvement over `RowFormatters` is that these events play well
 with `UseAlternateBackColors`. Any formatting you do in these events takes
 precedence over the alternate backcolors.
 
-To improve performance, `FormatCell` events are only fired when the `FormatRow`
-event sets `UseCellFormatEvents` to true. If you want to have a `FormatCell`
+To improve performance, `FormatCell` events are only fired when a handler 
+of the `FormatRow`
+event sets `UseCellFormatEvents` to *true*. If you want to have a `FormatCell`
 event fired for every cell, you can set `UseCellFormatEvents` on the
 `ObjectListView` itself.
 
@@ -1095,6 +1096,11 @@ word wrap the text within the header.
 
 .. image:: images/header-formatting.png
 
+    *"I've setup the HeaderFormat like you say, but the stupid thing does nothing"*
+	
+Make sure `HeaderUsesThemes` is `false`. If this is `true`, `ObjectListView` will
+use the OS's theme to draw the header, ignoring the `HeaderFormatStyle` completely.
+
 [v2.3 and earlier] 
 
 In previous versions, you could set the `HeaderFont` or `HeaderForeColor` 
@@ -1147,8 +1153,8 @@ property. In most cases, the default settings will work fine.
 On XP, you can't. Groups on XP get a header and that is all.
 
 But on Vista and later, to display an image against a group header, you need to
-set `GroupImageList` on the `ObjectListView` to be the image list from which the
-images will be taken. And then on the group itself, you need to set `TitleImage`
+set `GroupImageList` on the `ObjectListView`. This is the image list from which the
+group header images will be taken. Then on the group itself, you need to set `TitleImage`
 to either the index or name of the image to show.
 
 There isn't a `GetGroupTitleImage` delegate. Instead, there are two more general
@@ -1357,6 +1363,11 @@ Implementating this feature required the use of undocumented features. That mean
 there is no guarantee that it will continue working in later versions of Windows
 (or even on current versions). You have been warned.
 
+[Update: August 2010] There is at least one fairly reliable anomaly with this.
+If you use filtering on grouped virtual list, you will sometimes get Chinese
+characters on rows that should have disappeared. I haven't been able to track
+down why this happens -- yet :)
+
 .. _recipe-filtering:
 
 32. Can I filter the contents of the ObjectListView?
@@ -1476,21 +1487,26 @@ accurate results, when owner drawn is `true`. For example, subitem check boxes a
 as boxes, but their string representation is "true" and "false." If you're text filter is
 "rue" it will match all rows where a subitem check box is checked.
 
+The filter can be configured to only consider some of the columns in the `ObjectListView`.
+
+It can also be set up to do regular expression searching.
+
 HighlightTextRenderer
 ^^^^^^^^^^^^^^^^^^^^^
 
 If your filtered `ObjectListView` is owner drawn, you can pair this text searching
 with a special renderer, `HighlightTextRenderer.` This renderer draws a highlight box
-around any substring that matches its given text. So::
+around any substring that matches the given filter. So::
 
-    this.olv1.DefaultRenderer = new HighlightTextRenderer("er");
-    this.olv1.ModelFilter = new TextMatchFilter(this.olv1, "er");
+    TextMatchFilter filter = new TextMatchFilter(this.olv1, "er");
+    this.olv1.ModelFilter = filter;
+    this.olv1.DefaultRenderer = new HighlightTextRenderer(filter);
 
 would give something that looks like this:
 
 .. image:: images/text-filter-highlighting.png
 
-You can change the highlighting by playing with the `FrameColor` and `FillColor` properties
+You can change the highlighting by playing with the `CornerRoundness`, `FramePen` and `FillBrush` properties
 on the `HighlightTextRenderer.`
 
 Remember: the list has to be owner drawn for the renderer to have any effect.
@@ -1511,7 +1527,7 @@ This needs a whole page to itself: :ref:`animations-label`
 	of the columns in the list so they can be restored when
 	the user reruns the app. Is there a way to do that?*
 
-Use the `StateState()` and `RestoreState()` methods. 
+Use the `SaveState()` and `RestoreState()` methods. 
 
 `SaveState()`
 returns a byte array which contains the state of the `ObjectListView`.
@@ -1528,4 +1544,85 @@ These methods store the following characteristics:
 
 It does not include selection or scroll position.
 
+.. _recipe-column-header-image:
 
+36. How can I put an image in the column header?
+------------------------------------------------
+
+[The second most requested feature ever]
+
+Set `OLVColumn.HeaderImageKey` to the key of an image from
+the ObjectListView's `SmallImageList`. That image will appear to the left
+of the text in the header.
+
+.. image:: images/header-with-image.png
+
+For the image to appear `OLVColumn.HeaderUsesTheme` must be `false`. Otherwise,
+the header will be drawn strictly in accordance with the OS's current theme
+(which certainly will not include an image).
+
+Don't use `ImageKey` or `ImageIndex`. These are Microsoft standard
+properties, but they don't work. Both are hidden from the code generation
+process so any value you set on them in the IDE *will not* be persisted.
+
+.. _recipe-column-header-vertical:
+
+37. Can I make a header take up even less space? Can it be drawn vertical?
+--------------------------------------------------------------------------
+
+For checkbox column, or image only columns, the header text can take up
+much more space than the data it is labelling. In such cases, you can make 
+the columns header be drawn vertically, by setting `OLVColumn.IsHeaderVertical`
+property to `true.
+
+Setting this gives something like this:
+
+.. image:: images/vertical-header.png
+
+The header will expand vertically to draw the entire header text. You can set
+a maximum height through the `ObjectListView.HeaderMaximumHeight` property.
+
+Vertical headers are text only. Setting `HeaderImageKey` does nothing.
+
+Vertical text is actually quite hard to read. If you use vertical headers,
+be kind to your users and give the header a tool tip (through
+the `OLVColumn.HeaderToolTip` property) that lets the user
+easily see what the header is trying to say.
+
+.. _recipe-showing-editing-cell:
+
+38. I want to make the cell being edited more obvious
+-----------------------------------------------------
+
+   *My users sometimes get confused about whether they are editing a cell,
+   and if so, which one. Is there any way to make these things more obvious?*
+   
+You could install a `EditingCellBorderDecoration` on your `ObjectListView`.
+Then, when the user is editing a cell, they will see something like this:
+
+.. image:: images/cell-editing-border.png
+
+To install this decoration, you do this::
+
+  this.olv.AddDecoration(new EditingCellBorderDecoration { UseLightbox = true });
+  
+The `EditingCellBorderDecoration` has the usual swathe of properties controlling
+exactly how it looks.
+
+.. _recipe_sorting_groups:
+
+39. How can I change the ordering of groups or rows within a group?
+-------------------------------------------------------------------
+
+   *Your way of ordering groups and the rows within the groups is stupid.
+   I want to be able to do it myself.*
+   
+ O-K... Listen for the `BeforeCreatingGroups` event. In the parameter block
+ for that event, set `GroupComparer` to control how groups are sorted, and
+ `ItemComparer` to control how items within a group are sorted.
+ 
+ If you don't want the items within the group to be sorted at all, set
+ `PrimarySortOrder` to `SortOrder.None`. 
+ 
+ There is no way to NOT sort the groups. They have to be ordered in some
+ fashion.
