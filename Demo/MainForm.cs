@@ -65,7 +65,7 @@ namespace ObjectListViewDemo
 
 			masterList = new List<Person>();
             masterList.Add(new Person("Wilhelm Frat", "Gymnast", 21, new DateTime(1984, 9, 23), 45.67, false, "ak", "Aggressive, belligerent "));
-            masterList.Add(new Person("Alana Roderick", "Gymnast", 21, new DateTime(1974, 9, 23), 245.67, false, "gp", "Beautiful, exquisite"));
+            masterList.Add(new Person("Alana Roderick", "Gymnast", 17, new DateTime(1974, 9, 23), 245.67, false, "gp", "Beautiful, exquisite"));
             masterList.Add(new Person("Frank Price", "Dancer", 30, new DateTime(1965, 11, 1), 75.5, false, "ns", "Competitive, spirited"));
             masterList.Add(new Person("Eric", "Half-a-bee", 1, new DateTime(1966, 10, 12), 12.25, true, "cp", "Diminutive, vertically challenged"));
             masterList.Add(new Person("Nicola Scotts", "Nurse", 42, new DateTime(1965, 10, 29), 1245.7, false, "np", "Wise, fun, lovely"));
@@ -172,7 +172,7 @@ namespace ObjectListViewDemo
             this.columnCookingSkill.MakeGroupies(
                 new object[]{10, 20, 30, 40},
                 new string[] {"Pay to eat out", "Suggest take-away", "Passable", "Seek dinner invitation", "Hire as chef"},
-                new string[] { "not", "hamburger", "toast", "beef", "chef" },
+                new string[] { "not", "toast", "hamburger", "beef", "chef" },
                 new string[] {
                     "Pay good money -- or flee the house -- rather than eat their homecooked food",
                     "Offer to buy takeaway rather than risk what may appear on your plate",
@@ -1526,7 +1526,7 @@ namespace ObjectListViewDemo
             this.olvColumn26.MakeGroupies(
                 new object[] { 10, 20, 30, 40 },
                 new string[] { "Pay to eat out", "Suggest take-away", "Passable", "Seek dinner invitation", "Hire as chef" },
-                new string[] { "emptytoast", "hamburger", "toast", "dinnerplate", "chef" },
+                new string[] { "not", "toast", "hamburger", "beef", "chef" },
                 new string[] { "Pay good money -- or flee the house -- rather than eat their homecooked food",
                                 "Offer to buy takeaway rather than risk what may appear on your plate",
                                 "Neither spectacular nor dangerous",
