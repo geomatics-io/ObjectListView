@@ -45,12 +45,12 @@ namespace ObjectListViewDemo
 		{
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            BrightIdeasSoftware.CellStyle cellStyle7 = new BrightIdeasSoftware.CellStyle();
-            BrightIdeasSoftware.CellStyle cellStyle8 = new BrightIdeasSoftware.CellStyle();
-            BrightIdeasSoftware.CellStyle cellStyle9 = new BrightIdeasSoftware.CellStyle();
-            BrightIdeasSoftware.HeaderStateStyle headerStateStyle7 = new BrightIdeasSoftware.HeaderStateStyle();
-            BrightIdeasSoftware.HeaderStateStyle headerStateStyle8 = new BrightIdeasSoftware.HeaderStateStyle();
-            BrightIdeasSoftware.HeaderStateStyle headerStateStyle9 = new BrightIdeasSoftware.HeaderStateStyle();
+            BrightIdeasSoftware.CellStyle cellStyle1 = new BrightIdeasSoftware.CellStyle();
+            BrightIdeasSoftware.CellStyle cellStyle2 = new BrightIdeasSoftware.CellStyle();
+            BrightIdeasSoftware.CellStyle cellStyle3 = new BrightIdeasSoftware.CellStyle();
+            BrightIdeasSoftware.HeaderStateStyle headerStateStyle1 = new BrightIdeasSoftware.HeaderStateStyle();
+            BrightIdeasSoftware.HeaderStateStyle headerStateStyle2 = new BrightIdeasSoftware.HeaderStateStyle();
+            BrightIdeasSoftware.HeaderStateStyle headerStateStyle3 = new BrightIdeasSoftware.HeaderStateStyle();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.command1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.command2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -833,16 +833,16 @@ namespace ObjectListViewDemo
             // 
             // hyperlinkStyle1
             // 
-            cellStyle7.Font = null;
-            cellStyle7.ForeColor = System.Drawing.Color.Blue;
-            this.hyperlinkStyle1.Normal = cellStyle7;
-            cellStyle8.Font = null;
-            cellStyle8.FontStyle = System.Drawing.FontStyle.Underline;
-            this.hyperlinkStyle1.Over = cellStyle8;
+            cellStyle1.Font = null;
+            cellStyle1.ForeColor = System.Drawing.Color.Blue;
+            this.hyperlinkStyle1.Normal = cellStyle1;
+            cellStyle2.Font = null;
+            cellStyle2.FontStyle = System.Drawing.FontStyle.Underline;
+            this.hyperlinkStyle1.Over = cellStyle2;
             this.hyperlinkStyle1.OverCursor = System.Windows.Forms.Cursors.Hand;
-            cellStyle9.Font = null;
-            cellStyle9.ForeColor = System.Drawing.Color.Purple;
-            this.hyperlinkStyle1.Visited = cellStyle9;
+            cellStyle3.Font = null;
+            cellStyle3.ForeColor = System.Drawing.Color.Purple;
+            this.hyperlinkStyle1.Visited = cellStyle3;
             // 
             // tabPage2
             // 
@@ -1240,11 +1240,11 @@ namespace ObjectListViewDemo
             // 
             this.groupImageList.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("groupImageList.ImageStream")));
             this.groupImageList.TransparentColor = System.Drawing.Color.Transparent;
-            this.groupImageList.Images.SetKeyName(0, "chef");
-            this.groupImageList.Images.SetKeyName(1, "emptytoast");
+            this.groupImageList.Images.SetKeyName(0, "beef");
+            this.groupImageList.Images.SetKeyName(1, "chef");
             this.groupImageList.Images.SetKeyName(2, "toast");
             this.groupImageList.Images.SetKeyName(3, "hamburger");
-            this.groupImageList.Images.SetKeyName(4, "dinnerplate");
+            this.groupImageList.Images.SetKeyName(4, "not");
             // 
             // tabPage3
             // 
@@ -1557,17 +1557,17 @@ namespace ObjectListViewDemo
             // 
             // headerFormatStyleData
             // 
-            headerStateStyle7.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
-            headerStateStyle7.ForeColor = System.Drawing.Color.White;
-            this.headerFormatStyleData.Hot = headerStateStyle7;
-            headerStateStyle8.BackColor = System.Drawing.Color.Black;
-            headerStateStyle8.ForeColor = System.Drawing.Color.Gainsboro;
-            this.headerFormatStyleData.Normal = headerStateStyle8;
-            headerStateStyle9.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            headerStateStyle9.ForeColor = System.Drawing.Color.White;
-            headerStateStyle9.FrameColor = System.Drawing.Color.WhiteSmoke;
-            headerStateStyle9.FrameWidth = 2F;
-            this.headerFormatStyleData.Pressed = headerStateStyle9;
+            headerStateStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            headerStateStyle1.ForeColor = System.Drawing.Color.White;
+            this.headerFormatStyleData.Hot = headerStateStyle1;
+            headerStateStyle2.BackColor = System.Drawing.Color.Black;
+            headerStateStyle2.ForeColor = System.Drawing.Color.Gainsboro;
+            this.headerFormatStyleData.Normal = headerStateStyle2;
+            headerStateStyle3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            headerStateStyle3.ForeColor = System.Drawing.Color.White;
+            headerStateStyle3.FrameColor = System.Drawing.Color.WhiteSmoke;
+            headerStateStyle3.FrameWidth = 2F;
+            this.headerFormatStyleData.Pressed = headerStateStyle3;
             // 
             // checkBox7
             // 

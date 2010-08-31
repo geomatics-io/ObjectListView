@@ -172,7 +172,7 @@ namespace ObjectListViewDemo
             this.columnCookingSkill.MakeGroupies(
                 new object[]{10, 20, 30, 40},
                 new string[] {"Pay to eat out", "Suggest take-away", "Passable", "Seek dinner invitation", "Hire as chef"},
-                new string[] { "emptytoast", "hamburger", "toast", "dinnerplate", "chef" },
+                new string[] { "not", "hamburger", "toast", "beef", "chef" },
                 new string[] {
                     "Pay good money -- or flee the house -- rather than eat their homecooked food",
                     "Offer to buy takeaway rather than risk what may appear on your plate",
