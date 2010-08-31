@@ -397,30 +397,30 @@ namespace ObjectListViewDemo
             this.command3ToolStripMenuItem,
             this.appearOnTheColumnHeadersToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(270, 92);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(263, 92);
             // 
             // command1ToolStripMenuItem
             // 
             this.command1ToolStripMenuItem.Name = "command1ToolStripMenuItem";
-            this.command1ToolStripMenuItem.Size = new System.Drawing.Size(269, 22);
+            this.command1ToolStripMenuItem.Size = new System.Drawing.Size(262, 22);
             this.command1ToolStripMenuItem.Text = "Dummy commands...";
             // 
             // command2ToolStripMenuItem
             // 
             this.command2ToolStripMenuItem.Name = "command2ToolStripMenuItem";
-            this.command2ToolStripMenuItem.Size = new System.Drawing.Size(269, 22);
+            this.command2ToolStripMenuItem.Size = new System.Drawing.Size(262, 22);
             this.command2ToolStripMenuItem.Text = "...to test that a context menu...";
             // 
             // command3ToolStripMenuItem
             // 
             this.command3ToolStripMenuItem.Name = "command3ToolStripMenuItem";
-            this.command3ToolStripMenuItem.Size = new System.Drawing.Size(269, 22);
+            this.command3ToolStripMenuItem.Size = new System.Drawing.Size(262, 22);
             this.command3ToolStripMenuItem.Text = "...appears here and a different one...";
             // 
             // appearOnTheColumnHeadersToolStripMenuItem
             // 
             this.appearOnTheColumnHeadersToolStripMenuItem.Name = "appearOnTheColumnHeadersToolStripMenuItem";
-            this.appearOnTheColumnHeadersToolStripMenuItem.Size = new System.Drawing.Size(269, 22);
+            this.appearOnTheColumnHeadersToolStripMenuItem.Size = new System.Drawing.Size(262, 22);
             this.appearOnTheColumnHeadersToolStripMenuItem.Text = "...appear on the column headers.";
             // 
             // imageList1
@@ -3152,7 +3152,7 @@ namespace ObjectListViewDemo
             // 
             // imageList3
             // 
-            this.imageList3.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
+            this.imageList3.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
             this.imageList3.ImageSize = new System.Drawing.Size(16, 16);
             this.imageList3.TransparentColor = System.Drawing.Color.Transparent;
             // 
@@ -3730,30 +3730,30 @@ namespace ObjectListViewDemo
             this.whichOnlyAppearsToolStripMenuItem,
             this.whenYouClickOnColumn0ToolStripMenuItem});
             this.contextMenuStrip2.Name = "contextMenuStrip2";
-            this.contextMenuStrip2.Size = new System.Drawing.Size(226, 92);
+            this.contextMenuStrip2.Size = new System.Drawing.Size(231, 92);
             // 
             // menuOfCommandsToolStripMenuItem
             // 
             this.menuOfCommandsToolStripMenuItem.Name = "menuOfCommandsToolStripMenuItem";
-            this.menuOfCommandsToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+            this.menuOfCommandsToolStripMenuItem.Size = new System.Drawing.Size(230, 22);
             this.menuOfCommandsToolStripMenuItem.Text = "Menu of commands";
             // 
             // appropriateToTheClickedFileToolStripMenuItem
             // 
             this.appropriateToTheClickedFileToolStripMenuItem.Name = "appropriateToTheClickedFileToolStripMenuItem";
-            this.appropriateToTheClickedFileToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+            this.appropriateToTheClickedFileToolStripMenuItem.Size = new System.Drawing.Size(230, 22);
             this.appropriateToTheClickedFileToolStripMenuItem.Text = "Appropriate to the clicked file";
             // 
             // whichOnlyAppearsToolStripMenuItem
             // 
             this.whichOnlyAppearsToolStripMenuItem.Name = "whichOnlyAppearsToolStripMenuItem";
-            this.whichOnlyAppearsToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+            this.whichOnlyAppearsToolStripMenuItem.Size = new System.Drawing.Size(230, 22);
             this.whichOnlyAppearsToolStripMenuItem.Text = "Which only appears";
             // 
             // whenYouClickOnColumn0ToolStripMenuItem
             // 
             this.whenYouClickOnColumn0ToolStripMenuItem.Name = "whenYouClickOnColumn0ToolStripMenuItem";
-            this.whenYouClickOnColumn0ToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+            this.whenYouClickOnColumn0ToolStripMenuItem.Size = new System.Drawing.Size(230, 22);
             this.whenYouClickOnColumn0ToolStripMenuItem.Text = "When you click on column 0";
             // 
             // textBox2
