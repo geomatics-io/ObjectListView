@@ -1090,7 +1090,8 @@ namespace BrightIdeasSoftware
             get { return this.groupImageList; }
             set {
                 this.groupImageList = value;
-                NativeMethods.SetGroupImageList(this, value);
+                if (this.Created)
+                    NativeMethods.SetGroupImageList(this, value);
             }
         }
         private ImageList groupImageList;
@@ -3242,6 +3243,9 @@ namespace BrightIdeasSoftware
         /// </para>
         /// </remarks>
         protected virtual void ApplyExtendedStyles() {
+            if (!this.Created)
+                return;
+
             const int LVS_EX_SUBITEMIMAGES = 0x00000002;
             //const int LVS_EX_TRANSPARENTBKGND = 0x00400000;
             const int LVS_EX_HEADERINALLVIEWS = 0x02000000;
