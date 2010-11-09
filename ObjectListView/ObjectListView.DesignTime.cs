@@ -37,6 +37,8 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Windows.Forms.Design;
 
+using BrightIdeasSoftware;
+
 namespace BrightIdeasSoftware.Design
 {
     /*
@@ -89,16 +91,31 @@ namespace BrightIdeasSoftware.Design
     /// This class works in conjunction with the OLVColumns property to allow OLVColumns
     /// to be added to the ObjectListView.
     /// </summary>
-    internal class OLVColumnCollectionEditor : System.ComponentModel.Design.CollectionEditor
+    public class OLVColumnCollectionEditor : System.ComponentModel.Design.CollectionEditor
     {
+        /// <summary>
+        /// Create a OLVColumnCollectionEditor
+        /// </summary>
+        /// <param name="t"></param>
         public OLVColumnCollectionEditor(Type t)
             : base(t) {
         }
 
+        /// <summary>
+        /// What type of object does this editor create?
+        /// </summary>
+        /// <returns></returns>
         protected override Type CreateCollectionItemType() {
             return typeof(OLVColumn);
         }
 
+        /// <summary>
+        /// Edit a given value
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="provider"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value) {
             // Figure out which ObjectListView we are working on. This should be the Instance of the context.
             ObjectListView olv = null;
@@ -131,6 +148,11 @@ namespace BrightIdeasSoftware.Design
             return olv.Columns;
         }
 
+        /// <summary>
+        /// What text should be shown in the list for the given object?
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         protected override string GetDisplayText(object value) {
             OLVColumn col = value as OLVColumn;
             if (col == null || String.IsNullOrEmpty(col.AspectName))

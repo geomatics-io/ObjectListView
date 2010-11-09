@@ -42,38 +42,104 @@ using System.Drawing.Drawing2D;
 
 namespace BrightIdeasSoftware
 {
+    /// <summary>
+    /// An IDragSource controls how drag out from the ObjectListView will behave
+    /// </summary>
     public interface IDragSource
     {
+        /// <summary>
+        /// A drag operation is beginning. Return the data object that will be used 
+        /// for data transfer. Return null to prevent the drag from starting.
+        /// </summary>
+        /// <remarks>
+        /// The returned object is later passed to the GetAllowedEffect() and EndDrag()
+        /// methods.
+        /// </remarks>
+        /// <param name="olv">What ObjectListView is being dragged from.</param>
+        /// <param name="button">Which mouse button is down?</param>
+        /// <param name="item">What item was directly dragged by the user? There may be more than just this 
+        /// item selected.</param>
+        /// <returns>The data object that will be used for data transfer. This will often be a subclass
+        /// of DataObject, but does not need to be.</returns>
         Object StartDrag(ObjectListView olv, MouseButtons button, OLVListItem item);
+
+        /// <summary>
+        /// What operations are possible for this drag? This controls the icon shown during the drag
+        /// </summary>
+        /// <param name="dragObject">The data object returned by StartDrag()</param>
+        /// <returns>A combination of DragDropEffects flags</returns>
         DragDropEffects GetAllowedEffects(Object dragObject);
+
+        /// <summary>
+        /// The drag operation is complete. Do whatever is necessary to complete the action.
+        /// </summary>
+        /// <param name="dragObject">The data object returned by StartDrag()</param>
+        /// <param name="effect">The value returned from GetAllowedEffects()</param>
         void EndDrag(Object dragObject, DragDropEffects effect);
     }
 
+    /// <summary>
+    /// A do-nothing implementation of IDragSource that can be safely subclassed.
+    /// </summary>
     public class AbstractDragSource : IDragSource
     {
         #region IDragSource Members
 
+        /// <summary>
+        /// See IDragSource documentation
+        /// </summary>
+        /// <param name="olv"></param>
+        /// <param name="button"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public virtual Object StartDrag(ObjectListView olv, MouseButtons button, OLVListItem item) {
             return null;
         }
 
+        /// <summary>
+        /// See IDragSource documentation
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public virtual DragDropEffects GetAllowedEffects(Object data) {
             return DragDropEffects.None;
         }
 
+        /// <summary>
+        /// See IDragSource documentation
+        /// </summary>
+        /// <param name="dragObject"></param>
+        /// <param name="effect"></param>
         public virtual void EndDrag(Object dragObject, DragDropEffects effect) {
         }
 
         #endregion
     }
 
+    /// <summary>
+    /// A reasonable implementation of IDragSource that provides normal
+    /// drag source functionality. It creates a data object that supports
+    /// inter-application dragging of text and HTML representation of 
+    /// the dragged rows. It can optionally force a refresh of all dragged
+    /// rows when the drag is complete.
+    /// </summary>
+    /// <remarks>Subclasses can override GetDataObject() to add new
+    /// data formats to the data transfer object.</remarks>
     public class SimpleDragSource : IDragSource
     {
         #region Constructors
 
+        /// <summary>
+        /// Construct a SimpleDragSource
+        /// </summary>
         public SimpleDragSource() {
         }
 
+        /// <summary>
+        /// Construct a SimpleDragSource that refreshes the dragged rows when
+        /// the drag is complete
+        /// </summary>
+        /// <param name="refreshAfterDrop"></param>
         public SimpleDragSource(bool refreshAfterDrop) {
             this.RefreshAfterDrop = refreshAfterDrop;
         }
@@ -82,6 +148,10 @@ namespace BrightIdeasSoftware
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets whether the dragged rows should be refreshed when the 
+        /// drag operation is complete.
+        /// </summary>
         public bool RefreshAfterDrop {
             get { return refreshAfterDrop; }
             set { refreshAfterDrop = value;  }
@@ -92,6 +162,14 @@ namespace BrightIdeasSoftware
 
         #region IDragSource Members
 
+        /// <summary>
+        /// Create a DataObject when the user does a left mouse drag operation.
+        /// See IDragSource for further information.
+        /// </summary>
+        /// <param name="olv"></param>
+        /// <param name="button"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public virtual Object StartDrag(ObjectListView olv, MouseButtons button, OLVListItem item) {
             // We only drag on left mouse
             if (button != MouseButtons.Left)
@@ -100,10 +178,20 @@ namespace BrightIdeasSoftware
             return this.CreateDataObject(olv);
         }
 
+        /// <summary>
+        /// Which operations are allowed in the operation? By default, all operations are supported.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns>All opertions are supported</returns>
         public virtual DragDropEffects GetAllowedEffects(Object data) {
             return DragDropEffects.All | DragDropEffects.Link; // why didn't MS include 'Link' in 'All'??
         }
 
+        /// <summary>
+        /// The drag operation is finished. Refreshe the dragged rows if so configured.
+        /// </summary>
+        /// <param name="dragObject"></param>
+        /// <param name="effect"></param>
         public virtual void EndDrag(Object dragObject, DragDropEffects effect) {
             OLVDataObject data = dragObject as OLVDataObject;
             if (data == null)
@@ -131,13 +219,27 @@ namespace BrightIdeasSoftware
         #endregion
     }
 
+    /// <summary>
+    /// A data transfer object that knows how to transform a list of model
+    /// objects into a text and HTML representation.
+    /// </summary>
     public class OLVDataObject : DataObject
     {
         #region Life and death
 
+        /// <summary>
+        /// Create a data object from the selected objects in the given ObjectListView
+        /// </summary>
+        /// <param name="olv">The source of the data object</param>
         public OLVDataObject(ObjectListView olv) : this(olv, olv.SelectedObjects) {
         }
 
+        /// <summary>
+        /// Create a data object which operates on the given model objects 
+        /// in the given ObjectListView
+        /// </summary>
+        /// <param name="olv">The source of the data object</param>
+        /// <param name="modelObjects">The model objects to be put into the data object</param>
         public OLVDataObject(ObjectListView olv, IList modelObjects) {
             this.objectListView = olv;
             this.modelObjects = modelObjects;
@@ -148,16 +250,27 @@ namespace BrightIdeasSoftware
 
         #region Properties
 
+        /// <summary>
+        /// Gets or sets whether hidden columns will also be included in the text
+        /// and HTML representation. If this is false, only visible columns will
+        /// be included.
+        /// </summary>
         public bool IncludeHiddenColumns {
             get { return includeHiddenColumns; }
         }
         private bool includeHiddenColumns;
 
+        /// <summary>
+        /// Gets the ObjectListView that is being used as the source of the data
+        /// </summary>
         public ObjectListView ListView {
             get { return objectListView; }
         }
         private ObjectListView objectListView;
 
+        /// <summary>
+        /// Gets the model objects that are to be placed in the data object
+        /// </summary>
         public IList ModelObjects {
             get { return modelObjects; }
         }
@@ -165,6 +278,10 @@ namespace BrightIdeasSoftware
 
         #endregion
 
+        /// <summary>
+        /// Put a text and HTML representation of our model objects
+        /// into the data object.
+        /// </summary>
         public void CreateTextFormats() {
             List<OLVColumn> columns = this.IncludeHiddenColumns ? this.ListView.AllColumns : this.ListView.ColumnsInDisplayOrder;
 

@@ -45,14 +45,29 @@ namespace BrightIdeasSoftware
     /// An instance of Munger gets a value from or puts a value into a target object. The property
     /// to be peeked (or poked) is determined from a string. The peeking or poking is done using reflection.
     /// </summary>
+    /// <remarks>
+    /// Name of the aspect to be peeked can be a field, property or parameterless method. The name of an
+    /// aspect to poke can be a field, writable property or single parameter method.
+    /// <para>
+    /// Aspect names can be dotted to chain a series of references. 
+    /// </para>
+    /// <example>Order.Customer.HomeAddress.State</example>
+    /// </remarks>
     public class Munger
     {
         #region Life and death
 
+        /// <summary>
+        /// Create a do nothing Munger
+        /// </summary>
         public Munger()
         {
         }
 
+        /// <summary>
+        /// Create a Munger that works on the given aspect name
+        /// </summary>
+        /// <param name="aspectName">The name of the </param>
         public Munger(String aspectName)
         {
             this.AspectName = aspectName;
@@ -62,6 +77,15 @@ namespace BrightIdeasSoftware
 
         #region Static utility methods
 
+        /// <summary>
+        /// A helper method to put the given value into the given aspect of the given object.
+        /// </summary>
+        /// <remarks>This method catches and silently ignores any errors that occur
+        /// while modifying the target object</remarks>
+        /// <param name="target">The object to be modified</param>
+        /// <param name="propertyName">The name of the property/field to be modified</param>
+        /// <param name="value">The value to be assigned</param>
+        /// <returns>Did the modification work?</returns>
         public static bool PutProperty(object target, string propertyName, object value) {
             try {
                 Munger munger = new Munger(propertyName);
@@ -242,6 +266,10 @@ namespace BrightIdeasSoftware
     {
         #region Life and death
 
+        /// <summary>
+        /// Create a SimpleMunger
+        /// </summary>
+        /// <param name="aspectName"></param>
         public SimpleMunger(String aspectName)
         {
             this.aspectName = aspectName;
@@ -273,6 +301,11 @@ namespace BrightIdeasSoftware
 
         #region Public interface
 
+        /// <summary>
+        /// Get a value from the given target
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
         public Object GetValue(Object target) {
             if (target == null)
                 return null;
@@ -404,18 +437,29 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class MungerException : ApplicationException
     {
+        /// <summary>
+        /// Create a MungerException
+        /// </summary>
+        /// <param name="munger"></param>
+        /// <param name="target"></param>
+        /// <param name="ex"></param>
         public MungerException(SimpleMunger munger, object target, Exception ex)
             : base("Munger failed", ex) {
             this.munger = munger;
             this.target = target;
         }
 
+        /// <summary>
+        /// Get the munger that raised the exception
+        /// </summary>
         public SimpleMunger Munger {
             get { return munger; }
         }
         private SimpleMunger munger;
 
-
+        /// <summary>
+        /// Gets the target that threw the exception
+        /// </summary>
         public object Target {
             get { return target; }
         }

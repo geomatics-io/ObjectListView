@@ -43,44 +43,144 @@ using System.Runtime.InteropServices;
 namespace BrightIdeasSoftware
 {
     /// <summary>
-    /// These values indicate what is the state of the group
+    /// These values indicate what is the state of the group. These values
+    /// are taken directly from the SDK and many are not used by ObjectListView.
     /// </summary>
     [Flags]
     public enum GroupState
     {
+        /// <summary>
+        /// Normal
+        /// </summary>
         LVGS_NORMAL = 0x0,
+
+        /// <summary>
+        /// Collapsed
+        /// </summary>
         LVGS_COLLAPSED = 0x1,
+
+        /// <summary>
+        /// Hidden
+        /// </summary>
         LVGS_HIDDEN = 0x2,
+
+        /// <summary>
+        /// NoHeader
+        /// </summary>
         LVGS_NOHEADER = 0x4,
+
+        /// <summary>
+        /// Can be collapsed
+        /// </summary>
         LVGS_COLLAPSIBLE = 0x8,
+
+        /// <summary>
+        /// Has focus
+        /// </summary>
         LVGS_FOCUSED = 0x10,
+
+        /// <summary>
+        /// Is Selected
+        /// </summary>
         LVGS_SELECTED = 0x20,
+
+        /// <summary>
+        /// Is subsetted
+        /// </summary>
         LVGS_SUBSETED = 0x40,
+
+        /// <summary>
+        /// Subset link has focus
+        /// </summary>
         LVGS_SUBSETLINKFOCUSED = 0x80,
+
+        /// <summary>
+        /// All styles
+        /// </summary>
         LVGS_ALL = 0xFFFF
     }
 
     /// <summary>
-    /// This mask indicates which members of a LVGROUP have valid data
+    /// This mask indicates which members of a LVGROUP have valid data. These values
+    /// are taken directly from the SDK and many are not used by ObjectListView.
     /// </summary>
     [Flags]
     public enum GroupMask
     {
+        /// <summary>
+        /// No mask
+        /// </summary>
         LVGF_NONE = 0,
+
+        /// <summary>
+        /// Group has header
+        /// </summary>
         LVGF_HEADER = 1,
+
+        /// <summary>
+        /// Group has footer
+        /// </summary>
         LVGF_FOOTER = 2,
+
+        /// <summary>
+        /// Group has state
+        /// </summary>
         LVGF_STATE = 4,
+
+        /// <summary>
+        /// 
+        /// </summary>
         LVGF_ALIGN = 8,
+
+        /// <summary>
+        /// 
+        /// </summary>
         LVGF_GROUPID = 0x10,
-        LVGF_SUBTITLE = 0x00100,  // pszSubtitle is valid
-        LVGF_TASK = 0x00200, // pszTask is valid
-        LVGF_DESCRIPTIONTOP = 0x00400,  // pszDescriptionTop is valid
-        LVGF_DESCRIPTIONBOTTOM = 0x00800,  // pszDescriptionBottom is valid
-        LVGF_TITLEIMAGE = 0x01000,  // iTitleImage is valid
-        LVGF_EXTENDEDIMAGE = 0x02000,  // iExtendedImage is valid
-        LVGF_ITEMS = 0x04000,  // iFirstItem and cItems are valid
-        LVGF_SUBSET = 0x08000,  // pszSubsetTitle is valid
-        LVGF_SUBSETITEMS = 0x10000  // readonly, cItems holds count of items in visible subset, iFirstItem is valid
+
+        /// <summary>
+        /// pszSubtitle is valid
+        /// </summary>
+        LVGF_SUBTITLE = 0x00100,  
+
+        /// <summary>
+        /// pszTask is valid
+        /// </summary>
+        LVGF_TASK = 0x00200, 
+
+        /// <summary>
+        /// pszDescriptionTop is valid
+        /// </summary>
+        LVGF_DESCRIPTIONTOP = 0x00400,  
+
+        /// <summary>
+        /// pszDescriptionBottom is valid
+        /// </summary>
+        LVGF_DESCRIPTIONBOTTOM = 0x00800,  
+
+        /// <summary>
+        /// iTitleImage is valid
+        /// </summary>
+        LVGF_TITLEIMAGE = 0x01000,  
+
+        /// <summary>
+        /// iExtendedImage is valid
+        /// </summary>
+        LVGF_EXTENDEDIMAGE = 0x02000,  
+        
+        /// <summary>
+        /// iFirstItem and cItems are valid
+        /// </summary>
+        LVGF_ITEMS = 0x04000,  
+        
+        /// <summary>
+        /// pszSubsetTitle is valid
+        /// </summary>
+        LVGF_SUBSET = 0x08000,  
+     
+        /// <summary>
+        /// readonly, cItems holds count of items in visible subset, iFirstItem is valid
+        /// </summary>
+        LVGF_SUBSETITEMS = 0x10000  
     }
 
     /// <summary>
@@ -89,9 +189,24 @@ namespace BrightIdeasSoftware
     [Flags]
     public enum GroupMetricsMask
     {
+        /// <summary>
+        /// 
+        /// </summary>
         LVGMF_NONE = 0,
+
+        /// <summary>
+        /// 
+        /// </summary>
         LVGMF_BORDERSIZE = 1,
+
+        /// <summary>
+        /// 
+        /// </summary>
         LVGMF_BORDERCOLOR = 2,
+
+        /// <summary>
+        /// 
+        /// </summary>
         LVGMF_TEXTCOLOR = 4
     }
 
@@ -101,7 +216,7 @@ namespace BrightIdeasSoftware
     /// </summary>
     /// <remarks>
     /// <para>
-    /// In this implementation (2009-09), this objects are essentially passive.
+    /// In this implementation (2009-09), these objects are essentially passive.
     /// Setting properties does not automatically change the associated group in
     /// the listview. Collapsed and Collapsible are two exceptions to this and 
     /// give immediate results.
@@ -116,9 +231,16 @@ namespace BrightIdeasSoftware
     {
         #region Creation
 
+        /// <summary>
+        /// Create an OLVGroup
+        /// </summary>
         public OLVGroup() : this("Default group header") {
         }
 
+        /// <summary>
+        /// Create a group with the given title
+        /// </summary>
+        /// <param name="header">Title of the group</param>
         public OLVGroup(string header) {
             this.Header = header;
             this.Id = OLVGroup.nextId++;
@@ -417,7 +539,6 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Calculate the index into the group image list of the given image selector
         /// </summary>
-        /// <param name="olv"></param>
         /// <param name="imageSelector"></param>
         /// <returns></returns>
         public int GetImageIndex(object imageSelector) {
@@ -481,7 +602,6 @@ namespace BrightIdeasSoftware
         /// Change the members of the group to match the current contents of Items,
         /// using a ListViewGroup
         /// </summary>
-        /// <param name="olv"></param>
         public void SetItemsOldStyle() {
             List<OLVListItem> list = this.Items as List<OLVListItem>;
             if (list == null) {
@@ -604,7 +724,6 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Modify the space between groups
         /// </summary>
-        /// <param name="olv"></param>
         /// <returns></returns>
         protected int SetGroupSpacing() {
             if (this.ListView.SpaceBetweenGroups <= 0)

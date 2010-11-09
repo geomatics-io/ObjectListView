@@ -48,6 +48,15 @@ namespace BrightIdeasSoftware
     /// </summary>
     public static class Generator
     {
+        #region Public interface
+
+        /// <summary>
+        /// Replace all columns of the given ObjectListView with columns generated
+        /// from the first member of the given enumerable. If the enumerable is 
+        /// empty or null, the ObjectListView will be cleared.
+        /// </summary>
+        /// <param name="olv">The ObjectListView to modify</param>
+        /// <param name="enumerable">The collection whose first element will be used to generate columns.</param>
         static public void GenerateColumns(ObjectListView olv, IEnumerable enumerable) {
             // Generate columns based on the type of the first model in the collection and then quit
             if (enumerable != null) {
@@ -61,22 +70,23 @@ namespace BrightIdeasSoftware
             Generator.ReplaceColumns(olv, new List<OLVColumn>());
         }
 
+        /// <summary>
+        /// Generate columns into the given ObjectListView that come from the given 
+        /// model object type. 
+        /// </summary>
+        /// <param name="olv">The ObjectListView to modify</param>
+        /// <param name="type">The model type whose attributes will be considered.</param>
         static public void GenerateColumns(ObjectListView olv, Type type) {
             IList<OLVColumn> columns = Generator.GenerateColumns(type);
             Generator.ReplaceColumns(olv, columns);
         }
 
-        static private void ReplaceColumns(ObjectListView olv, IList<OLVColumn> columns) {
-            olv.Clear();
-            olv.AllColumns.Clear();
-            olv.PrimarySortColumn = null;
-            olv.SecondarySortColumn = null;
-            if (columns.Count > 0) {
-                olv.AllColumns.AddRange(columns);
-                olv.RebuildColumns();
-            }
-        }
-
+        /// <summary>
+        /// Generate a list of OLVColumns based on the attributes of the given type
+        /// that have a OLVColumn attribute.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns>A collection of OLVColumns matching the attributes of Type that have OLVColumnAttributes.</returns>
         static public IList<OLVColumn> GenerateColumns(Type type) {
             List<OLVColumn> columns = new List<OLVColumn>();
             
@@ -93,6 +103,21 @@ namespace BrightIdeasSoftware
             });
 
             return columns;
+        }
+
+        #endregion
+
+        #region Implementation
+
+        static private void ReplaceColumns(ObjectListView olv, IList<OLVColumn> columns) {
+            olv.Clear();
+            olv.AllColumns.Clear();
+            olv.PrimarySortColumn = null;
+            olv.SecondarySortColumn = null;
+            if (columns.Count > 0) {
+                olv.AllColumns.AddRange(columns);
+                olv.RebuildColumns();
+            }
         }
 
         private static OLVColumn MakeColumnFromAttribute(string aspectName, OLVColumnAttribute attr, bool editable) {
@@ -127,6 +152,8 @@ namespace BrightIdeasSoftware
                 column.MakeGroupies(attr.GroupCutoffs, attr.GroupDescriptions);
             return column;
         }
+
+        #endregion
 
         /*
         #region Dynamic methods

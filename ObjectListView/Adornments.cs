@@ -61,7 +61,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets location within the reference rectange where the adornment will be drawn
         /// </summary>
-        /// <remarks>This is a simplied interface to ReferenceCorner && AdornmentCorner </remarks>
+        /// <remarks>This is a simplied interface to ReferenceCorner and AdornmentCorner </remarks>
         [Category("ObjectListView"),
          Description("How will the adornment be aligned"),
          DefaultValue(System.Drawing.ContentAlignment.BottomRight),
@@ -171,7 +171,7 @@ namespace BrightIdeasSoftware
         /// Calculate a rectangle that has the given size which is positioned so that
         /// its alignment point is at the reference location of the given rect.
         /// </summary>
-        /// <param name="reference"></param>
+        /// <param name="r"></param>
         /// <param name="sz"></param>
         /// <returns></returns>
         public Rectangle CreateAlignedRectangle(Rectangle r, Size sz) {
@@ -182,10 +182,10 @@ namespace BrightIdeasSoftware
         /// Create a rectangle of the given size which is positioned so that
         /// its indicated corner is at the indicated corner of the reference rect.
         /// </summary>
-        /// <param name="reference"></param>
+        /// <param name="r"></param>
         /// <param name="sz"></param>
-        /// <param name="reference"></param>
-        /// <param name="alignment"></param>
+        /// <param name="corner"></param>
+        /// <param name="referenceCorner"></param>
         /// <param name="offset"></param>
         /// <returns></returns>
         /// <remarks>
@@ -205,8 +205,8 @@ namespace BrightIdeasSoftware
         /// Return the point at the indicated corner of the given rectangle (it doesn't
         /// have to be a corner, but a named location)
         /// </summary>
-        /// <param name="bounds">The reference rectangle</param>
-        /// <param name="location">Which point of the rectangle should be returned?</param>
+        /// <param name="r">The reference rectangle</param>
+        /// <param name="corner">Which point of the rectangle should be returned?</param>
         /// <returns>A point</returns>
         /// <example>CalculateReferenceLocation(new Rectangle(0, 0, 50, 100), System.Drawing.ContentAlignment.TopLeft) -> Point(0, 0)</example>
         /// <example>CalculateReferenceLocation(new Rectangle(0, 0, 50, 100), System.Drawing.ContentAlignment.MiddleCenter) -> Point(25, 50)</example>
@@ -339,6 +339,7 @@ namespace BrightIdeasSoftware
         /// <param name="image">The image to be drawn</param>
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The bounds of the rendering</param>
+        /// <param name="transparency">How transparent should the image be (0 is completely transparent, 255 is opaque)</param>
         public void DrawImage(Graphics g, Rectangle r, Image image, int transparency) {
             if (image != null)
                 this.DrawImage(g, r, image, image.Size, transparency);
@@ -350,6 +351,8 @@ namespace BrightIdeasSoftware
         /// <param name="image">The image to be drawn</param>
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The bounds of the rendering</param>
+        /// <param name="sz">How big should the image be?</param>
+        /// <param name="transparency">How transparent should the image be (0 is completely transparent, 255 is opaque)</param>
         public void DrawImage(Graphics g, Rectangle r, Image image, Size sz, int transparency) {
             if (image == null)
                 return;
@@ -371,6 +374,7 @@ namespace BrightIdeasSoftware
         /// <param name="image">The image to be drawn</param>
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The bounds of the rendering</param>
+        /// <param name="transparency">How transparent should the image be (0 is completely transparent, 255 is opaque)</param>
         public void DrawScaledImage(Graphics g, Rectangle r, Image image, int transparency) {
             if (image == null)
                 return;
@@ -387,6 +391,13 @@ namespace BrightIdeasSoftware
             this.DrawImage(g, r, image, size, transparency);
         }
 
+        /// <summary>
+        /// Utility to draw a bitmap transparenly.
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="image"></param>
+        /// <param name="transparency"></param>
         protected void DrawTransparentBitmap(Graphics g, Rectangle r, Image image, int transparency) {
             ImageAttributes imageAttributes = null;
             if (transparency != 255) {
@@ -637,6 +648,7 @@ namespace BrightIdeasSoftware
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The reference rectangle in relation to which the text will be drawn</param>
         /// <param name="text">The text to draw</param>
+        /// <param name="transparency">How opaque should be text be</param>
         public void DrawText(Graphics g, Rectangle r, string text, int transparency) {
             if (String.IsNullOrEmpty(text))
                 return;
@@ -651,6 +663,7 @@ namespace BrightIdeasSoftware
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="textRect">The bounds within which the text should be drawn</param>
         /// <param name="text">The text to draw</param>
+        /// <param name="transparency">How opaque should be text be</param>
         protected void DrawBorderedText(Graphics g, Rectangle textRect, string text, int transparency) {
             Rectangle borderRect = textRect;
             borderRect.Inflate((int)this.BorderWidth / 2, (int)this.BorderWidth / 2);
@@ -679,6 +692,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="g"></param>
         /// <param name="r"></param>
+        /// <param name="text"></param>
         /// <returns>The bounds of the text</returns>
         protected Rectangle CalculateTextBounds(Graphics g, Rectangle r, string text) {
             int maxWidth = this.MaximumTextWidth <= 0 ? r.Width : this.MaximumTextWidth;

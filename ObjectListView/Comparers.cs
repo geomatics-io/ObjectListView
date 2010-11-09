@@ -47,12 +47,27 @@ namespace BrightIdeasSoftware
     /// so that it can be used on untyped and typed collections.</para></remarks>
     public class ColumnComparer : IComparer, IComparer<OLVListItem>
     {
+        /// <summary>
+        /// Create a ColumnComparer that will order the rows in a list view according
+        /// to the values in a given column
+        /// </summary>
+        /// <param name="col">The column whose values will be compared</param>
+        /// <param name="order">The ordering for column values</param>
         public ColumnComparer(OLVColumn col, SortOrder order)
         {
             this.column = col;
             this.sortOrder = order;
         }
 
+        /// <summary>
+        /// Create a ColumnComparer that will order the rows in a list view according
+        /// to the values in a given column, and by a secondary column if the primary
+        /// column is equal.
+        /// </summary>
+        /// <param name="col">The column whose values will be compared</param>
+        /// <param name="order">The ordering for column values</param>
+        /// <param name="col2">The column whose values will be compared for secondary sorting</param>
+        /// <param name="order2">The ordering for secondary column values</param>
         public ColumnComparer(OLVColumn col, SortOrder order, OLVColumn col2, SortOrder order2)
             : this(col, order)
         {
@@ -61,11 +76,23 @@ namespace BrightIdeasSoftware
                 this.secondComparer = new ColumnComparer(col2, order2);
         }
 
+        /// <summary>
+        /// Compare two rows
+        /// </summary>
+        /// <param name="x">row1</param>
+        /// <param name="y">row2</param>
+        /// <returns>An ordering indication: -1, 0, 1</returns>
         public int Compare(object x, object y)
         {
             return this.Compare((OLVListItem)x, (OLVListItem)y);
         }
 
+        /// <summary>
+        /// Compare two rows
+        /// </summary>
+        /// <param name="x">row1</param>
+        /// <param name="y">row2</param>
+        /// <returns>An ordering indication: -1, 0, 1</returns>
         public int Compare(OLVListItem x, OLVListItem y)
         {
             if (this.sortOrder == SortOrder.None)
@@ -97,6 +124,12 @@ namespace BrightIdeasSoftware
             return result;
         }
 
+        /// <summary>
+        /// Compare the actual values to be used for sorting
+        /// </summary>
+        /// <param name="x">The aspect extracted from the first row</param>
+        /// <param name="y">The aspect extracted from the second row</param>
+        /// <returns>An ordering indication: -1, 0, 1</returns>
         public int CompareValues(object x, object y)
         {
             // Force case insensitive compares on strings
@@ -119,14 +152,26 @@ namespace BrightIdeasSoftware
 
 
     /// <summary>
-    /// This comparer sort list view groups.
+    /// This comparer sort list view groups. OLVGroups have a "SortValue" property,
+    /// which is used if present. Otherwise, the titles of the groups will be compared.
     /// </summary>
     public class OLVGroupComparer : IComparer<OLVGroup>
     {
+        /// <summary>
+        /// Create a group comparer
+        /// </summary>
+        /// <param name="order">The ordering for column values</param>
         public OLVGroupComparer(SortOrder order) {
             this.sortOrder = order;
         }
 
+        /// <summary>
+        /// Compare the two groups. OLVGroups have a "SortValue" property,
+        /// which is used if present. Otherwise, the titles of the groups will be compared.
+        /// </summary>
+        /// <param name="x">group1</param>
+        /// <param name="y">group2</param>
+        /// <returns>An ordering indication: -1, 0, 1</returns>
         public int Compare(OLVGroup x, OLVGroup y) {
             // If we can compare the sort values, do that.
             // Otherwise do a case insensitive compare on the group header.
@@ -150,12 +195,24 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class ModelObjectComparer : IComparer, IComparer<object>
     {
+        /// <summary>
+        /// Create a model object comparer
+        /// </summary>
+        /// <param name="col"></param>
+        /// <param name="order"></param>
         public ModelObjectComparer(OLVColumn col, SortOrder order)
         {
             this.column = col;
             this.sortOrder = order;
         }
 
+        /// <summary>
+        /// Create a model object comparer with a secondary sorting column
+        /// </summary>
+        /// <param name="col"></param>
+        /// <param name="order"></param>
+        /// <param name="col2"></param>
+        /// <param name="order2"></param>
         public ModelObjectComparer(OLVColumn col, SortOrder order, OLVColumn col2, SortOrder order2)
             : this(col, order)
         {
@@ -164,6 +221,12 @@ namespace BrightIdeasSoftware
                 this.secondComparer = new ModelObjectComparer(col2, order2);
         }
 
+        /// <summary>
+        /// Compare the two model objects
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public int Compare(object x, object y)
         {
             int result = 0;
@@ -195,6 +258,12 @@ namespace BrightIdeasSoftware
             return result;
         }
 
+        /// <summary>
+        /// Compare the actual values
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public int CompareValues(object x, object y)
         {
             // Force case insensitive compares on strings

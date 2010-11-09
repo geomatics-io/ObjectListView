@@ -59,6 +59,10 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class HeaderControl : NativeWindow
     {
+        /// <summary>
+        /// Create a header control for the given ObjectListView.
+        /// </summary>
+        /// <param name="olv"></param>
         public HeaderControl(ObjectListView olv) {
             this.ListView = olv;
             this.AssignHandle(NativeMethods.GetHeaderControl(olv));
@@ -246,6 +250,9 @@ namespace BrightIdeasSoftware
 
         #region Tooltip
 
+        /// <summary>
+        /// Create a native tool tip control for this listview
+        /// </summary>
         protected virtual void CreateToolTip() {
             this.ToolTip = new ToolTipControl();
             this.ToolTip.Create(this.Handle);
@@ -257,6 +264,10 @@ namespace BrightIdeasSoftware
 
         #region Windows messaging
 
+        /// <summary>
+        /// Override the basic message pump
+        /// </summary>
+        /// <param name="m"></param>
         protected override void WndProc(ref Message m) {
             const int WM_DESTROY = 2;
             const int WM_SETCURSOR = 0x20;
@@ -295,6 +306,11 @@ namespace BrightIdeasSoftware
             base.WndProc(ref m);
         }
 
+        /// <summary>
+        /// Handle the SetCursor windows message
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
         protected bool HandleSetCursor(ref Message m) {
             if (this.IsCursorOverLockedDivider) {
                 m.Result = (IntPtr)1;	// Don't change the cursor
@@ -303,6 +319,11 @@ namespace BrightIdeasSoftware
             return true;
         }
 
+        /// <summary>
+        /// Handle the MouseMove windows message
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
         protected bool HandleMouseMove(ref Message m) {
             int columnIndex = this.ColumnIndexUnderCursor;
 
@@ -316,6 +337,11 @@ namespace BrightIdeasSoftware
         }
         private int columnShowingTip = -1;
 
+        /// <summary>
+        /// Handle the Notify windows message
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
         protected bool HandleNotify(ref Message m) {
             // Can this ever happen? JPP 2009-05-22
             if (m.LParam == IntPtr.Zero)
@@ -343,6 +369,11 @@ namespace BrightIdeasSoftware
             return false;
         }
 
+        /// <summary>
+        /// Handle the CustomDraw windows message
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
         internal virtual bool HandleHeaderCustomDraw(ref Message m) {
             const int CDRF_NEWFONT = 2;
             const int CDRF_SKIPDEFAULT = 4;
@@ -546,6 +577,14 @@ namespace BrightIdeasSoftware
             this.DrawHeaderImageAndText(g, r, column, stateStyle);
         }
 
+        /// <summary>
+        /// Draw a background for the header, without using Themes.
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="columnIndex"></param>
+        /// <param name="isSelected"></param>
+        /// <param name="stateStyle"></param>
         protected void DrawUnthemedBackground(Graphics g, Rectangle r, int columnIndex, bool isSelected, HeaderStateStyle stateStyle) {
             if (stateStyle.BackColor.IsEmpty)
                 // I know we're supposed to be drawing the unthemed background, but let's just see if we
@@ -569,6 +608,13 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Draw a more-or-less pure themed header background.
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="columnIndex"></param>
+        /// <param name="isSelected"></param>
         protected void DrawThemedBackground(Graphics g, Rectangle r, int columnIndex, bool isSelected) {
             int part = 1; // normal item
             if (columnIndex == 0 &&
@@ -588,6 +634,11 @@ namespace BrightIdeasSoftware
             renderer.DrawBackground(g, r);
         }
 
+        /// <summary>
+        /// Draw a sort indicator using themes
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
         protected void DrawThemedSortIndicator(Graphics g, Rectangle r) {
             VisualStyleRenderer renderer2 = null;
             if (this.ListView.LastSortOrder == SortOrder.Ascending)
@@ -604,6 +655,12 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Draw a sort indicator without using themes
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <returns></returns>
         protected Rectangle DrawUnthemedSortIndicator(Graphics g, Rectangle r) {
             // No theme support for sort indicators. So, we draw a triangle at the right edge
             // of the column header.
@@ -632,6 +689,13 @@ namespace BrightIdeasSoftware
             return r;
         }
 
+        /// <summary>
+        /// Draw the header's image and text
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="column"></param>
+        /// <param name="stateStyle"></param>
         protected void DrawHeaderImageAndText(Graphics g, Rectangle r, OLVColumn column, HeaderStateStyle stateStyle) {
             TextFormatFlags flags = this.TextFormatFlags;
             flags |= TextFormatFlags.VerticalCenter;
@@ -694,6 +758,13 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// What style should be applied to the header?
+        /// </summary>
+        /// <param name="column"></param>
+        /// <param name="isHot"></param>
+        /// <param name="isPressed"></param>
+        /// <returns></returns>
         protected HeaderStateStyle CalculateStyle(OLVColumn column, bool isHot, bool isPressed) {
             HeaderFormatStyle headerStyle = 
                 column.HeaderFormatStyle ?? this.ListView.HeaderFormatStyle ?? new HeaderFormatStyle();
@@ -706,11 +777,21 @@ namespace BrightIdeasSoftware
             return headerStyle.Normal;
         }
 
+        /// <summary>
+        /// What font should be used to draw the header text?
+        /// </summary>
+        /// <param name="column"></param>
+        /// <param name="isHot"></param>
+        /// <param name="isPressed"></param>
+        /// <returns></returns>
         protected Font CalculateFont(OLVColumn column, bool isHot, bool isPressed) {
             HeaderStateStyle stateStyle = this.CalculateStyle(column, isHot, isPressed);
             return stateStyle.Font ?? this.ListView.Font;
         }
 
+        /// <summary>
+        /// What flags will be used when drawing text
+        /// </summary>
         protected TextFormatFlags TextFormatFlags {
             get {
                 TextFormatFlags flags = TextFormatFlags.EndEllipsis | 

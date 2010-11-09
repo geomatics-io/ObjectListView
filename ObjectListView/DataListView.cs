@@ -73,11 +73,11 @@ namespace BrightIdeasSoftware
         /// <remarks>The DataSource should implement either <see cref="IList"/>, <see cref="IBindingList"/>,
         /// or <see cref="IListSource"/>. Some common examples are the following types of objects:
         /// <list type="unordered">
-        /// <item><see cref="DataView"/></item>
-        /// <item><see cref="DataTable"/></item>
-        /// <item><see cref="DataSet"/></item>
-        /// <item><see cref="DataViewManager"/></item>
-        /// <item><see cref="BindingSource"/></item>
+        /// <item><description><see cref="DataView"/></description></item>
+        /// <item><description><see cref="DataTable"/></description></item>
+        /// <item><description><see cref="DataSet"/></description></item>
+        /// <item><description><see cref="DataViewManager"/></description></item>
+        /// <item><description><see cref="BindingSource"/></description></item>
         /// </list>
         /// <para>When binding to a list container (i.e. one that implements the
         /// <see cref="IListSource"/> interface, such as <see cref="DataSet"/>)
@@ -349,11 +349,17 @@ namespace BrightIdeasSoftware
             this.RebindDataSource(false);
         }
 
-        // CurrencyManager ListChanged event handler.
-        // Deals with fine-grained changes to list items.
-        // It's actually difficult to deal with these changes in a fine-grained manner.
-        // If our listview is grouped, then any change may make a new group appear or
-        // an old group disappear. It is rarely enough to simply update the affected row.
+        /// <summary>
+        /// CurrencyManager ListChanged event handler.
+        /// Deals with fine-grained changes to list items.
+        /// </summary>
+        /// <remarks>
+        /// It's actually difficult to deal with these changes in a fine-grained manner.
+        /// If our listview is grouped, then any change may make a new group appear or
+        /// an old group disappear. It is rarely enough to simply update the affected row.
+        /// </remarks>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         protected virtual void currencyManager_ListChanged(object sender, ListChangedEventArgs e)
         {
             switch (e.ListChangedType) {
@@ -407,17 +413,27 @@ namespace BrightIdeasSoftware
             }
         }
 
-        // The CurrencyManager calls this if the data source looks
-        // different. We just reload everything.
-        // CHECK: Do we need this if we are handle ListChanged metadata events?
+
+        /// <summary>
+        /// The CurrencyManager calls this if the data source looks
+        /// different. We just reload everything.
+        /// CHECK: Do we need this if we are handle ListChanged metadata events?
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         protected virtual void currencyManager_MetaDataChanged(object sender, EventArgs e)
         {
             this.InitializeDataSource();
         }
 
-        // Called by the CurrencyManager when the currently selected item
-        // changes. We update the ListView selection so that we stay in sync
-        // with any other controls bound to the same source.
+        
+        /// <summary>
+        /// Called by the CurrencyManager when the currently selected item
+        /// changes. We update the ListView selection so that we stay in sync
+        /// with any other controls bound to the same source.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         protected virtual void currencyManager_PositionChanged(object sender, EventArgs e)
         {
             int index = this.currencyManager.Position;

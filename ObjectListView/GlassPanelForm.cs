@@ -48,7 +48,10 @@ using System.Windows.Forms;
 
 namespace BrightIdeasSoftware
 {
-    public partial class GlassPanelForm : Form
+    /// <summary>
+    /// A GlassPanelForm sits transparently over an ObjectListView to show overlays.
+    /// </summary>
+    internal partial class GlassPanelForm : Form
     {
         public GlassPanelForm() {
             this.Name = "GlassPanelForm";

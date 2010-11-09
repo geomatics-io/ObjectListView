@@ -58,8 +58,8 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// The callbacks for CellEditing events
     /// </summary>
-    /// <remarks>
-    /// We could replace this with EventHandler<CellEditEventArgs> but that would break all
+    /// <remarks> this 
+    /// We could replace this with EventHandler&lt;CellEditEventArgs&gt; but that would break all
     /// cell editing event code from v1.x.
     /// </remarks>
     public delegate void CellEditEventHandler(object sender, CellEditEventArgs e);
@@ -349,155 +349,276 @@ namespace BrightIdeasSoftware
         //-----------------------------------------------------------------------------------
         #region OnEvents
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnAboutToCreateGroups(CreateGroupsEventArgs e) {
             if (this.AboutToCreateGroups != null)
                 this.AboutToCreateGroups(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnBeforeCreatingGroups(CreateGroupsEventArgs e) {
             if (this.BeforeCreatingGroups != null)
                 this.BeforeCreatingGroups(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnAfterCreatingGroups(CreateGroupsEventArgs e) {
             if (this.AfterCreatingGroups != null)
                 this.AfterCreatingGroups(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnAfterSearching(AfterSearchingEventArgs e) {
             if (this.AfterSearching != null)
                 this.AfterSearching(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnAfterSorting(AfterSortingEventArgs e) {
             if (this.AfterSorting != null)
                 this.AfterSorting(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnBeforeSearching(BeforeSearchingEventArgs e) {
             if (this.BeforeSearching != null)
                 this.BeforeSearching(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnBeforeSorting(BeforeSortingEventArgs e) {
             if (this.BeforeSorting != null)
                 this.BeforeSorting(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnCanDrop(OlvDropEventArgs args) {
             if (this.CanDrop != null)
                 this.CanDrop(this, args);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnCellClick(CellClickEventArgs args) {
             if (this.CellClick != null)
                 this.CellClick(this, args);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnCellOver(CellOverEventArgs args) {
             if (this.CellOver != null)
                 this.CellOver(this, args);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnCellRightClick(CellRightClickEventArgs args) {
             if (this.CellRightClick != null)
                 this.CellRightClick(this, args);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnCellToolTip(ToolTipShowingEventArgs args) {
             if (this.CellToolTipShowing != null)
                 this.CellToolTipShowing(this, args);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnColumnRightClick(ColumnClickEventArgs e) {
             if (this.ColumnRightClick != null)
                 this.ColumnRightClick(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnDropped(OlvDropEventArgs args) {
             if (this.Dropped != null)
                 this.Dropped(this, args);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnFilter(FilterEventArgs e) {
             if (this.Filter != null)
                 this.Filter(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnFormatCell(FormatCellEventArgs args) {
             if (this.FormatCell != null)
                 this.FormatCell(this, args);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnFormatRow(FormatRowEventArgs args) {
             if (this.FormatRow != null)
                 this.FormatRow(this, args);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnHeaderToolTip(ToolTipShowingEventArgs args) {
             if (this.HeaderToolTipShowing != null)
                 this.HeaderToolTipShowing(this, args);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnHotItemChanged(HotItemChangedEventArgs e) {
             if (this.HotItemChanged != null)
                 this.HotItemChanged(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnHyperlinkClicked(HyperlinkClickedEventArgs e) {
             if (this.HyperlinkClicked != null)
                 this.HyperlinkClicked(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnGroupTaskClicked(GroupTaskClickedEventArgs e) {
             if (this.GroupTaskClicked != null)
                 this.GroupTaskClicked(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnIsHyperlink(IsHyperlinkEventArgs e) {
             if (this.IsHyperlink != null)
                 this.IsHyperlink(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnItemsAdding(ItemsAddingEventArgs e) {
             if (this.ItemsAdding != null)
                 this.ItemsAdding(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnItemsChanged(ItemsChangedEventArgs e) {
             if (this.ItemsChanged != null)
                 this.ItemsChanged(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnItemsChanging(ItemsChangingEventArgs e) {
             if (this.ItemsChanging != null)
                 this.ItemsChanging(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnItemsRemoving(ItemsRemovingEventArgs e) {
             if (this.ItemsRemoving != null)
                 this.ItemsRemoving(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnModelCanDrop(ModelDropEventArgs args) {
             if (this.ModelCanDrop != null)
                 this.ModelCanDrop(this, args);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnModelDropped(ModelDropEventArgs args) {
             if (this.ModelDropped != null)
                 this.ModelDropped(this, args);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnSelectionChanged(EventArgs e) {
             if (this.SelectionChanged != null)
                 this.SelectionChanged(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnScroll(ScrollEventArgs e) {
             if (this.Scroll != null)
                 this.Scroll(this, e);
         }
+
 
         /// <summary>
         /// Tell the world when a cell is about to be edited.
@@ -659,6 +780,9 @@ namespace BrightIdeasSoftware
         private Rectangle cellBounds;
     }
 
+    /// <summary>
+    /// Event blocks for events that can be cancelled
+    /// </summary>
     public class CancellableEventArgs : EventArgs
     {
         /// <summary>
@@ -667,8 +791,18 @@ namespace BrightIdeasSoftware
         public bool Canceled;
     }
 
+    /// <summary>
+    /// BeforeSorting
+    /// </summary>
     public class BeforeSortingEventArgs : CancellableEventArgs
     {
+        /// <summary>
+        /// Create BeforeSortingEventArgs
+        /// </summary>
+        /// <param name="column"></param>
+        /// <param name="order"></param>
+        /// <param name="column2"></param>
+        /// <param name="order2"></param>
         public BeforeSortingEventArgs(OLVColumn column, SortOrder order, OLVColumn column2, SortOrder order2) {
             this.ColumnToGroupBy = column;
             this.GroupByOrder = order;
@@ -678,6 +812,15 @@ namespace BrightIdeasSoftware
             this.SecondarySortOrder = order2;
         }
 
+        /// <summary>
+        /// Create BeforeSortingEventArgs
+        /// </summary>
+        /// <param name="groupColumn"></param>
+        /// <param name="groupOrder"></param>
+        /// <param name="column"></param>
+        /// <param name="order"></param>
+        /// <param name="column2"></param>
+        /// <param name="order2"></param>
         public BeforeSortingEventArgs(OLVColumn groupColumn, SortOrder groupOrder, OLVColumn column, SortOrder order, OLVColumn column2, SortOrder order2) {
             this.ColumnToGroupBy = groupColumn;
             this.GroupByOrder = groupOrder;
@@ -692,16 +835,51 @@ namespace BrightIdeasSoftware
         /// </summary>
         public bool Handled;
 
+        /// <summary>
+        /// What column will be used for grouping
+        /// </summary>
         public OLVColumn ColumnToGroupBy;
+
+        /// <summary>
+        /// How will groups be ordered
+        /// </summary>
         public SortOrder GroupByOrder;
+
+        /// <summary>
+        /// What column will be used for sorting
+        /// </summary>
         public OLVColumn ColumnToSort;
+
+        /// <summary>
+        /// What order will be used for sorting. None means no sorting.
+        /// </summary>
         public SortOrder SortOrder;
+
+        /// <summary>
+        /// What column will be used for secondary sorting?
+        /// </summary>
         public OLVColumn SecondaryColumnToSort;
+
+        /// <summary>
+        /// What order will be used for secondary sorting?
+        /// </summary>
         public SortOrder SecondarySortOrder;
     }
 
+    /// <summary>
+    /// Sorting has just occurred.
+    /// </summary>
     public class AfterSortingEventArgs : EventArgs
     {
+        /// <summary>
+        /// Create a AfterSortingEventArgs
+        /// </summary>
+        /// <param name="groupColumn"></param>
+        /// <param name="groupOrder"></param>
+        /// <param name="column"></param>
+        /// <param name="order"></param>
+        /// <param name="column2"></param>
+        /// <param name="order2"></param>
         public AfterSortingEventArgs(OLVColumn groupColumn, SortOrder groupOrder, OLVColumn column, SortOrder order, OLVColumn column2, SortOrder order2) {
             this.columnToGroupBy = groupColumn;
             this.groupByOrder = groupOrder;
@@ -711,6 +889,10 @@ namespace BrightIdeasSoftware
             this.secondarySortOrder = order2;
         }
 
+        /// <summary>
+        /// Create a AfterSortingEventArgs
+        /// </summary>
+        /// <param name="args"></param>
         public AfterSortingEventArgs(BeforeSortingEventArgs args) {
             this.columnToGroupBy = args.ColumnToGroupBy;
             this.groupByOrder = args.GroupByOrder;
@@ -720,31 +902,49 @@ namespace BrightIdeasSoftware
             this.secondarySortOrder = args.SecondarySortOrder;
         }
 
+        /// <summary>
+        /// What column was used for grouping?
+        /// </summary>
         public OLVColumn ColumnToGroupBy {
             get { return columnToGroupBy; }
         }
         private OLVColumn columnToGroupBy;
 
+        /// <summary>
+        /// What ordering was used for grouping?
+        /// </summary>
         public SortOrder GroupByOrder {
             get { return groupByOrder; }
         }
         private SortOrder groupByOrder;
 
+        /// <summary>
+        /// What column was used for sorting?
+        /// </summary>
         public OLVColumn ColumnToSort {
             get { return columnToSort; }
         }
         private OLVColumn columnToSort;
 
+        /// <summary>
+        /// What ordering was used for sorting?
+        /// </summary>
         public SortOrder SortOrder {
             get { return sortOrder; }
         }
         private SortOrder sortOrder;
 
+        /// <summary>
+        /// What column was used for secondary sorting?
+        /// </summary>
         public OLVColumn SecondaryColumnToSort {
             get { return secondaryColumnToSort; }
         }
         private OLVColumn secondaryColumnToSort;
 
+        /// <summary>
+        /// What order was used for secondary sorting?
+        /// </summary>
         public SortOrder SecondarySortOrder {
             get { return secondarySortOrder; }
         }
@@ -757,11 +957,22 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class FilterEventArgs : EventArgs
     {
+        /// <summary>
+        /// Create a FilterEventArgs
+        /// </summary>
+        /// <param name="objects"></param>
         public FilterEventArgs(IEnumerable objects) {
             this.Objects = objects;
         }
 
+        /// <summary>
+        /// Gets or sets what objects are being filtered
+        /// </summary>
         public IEnumerable Objects;
+
+        /// <summary>
+        /// Gets or sets what objects survived the filtering
+        /// </summary>
         public IEnumerable FilteredObjects;
     }
 
@@ -771,6 +982,9 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class ItemsChangedEventArgs : EventArgs
     {
+        /// <summary>
+        /// Create a ItemsChangedEventArgs
+        /// </summary>
         public ItemsChangedEventArgs() {
         }
 
@@ -784,11 +998,17 @@ namespace BrightIdeasSoftware
             this.newObjectCount = newObjectCount;
         }
 
+        /// <summary>
+        /// Gets how many items were in the list before it changed
+        /// </summary>
         public int OldObjectCount {
             get { return oldObjectCount; }
         }
         private int oldObjectCount;
 
+        /// <summary>
+        /// Gets how many objects are in the list after the change.
+        /// </summary>
         public int NewObjectCount {
             get { return newObjectCount; }
         }
@@ -800,10 +1020,17 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class ItemsAddingEventArgs : CancellableEventArgs
     {
+        /// <summary>
+        /// Create an ItemsAddingEventArgs
+        /// </summary>
+        /// <param name="objectsToAdd"></param>
         public ItemsAddingEventArgs(ICollection objectsToAdd) {
             this.ObjectsToAdd = objectsToAdd;
         }
 
+        /// <summary>
+        /// Gets or sets the objects to be added to the list
+        /// </summary>
         public ICollection ObjectsToAdd;
     }
 
@@ -815,16 +1042,28 @@ namespace BrightIdeasSoftware
     /// </remarks>
     public class ItemsChangingEventArgs : CancellableEventArgs
     {
+        /// <summary>
+        /// Create ItemsChangingEventArgs
+        /// </summary>
+        /// <param name="oldObjects"></param>
+        /// <param name="newObjects"></param>
         public ItemsChangingEventArgs(IEnumerable oldObjects, IEnumerable newObjects) {
             this.oldObjects = oldObjects;
             this.NewObjects = newObjects;
         }
 
+        /// <summary>
+        /// Gets the objects that were in the list before it change.
+        /// For virtual lists, this will always be null.
+        /// </summary>
         public IEnumerable OldObjects {
             get { return oldObjects; }
         }
         private IEnumerable oldObjects;
 
+        /// <summary>
+        /// Gets or sets the objects that will be in the list after it changes.
+        /// </summary>
         public IEnumerable NewObjects;
     }
 
@@ -833,10 +1072,17 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class ItemsRemovingEventArgs : CancellableEventArgs
     {
+        /// <summary>
+        /// Create an ItemsRemovingEventArgs
+        /// </summary>
+        /// <param name="objectsToRemove"></param>
         public ItemsRemovingEventArgs(ICollection objectsToRemove) {
             this.ObjectsToRemove = objectsToRemove;
         }
 
+        /// <summary>
+        /// Gets or sets the objects that will be removed
+        /// </summary>
         public ICollection ObjectsToRemove;
     }
 
@@ -845,6 +1091,11 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class AfterSearchingEventArgs : EventArgs
     {
+        /// <summary>
+        /// Create an AfterSearchingEventArgs
+        /// </summary>
+        /// <param name="stringToFind"></param>
+        /// <param name="indexSelected"></param>
         public AfterSearchingEventArgs(string stringToFind, int indexSelected) {
             this.stringToFind = stringToFind;
             this.indexSelected = indexSelected;
@@ -878,6 +1129,11 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class BeforeSearchingEventArgs : CancellableEventArgs
     {
+        /// <summary>
+        /// Create BeforeSearchingEventArgs
+        /// </summary>
+        /// <param name="stringToFind"></param>
+        /// <param name="startSearchFrom"></param>
         public BeforeSearchingEventArgs(string stringToFind, int startSearchFrom) {
             this.StringToFind = stringToFind;
             this.StartSearchFrom = startSearchFrom;
@@ -1298,6 +1554,9 @@ namespace BrightIdeasSoftware
         public bool UseCellFormatEvents;
     }
 
+    /// <summary>
+    /// Parameter block for FormatCellEvent
+    /// </summary>
     public class FormatCellEventArgs : FormatRowEventArgs
     {
         /// <summary>
@@ -1414,6 +1673,10 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class CreateGroupsEventArgs : EventArgs
     {
+        /// <summary>
+        /// Create a CreateGroupsEventArgs
+        /// </summary>
+        /// <param name="parms"></param>
         public CreateGroupsEventArgs(GroupingParameters parms) {
             this.parameters = parms;
         }
@@ -1446,6 +1709,10 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class GroupTaskClickedEventArgs : EventArgs
     {
+        /// <summary>
+        /// Create a GroupTaskClickedEventArgs
+        /// </summary>
+        /// <param name="group"></param>
         public GroupTaskClickedEventArgs(OLVGroup group) {
             this.group = group;
         }
