@@ -105,6 +105,12 @@ div.body {
 			margin:8px 0 12px;
 			border-bottom: solid #6699FF 1px;
 		}
+		
+		div.body h4 {
+			padding: 0;
+			margin:8px 0 12px;
+			border-bottom: dotted #6699FF 1px;
+		}
 
 .singlelinecallout.admonition {
 	margin: 0px 0px 20px 0px;

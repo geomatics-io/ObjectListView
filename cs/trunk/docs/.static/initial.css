@@ -38,6 +38,12 @@ h3 {
 	font:1.2em "gill sans mt", arial, helvetica, sans-serif;
 }
 
+h4 {
+	padding:8px 0 8px;
+	font:1.0em "gill sans mt", arial, helvetica, sans-serif;
+	font-weight:bold;
+}
+
 p, ul, ol {
 	margin:0;
 	padding:0 0 18px 0;

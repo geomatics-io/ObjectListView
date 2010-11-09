@@ -1091,15 +1091,15 @@ For each state, the header format allows the font, font color, background color
 and frame to be specified. If you combine these attributes badly, you can 
 produce some truly dreadful designs, but when well used, the effect can be pleasant.
 
-There is also `ObjectListView.HeaderWordWrap` which when `true` says to
-word wrap the text within the header.
-
-.. image:: images/header-formatting.png
-
     *"I've setup the HeaderFormat like you say, but the stupid thing does nothing"*
 	
 Make sure `HeaderUsesThemes` is `false`. If this is `true`, `ObjectListView` will
 use the OS's theme to draw the header, ignoring the `HeaderFormatStyle` completely.
+
+There is also `ObjectListView.HeaderWordWrap` which when `true` says to
+word wrap the text within the header.
+
+.. image:: images/header-formatting.png
 
 [v2.3 and earlier] 
 
@@ -1466,7 +1466,30 @@ matched as well and thus will be shown in the control.
 
 In the majority of situations, this gives the most predictable and useful visual results.
 
+Filtering and RefreshObject()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+`RefreshObject()` does *not* change the "filtered-ness" of an object: an object that was
+visible before `RefreshObject()` will still be visible after, and an object that was
+filtered before `RefreshObject()` was called will still be filtered afterwards.
+
+There are a main reason for this behaviour is that `RefreshObject()` has always had  
+the contract that it will not rebuild, resort or regroup the list. If the filtered-ness
+of an object changes, `RefreshObject()` would have to break one or more of these
+conditions.
+
+1. For a grouped list, `RefreshObject()` may have to create a new group or remove an 
+   existing group. This would break the "no rebuild"
+   and "no regrouping" contract.
+   
+2. If there is a `ListFilter` installed, `RefreshObject()` would have to rebuild the whole list.
+
+3. In a `TreeListView`, the newly hidden (or revealed) object might be a deeply nest child row,
+   which would require all the parents to also be hidden or revealed, again breaking the contracts.
+
+If you make a change to model objects and want filters to be reconsidered for them, you have
+to call `BuildList(true)` or reapply the filters. `RefreshObject()` will not work.
+   
 .. _recipe-text-filtering:
 
    
@@ -1487,9 +1510,13 @@ accurate results, when owner drawn is `true`. For example, subitem check boxes a
 as boxes, but their string representation is "true" and "false." If you're text filter is
 "rue" it will match all rows where a subitem check box is checked.
 
-The filter can be configured to only consider some of the columns in the `ObjectListView`.
+The filter can be configured to only consider some of the columns in the `ObjectListView` by
+setting the `Columns` property. This is useful for avoiding searching on columns that you
+know will return non-sensical results (like checkboxes above).
 
-It can also be set up to do regular expression searching.
+It can also be set up to do regular expression searching::
+
+	this.olv1.ModelFilter = new TextMatchFilter(this.olv1, "^[0-9]+", TextMatchFilter.MatchKind.Regex);
 
 HighlightTextRenderer
 ^^^^^^^^^^^^^^^^^^^^^
@@ -1524,8 +1551,8 @@ This needs a whole page to itself: :ref:`animations-label`
 ---------------------------------------------------------------
 
     *In my app, I want to remember the ordering and size
-	of the columns in the list so they can be restored when
-	the user reruns the app. Is there a way to do that?*
+    of the columns in the list so they can be restored when
+    the user reruns the app. Is there a way to do that?*
 
 Use the `SaveState()` and `RestoreState()` methods. 
 
@@ -1569,11 +1596,11 @@ process so any value you set on them in the IDE *will not* be persisted.
 
 37. Can I make a header take up even less space? Can it be drawn vertical?
 --------------------------------------------------------------------------
-
+ 
 For checkbox column, or image only columns, the header text can take up
 much more space than the data it is labelling. In such cases, you can make 
 the columns header be drawn vertically, by setting `OLVColumn.IsHeaderVertical`
-property to `true.
+property to `true`.
 
 Setting this gives something like this:
 
@@ -1609,7 +1636,9 @@ To install this decoration, you do this::
 The `EditingCellBorderDecoration` has the usual swathe of properties controlling
 exactly how it looks.
 
-.. _recipe_sorting_groups:
+OK, OK. This isn't actually a very useful class, but it does look cool :)
+
+.. _recipe-sorting-groups:
 
 39. How can I change the ordering of groups or rows within a group?
 -------------------------------------------------------------------
@@ -1617,12 +1646,12 @@ exactly how it looks.
    *Your way of ordering groups and the rows within the groups is stupid.
    I want to be able to do it myself.*
    
- O-K... Listen for the `BeforeCreatingGroups` event. In the parameter block
- for that event, set `GroupComparer` to control how groups are sorted, and
- `ItemComparer` to control how items within a group are sorted.
- 
- If you don't want the items within the group to be sorted at all, set
- `PrimarySortOrder` to `SortOrder.None`. 
- 
- There is no way to NOT sort the groups. They have to be ordered in some
- fashion.
+O-K... Listen for the `BeforeCreatingGroups` event. In the parameter block
+for that event, set `GroupComparer` to control how groups are sorted, and
+`ItemComparer` to control how items within a group are sorted.
+
+If you don't want the items within the group to be sorted at all, set
+`PrimarySortOrder` to `SortOrder.None`. 
+
+There is no way to NOT sort the groups. They have to be ordered in some
+fashion.

@@ -9,7 +9,7 @@ Change Log
 
 Version Index
 -------------
-* `v2.4.1 - 27 August 2010`_
+* `v2.4.1 - 15 September 2010`_
 * `v2.4 - 17 April 2010`_
 * `v2.3 - 14 October 2009`_
 * `v2.2.1 - 08 August 2009`_
@@ -32,8 +32,50 @@ Version Index
 * `Previous versions - 04 April 2007`_
 
 
-v2.4.1 - 27 August 2010
------------------------
+v2.4.1 - 15 September 2010
+--------------------------
+
+2010-09-14 11:22 (#1028) - Demo/MainForm.Designer.cs, Demo/MainForm.resx
+  - Make sure the image list for TreeListView demo is 32-bit
+
+2010-09-14 11:07 (#1025) - docs/.static/initial.css, docs/whatsnew.rst, docs/.static/structure.css, docs/.templates/layout.html, docs/index.rst
+  - Final tweaks before v2.4.1 release
+
+2010-09-14 11:03 (#1023) - ObjectListView/ObjectListView.cs, ObjectListView/Munger.cs, ObjectListView/VirtualListDataSource.cs, ObjectListView/DragSource.cs, ObjectListView/DataListView.cs, ObjectListView/ObjectListView2008.csproj, ObjectListView/TypedObjectListView.cs, ObjectListView/Events.cs, ObjectListView/Overlays.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Filters.cs, ObjectListView/CellEditors.cs, ObjectListView/Decorations.cs, ObjectListView/Adornments.cs, ObjectListView/NativeMethods.cs, ObjectListView/FastObjectListView.cs, ObjectListView/GlassPanelForm.cs, ObjectListView/Groups.cs, ObjectListView/Styles.cs, ObjectListView/ObjectListView.DesignTime.cs, ObjectListView/VirtualGroups.cs, ObjectListView/TreeListView.cs, ObjectListView/Attributes.cs, ObjectListView/Generator.cs, ObjectListView/Renderers.cs, ObjectListView/DropSink.cs, ObjectListView/HeaderControl.cs, ObjectListView/ToolTipControl.cs, ObjectListView/Comparers.cs
+  - Updated XML documentation
+
+2010-08-30 17:42 (#1021) - ObjectListView/Properties/AssemblyInfo.cs
+  - Updated to v2.4.1
+
+2010-08-30 17:42 (#1020) - docs/whatsnew.rst, docs/changelog.rst, docs/recipes.rst
+  - Updated to v2.4.1
+
+2010-08-30 17:41 (#1019) - Demo/AssemblyInfo.cs
+  - Updated to v2.4.1
+
+2010-08-28 15:25 (#1017) - docs/features.rst, docs/images/vertical-header.png, docs/whatsnew.rst, docs/images/header-with-image.png, docs/.templates/layout.html, docs/conf.py, docs/changelog.rst, docs/recipes.rst, docs/images/cell-editing-border.png
+  - Updated demo for v2.4.1
+
+2010-08-28 15:24 (#1016) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Updated demo for v2.4.1
+
+2010-08-28 15:24 (#1015) - ObjectListView/Events.cs, ObjectListView/Overlays.cs, ObjectListView/TreeListView.cs, ObjectListView/Renderers.cs, ObjectListView/Adornments.cs
+  - In IDE, all ObjectListView properties are now in a single "ObjectListView" category, rather than splitting them between "Appearance" and "Behavior" categories.
+
+2010-08-28 15:23 (#1014) - ObjectListView/DropSink.cs
+  - Removed duplicate AcceptExternal property
+
+2010-08-28 15:22 (#1013) - ObjectListView/Generator.cs
+  - Generator now also resets sort columns
+
+2010-08-28 15:21 (#1012) - ObjectListView/ObjectListView.cs
+  - Fixed bug where setting OLVColumn.CheckBoxes to false gave it a renderer specialized for checkboxes. Oddly, this made Generator created owner drawn lists appear to be completely empty.
+  - In IDE, all ObjectListView properties are now in a single "ObjectListView" category, rather than splitting them between "Appearance" and "Behavior" categories.
+  - Added GroupingParameters.GroupComparer to allow groups to be sorted in a customizable fashion.
+  - Sorting of items within a group can be disabled by setting GroupingParameters.PrimarySortOrder to None.
+
+2010-08-28 15:20 (#1011) - ObjectListView/Comparers.cs
+  - Removed ListViewGroupComparer since it hasn't been used for a couple of versions
 
 2010-08-24 21:16 (#1010) - ObjectListView/ObjectListView.cs
   - Added OLVColumn.IsHeaderVertical to make a column draw its header vertical.
