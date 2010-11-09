@@ -124,7 +124,7 @@ namespace BrightIdeasSoftware
         protected override void HandlePaintEvent(Graphics g, Rectangle r)
         {
             using (Pen p = this.GetPen()) {
-                g.SmoothingMode = SmoothingMode.HighQuality;
+                g.SmoothingMode = ObjectListView.SmoothingMode;
                 StringFormat fmt = new StringFormat();
                 fmt.Alignment = StringAlignment.Center;
                 fmt.LineAlignment = StringAlignment.Center;
