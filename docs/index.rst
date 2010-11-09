@@ -243,6 +243,50 @@ When thinking about using some new code, it's always interesting to hear what ot
 
    -- `vcleak <http://www.codeproject.com/script/Forums/View.aspx?fid=350107&msg=1716837>`_
 
+   
+Note to Visual Studio 2005 users
+--------------------------------
+
+During the development of v2.4, my only copy of Visual Studio 2005 was wiped out by a hard disk crash. I can no longer test my code against Visual Studio 2005. However, I have continued to write my code with VS 2005 and .NET 2.0 in mind. So, to make the library compile with VS 2005, it should be enough to add any missing files to the project (*Filters.cs* is the only new file). With this file added, the library should compile without problem.
+
+However, the Sparkle animation library was written with .NET 3.5 in mind. The ObjectListView control does not use this library directly, but the demo does. To run the demo, you will have to:
+
+* remove the Sparkle animation library from the solution
+
+* comment out any reference to AnimatedDecoration class in *MainForm.cs*
+
+* remove the *AnimatedDecoration.cs* file from the demo project
+
+
+Once these steps are done, ObjectListView will work again under VS 2005.
+
+
+Future directions
+-----------------
+
+The next full version, 2.5, should add the following new features:
+
+* Virtual DataListView, aiming to handling 100,000 row datasets with good performance
+
+* Excel-like automatic user-interface for filters (right click on header to allow a filter to be given on values in that column)
+
+* Any other great ideas that people suggest
+
+v2.5.1 will bug fix and tweak v2.5.
+
+v3.0 will be a big change. Until now, each version has strove to maintain strict backwards compatibility. v3.0 will not have this as a strict goal. It will be backwards compatible where possible, but will drop properties, events and methods where they do not fit within the new scheme. In particular, features that were a moment of design weakness (I'm looking at you *AlwaysGroupByColumn* and your friends) will disappear.
+
+* Support for .NET 2.0 will be dropped. .NET 3.5 will become the minimum.
+
+* Most delegates will be replaced by events (events are actually faster than delegates).
+
+* All styling (cell, header, tool tips) will be unified, and will include custom renderers and hit detection.
+
+* General cleanup/refactor
+
+There is no definite timetable for these versions.
+
+
 Site contents
 -------------
 
@@ -263,3 +307,4 @@ Site contents
    changelog
    samples
    animations
+   reference
