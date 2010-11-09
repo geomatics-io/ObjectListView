@@ -38,7 +38,7 @@ There are two ways to use an `ObjectListView` in your project:
 
 1. **Use the ObjectListView project**
 
-* Download the `ObjectListView project <https://sourceforge.net/project/platformdownload.php?group_id=225207>`_
+* Download the `ObjectListView project <https://sourceforge.net/projects/objectlistview/files/>`_
 
 * Add the ObjectListView project to your project (right click on your
   solution; choose "Add...", "Existing Project", then choose the
@@ -205,7 +205,7 @@ application to manage a music library. One of your central model object might be
 	}
 
 You can download all the projects and source used in this getting started section here:
-`getting-started.zip (114KB) <http://objectlistview.sourceforge.net/samples/getting-started.zip>`_.
+`getting-started.zip (250 KB) <http://sourceforge.net/projects/objectlistview/files/objectlistview/examples/getting-started.zip/download>`_.
 
 
 This bit goes here, that bit goes there

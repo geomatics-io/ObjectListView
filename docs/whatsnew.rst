@@ -7,26 +7,25 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
-27 August 2010 - Version 2.4.1
-------------------------------
-
+14 September 2010 - Version 2.4.1
+---------------------------------
+ 
 New features
 ^^^^^^^^^^^^
 
-* :ref:`Vertical column headers <recipe-column-header-vertical>` 
-
-* :ref:`Images on column headers <recipe-column-header-image>` 
+* Column header improvements: they can be :ref:`rendered vertically <recipe-column-header-vertical>`;
+  they can :ref:`show an image <recipe-column-header-image>`; they can be aligned differently to the cell's contents
+  (use `OLVColumn.HeaderTextAlign` property).
+  
+* Group sorting can now be completely customised, as can item ordering within. See :ref:`this recipe <recipe-sorting-groups>`.
 
 * Improved text filtering to allow for prefix matching and full regex expressions.
 
 * Subitem checkboxes improvements: check boxes now obey `IsEditable` setting on column, can be hot, can be disabled.
 
-* Added `EditingCellBorderDecoration` to make it clearer which cell is being edited.
+* Added `EditingCellBorderDecoration` to make it clearer :ref:`which cell is being edited <recipe-showing-editing-cell>`.
 
 * Added `OLVColumn.Wrap` to easily word wrap a columns cells.
-
-* Added `OLVColumn.HeaderTextAlign` to control the alignment of a column's header text. This
-  allows the header to be aligned differently to the cell's contents.
 
 Small tweaks
 ^^^^^^^^^^^^
