@@ -75,6 +75,7 @@
     <Compile Include="TestFilters.cs" />
     <Compile Include="TestFormatting.cs" />
     <Compile Include="TestGenerator.cs" />
+    <Compile Include="TestMunger.cs" />
     <Compile Include="TestSelection.cs" />
     <Compile Include="TestSorting.cs" />
     <Compile Include="TestTreeView.cs" />
