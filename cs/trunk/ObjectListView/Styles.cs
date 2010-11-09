@@ -46,9 +46,24 @@ namespace BrightIdeasSoftware
     /// </summary>
     public interface IItemStyle
     {
+        /// <summary>
+        /// Gets or set the font that will be used by this style
+        /// </summary>
         Font Font { get; set; }
+
+        /// <summary>
+        /// Gets or set the font style
+        /// </summary>
         FontStyle FontStyle { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ForeColor
+        /// </summary>
         Color ForeColor { get; set; }
+
+        /// <summary>
+        /// Gets or sets the BackColor
+        /// </summary>
         Color BackColor { get; set; }
     }
 
@@ -174,6 +189,9 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class HyperlinkStyle : System.ComponentModel.Component
     {
+        /// <summary>
+        /// Create a HyperlinkStyle
+        /// </summary>
         public HyperlinkStyle() {
             this.Normal = new CellStyle();
             this.Normal.ForeColor = Color.Blue;
@@ -229,6 +247,10 @@ namespace BrightIdeasSoftware
         private Cursor overCursor;
     }
 
+    /// <summary>
+    /// Instances of this class control one the styling of one particular state
+    /// (normal, hot, pressed) of a header control
+    /// </summary>
     [TypeConverter(typeof(ExpandableObjectConverter))]
     public class HeaderStateStyle
     {
@@ -284,10 +306,13 @@ namespace BrightIdeasSoftware
     }
 
     /// <summary>
-    /// This class defines how a header should be formatted
+    /// This class defines how a header should be formatted in its various states.
     /// </summary>
     public class HeaderFormatStyle : System.ComponentModel.Component
     {
+        /// <summary>
+        /// Create a new HeaderFormatStyle
+        /// </summary>
         public HeaderFormatStyle() {
             this.Hot = new HeaderStateStyle();
             this.Normal = new HeaderStateStyle();
@@ -340,7 +365,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Set the fore color for all three states
         /// </summary>
-        /// <param name="font"></param>
+        /// <param name="color"></param>
         public void SetForeColor(Color color) {
             this.Normal.ForeColor = color;
             this.Hot.ForeColor = color;
@@ -350,7 +375,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Set the back color for all three states
         /// </summary>
-        /// <param name="font"></param>
+        /// <param name="color"></param>
         public void SetBackColor(Color color) {
             this.Normal.BackColor = color;
             this.Hot.BackColor = color;

@@ -115,6 +115,9 @@ namespace BrightIdeasSoftware
     [TypeConverter("BrightIdeasSoftware.Design.OverlayConverter")]
     public class ImageOverlay : ImageAdornment, ITransparentOverlay
     {
+        /// <summary>
+        /// Create an ImageOverlay
+        /// </summary>
         public ImageOverlay() {
             this.Alignment = System.Drawing.ContentAlignment.BottomRight;
         }
@@ -174,6 +177,9 @@ namespace BrightIdeasSoftware
     [TypeConverter("BrightIdeasSoftware.Design.OverlayConverter")]
     public class TextOverlay : TextAdornment, ITransparentOverlay
     {
+        /// <summary>
+        /// Create a TextOverlay
+        /// </summary>
         public TextOverlay() {
             this.Alignment = System.Drawing.ContentAlignment.BottomRight;
         }
@@ -243,10 +249,13 @@ namespace BrightIdeasSoftware
     }
 
     /// <summary>
-    /// A Billboard overlay is positioned at an absolute point
+    /// A Billboard overlay is a TextOverlay positioned at an absolute point
     /// </summary>
     public class BillboardOverlay : TextOverlay
     {
+        /// <summary>
+        /// Create a BillboardOverlay
+        /// </summary>
         public BillboardOverlay() {
             this.Transparency = 255;
             this.BackColor = Color.PeachPuff;

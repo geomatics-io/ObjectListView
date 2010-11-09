@@ -121,27 +121,63 @@ namespace BrightIdeasSoftware
     {
         #region IDropSink Members
 
+        /// <summary>
+        /// Gets or sets the ObjectListView that is the drop sink
+        /// </summary>
         public virtual ObjectListView ListView {
             get { return listView; }
             set { this.listView = value; }
         }
         private ObjectListView listView;
 
+        /// <summary>
+        /// Draw any feedback that is appropriate to the current drop state.
+        /// </summary>
+        /// <remarks>
+        /// Any drawing is done over the top of the ListView. This operation should disturb
+        /// the Graphic as little as possible. Specifically, do not erase the area into which
+        /// you draw. 
+        /// </remarks>
+        /// <param name="g">A Graphic for drawing</param>
+        /// <param name="bounds">The contents bounds of the ListView (not including any header)</param>
         public virtual void DrawFeedback(Graphics g, Rectangle bounds) {
         }
 
+        /// <summary>
+        /// The user has released the drop over this control
+        /// </summary>
+        /// <remarks>
+        /// Implementators should set args.Effect to the appropriate DragDropEffects. This value is returned
+        /// to the originator of the drag.
+        /// </remarks>
+        /// <param name="args"></param>
+        public virtual void Drop(DragEventArgs args) {
+            this.Cleanup();
+        }
+
+        /// <summary>
+        /// A drag has entered this control.
+        /// </summary>
+        /// <remarks>Implementators should set args.Effect to the appropriate DragDropEffects.</remarks>
+        /// <param name="args"></param>
         public virtual void Enter(DragEventArgs args) {
         }
 
+        /// <summary>
+        /// The drag has left the bounds of this control
+        /// </summary>
         public virtual void Leave() {
             this.Cleanup();
         }
 
+        /// <summary>
+        /// The drag is moving over this control.
+        /// </summary>
+        /// <remarks>This is where any drop target should be calculated.
+        /// Implementators should set args.Effect to the appropriate DragDropEffects.
+        /// </remarks>
+        /// <param name="args"></param>
         public virtual void Over(DragEventArgs args) {
-        }
-
-        public virtual void Drop(DragEventArgs args) {
-            this.Cleanup();
         }
 
         /// <summary>
@@ -620,6 +656,10 @@ namespace BrightIdeasSoftware
         
         #region Events
 
+        /// <summary>
+        /// Trigger the Dropped events
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void TriggerDroppedEvent(DragEventArgs args) {
             this.dropEventArgs.Handled = false;
 
@@ -631,16 +671,28 @@ namespace BrightIdeasSoftware
                 this.OnDropped(this.dropEventArgs);
         }
 
+        /// <summary>
+        /// Trigger CanDrop
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnCanDrop(OlvDropEventArgs args) {
             if (this.CanDrop != null)
                 this.CanDrop(this, args);
         }
 
+        /// <summary>
+        /// Trigger Dropped
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnDropped(OlvDropEventArgs args) {
             if (this.Dropped != null)
                 this.Dropped(this, args);
         }
 
+        /// <summary>
+        /// Trigger ModelCanDrop
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnModelCanDrop(ModelDropEventArgs args) {
 
             // Don't allow drops from other list, if that's what's configured
@@ -655,6 +707,10 @@ namespace BrightIdeasSoftware
                 this.ModelCanDrop(this, args);
         }
 
+        /// <summary>
+        /// Trigger ModelDropped
+        /// </summary>
+        /// <param name="args"></param>
         protected virtual void OnModelDropped(ModelDropEventArgs args) {
             if (this.ModelDropped != null)
                 this.ModelDropped(this, args);
@@ -700,6 +756,7 @@ namespace BrightIdeasSoftware
         /// When the mouse is at the given point, what should the target of the drop be?
         /// </summary>
         /// <remarks>This method should update the DropTarget* members of the given arg block</remarks>
+        /// <param name="args"></param>
         /// <param name="pt">The mouse point, in client co-ordinates</param>
         protected virtual void CalculateDropTarget(OlvDropEventArgs args, Point pt) {
             const int SMALL_VALUE = 3;
@@ -1038,10 +1095,13 @@ namespace BrightIdeasSoftware
     /// The other flavours have no way to implement the insert operation that is required.
     /// </para>
     /// <para>
-    /// This class works when the OLV is sorted or grouped, but it is up to the programmer
-    /// to decide what rearranging such lists "means". Example: if the control is grouping
-    /// students by academic grade, and the user drags a "Fail" grade student into the "A+"
-    /// group, it is the responsibility of the programmer to makes the appropriate changes
+    /// This class does not work with grouping.
+    /// </para>
+    /// <para>
+    /// This class works when the OLV is sorted, but it is up to the programmer
+    /// to decide what rearranging such lists "means". Example: if the control is sorting
+    /// students by academic grade, and the user drags a "Fail" grade student up amonst the "A+"
+    /// students, it is the responsibility of the programmer to makes the appropriate changes
     /// to the model and redraw/rebuild the control so that the users action makes sense.
     /// </para>
     /// <para>
@@ -1051,17 +1111,28 @@ namespace BrightIdeasSoftware
     /// </remarks>
     public class RearrangingDropSink : SimpleDropSink
     {
+        /// <summary>
+        /// Create a RearrangingDropSink
+        /// </summary>
         public RearrangingDropSink() {
             this.CanDropBetween = true;
             this.CanDropOnBackground = true;
             this.CanDropOnItem = false;
         }
 
+        /// <summary>
+        /// Create a RearrangingDropSink
+        /// </summary>
+        /// <param name="acceptDropsFromOtherLists"></param>
         public RearrangingDropSink(bool acceptDropsFromOtherLists)
             : this() {
             this.AcceptExternal = acceptDropsFromOtherLists;
         }
 
+        /// <summary>
+        /// Trigger OnModelCanDrop
+        /// </summary>
+        /// <param name="args"></param>
         protected override void OnModelCanDrop(ModelDropEventArgs args) {
             base.OnModelCanDrop(args);
 
@@ -1084,6 +1155,10 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Trigger OnModelDropped
+        /// </summary>
+        /// <param name="args"></param>
         protected override void OnModelDropped(ModelDropEventArgs args) {
             base.OnModelDropped(args);
 
@@ -1122,6 +1197,9 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class OlvDropEventArgs : EventArgs
     {
+        /// <summary>
+        /// Create a OlvDropEventArgs
+        /// </summary>
         public OlvDropEventArgs() {
         }
 
@@ -1253,6 +1331,9 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class ModelDropEventArgs : OlvDropEventArgs
     {
+        /// <summary>
+        /// Create a ModelDropEventArgs
+        /// </summary>
         public ModelDropEventArgs()
         {
         }

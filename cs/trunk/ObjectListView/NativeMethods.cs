@@ -646,6 +646,8 @@ namespace BrightIdeasSoftware
         /// <remarks>This method must be called after any .NET call that update the extended styles
         /// since they seem to erase this setting.</remarks>
         /// <param name="list">The listview to send a m to</param>
+        /// <param name="style"></param>
+        /// <param name="styleMask"></param>
         public static void SetExtendedStyle(ListView list, int style, int styleMask) {
             SendMessage(list.Handle, LVM_SETEXTENDEDLISTVIEWSTYLE, style, styleMask);
         }
@@ -863,7 +865,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Get the scroll position of the given scroll bar
         /// </summary>
-        /// <param name="handle"></param>
+        /// <param name="lv"></param>
         /// <param name="horizontalBar"></param>
         /// <returns></returns>
         public static int GetScrollPosition(ListView lv, bool horizontalBar) {
@@ -878,10 +880,10 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Change the z-order to the window 'after' so it appear directly on top of 'before'
+        /// Change the z-order to the window 'toBeMoved' so it appear directly on top of 'reference'
         /// </summary>
-        /// <param name="before"></param>
-        /// <param name="after"></param>
+        /// <param name="toBeMoved"></param>
+        /// <param name="reference"></param>
         /// <returns></returns>
         public static bool ChangeZOrder(IWin32Window toBeMoved, IWin32Window reference) {
             return NativeMethods.SetWindowPos(toBeMoved.Handle, reference.Handle, 0, 0, 0, 0, SWP_zOrderOnly);

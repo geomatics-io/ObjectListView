@@ -85,22 +85,51 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class AbstractVirtualGroups : IVirtualGroups
     {
+        /// <summary>
+        /// Return the list of groups that should be shown according to the given parameters
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
         public virtual IList<OLVGroup> GetGroups(GroupingParameters parameters) {
             return new List<OLVGroup>();
         }
 
+        /// <summary>
+        /// Return the index of the item that appears at the given position within the given group.
+        /// </summary>
+        /// <param name="group"></param>
+        /// <param name="indexWithinGroup"></param>
+        /// <returns></returns>
         public virtual int GetGroupMember(OLVGroup group, int indexWithinGroup) {
             return -1;
         }
 
+        /// <summary>
+        /// Return the index of the group to which the given item belongs
+        /// </summary>
+        /// <param name="itemIndex"></param>
+        /// <returns></returns>
         public virtual int GetGroup(int itemIndex) {
             return -1;
         }
 
+        /// <summary>
+        /// Return the index at which the given item is shown in the given group
+        /// </summary>
+        /// <param name="group"></param>
+        /// <param name="itemIndex"></param>
+        /// <returns></returns>
         public virtual int GetIndexWithinGroup(OLVGroup group, int itemIndex) {
             return -1;
         }
 
+        /// <summary>
+        /// A hint that the given range of items are going to be required
+        /// </summary>
+        /// <param name="fromGroupIndex"></param>
+        /// <param name="fromIndex"></param>
+        /// <param name="toGroupIndex"></param>
+        /// <param name="toIndex"></param>
         public virtual void CacheHint(int fromGroupIndex, int fromIndex, int toGroupIndex, int toIndex) {
         }
     }
@@ -111,6 +140,11 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class FastListGroupingStrategy : AbstractVirtualGroups
     {
+        /// <summary>
+        /// Create groups for FastListView
+        /// </summary>
+        /// <param name="parmameters"></param>
+        /// <returns></returns>
         public override IList<OLVGroup> GetGroups(GroupingParameters parmameters) {
             // This strategy can only be used on FastObjectListViews
             FastObjectListView folv = (FastObjectListView)parmameters.ListView;
@@ -170,14 +204,31 @@ namespace BrightIdeasSoftware
         }
         private List<int> indexToGroupMap;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="group"></param>
+        /// <param name="indexWithinGroup"></param>
+        /// <returns></returns>
         public override int GetGroupMember(OLVGroup group, int indexWithinGroup) {
             return (int)group.Contents[indexWithinGroup];
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="itemIndex"></param>
+        /// <returns></returns>
         public override int GetGroup(int itemIndex) {
             return this.indexToGroupMap[itemIndex];
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="group"></param>
+        /// <param name="itemIndex"></param>
+        /// <returns></returns>
         public override int GetIndexWithinGroup(OLVGroup group, int itemIndex) {
             return group.Contents.IndexOf(itemIndex);
         }

@@ -52,16 +52,44 @@ namespace BrightIdeasSoftware
     {
         #region Constants
 
+        /// <summary>
+        /// These are the standard icons that a tooltip can display.
+        /// </summary>
         public enum StandardIcons
         {
+            /// <summary>
+            /// No icon
+            /// </summary>
             None = 0,
+
+            /// <summary>
+            /// Info
+            /// </summary>
             Info = 1,
+
+            /// <summary>
+            /// Warning
+            /// </summary>
             Warning = 2,
+
+            /// <summary>
+            /// Error
+            /// </summary>
             Error = 3,
 
-            // These values only work on Vista and later
+            /// <summary>
+            /// Large info (Vista and later only)
+            /// </summary>
             InfoLarge = 4,
+
+            /// <summary>
+            /// Large warning (Vista and later only)
+            /// </summary>
             WarningLarge = 5,
+
+            /// <summary>
+            /// Large error (Vista and later only)
+            /// </summary>
             ErrorLarge = 6
         }
 
@@ -102,9 +130,25 @@ namespace BrightIdeasSoftware
         const int TTS_USEVISUALSTYLE = 0x100;
 
         const int TTN_FIRST = -520;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public const int TTN_SHOW = (TTN_FIRST - 1);
+
+        /// <summary>
+        /// 
+        /// </summary>
         public const int TTN_POP = (TTN_FIRST - 2);
+
+        /// <summary>
+        /// 
+        /// </summary>
         public const int TTN_LINKCLICK = (TTN_FIRST - 3);
+
+        /// <summary>
+        /// 
+        /// </summary>
         public const int TTN_GETDISPINFO = (TTN_FIRST - 10);
 
         const int TTDT_AUTOMATIC = 0;
@@ -631,11 +675,19 @@ namespace BrightIdeasSoftware
         /// </summary>
         public event EventHandler<EventArgs> Pop;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnShowing(ToolTipShowingEventArgs e) {
             if (this.Showing != null)
                 this.Showing(this, e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnPop(EventArgs e) {
             if (this.Pop != null)
                 this.Pop(this, e);

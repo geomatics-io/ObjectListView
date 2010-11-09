@@ -58,7 +58,7 @@ namespace BrightIdeasSoftware
     /// <example>
     /// To use a TypedObjectListView, you write code like this:
     /// <code>
-    /// TypedObjectListView<Person> tlist = new TypedObjectListView<Person>(this.listView1);
+    /// TypedObjectListView&lt;Person> tlist = new TypedObjectListView&lt;Person>(this.listView1);
     /// tlist.CheckStateGetter = delegate(Person x) { return x.IsActive; };
     /// tlist.GetColumn(0).AspectGetter = delegate(Person x) { return x.Name; };
     /// ...
@@ -167,7 +167,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Return a typed wrapper around the column with the given name
         /// </summary>
-        /// <param name="i">The name of the column</param>
+        /// <param name="name">The name of the column</param>
         /// <returns>A typed column or null</returns>
         public virtual TypedColumn<T> GetColumn(string name) {
             return new TypedColumn<T>(this.olv.GetColumn(name));
@@ -185,8 +185,16 @@ namespace BrightIdeasSoftware
         //--------------------------------------------------------------------------------------
         // Delegates
 
+        /// <summary>
+        /// CheckStateGetter
+        /// </summary>
+        /// <param name="rowObject"></param>
+        /// <returns></returns>
         public delegate CheckState TypedCheckStateGetterDelegate(T rowObject);
 
+        /// <summary>
+        /// Gets or sets the check state getter
+        /// </summary>
         public virtual TypedCheckStateGetterDelegate CheckStateGetter {
             get { return checkStateGetter; }
             set {
@@ -201,8 +209,16 @@ namespace BrightIdeasSoftware
         }
         private TypedCheckStateGetterDelegate checkStateGetter;
 
+        /// <summary>
+        /// BooleanCheckStateGetter
+        /// </summary>
+        /// <param name="rowObject"></param>
+        /// <returns></returns>
         public delegate bool TypedBooleanCheckStateGetterDelegate(T rowObject);
 
+        /// <summary>
+        /// Gets or sets the boolean check state getter
+        /// </summary>
         public virtual TypedBooleanCheckStateGetterDelegate BooleanCheckStateGetter {
             set {
                 if (value == null)
@@ -214,8 +230,17 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// CheckStatePutter
+        /// </summary>
+        /// <param name="rowObject"></param>
+        /// <param name="newValue"></param>
+        /// <returns></returns>
         public delegate CheckState TypedCheckStatePutterDelegate(T rowObject, CheckState newValue);
 
+        /// <summary>
+        /// Gets or sets the check state putter delegate
+        /// </summary>
         public virtual TypedCheckStatePutterDelegate CheckStatePutter {
             get { return checkStatePutter; }
             set {
@@ -230,8 +255,17 @@ namespace BrightIdeasSoftware
         }
         private TypedCheckStatePutterDelegate checkStatePutter;
 
+        /// <summary>
+        /// BooleanCheckStatePutter
+        /// </summary>
+        /// <param name="rowObject"></param>
+        /// <param name="newValue"></param>
+        /// <returns></returns>
         public delegate bool TypedBooleanCheckStatePutterDelegate(T rowObject, bool newValue);
 
+        /// <summary>
+        /// Gets or sets the boolean check state putter
+        /// </summary>
         public virtual TypedBooleanCheckStatePutterDelegate BooleanCheckStatePutter {
             set {
                 if (value == null)
@@ -243,8 +277,17 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// ToolTipGetter
+        /// </summary>
+        /// <param name="column"></param>
+        /// <param name="modelObject"></param>
+        /// <returns></returns>
         public delegate String TypedCellToolTipGetterDelegate(OLVColumn column, T modelObject);
 
+        /// <summary>
+        /// Gets or sets the cell tooltip getter
+        /// </summary>
         public virtual TypedCellToolTipGetterDelegate CellToolTipGetter {
             set {
                 if (value == null)
@@ -256,6 +299,9 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Gets or sets the header tool tip getter
+        /// </summary>
         public virtual HeaderToolTipGetterDelegate HeaderToolTipGetter {
             get { return this.olv.HeaderToolTipGetter; }
             set { this.olv.HeaderToolTipGetter = value; }
@@ -279,16 +325,46 @@ namespace BrightIdeasSoftware
     /// <typeparam name="T"></typeparam>
     public class TypedColumn<T> where T : class
     {
+        /// <summary>
+        /// Creates a TypedColumn
+        /// </summary>
+        /// <param name="column"></param>
         public TypedColumn(OLVColumn column) {
             this.column = column;
         }
         private OLVColumn column;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rowObject"></param>
+        /// <returns></returns>
         public delegate Object TypedAspectGetterDelegate(T rowObject);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rowObject"></param>
+        /// <param name="newValue"></param>
         public delegate void TypedAspectPutterDelegate(T rowObject, Object newValue);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rowObject"></param>
+        /// <returns></returns>
         public delegate Object TypedGroupKeyGetterDelegate(T rowObject);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rowObject"></param>
+        /// <returns></returns>
         public delegate Object TypedImageGetterDelegate(T rowObject);
 
+        /// <summary>
+        /// 
+        /// </summary>
         public TypedAspectGetterDelegate AspectGetter {
             get { return this.aspectGetter; }
             set {
@@ -303,6 +379,9 @@ namespace BrightIdeasSoftware
         }
         private TypedAspectGetterDelegate aspectGetter;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public TypedAspectPutterDelegate AspectPutter {
             get { return aspectPutter; }
             set {
@@ -317,6 +396,9 @@ namespace BrightIdeasSoftware
         }
         private TypedAspectPutterDelegate aspectPutter;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public TypedImageGetterDelegate ImageGetter {
             get { return imageGetter; }
             set {
@@ -331,6 +413,9 @@ namespace BrightIdeasSoftware
         }
         private TypedImageGetterDelegate imageGetter;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public TypedGroupKeyGetterDelegate GroupKeyGetter {
             get { return groupKeyGetter; }
             set {

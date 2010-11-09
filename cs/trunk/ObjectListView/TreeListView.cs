@@ -97,12 +97,26 @@ namespace BrightIdeasSoftware
     /// </summary>
     /// <remarks>
     /// <para>To support tree operations, two delegates must be provided:</para>
-    /// <list>
-    /// <item>CanExpandGetter. This delegate must accept a model object and return a boolean indicating
-    /// if that model should be expandable. </item>
-    /// <item>ChildrenGetter. This delegate must accept a model object and return an IEnumerable of model
+    /// <list type="table">
+    /// <item>
+    /// <term>
+    /// CanExpandGetter
+    /// </term> 
+    /// <description>
+    /// This delegate must accept a model object and return a boolean indicating
+    /// if that model should be expandable. 
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>
+    /// ChildrenGetter
+    /// </term> 
+    /// <description>
+    /// This delegate must accept a model object and return an IEnumerable of model
     /// objects that will be displayed as children of the parent model. This delegate will only be called
-    /// for a model object if the CanExpandGetter has already returned true for that model.</item>
+    /// for a model object if the CanExpandGetter has already returned true for that model.
+    /// </description>
+    /// </item>
     /// </list>
     /// <para>
     /// The top level branches of the tree are set via the Roots property. SetObjects(), AddObjects() 
@@ -258,7 +272,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// The model that is used to manage the tree structure
         /// </summary>
-        protected Tree TreeModel;
+        protected Tree TreeModel { get; set; }
 
         //------------------------------------------------------------------------------------------
         // Accessing
@@ -480,60 +494,7 @@ namespace BrightIdeasSoftware
         public delegate IEnumerable ChildrenGetterDelegate(Object model);
 
         //------------------------------------------------------------------------------------------
-        // Implementation
-
-        /// <summary>
-        /// Intercept the basic message pump to customise the mouse down and hit testing.
-        /// </summary>
-        /// <param name="m"></param>
-        //protected override void WndProc(ref Message m) {
-        //    switch (m.Msg) {
-        //        //case 0x1012: // LVM_HITTEST = (LVM_FIRST + 18)
-        //        //    this.HandleHitTest(ref m);
-        //        //    break;
-
-        //        default:
-        //            base.WndProc(ref m);
-        //            break;
-        //    }
-        //}
-
-        /// <summary>
-        /// Handle a hit test to account for the indent of the branch
-        /// </summary>
-        /// <param name="m"></param>
-        //protected virtual void HandleHitTest(ref Message m) {
-        //    //THINK: Do we need to do this, since we are using the build-in Level ability of
-        //    // of ListCtrl, which should take the indent into account
-
-        //    // We want to change our base behavior by taking the indentation of tree into account
-        //    // when performing a hit test. So we figure out which row is at the test point,
-        //    // then calculate the indentation for that row, and modify the hit test *inplace*
-        //    // so that the normal hittest is done, but indented by the correct amount.
-
-        //    this.DefWndProc(ref m);
-        //    //NativeMethods.LVHITTESTINFO* hittest = (NativeMethods.LVHITTESTINFO*)m.LParam;
-        //    NativeMethods.LVHITTESTINFO hittest = (NativeMethods.LVHITTESTINFO)m.GetLParam(typeof(NativeMethods.LVHITTESTINFO));
-        //    // Find which row was hit...
-        //    int row = hittest.iItem;
-        //    if (row < 0)
-        //        return;
-
-        //    // ...from that decide the model object...
-        //    Object model = this.TreeModel.GetNthObject(row);
-        //    if (model == null)
-        //        return;
-
-        //    // ...and from that, the branch of the tree showing that model...
-        //    Branch br = this.TreeModel.GetBranch(model);
-        //    if (br == null)
-        //        return;
-
-        //    // ...use the indentation on that branch to modify the hittest
-        //    hittest.pt_x += (br.Level * TreeRenderer.PIXELS_PER_LEVEL);
-        //    System.Runtime.InteropServices.Marshal.StructureToPtr(hittest, m.LParam, false);
-        //    this.DefWndProc(ref m);
-        //}
+        #region Implementation
 
         /// <summary>
         /// Handle a left button down event
@@ -565,6 +526,9 @@ namespace BrightIdeasSoftware
             return olvItem;
         }
 
+        #endregion
+
+        //------------------------------------------------------------------------------------------
         #region Event handlers
 
         /// <summary>
@@ -583,7 +547,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Handle the keyboard input to mimic a TreeView.
         /// </summary>
-        /// <param name="keyData"></param>
+        /// <param name="e"></param>
         /// <returns>Was the key press handled?</returns>
         protected override void OnKeyDown(KeyEventArgs e) {
             OLVListItem focused = this.FocusedItem as OLVListItem;
@@ -637,6 +601,10 @@ namespace BrightIdeasSoftware
         /// </summary>
         public class Tree : IVirtualListDataSource, IFilterableDataSource
         {
+            /// <summary>
+            /// Create a Tree
+            /// </summary>
+            /// <param name="treeView"></param>
             public Tree(TreeListView treeView) {
                 this.treeView = treeView;
                 this.trunk = new Branch(null, this, null);
@@ -856,14 +824,28 @@ namespace BrightIdeasSoftware
 
             #region IVirtualListDataSource Members
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="n"></param>
+            /// <returns></returns>
             public virtual object GetNthObject(int n) {
                 return this.objectList[n];
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <returns></returns>
             public virtual int GetObjectCount() {
                 return this.trunk.NumberVisibleDescendents;
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="model"></param>
+            /// <returns></returns>
             public virtual int GetObjectIndex(object model) {
                 int index;
 
@@ -873,13 +855,31 @@ namespace BrightIdeasSoftware
                     return -1;
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="first"></param>
+            /// <param name="last"></param>
             public virtual void PrepareCache(int first, int last) {
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="value"></param>
+            /// <param name="first"></param>
+            /// <param name="last"></param>
+            /// <param name="column"></param>
+            /// <returns></returns>
             public virtual int SearchText(string value, int first, int last, OLVColumn column) {
                 return AbstractVirtualListDataSource.DefaultSearchText(value, first, last, column, this);
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="column"></param>
+            /// <param name="order"></param>
             public virtual void Sort(OLVColumn column, SortOrder order) {
                 this.lastSortColumn = column;
                 this.lastSortOrder = order;
@@ -895,6 +895,10 @@ namespace BrightIdeasSoftware
                 this.RebuildList();
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <returns></returns>
             protected virtual BranchComparer GetBranchComparer() {
                 if (this.lastSortColumn == null)
                     return null;
@@ -903,6 +907,10 @@ namespace BrightIdeasSoftware
                         this.treeView.GetColumn(0), this.lastSortOrder));
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="modelObjects"></param>
             public virtual void AddObjects(ICollection modelObjects) {
                 ArrayList newRoots = new ArrayList();
                 foreach (Object x in this.treeView.Roots)
@@ -912,6 +920,10 @@ namespace BrightIdeasSoftware
                 this.SetObjects(newRoots);
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="modelObjects"></param>
             public virtual void RemoveObjects(ICollection modelObjects) {
                 ArrayList newRoots = new ArrayList();
                 foreach (Object x in this.treeView.Roots)
@@ -923,6 +935,10 @@ namespace BrightIdeasSoftware
                 this.SetObjects(newRoots);
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="collection"></param>
             public virtual void SetObjects(IEnumerable collection) {
                 // We interpret a SetObjects() call as setting the roots of the tree
                 this.treeView.Roots = collection;
@@ -932,6 +948,11 @@ namespace BrightIdeasSoftware
 
             #region IFilterableDataSource Members
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="modelFilter"></param>
+            /// <param name="listFilter"></param>
             public void ApplyFilters(IModelFilter modelFilter, IListFilter listFilter) {
                 this.modelFilter = modelFilter;
                 this.listFilter = listFilter;
@@ -975,7 +996,13 @@ namespace BrightIdeasSoftware
             private TreeListView treeView;
             private Branch trunk;
 
+            /// <summary>
+            /// 
+            /// </summary>
             protected IModelFilter modelFilter;
+            /// <summary>
+            /// 
+            /// </summary>
             protected IListFilter listFilter;
         }
 
@@ -984,14 +1011,34 @@ namespace BrightIdeasSoftware
         /// </summary>
         public class Branch
         {
+            /// <summary>
+            /// Indicators for branches
+            /// </summary>
             [Flags]
             public enum BranchFlags
             {
+                /// <summary>
+                /// FirstBranch of tree
+                /// </summary>
                 FirstBranch = 1,
+
+                /// <summary>
+                /// LastChild of parent
+                /// </summary>
                 LastChild = 2,
+
+                /// <summary>
+                /// OnlyBranch of tree
+                /// </summary>
                 OnlyBranch = 4
             }
 
+            /// <summary>
+            /// Create a Branch
+            /// </summary>
+            /// <param name="parent"></param>
+            /// <param name="tree"></param>
+            /// <param name="model"></param>
             public Branch(Branch parent, Tree tree, Object model) {
                 this.ParentBranch = parent;
                 this.Tree = tree;
@@ -1257,6 +1304,11 @@ namespace BrightIdeasSoftware
                     br.Sort(comparer);
             }
 
+            /// <summary>
+            /// Make the the LastChildFlag is correctly maintained after
+            /// the given task is executed
+            /// </summary>
+            /// <param name="toDo"></param>
             protected void ManageLastChildFlag(MethodInvoker toDo) {
                 foreach (Branch b in this.ChildBranches)
                     b.IsLastChild = false;
@@ -1268,6 +1320,9 @@ namespace BrightIdeasSoftware
                     filtered[filtered.Count - 1].IsLastChild = true;
             }
 
+            /// <summary>
+            /// Gets a list of all the branches that survive filtering
+            /// </summary>
             public List<Branch> FilteredChildBranches {
                 get {
                     if (!this.Tree.IsFiltering)
@@ -1290,12 +1345,34 @@ namespace BrightIdeasSoftware
             //------------------------------------------------------------------------------------------
             // Public instance variables
 
+            /// <summary>
+            /// Gets or sets which model is represented by this branch
+            /// </summary>
             public Object Model;
+
+            /// <summary>
+            /// Gets or sets our overall tree
+            /// </summary>
             public Tree Tree;
+
+            /// <summary>
+            /// Gets or sets our parent branch
+            /// </summary>
             public Branch ParentBranch;
+
+            /// <summary>
+            /// Gets or sets our children
+            /// </summary>
             public List<Branch> ChildBranches = new List<Branch>();
-            //public bool CanExpand = false;
+            
+            /// <summary>
+            /// Gets or set whether this branch is expanded
+            /// </summary>
             public bool IsExpanded = false;
+
+            /// <summary>
+            /// Gets the depth level of this branch
+            /// </summary>
             public int Level {
                 get {
                     if (this.ParentBranch == null)
@@ -1317,10 +1394,20 @@ namespace BrightIdeasSoftware
         /// </summary>
         public class BranchComparer : IComparer<Branch>
         {
+            /// <summary>
+            /// Create a BranchComparer
+            /// </summary>
+            /// <param name="actualComparer"></param>
             public BranchComparer(IComparer actualComparer) {
                 this.actualComparer = actualComparer;
             }
 
+            /// <summary>
+            /// Order the two branches
+            /// </summary>
+            /// <param name="x"></param>
+            /// <param name="y"></param>
+            /// <returns></returns>
             public int Compare(Branch x, Branch y) {
                 return this.actualComparer.Compare(x.Model, y.Model);
             }
@@ -1333,6 +1420,9 @@ namespace BrightIdeasSoftware
         /// </summary>
         public class TreeRenderer : HighlightTextRenderer
         {
+            /// <summary>
+            /// Create a TreeRenderer
+            /// </summary>
             public TreeRenderer() {
                 this.LinePen = new Pen(Color.Blue, 1.0f);
                 this.LinePen.DashStyle = DashStyle.Dot;
@@ -1403,6 +1493,12 @@ namespace BrightIdeasSoftware
                 this.DrawImageAndText(g, r);
             }
 
+            /// <summary>
+            /// Draw the expansion indicator
+            /// </summary>
+            /// <param name="g"></param>
+            /// <param name="r"></param>
+            /// <param name="isExpanded"></param>
             protected virtual void DrawExpansionGlyph(Graphics g, Rectangle r, bool isExpanded) {
                 if (this.UseStyles) {
                     this.DrawExpansionGlyphStyled(g, r, isExpanded);
@@ -1411,12 +1507,21 @@ namespace BrightIdeasSoftware
                 }
             }
 
+            /// <summary>
+            /// Gets whether or not we should render using styles
+            /// </summary>
             protected virtual bool UseStyles {
                 get {
                     return !this.IsPrinting && Application.RenderWithVisualStyles;
                 }
             }
 
+            /// <summary>
+            /// Draw the expansion indicator using styles
+            /// </summary>
+            /// <param name="g"></param>
+            /// <param name="r"></param>
+            /// <param name="isExpanded"></param>
             protected virtual void DrawExpansionGlyphStyled(Graphics g, Rectangle r, bool isExpanded) {
                 VisualStyleElement element = VisualStyleElement.TreeView.Glyph.Closed;
                 if (isExpanded)
@@ -1425,6 +1530,12 @@ namespace BrightIdeasSoftware
                 renderer.DrawBackground(g, r);
             }
 
+            /// <summary>
+            /// Draw the expansion indicator without using styles
+            /// </summary>
+            /// <param name="g"></param>
+            /// <param name="r"></param>
+            /// <param name="isExpanded"></param>
             protected virtual void DrawExpansionGlyphManual(Graphics g, Rectangle r, bool isExpanded) {
                 int h = 8;
                 int w = 8;
@@ -1439,6 +1550,13 @@ namespace BrightIdeasSoftware
                     g.DrawLine(Pens.Black, x + 4, y + 2, x + 4, y + h - 2);
             }
 
+            /// <summary>
+            /// Draw the lines of the tree
+            /// </summary>
+            /// <param name="g"></param>
+            /// <param name="r"></param>
+            /// <param name="p"></param>
+            /// <param name="br"></param>
             protected virtual void DrawLines(Graphics g, Rectangle r, Pen p, Branch br) {
                 Rectangle r2 = r;
                 r2.Width = PIXELS_PER_LEVEL;
@@ -1479,6 +1597,13 @@ namespace BrightIdeasSoftware
                 }
             }
 
+            /// <summary>
+            /// Do the hit test
+            /// </summary>
+            /// <param name="g"></param>
+            /// <param name="hti"></param>
+            /// <param name="x"></param>
+            /// <param name="y"></param>
             protected override void HandleHitTest(Graphics g, OlvListViewHitTestInfo hti, int x, int y) {
                 Branch br = this.Branch;
 
@@ -1505,6 +1630,14 @@ namespace BrightIdeasSoftware
                 }
             }
 
+            /// <summary>
+            /// Calculate the edit rect
+            /// </summary>
+            /// <param name="g"></param>
+            /// <param name="cellBounds"></param>
+            /// <param name="item"></param>
+            /// <param name="subItemIndex"></param>
+            /// <returns></returns>
             protected override Rectangle HandleGetEditRectangle(Graphics g, Rectangle cellBounds,
                 OLVListItem item, int subItemIndex) {
                 return this.StandardGetEditRectangle(g, cellBounds);

@@ -95,10 +95,14 @@ using System.Windows.Forms.VisualStyles;
 
 namespace BrightIdeasSoftware
 {
+    /// <summary>
+    /// Renderers are the mechanism used for owner drawing cells. As such, they can also handle
+    /// hit detection and positioning of cell editing rectangles.
+    /// </summary>
     public interface IRenderer
     {
         /// <summary>
-        /// Render the whole item within an ObjectListView.
+        /// Render the whole item within an ObjectListView. This is only used in non-Details views.
         /// </summary>
         /// <param name="e">The event</param>
         /// <param name="g">A Graphics for rendering</param>
@@ -146,17 +150,48 @@ namespace BrightIdeasSoftware
     {
         #region IRenderer Members
 
+        /// <summary>
+        /// Render the whole item within an ObjectListView. This is only used in non-Details views.
+        /// </summary>
+        /// <param name="e">The event</param>
+        /// <param name="g">A Graphics for rendering</param>
+        /// <param name="itemBounds">The bounds of the item</param>
+        /// <param name="rowObject">The model object to be drawn</param>
+        /// <returns>Return true to indicate that the event was handled and no further processing is needed.</returns>
         public virtual bool RenderItem(DrawListViewItemEventArgs e, Graphics g, Rectangle itemBounds, object rowObject) {
             return true;
         }
 
+        /// <summary>
+        /// Render one cell within an ObjectListView when it is in Details mode.
+        /// </summary>
+        /// <param name="e">The event</param>
+        /// <param name="g">A Graphics for rendering</param>
+        /// <param name="cellBounds">The bounds of the cell</param>
+        /// <param name="rowObject">The model object to be drawn</param>
+        /// <returns>Return true to indicate that the event was handled and no further processing is needed.</returns>
         public virtual bool RenderSubItem(DrawListViewSubItemEventArgs e, Graphics g, Rectangle cellBounds, object rowObject) {
             return false;
         }
 
+        /// <summary>
+        /// What is under the given point?
+        /// </summary>
+        /// <param name="hti"></param>
+        /// <param name="x">x co-ordinate</param>
+        /// <param name="y">y co-ordinate</param>
+        /// <remarks>This method should only alter HitTestLocation and/or UserData.</remarks>
         public virtual void HitTest(OlvListViewHitTestInfo hti, int x, int y) {
         }
 
+        /// <summary>
+        /// When the value in the given cell is to be edited, where should the edit rectangle be placed?
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="cellBounds"></param>
+        /// <param name="item"></param>
+        /// <param name="subItemIndex"></param>
+        /// <returns></returns>
         public virtual Rectangle GetEditRectangle(Graphics g, Rectangle cellBounds, OLVListItem item, int subItemIndex) {
             return cellBounds;
         }
@@ -636,10 +671,10 @@ namespace BrightIdeasSoftware
 
         /// <summary>
         /// Return the actual image that should be drawn when keyed by the given image selector.
-        /// An image selector can be: <list>
-        /// <item>an int, giving the index into the image list</item>
-        /// <item>a string, giving the image key into the image list</item>
-        /// <item>an Image, being the image itself</item>
+        /// An image selector can be: <list type="bullet">
+        /// <item><description>an int, giving the index into the image list</description></item>
+        /// <item><description>a string, giving the image key into the image list</description></item>
+        /// <item><description>an Image, being the image itself</description></item>
         /// </list>
         /// </summary>
         /// <param name="imageSelector">The value that indicates the image to be used</param>
@@ -787,6 +822,14 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Calculate the edit rectangle
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="cellBounds"></param>
+        /// <param name="item"></param>
+        /// <param name="subItemIndex"></param>
+        /// <returns></returns>
         public override Rectangle GetEditRectangle(Graphics g, Rectangle cellBounds, OLVListItem item, int subItemIndex) {
             this.ClearState();
 
@@ -1081,8 +1124,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="g">Graphics context to use for drawing</param>
         /// <param name="r">Bounds of the cell</param>
-        /// <param name="txt">The string to be drawn</param>
-        /// <param name="image">The optional image to be drawn</param>
+        /// <param name="imageSelector">The optional image to be drawn</param>
         protected virtual int DrawImage(Graphics g, Rectangle r, Object imageSelector) {
             if (imageSelector == null || imageSelector == System.DBNull.Value)
                 return 0;
@@ -1232,6 +1274,9 @@ namespace BrightIdeasSoftware
             TextRenderer.DrawText(g, txt, this.Font, r, this.GetForegroundColor(), backColor, flags);
         }
 
+        /// <summary>
+        /// Gets the StringFormat needed when drawing text using GDI+
+        /// </summary>
         protected virtual StringFormat StringFormatForGdiPlus {
             get {
                 StringFormat fmt = new StringFormat();
@@ -1289,16 +1334,27 @@ namespace BrightIdeasSoftware
     {
         #region Life and death
 
+        /// <summary>
+        /// Create a HighlightTextRenderer
+        /// </summary>
         public HighlightTextRenderer() {
             this.FramePen = Pens.DarkGreen;
             this.FillBrush = Brushes.Yellow;
         }
 
+        /// <summary>
+        /// Create a HighlightTextRenderer
+        /// </summary>
+        /// <param name="filter"></param>
         public HighlightTextRenderer(TextMatchFilter filter)
             : this() {
             this.Filter = filter;
         }
 
+        /// <summary>
+        /// Create a HighlightTextRenderer
+        /// </summary>
+        /// <param name="text"></param>
         [Obsolete("Use HighlightTextRenderer(TextMatchFilter) instead", true)]
         public HighlightTextRenderer(string text) {
         }
@@ -1401,6 +1457,12 @@ namespace BrightIdeasSoftware
         // Naturally, GDI+ makes the task easier, but we have to provide something for GDI
         // since that it is what is normally used.
 
+        /// <summary>
+        /// Draw text using GDI
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="txt"></param>
         protected override void DrawTextGdi(Graphics g, Rectangle r, string txt) {
             if (this.Filter != null && !String.IsNullOrEmpty(this.Filter.Text))
                 this.DrawGdiTextHighlighting(g, r, txt);
@@ -1408,6 +1470,12 @@ namespace BrightIdeasSoftware
             base.DrawTextGdi(g, r, txt);
         }
 
+        /// <summary>
+        /// Draw the highlighted text using GDI
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="txt"></param>
         protected virtual void DrawGdiTextHighlighting(Graphics g, Rectangle r, string txt) {
             TextFormatFlags flags = TextFormatFlags.NoPrefix |
                 TextFormatFlags.VerticalCenter | TextFormatFlags.PreserveGraphicsTranslateTransform;
@@ -1462,6 +1530,12 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Draw the text using GDI+
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="txt"></param>
         protected override void DrawTextGdiPlus(Graphics g, Rectangle r, string txt) {
             if (this.Filter != null && !String.IsNullOrEmpty(this.Filter.Text))
                 this.DrawGdiPlusTextHighlighting(g, r, txt);
@@ -1469,6 +1543,12 @@ namespace BrightIdeasSoftware
             base.DrawTextGdiPlus(g, r, txt);
         }
 
+        /// <summary>
+        /// Draw the highlighted text using GDI+
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="txt"></param>
         protected virtual void DrawGdiPlusTextHighlighting(Graphics g, Rectangle r, string txt) {
             // Find the substrings we want to highlight
             List<CharacterRange> ranges = new List<CharacterRange>(this.Filter.FindAllMatchedRanges(txt));
@@ -1492,6 +1572,22 @@ namespace BrightIdeasSoftware
 
         #region Utilities
 
+
+        /// <summary>
+        /// Return a GraphicPath that is a round cornered rectangle
+        /// </summary>
+        /// <returns>A round cornered rectagle path</returns>
+        /// <remarks>If I could rely on people using C# 3.0+, this should be
+        /// an extension method of GraphicsPath.</remarks>        
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="diameter"></param>
+        protected GraphicsPath GetRoundedRect(float x, float y, float width, float height, float diameter) {
+            return GetRoundedRect(new RectangleF(x, y, width, height), diameter);
+        }
+
         /// <summary>
         /// Return a GraphicPath that is a round cornered rectangle
         /// </summary>
@@ -1500,8 +1596,7 @@ namespace BrightIdeasSoftware
         /// <returns>A round cornered rectagle path</returns>
         /// <remarks>If I could rely on people using C# 3.0+, this should be
         /// an extension method of GraphicsPath.</remarks>
-        protected GraphicsPath GetRoundedRect(float x, float y, float width, float height, float diameter) {
-            RectangleF rect = new RectangleF(x, y, width, height);
+        protected GraphicsPath GetRoundedRect(RectangleF rect, float diameter) {
             GraphicsPath path = new GraphicsPath();
 
             if (diameter > 0) {
@@ -1621,6 +1716,12 @@ namespace BrightIdeasSoftware
                 this.RenderCollection(g, r, aspectAsCollection);
         }
 
+        /// <summary>
+        /// Draw a collection of images
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="imageSelectors"></param>
         protected void RenderCollection(Graphics g, Rectangle r, ICollection imageSelectors) {
             ArrayList images = new ArrayList();
             Image image = null;
@@ -1639,6 +1740,12 @@ namespace BrightIdeasSoftware
             this.DrawImages(g, r, images);
         }
 
+        /// <summary>
+        /// Draw one image
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="selector"></param>
         protected void RenderOne(Graphics g, Rectangle r, Object selector) {
             Image image = null;
             if (selector == null)
@@ -1665,6 +1772,11 @@ namespace BrightIdeasSoftware
 
     public class CheckStateRenderer : BaseRenderer
     {
+        /// <summary>
+        /// Draw our cell
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
         public override void Render(Graphics g, Rectangle r) {
             this.DrawBackground(g, r);
             r = this.CalculateCheckBoxBounds(g, r);
@@ -1717,10 +1829,25 @@ namespace BrightIdeasSoftware
 
         }
 
+        /// <summary>
+        /// Handle the GetEditRectangle request
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="cellBounds"></param>
+        /// <param name="item"></param>
+        /// <param name="subItemIndex"></param>
+        /// <returns></returns>
         protected override Rectangle HandleGetEditRectangle(Graphics g, Rectangle cellBounds, OLVListItem item, int subItemIndex) {
             return cellBounds;
         }
 
+        /// <summary>
+        /// Handle the HitTest request
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="hti"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
         protected override void HandleHitTest(Graphics g, OlvListViewHitTestInfo hti, int x, int y) {
             Rectangle r = this.CalculateCheckBoxBounds(g, this.Bounds);
             if (r.Contains(x, y))
@@ -1738,12 +1865,12 @@ namespace BrightIdeasSoftware
     /// Render an image that comes from our data source.
     /// </summary>
     /// <remarks>The image can be sourced from:
-    /// <list>
-    /// <item>a byte-array (normally when the image to be shown is
-    /// stored as a value in a database)</item>
-    /// <item>an int, which is treated as an index into the image list</item>
-    /// <item>a string, which is treated first as a file name, and failing that as an index into the image list</item>
-    /// <item>an ICollection of ints or strings, which will be drawn as consecutive images</item>
+    /// <list type="bullet">
+    /// <item><description>a byte-array (normally when the image to be shown is
+    /// stored as a value in a database)</description></item>
+    /// <item><description>an int, which is treated as an index into the image list</description></item>
+    /// <item><description>a string, which is treated first as a file name, and failing that as an index into the image list</description></item>
+    /// <item><description>an ICollection of ints or strings, which will be drawn as consecutive images</description></item>
     /// </list>
     /// <para>If an image is an animated GIF, it's state is stored in the SubItem object.</para>
     /// <para>By default, the image renderer does not render animations (it begins life with animations paused).
@@ -1842,11 +1969,11 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Translate our Aspect into an image.
         /// </summary>
-        /// <remarks>The strategy is:<list type="unordered">
-        /// <item>If its a byte array, we treat it as an in-memory image</item>
-        /// <item>If it's an int, we use that as an index into our image list</item>
-        /// <item>If it's a string, we try to load a file by that name. If we can't, 
-        /// we use the string as an index into our image list.</item>
+        /// <remarks>The strategy is:<list type="bullet">
+        /// <item><description>If its a byte array, we treat it as an in-memory image</description></item>
+        /// <item><description>If it's an int, we use that as an index into our image list</description></item>
+        /// <item><description>If it's a string, we try to load a file by that name. If we can't, 
+        /// we use the string as an index into our image list.</description></item>
         ///</list></remarks>
         /// <returns>An image</returns>
         protected Image GetImageFromAspect() {
@@ -2669,6 +2796,9 @@ namespace BrightIdeasSoftware
     /// </remarks>
     public class DescribedTaskRenderer : BaseRenderer
     {
+        /// <summary>
+        /// Create a DescribedTaskRenderer
+        /// </summary>
         public DescribedTaskRenderer() {
         }
 
@@ -2833,12 +2963,25 @@ namespace BrightIdeasSoftware
 
         #region Rendering
 
+        /// <summary>
+        /// Draw our item
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
         public override void Render(Graphics g, Rectangle r) {
             this.DrawBackground(g, r);
             this.DrawDescribedTask(g, r, this.Aspect as String, this.GetDescription(), this.GetImage());
         }
 
-        public virtual void DrawDescribedTask(Graphics g, Rectangle r, string title, string description, Image image) {
+        /// <summary>
+        /// Draw the task
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="title"></param>
+        /// <param name="description"></param>
+        /// <param name="image"></param>
+        protected virtual void DrawDescribedTask(Graphics g, Rectangle r, string title, string description, Image image) {
             Rectangle cellBounds = r;
             cellBounds.Inflate(-this.CellPadding.Width, -this.CellPadding.Height);
             Rectangle textBounds = cellBounds;
@@ -2890,6 +3033,13 @@ namespace BrightIdeasSoftware
 
         #region Hit Testing
 
+        /// <summary>
+        /// Handle the HitTest request
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="hti"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
         protected override void HandleHitTest(Graphics g, OlvListViewHitTestInfo hti, int x, int y) {
             if (this.Bounds.Contains(x, y))
                 hti.HitTestLocation = HitTestLocation.Text;

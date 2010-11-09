@@ -264,6 +264,9 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Change the state of the control to reflect changes in filtering
+        /// </summary>
         protected override void UpdateFiltering() {
             IFilterableDataSource filterable = this.DataSource as IFilterableDataSource;
             if (filterable == null)
@@ -350,6 +353,10 @@ namespace BrightIdeasSoftware
             //System.Diagnostics.Debug.WriteLine(x);
         }
 
+        /// <summary>
+        /// Do the work of creating groups for this control
+        /// </summary>
+        /// <param name="groups"></param>
         protected override void CreateGroups(IList<OLVGroup> groups) {
 
             // A virtual list we cannot touch the Groups property since it often throws exceptions
@@ -522,6 +529,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Select the row that is displaying the given model object. All other rows are deselected.
         /// </summary>
+        /// <param name="modelObject">Model object to select</param>
         /// <param name="setFocus">Should the object be focused as well?</param>
         public override void SelectObject(object modelObject, bool setFocus) {
             // Without a data source, we can't do this.
@@ -644,7 +652,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Make a list of groups that should be shown according to the given parameters
         /// </summary>
-        /// <param name="parmameters"></param>
+        /// <param name="parms"></param>
         /// <returns></returns>
         protected override IList<OLVGroup> MakeGroups(GroupingParameters parms) {
             if (this.GroupingStrategy == null)
@@ -675,7 +683,7 @@ namespace BrightIdeasSoftware
         /// If the control is not grouped, the display order is the same as the
         /// sorted list order. But if the list is grouped, the display order is different.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="itemIndex"></param>
         /// <returns></returns>
         public virtual int GetItemIndexInDisplayOrder(int itemIndex) {
             if (!this.ShowGroups)
