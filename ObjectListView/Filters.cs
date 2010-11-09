@@ -71,6 +71,11 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class AbstractModelFilter : IModelFilter
     {
+        /// <summary>
+        /// Should the given model be included when this filter is installed
+        /// </summary>
+        /// <param name="modelObject">The model object to consider</param>
+        /// <returns>Returns true if the model will be included by the filter</returns>
         virtual public bool Filter(object modelObject) {
             return true;
         }
@@ -89,7 +94,14 @@ namespace BrightIdeasSoftware
             this.Predicate = predicate;
         }
 
-        protected Predicate<object> Predicate;
+        /// <summary>
+        /// Gets or sets the predicate used to filter model objects
+        /// </summary>
+        protected Predicate<object> Predicate {
+            get { return predicate; }
+            set { predicate = value; }
+        }
+        private Predicate<object> predicate;
 
         /// <summary>
         /// Should the given model object be included?
@@ -106,6 +118,12 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class AbstractListFilter : IListFilter
     {
+        /// <summary>
+        /// Return a subset of the given list of model objects as the new
+        /// contents of the ObjectListView
+        /// </summary>
+        /// <param name="modelObjects">The collection of model objects that the list will possibly display</param>
+        /// <returns>The filtered collection that holds the model objects that will be displayed.</returns>
         virtual public IEnumerable Filter(IEnumerable modelObjects) {
             return modelObjects;
         }
@@ -132,15 +150,39 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class ListFilter : AbstractListFilter
     {
+        /// <summary>
+        /// A delegate that filters on a whole list
+        /// </summary>
+        /// <param name="rowObjects"></param>
+        /// <returns></returns>
         public delegate IEnumerable ListFilterDelegate(IEnumerable rowObjects);
 
+        /// <summary>
+        /// Create a ListFilter
+        /// </summary>
+        /// <param name="function"></param>
         public ListFilter(ListFilterDelegate function) {
             this.Function = function;
         }
 
-        public ListFilterDelegate Function;
+        /// <summary>
+        /// Gets or sets the delegate that will filter the list
+        /// </summary>
+        public ListFilterDelegate Function {
+            get { return function; }
+            set { function = value; }
+        }
+        private ListFilterDelegate function;
 
+        /// <summary>
+        /// Do the actual work of filtering
+        /// </summary>
+        /// <param name="modelObjects"></param>
+        /// <returns></returns>
         public override IEnumerable Filter(IEnumerable modelObjects) {
+            if (this.Function == null)
+                return modelObjects;
+
             return this.Function(modelObjects);
         }
     }
@@ -196,42 +238,101 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class TextMatchFilter : AbstractModelFilter
     {
+        /// <summary>
+        /// What sort of matching should the text filter use?
+        /// </summary>
         public enum MatchKind
         {
+            /// <summary>
+            /// Match any text in the cell
+            /// </summary>
             Text = 0,
+
+            /// <summary>
+            /// Match any cell that starts with the given text
+            /// </summary>
             StringStart = 2,
+
+            /// <summary>
+            /// Match any cell that matches the given regex
+            /// </summary>
             Regex = 4
         }
 
         #region Life and death
 
+        /// <summary>
+        /// Create a TextFilter
+        /// </summary>
         public TextMatchFilter() {
         }
 
+        /// <summary>
+        /// Create a TextFilter
+        /// </summary>
+        /// <param name="olv"></param>
         public TextMatchFilter(ObjectListView olv) 
             : this(olv, null, null) {
         }
 
+        /// <summary>
+        /// Create a TextFilter
+        /// </summary>
+        /// <param name="olv"></param>
+        /// <param name="text"></param>
         public TextMatchFilter(ObjectListView olv, string text)
             : this(olv, text, null) {
         }
 
+        /// <summary>
+        /// Create a TextFilter
+        /// </summary>
+        /// <param name="olv"></param>
+        /// <param name="text"></param>
+        /// <param name="comparison"></param>
         public TextMatchFilter(ObjectListView olv, string text, StringComparison comparison)
             : this(olv, text, null, MatchKind.Text, comparison) {
         }
 
+        /// <summary>
+        /// Create a TextFilter
+        /// </summary>
+        /// <param name="olv"></param>
+        /// <param name="text"></param>
+        /// <param name="match"></param>
         public TextMatchFilter(ObjectListView olv, string text, MatchKind match)
             : this(olv, text, null, match, StringComparison.InvariantCultureIgnoreCase) {
         }
 
+        /// <summary>
+        /// Create a TextFilter
+        /// </summary>
+        /// <param name="olv"></param>
+        /// <param name="text"></param>
+        /// <param name="match"></param>
+        /// <param name="comparison"></param>
         public TextMatchFilter(ObjectListView olv, string text, MatchKind match, StringComparison comparison)
             : this(olv, text, null, match, comparison) {
         }
 
+        /// <summary>
+        /// Create a TextFilter
+        /// </summary>
+        /// <param name="olv"></param>
+        /// <param name="text"></param>
+        /// <param name="columns"></param>
         public TextMatchFilter(ObjectListView olv, string text, OLVColumn[] columns)
             : this(olv, text, columns, MatchKind.Text, StringComparison.InvariantCultureIgnoreCase) {
         }
 
+        /// <summary>
+        /// Create a TextFilter
+        /// </summary>
+        /// <param name="olv"></param>
+        /// <param name="text"></param>
+        /// <param name="columns"></param>
+        /// <param name="matchKind"></param>
+        /// <param name="comparison"></param>
         public TextMatchFilter(ObjectListView olv, string text, OLVColumn[] columns, MatchKind matchKind, StringComparison comparison) {
             this.ListView = olv;
             this.Text = text;
@@ -384,6 +485,11 @@ namespace BrightIdeasSoftware
 
         #region Implementation
 
+        /// <summary>
+        /// Do the actual work of filtering
+        /// </summary>
+        /// <param name="modelObject"></param>
+        /// <returns></returns>
         public override bool Filter(object modelObject) {
             if (this.ListView == null || String.IsNullOrEmpty(this.Text))
                 return true;

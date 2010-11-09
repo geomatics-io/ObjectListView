@@ -64,6 +64,9 @@ namespace BrightIdeasSoftware
     {
         #region Initializing
 
+        /// <summary>
+        /// Create an EditorRegistry
+        /// </summary>
         public EditorRegistry() {
             this.InitializeStandardTypes();
         }
@@ -220,7 +223,7 @@ namespace BrightIdeasSoftware
         public override string ToString() {
             return this.description;
         }
-    }
+    } 
 
     //-----------------------------------------------------------------------
     // Cell editors
@@ -237,6 +240,11 @@ namespace BrightIdeasSoftware
     [ToolboxItem(false)]
     public class AutoCompleteCellEditor : ComboBox
     {
+        /// <summary>
+        /// Create an AutoCompleteCellEditor
+        /// </summary>
+        /// <param name="lv"></param>
+        /// <param name="column"></param>
         public AutoCompleteCellEditor(ObjectListView lv, OLVColumn column) {
             this.DropDownStyle = ComboBoxStyle.DropDown;
 

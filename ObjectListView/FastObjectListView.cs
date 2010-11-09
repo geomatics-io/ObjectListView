@@ -50,10 +50,9 @@ namespace BrightIdeasSoftware
     /// <para>
     /// A FastObjectListView is implemented as a virtual list with some of the virtual modes limits (e.g. no sorting)
     /// fixed through coding. There are some functions that simply cannot be provided. Specifically, a FastObjectListView cannot:
-    /// <list>
-    /// <item>shows groups</item>
-    /// <item>use Tile view</item>
-    /// <item>display images on subitems (though you can easily circumvent this limit by making the list owner drawn)</item>
+    /// <list type="bullet">
+    /// <item><description>use Tile view</description></item>
+    /// <item><description>display images on subitems (though you can easily circumvent this limit by making the list owner drawn)</description></item>
     /// </list>
     /// </para>
     /// </remarks>
@@ -103,8 +102,16 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// Provide a data source for a FastObjectListView
     /// </summary>
+    /// <remarks>
+    /// This class isn't intended to be used directly, but it is left as a public
+    /// class just in case someone wants to subclass it.
+    /// </remarks>
     public class FastObjectListDataSource : AbstractVirtualListDataSource
     {
+        /// <summary>
+        /// Create a FastObjectListDataSource
+        /// </summary>
+        /// <param name="listView"></param>
         public FastObjectListDataSource(FastObjectListView listView)
             : base(listView) {
         }
@@ -119,14 +126,28 @@ namespace BrightIdeasSoftware
 
         #region IVirtualListDataSource Members
 
+        /// <summary>
+        /// Get n'th object
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
         public override object GetNthObject(int n) {
             return this.filteredObjectList[n];
         }
 
+        /// <summary>
+        /// How many items are in the data source
+        /// </summary>
+        /// <returns></returns>
         public override int GetObjectCount() {
             return this.filteredObjectList.Count;
         }
 
+        /// <summary>
+        /// Get the index of the given model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         public override int GetObjectIndex(object model) {
             int index;
 
@@ -136,16 +157,33 @@ namespace BrightIdeasSoftware
                 return -1;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="first"></param>
+        /// <param name="last"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public override int SearchText(string value, int first, int last, OLVColumn column) {
             return DefaultSearchText(value, first, last, column, this);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="column"></param>
+        /// <param name="sortOrder"></param>
         public override void Sort(OLVColumn column, SortOrder sortOrder) {
             if (sortOrder != SortOrder.None)
                 this.filteredObjectList.Sort(new ModelObjectComparer(column, sortOrder, this.listView.SecondarySortColumn, this.listView.SecondarySortOrder));
             this.RebuildIndexMap();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="modelObjects"></param>
         public override void AddObjects(ICollection modelObjects) {
             foreach (object modelObject in modelObjects) {
                 if (modelObject != null)
@@ -155,6 +193,10 @@ namespace BrightIdeasSoftware
             this.RebuildIndexMap();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="modelObjects"></param>
         public override void RemoveObjects(ICollection modelObjects) {
             List<int> indicesToRemove = new List<int>();
             foreach (object modelObject in modelObjects) {
@@ -178,6 +220,10 @@ namespace BrightIdeasSoftware
             this.RebuildIndexMap();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="collection"></param>
         public override void SetObjects(IEnumerable collection) {
             ArrayList newObjects = EnumerableToArray(collection);
 
@@ -208,6 +254,11 @@ namespace BrightIdeasSoftware
 
         #region IFilterableDataSource Members
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="modelFilter"></param>
+        /// <param name="listFilter"></param>
         public override void ApplyFilters(IModelFilter modelFilter, IListFilter listFilter) {
             this.modelFilter = modelFilter;
             this.listFilter = listFilter;

@@ -133,6 +133,10 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class AbstractVirtualListDataSource : IVirtualListDataSource, IFilterableDataSource
     {
+        /// <summary>
+        /// Creates an AbstractVirtualListDataSource
+        /// </summary>
+        /// <param name="listView"></param>
         public AbstractVirtualListDataSource(VirtualObjectListView listView) {
             this.listView = listView;
         }
@@ -142,34 +146,78 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected VirtualObjectListView listView;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
         public virtual object GetNthObject(int n) {
             return null;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public virtual int GetObjectCount() {
             return -1;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         public virtual int GetObjectIndex(object model) {
             return -1;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
         public virtual void PrepareCache(int from, int to) {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="first"></param>
+        /// <param name="last"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual int SearchText(string value, int first, int last, OLVColumn column) {
             return -1;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="column"></param>
+        /// <param name="order"></param>
         public virtual void Sort(OLVColumn column, SortOrder order) {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="modelObjects"></param>
         public virtual void AddObjects(ICollection modelObjects) {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="modelObjects"></param>
         public virtual void RemoveObjects(ICollection modelObjects) {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="collection"></param>
         public virtual void SetObjects(IEnumerable collection) {
         }
 
@@ -203,6 +251,11 @@ namespace BrightIdeasSoftware
 
         #region IFilterableDataSource Members
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="modelFilter"></param>
+        /// <param name="listFilter"></param>
         virtual public void ApplyFilters(IModelFilter modelFilter, IListFilter listFilter) {
         }
 
@@ -214,6 +267,10 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class VirtualListVersion1DataSource : AbstractVirtualListDataSource
     {
+        /// <summary>
+        /// Creates a VirtualListVersion1DataSource
+        /// </summary>
+        /// <param name="listView"></param>
         public VirtualListVersion1DataSource(VirtualObjectListView listView)
             : base(listView) {
         }
@@ -233,6 +290,11 @@ namespace BrightIdeasSoftware
 
         #region IVirtualListDataSource implementation
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
         public override object GetNthObject(int n) {
             if (this.RowGetter == null)
                 return null;
@@ -240,6 +302,14 @@ namespace BrightIdeasSoftware
                 return this.RowGetter(n);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="first"></param>
+        /// <param name="last"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public override int SearchText(string value, int first, int last, OLVColumn column) {
             return DefaultSearchText(value, first, last, column, this);
         }
