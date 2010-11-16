@@ -5,6 +5,7 @@
  * Date: 15/08/2009 22:37
  *
  * Change log:
+ * 2010-11-01  JPP  - DisplayIndex is now set correctly for columns that lack that attribute
  * v2.4.1
  * 2010-08-25  JPP  - Generator now also resets sort columns
  * v2.4
@@ -97,6 +98,18 @@ namespace BrightIdeasSoftware
                 if (attr != null)
                     columns.Add(Generator.MakeColumnFromAttribute(pinfo.Name, attr, pinfo.CanWrite));
             }
+
+            // How many columns have DisplayIndex specifically set?
+            int countPositiveDisplayIndex = 0;
+            foreach (OLVColumn col in columns)
+                if (col.DisplayIndex >= 0)
+                    countPositiveDisplayIndex += 1;
+
+            // Give columns that don't have a DisplayIndex an incremental index
+            int columnIndex = countPositiveDisplayIndex;
+            foreach (OLVColumn col in columns)
+                if (col.DisplayIndex < 0)
+                    col.DisplayIndex = (columnIndex++);
 
             columns.Sort(delegate(OLVColumn x, OLVColumn y) {
                 return x.DisplayIndex.CompareTo(y.DisplayIndex);

@@ -92,7 +92,7 @@ namespace BrightIdeasSoftware
             get { return displayIndex; }
             set { displayIndex = value; }
         }
-        private int displayIndex;
+        private int displayIndex = -1;
 
         /// <summary>
         /// 

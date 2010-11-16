@@ -5,6 +5,11 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2010-11-16  JPP  - Changed the serializer used in SaveState()/RestoreState() so that it resolves on
+ *                    class name alone.
+ *                  - Fixed bug in GroupWithItemCountSingularFormatOrDefault
+ *                  - Fixed strange flickering in grouped, owner drawn OLV's using RefreshObject()
+ * v2.4.1
  * 2010-08-25  JPP  - Fixed bug where setting OLVColumn.CheckBoxes to false gave it a renderer
  *                    specialized for checkboxes. Oddly, this made Generator created owner drawn
  *                    lists appear to be completely empty.
@@ -434,6 +439,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
+using System.Runtime.Serialization.Formatters;
 
 namespace BrightIdeasSoftware
 {
@@ -4041,6 +4047,7 @@ namespace BrightIdeasSoftware
             // Now that we have stored our state, convert it to a byte array
             using (MemoryStream ms = new MemoryStream()) {
                 BinaryFormatter serializer = new BinaryFormatter();
+                serializer.AssemblyFormat = FormatterAssemblyStyle.Simple;
                 serializer.Serialize(ms, olvState);
                 return ms.ToArray();
             }
@@ -9093,7 +9100,7 @@ public static MyRequestObject Deserialize(byte[] b)
                     return this.GroupWithItemCountSingularFormat;
 
                 if (this.ListView != null) {
-                    cachedGroupWithItemCountSingularFormat = ((ObjectListView)this.ListView).GroupWithItemCountSingularFormat;
+                    cachedGroupWithItemCountSingularFormat = ((ObjectListView)this.ListView).GroupWithItemCountSingularFormatOrDefault;
                     return cachedGroupWithItemCountSingularFormat;
                 }
 
