@@ -5,6 +5,7 @@
  * Date: 28/08/2009 11:10am
  *
  * Change log:
+ * 2011-02-21   JPP  - Correctly honor group comparer and collapsible groups settings
  * v2.3
  * 2009-08-28   JPP  - Initial version
  *
@@ -146,6 +147,10 @@ namespace BrightIdeasSoftware
         /// <param name="parmameters"></param>
         /// <returns></returns>
         public override IList<OLVGroup> GetGroups(GroupingParameters parmameters) {
+
+            // There is a lot of overlap between this method and ObjectListView.MakeGroups()
+            // Any changes made here may need to be reflected there
+
             // This strategy can only be used on FastObjectListViews
             FastObjectListView folv = (FastObjectListView)parmameters.ListView;
 
@@ -161,6 +166,7 @@ namespace BrightIdeasSoftware
             }
 
             // Sort the items within each group
+            // TODO: Give parameters a ModelComparer property
             OLVColumn primarySortColumn = parmameters.SortItemsByPrimaryColumn ? parmameters.ListView.GetColumn(0) : parmameters.PrimarySort;
             ModelObjectComparer sorter = new ModelObjectComparer(primarySortColumn, parmameters.PrimarySortOrder,
                 parmameters.SecondarySort, parmameters.SecondarySortOrder);
@@ -174,9 +180,15 @@ namespace BrightIdeasSoftware
                 string title = parmameters.GroupByColumn.ConvertGroupKeyToTitle(key);
                 if (!String.IsNullOrEmpty(parmameters.TitleFormat)) {
                     int count = map[key].Count;
-                    title = String.Format((count == 1 ? parmameters.TitleSingularFormat : parmameters.TitleFormat), title, count);
+                    string format = (count == 1 ? parmameters.TitleSingularFormat : parmameters.TitleFormat);
+                    try {
+                        title = String.Format(format, title, count);
+                    } catch (FormatException) {
+                        title = "Invalid group format: " + format;
+                    }
                 }
                 OLVGroup lvg = new OLVGroup(title);
+                lvg.Collapsible = folv.HasCollapsibleGroups;
                 lvg.Key = key;
                 lvg.SortValue = key as IComparable;
                 lvg.Contents = map[key].ConvertAll<int>(delegate(object x) { return folv.IndexOf(x); });
@@ -187,7 +199,8 @@ namespace BrightIdeasSoftware
             }
 
             // Sort the groups
-            groups.Sort(new OLVGroupComparer(parmameters.PrimarySortOrder));
+            if (parmameters.GroupByOrder != SortOrder.None)
+                groups.Sort(parmameters.GroupComparer ?? new OLVGroupComparer(parmameters.GroupByOrder));
 
             // Build an array that remembers which group each item belongs to.
             this.indexToGroupMap = new List<int>(objectCount);
