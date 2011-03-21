@@ -5,6 +5,8 @@
  * Date: 03/03/2010 17:00 
  *
  * Change log:
+ * 2011-03-01  JPP  Added CompositeAllFilter, CompositeAnyFilter and OneOfFilter
+ * v2.4.1
  * 2010-06-23  JPP  Extended TextMatchFilter to handle regular expressions and string prefix matching.
  * v2.4
  * 2010-03-03  JPP  Initial version
@@ -110,6 +112,136 @@ namespace BrightIdeasSoftware
         /// <returns></returns>
         virtual public bool Filter(object modelObject) {
             return this.Predicate == null ? true : this.Predicate(modelObject);
+        }
+    }
+
+    /// <summary>
+    /// A CompositeFilter joins several other filters together.
+    /// If there are no filters, all model objects are included
+    /// </summary>
+    abstract public class CompositeFilter : IModelFilter {
+
+        public CompositeFilter() {
+        }
+
+        public CompositeFilter(IList<IModelFilter> filters) {
+            Filters = filters;
+        }
+
+        public IList<IModelFilter> Filters {
+            get { return filters; }
+            set { filters = value; }
+        }
+        private IList<IModelFilter> filters = new List<IModelFilter>();
+
+        virtual public bool Filter(object modelObject) {
+            if (this.Filters == null || this.Filters.Count == 0)
+                return true;
+
+            return this.FilterObject(modelObject);
+        }
+
+        abstract public bool FilterObject(object modelObject);
+    }
+
+    /// <summary>
+    /// A CompositeAllFilter joins several other filters together.
+    /// A model object must satisfy all filters to be included.
+    /// If there are no filters, all model objects are included
+    /// </summary>
+    public class CompositeAllFilter : CompositeFilter {
+
+        public CompositeAllFilter(List<IModelFilter> filters)
+            : base(filters) {
+        }
+
+        override public bool FilterObject(object modelObject) {
+            foreach (IModelFilter filter in this.Filters)
+                if (!filter.Filter(modelObject))
+                    return false;
+
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// A CompositeAllFilter joins several other filters together.
+    /// A model object must only satisfy one of the filters to be included.
+    /// If there are no filters, all model objects are included
+    /// </summary>
+    public class CompositeAnyFilter : CompositeFilter {
+
+        public CompositeAnyFilter(List<IModelFilter> filters)
+            : base(filters) {
+        }
+
+        override public bool FilterObject(object modelObject) {
+            foreach (IModelFilter filter in this.Filters)
+                if (filter.Filter(modelObject))
+                    return true;
+
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Instances of this class extract a value from the model object
+    /// and compare that value to a list of fixed values. The model
+    /// object is included if the extracted value is in the list
+    /// </summary>
+    /// <remarks>If there is no delegate installed or there are
+    /// no values to match, no model objects will be matched</remarks>
+    public class OneOfFilter : IModelFilter {
+
+        /// <summary>
+        /// Create a filter that will use the given delegate to extract values
+        /// </summary>
+        /// <param name="valueGetter"></param>
+        public OneOfFilter(AspectGetterDelegate valueGetter) :
+            this(valueGetter, new ArrayList()) {
+        }
+
+        /// <summary>
+        /// Create a filter that will extract values using the given delegate
+        /// and compare them to the values in the given list.
+        /// </summary>
+        /// <param name="valueGetter"></param>
+        /// <param name="possibleValues"></param>
+        public OneOfFilter(AspectGetterDelegate valueGetter, ICollection possibleValues) {
+            this.ValueGetter = valueGetter;
+            this.PossibleValues = new ArrayList(possibleValues);
+        }
+
+        /// <summary>
+        /// Gets or sets the delegate that will be used to extract values
+        /// from model objects
+        /// </summary>
+        public AspectGetterDelegate ValueGetter {
+            get { return valueGetter; }
+            set { valueGetter = value; }
+        }
+        private AspectGetterDelegate valueGetter;
+
+        /// <summary>
+        /// Gets or sets the list of values that the value extracted from
+        /// the model object must match in order to be included.
+        /// </summary>
+        public IList PossibleValues {
+            get { return possibleValues; }
+            set { possibleValues = value; }
+        }
+        private IList possibleValues;
+
+        /// <summary>
+        /// Should the given model object be included?
+        /// </summary>
+        /// <param name="modelObject"></param>
+        /// <returns></returns>
+        public virtual bool Filter(object modelObject) {
+            if (this.ValueGetter == null || this.PossibleValues == null || this.PossibleValues.Count == 0)
+                return false;
+
+            return this.PossibleValues.Contains(this.ValueGetter(modelObject));
         }
     }
 
@@ -354,19 +486,19 @@ namespace BrightIdeasSoftware
         }
         private OLVColumn[] columns;
 
-		/// <summary>
-		/// Gets or set the ObjectListView upon which this filter will work
-		/// </summary>
-		/// <remarks>
-		/// You cannot really rebase a filter after it is created, so do not change this value.
-		/// It is included so that it can be set in an object initializer.
-		/// </remarks>
+        /// <summary>
+        /// Gets or set the ObjectListView upon which this filter will work
+        /// </summary>
+        /// <remarks>
+        /// You cannot really rebase a filter after it is created, so do not change this value.
+        /// It is included so that it can be set in an object initializer.
+        /// </remarks>
         public ObjectListView ListView {
-			get { return listView; }
-			set { listView = value; }
-		}
+            get { return listView; }
+            set { listView = value; }
+        }
         private ObjectListView listView;
-		
+        
         /// <summary>
         /// Gets or sets how the filter string will be matched to the values in the cells.
         /// </summary>
@@ -433,7 +565,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// If the filter is set to Regex, but Text is not a valid regular expression,
         /// the filter will NOT throw an exception. Instead, it will simply match everything.
-		/// </remarks>
+        /// </remarks>
         public string Text {
             get { return this.text; }
             set {
