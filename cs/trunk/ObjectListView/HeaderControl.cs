@@ -210,6 +210,7 @@ namespace BrightIdeasSoftware
         /// <param name="column"></param>
         /// <returns></returns>
         protected bool HasSortIndicator(OLVColumn column) {
+            if (!this.ListView.ShowSortIndicators) return false;
             return column == this.ListView.LastSortColumn && this.ListView.LastSortOrder != SortOrder.None;
         }
 
@@ -219,6 +220,7 @@ namespace BrightIdeasSoftware
         /// <param name="column"></param>
         /// <returns></returns>
         protected bool HasNonThemedSortIndicator(OLVColumn column) {
+            if (!this.ListView.ShowSortIndicators) return false;
             if (VisualStyleRenderer.IsSupported)
                 return !VisualStyleRenderer.IsElementDefined(VisualStyleElement.Header.SortArrow.SortedUp) &&
                     this.HasSortIndicator(column);
@@ -553,6 +555,12 @@ namespace BrightIdeasSoftware
 
             // Calculate which style should be used for the header
             HeaderStateStyle stateStyle = this.CalculateStyle(column, columnIndex == this.ColumnIndexUnderCursor, isPressed);
+
+            // If there is an owner drawn delegate installed, give it a chance to draw the header
+            if (column.HeaderDrawing != null) {
+                if (!column.HeaderDrawing(g, r, columnIndex, column, isPressed, stateStyle))
+                    return;
+            }
 
             // Draw the background
             if (this.ListView.HeaderUsesThemes &&
