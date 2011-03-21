@@ -5,7 +5,19 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
- * 2010-11-16  JPP  - Changed the serializer used in SaveState()/RestoreState() so that it resolves on
+ * 2011-03-19  JPP  - All model object comparisons now use Equals rather than == (thanks to vulkanino)
+ *                  - [Small Break] GetNextItem() and GetPreviousItem() now accept and return OLVListView
+ *                    rather than ListViewItems.
+ * 2011-03-07  JPP  - [Big] Added Excel-style filtering. Right click on a header to show a Filtering menu.
+ *                  - Added CellEditKeyEngine to allow key handling to be completely customised.
+ *                    Add CellEditTabChangesRows and CellEditEnterChangesRows to show some of these abilities.
+ * 2011-03-06  JPP  - Added OLVColumn.AutoCompleteEditorMode in preference to AutoCompleteEditor 
+ *                    (which is now just a wrapper). Thanks to Clive Haskins 
+ *                  - Added lots of docs to new classes
+ * 2011-02-25  JPP  - Preserve word wrap settings on TreeListView
+ *                  - Resize last group to keep it on screen (thanks to 
+ * 2010-11-16  JPP  - Fixed (once and for all) DisplayIndex problem with Generator
+ *                  - Changed the serializer used in SaveState()/RestoreState() so that it resolves on
  *                    class name alone.
  *                  - Fixed bug in GroupWithItemCountSingularFormatOrDefault
  *                  - Fixed strange flickering in grouped, owner drawn OLV's using RefreshObject()
@@ -564,17 +576,6 @@ namespace BrightIdeasSoftware
         #region Public properties
 
         /// <summary>
-        /// Gets or sets the decoration that will be drawn on all selected rows
-        /// </summary>
-        [Browsable(false),
-        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual IDecoration SelectedRowDecoration {
-            get { return this.selectedRowDecoration; }
-            set { this.selectedRowDecoration = value; }
-        }
-        private IDecoration selectedRowDecoration;
-
-        /// <summary>
         /// Get or set all the columns that this control knows about.
         /// Only those columns where IsVisible is true will be seen by the user.
         /// </summary>
@@ -713,6 +714,22 @@ namespace BrightIdeasSoftware
         private CellEditActivateMode cellEditActivation = CellEditActivateMode.None;
 
         /// <summary>
+        /// Gets or sets the engine that will handle key presses during a cell edit operation.
+        /// Settings this to null will reset it to default value.
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public CellEditKeyEngine CellEditKeyEngine {
+            get {
+                if (this.cellEditKeyEngine == null)
+                    this.cellEditKeyEngine = new CellEditKeyEngine();
+                return this.cellEditKeyEngine;
+            }
+            set { this.cellEditKeyEngine = value; }
+        }
+        private CellEditKeyEngine cellEditKeyEngine;
+
+        /// <summary>
         /// Gets the control that is currently being used for editing a cell.
         /// </summary>
         /// <remarks>This will obviously be null if no cell is being edited.</remarks>
@@ -722,6 +739,54 @@ namespace BrightIdeasSoftware
                 return this.cellEditor;
             }
         }
+
+        /// <summary>
+        /// Gets or sets the behaviour of the Tab key when editing a cell on the left or right
+        /// edge of the control. If this is false (the default), pressing Tab will wrap to the other side
+        /// of the same row. If this is true, Tab when on the right most cell will advance to the next row 
+        /// and Shift-Tab when on the left-most cell will change to the previous row.
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("Should Tab/Shift-Tab change rows while cell editing?"),
+        DefaultValue(false)]
+        public virtual bool CellEditTabChangesRows {
+            get { return cellEditTabChangesRows; }
+            set {
+                cellEditTabChangesRows = value;
+                if (cellEditTabChangesRows) {
+                    this.CellEditKeyEngine.SetKeyBehaviour(Keys.Tab, CellEditCharacterBehaviour.ChangeColumnRight, CellEditAtEdgeBehaviour.ChangeRow);
+                    this.CellEditKeyEngine.SetKeyBehaviour(Keys.Tab|Keys.Shift, CellEditCharacterBehaviour.ChangeColumnLeft, CellEditAtEdgeBehaviour.ChangeRow);
+                } else {
+                    this.CellEditKeyEngine.SetKeyBehaviour(Keys.Tab, CellEditCharacterBehaviour.ChangeColumnRight, CellEditAtEdgeBehaviour.Wrap);
+                    this.CellEditKeyEngine.SetKeyBehaviour(Keys.Tab | Keys.Shift, CellEditCharacterBehaviour.ChangeColumnLeft, CellEditAtEdgeBehaviour.Wrap);
+                }
+            }
+        }
+        private bool cellEditTabChangesRows = false;
+
+        /// <summary>
+        /// Gets or sets the behaviour of the Enter keys while editing a cell.
+        /// If this is false (the default), pressing Enter will simply finish the editing operation.
+        /// If this is true, Enter will finish the edit operation and start a new edit operation
+        /// on the cell below the current cell, wrapping to the top of the next row when at the bottom cell.
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("Should Enter change rows while cell editing?"),
+        DefaultValue(false)]
+        public virtual bool CellEditEnterChangesRows {
+            get { return cellEditEnterChangesRows; }
+            set {
+                cellEditEnterChangesRows = value;
+                if (cellEditEnterChangesRows) {
+                    this.CellEditKeyEngine.SetKeyBehaviour(Keys.Enter, CellEditCharacterBehaviour.ChangeRowDown, CellEditAtEdgeBehaviour.ChangeColumn);
+                    this.CellEditKeyEngine.SetKeyBehaviour(Keys.Enter | Keys.Shift, CellEditCharacterBehaviour.ChangeRowUp, CellEditAtEdgeBehaviour.ChangeColumn);
+                } else {
+                    this.CellEditKeyEngine.SetKeyBehaviour(Keys.Enter, CellEditCharacterBehaviour.EndEdit, CellEditAtEdgeBehaviour.EndEdit);
+                    this.CellEditKeyEngine.SetKeyBehaviour(Keys.Enter | Keys.Shift, CellEditCharacterBehaviour.EndEdit, CellEditAtEdgeBehaviour.EndEdit);
+                }
+            }
+        }
+        private bool cellEditEnterChangesRows = false;
 
         /// <summary>
         /// Gets the tool tip that shows tips for the cells
@@ -851,14 +916,11 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public virtual List<OLVColumn> ColumnsInDisplayOrder {
             get {
-                List<OLVColumn> columnsInDisplayOrder = new List<OLVColumn>(this.Columns.Count);
-                for (int i = 0; i < this.Columns.Count; i++)
-                    columnsInDisplayOrder.Add(null);
-                for (int i = 0; i < this.Columns.Count; i++) {
-                    OLVColumn col = this.GetColumn(i);
+                OLVColumn[] columnsInDisplayOrder = new OLVColumn[this.Columns.Count];
+                foreach (OLVColumn col in this.Columns) {
                     columnsInDisplayOrder[col.DisplayIndex] = col;
                 }
-                return columnsInDisplayOrder;
+                return new List<OLVColumn>(columnsInDisplayOrder);
             }
         }
 
@@ -1182,7 +1244,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Browsable(true),
          Category("ObjectListView"),
-         Description("Should the groups in this control be collapsible (Vista only)."),
+         Description("Should the groups in this control be collapsible (Vista and later only)."),
          DefaultValue(true)]
         public bool HasCollapsibleGroups {
             get { return hasCollapsibleGroups; }
@@ -1209,6 +1271,18 @@ namespace BrightIdeasSoftware
                     !String.IsNullOrEmpty(this.textOverlay.Text));
             }
         }
+
+        /// <summary>
+        /// Gets the header control for the ListView
+        /// </summary>
+        public HeaderControl HeaderControl {
+            get {
+                if (this.headerControl == null)
+                    this.headerControl = new HeaderControl(this);
+                return this.headerControl;
+            }
+        }
+        private HeaderControl headerControl;
 
         /// <summary>
         /// Gets or sets the font in which the text of the column headers will be drawn
@@ -1462,6 +1536,21 @@ namespace BrightIdeasSoftware
             set { includeHiddenColumnsInDataTransfer = value; }
         }
         private bool includeHiddenColumnsInDataTransfer = false;
+
+        /// <summary>
+        /// Gets or sets whether or not hidden columns should be included in the text representation
+        /// of rows that are copied or dragged to another application. If this is false (the default),
+        /// only visible columns will be included.
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("When rows are copied, will column headers be in the text?."),
+        DefaultValue(false)]
+        public virtual bool IncludeColumnHeadersInCopy
+        {
+            get { return includeColumnHeadersInCopy; }
+            set { includeColumnHeadersInCopy = value; }
+        }
+        private bool includeColumnHeadersInCopy = false;
 
         /// <summary>
         /// Return true if a cell edit operation is currently happening
@@ -1941,6 +2030,17 @@ namespace BrightIdeasSoftware
         private TintedColumnDecoration selectedColumnDecoration = new TintedColumnDecoration();
 
         /// <summary>
+        /// Gets or sets the decoration that will be drawn on all selected rows
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual IDecoration SelectedRowDecoration {
+            get { return this.selectedRowDecoration; }
+            set { this.selectedRowDecoration = value; }
+        }
+        private IDecoration selectedRowDecoration;
+
+        /// <summary>
         /// What color should be used to tint the selected column?
         /// </summary>
         /// <remarks>
@@ -1963,8 +2063,8 @@ namespace BrightIdeasSoftware
         private Color selectedColumnTint = Color.Empty;
 
         /// <summary>
-        /// Return the index of the row that is currently selected. If no row is selected,
-        /// or more than one is selected, return -1.
+        /// Gets or sets the index of the row that is currently selected. 
+        /// When getting the index, if no row is selected,or more than one is selected, return -1.
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -1983,11 +2083,11 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Get the ListViewItem that is currently selected . If no row is selected, or more than one is selected, return null.
+        /// Gets or sets the ListViewItem that is currently selected . If no row is selected, or more than one is selected, return null.
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual ListViewItem SelectedItem {
+        public virtual OLVListItem SelectedItem {
             get {
                 if (this.SelectedIndices.Count == 1)
                     return this.GetItem(this.SelectedIndices[0]);
@@ -2035,6 +2135,19 @@ namespace BrightIdeasSoftware
             set { showCommandMenuOnRightClick = value; }
         }
         private bool showCommandMenuOnRightClick = false;
+
+        /// <summary>
+        /// Gets or sets whether this ObjectListView will show Excel like filtering
+        /// menus when the header control is right clicked
+        /// </summary>
+        [Category("ObjectListView"),
+         Description("If this is true, right clicking on a column header will show a Filter menu option"),
+         DefaultValue(true)]
+        public bool ShowFilterMenuOnRightClick {
+            get { return showFilterMenuOnRightClick; }
+            set { showFilterMenuOnRightClick = value; }
+        }
+        private bool showFilterMenuOnRightClick = true;
 
         /// <summary>
         /// Should this list show its items in groups?
@@ -2672,6 +2785,33 @@ namespace BrightIdeasSoftware
         private IListFilter listFilter;
 
         /// <summary>
+        /// Remove all column filtering.
+        /// </summary>
+        public virtual void ResetColumnFiltering() {
+            foreach (OLVColumn column in this.Columns) {
+                column.ValuesChosenForFiltering.Clear();
+            }
+            this.UpdateColumnFiltering();
+        }
+
+        /// <summary>
+        /// Update the filtering of this ObjectListView based on the value filtering
+        /// defined in each column
+        /// </summary>
+        public virtual void UpdateColumnFiltering() {
+            List<IModelFilter> filters = new List<IModelFilter>();
+            foreach (OLVColumn column in this.Columns) {
+                IModelFilter filter = column.ValueBasedFilter;
+                if (filter != null)
+                    filters.Add(filter);
+            }
+            if (filters.Count == 0)
+                this.ModelFilter = null;
+            else
+                this.ModelFilter = new CompositeAllFilter(filters);
+        }
+
+        /// <summary>
         /// When some setting related to filtering changes, this method is called.
         /// </summary>
         protected virtual void UpdateFiltering() {
@@ -3106,6 +3246,10 @@ namespace BrightIdeasSoftware
         /// <param name="parms"></param>
         /// <returns></returns>
         protected virtual IList<OLVGroup> MakeGroups(GroupingParameters parms) {
+
+            // There is a lot of overlap between this method and FastListGroupingStrategy.MakeGroups()
+            // Any changes made here may need to be reflected there
+
             // Separate the list view items into groups, using the group key as the descrimanent
             NullableDictionary<object, List<OLVListItem>> map = new NullableDictionary<object, List<OLVListItem>>();
             foreach (OLVListItem olvi in parms.ListView.Items) {
@@ -3116,8 +3260,7 @@ namespace BrightIdeasSoftware
             }
 
             // Sort the items within each group (unless specifically turned off)
-            OLVColumn primarySortColumn =
-                parms.SortItemsByPrimaryColumn ? parms.ListView.GetColumn(0) : parms.PrimarySort;
+            OLVColumn primarySortColumn = parms.SortItemsByPrimaryColumn ? parms.ListView.GetColumn(0) : parms.PrimarySort;
             if (primarySortColumn != null && parms.PrimarySortOrder != SortOrder.None) {
                 ColumnComparer itemSorter = new ColumnComparer(primarySortColumn, parms.PrimarySortOrder,
                     parms.SecondarySort, parms.SecondarySortOrder);
@@ -3132,10 +3275,11 @@ namespace BrightIdeasSoftware
                 string title = parms.GroupByColumn.ConvertGroupKeyToTitle(key);
                 if (!String.IsNullOrEmpty(parms.TitleFormat)) {
                     int count = map[key].Count;
+                    string format = (count == 1 ? parms.TitleSingularFormat : parms.TitleFormat);
                     try {
-                        title = String.Format((count == 1 ? parms.TitleSingularFormat : parms.TitleFormat), title, count);
+                        title = String.Format(format, title, count);
                     } catch (FormatException) {
-                        title = "Invalid group format: " + (count == 1 ? parms.TitleSingularFormat : parms.TitleFormat);
+                        title = "Invalid group format: " + format;
                     }
                 }
 
@@ -3419,14 +3563,14 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="itemToFind">The item that is before the item that is returned, or null</param>
         /// <returns>A ListViewItem</returns>
-        public virtual ListViewItem GetNextItem(ListViewItem itemToFind) {
+        public virtual OLVListItem GetNextItem(OLVListItem itemToFind) {
             if (this.ShowGroups) {
                 bool isFound = (itemToFind == null);
                 foreach (ListViewGroup group in this.Groups) {
-                    foreach (ListViewItem lvi in group.Items) {
+                    foreach (OLVListItem olvi in group.Items) {
                         if (isFound)
-                            return lvi;
-                        isFound = (lvi == itemToFind);
+                            return olvi;
+                        isFound = (itemToFind == olvi);
                     }
                 }
                 return null;
@@ -3450,7 +3594,7 @@ namespace BrightIdeasSoftware
         public virtual OLVListItem GetLastItemInDisplayOrder() {
             if (!this.ShowGroups)
                 return this.GetItem(this.GetItemCount() - 1);
-
+            
             if (this.Groups.Count > 0) {
                 ListViewGroup lastGroup = this.Groups[this.Groups.Count - 1];
                 if (lastGroup.Items.Count > 0)
@@ -3471,11 +3615,11 @@ namespace BrightIdeasSoftware
             if (!this.ShowGroups)
                 return this.GetItem(n);
 
-            foreach (ListViewGroup lgv in this.Groups) {
-                if (n < lgv.Items.Count)
-                    return (OLVListItem)lgv.Items[n];
+            foreach (ListViewGroup group in this.Groups) {
+                if (n < group.Items.Count)
+                    return (OLVListItem)group.Items[n];
 
-                n -= lgv.Items.Count;
+                n -= group.Items.Count;
             }
 
             return null;
@@ -3512,11 +3656,11 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="itemToFind">The item that is before the item that is returned</param>
         /// <returns>A ListViewItem</returns>
-        public virtual ListViewItem GetPreviousItem(ListViewItem itemToFind) {
+        public virtual OLVListItem GetPreviousItem(OLVListItem itemToFind) {
             if (this.ShowGroups) {
-                ListViewItem previousItem = null;
+                OLVListItem previousItem = null;
                 foreach (ListViewGroup group in this.Groups) {
-                    foreach (ListViewItem lvi in group.Items) {
+                    foreach (OLVListItem lvi in group.Items) {
                         if (lvi == itemToFind)
                             return previousItem;
                         else
@@ -4052,83 +4196,6 @@ namespace BrightIdeasSoftware
                 return ms.ToArray();
             }
         }
-
-        /*
-         * 
-         01
-sealed class AllowAllAssemblyVersionsDeserializationBinder : System.Runtime.Serialization.SerializationBinder
-02
-{
-03
-    public override Type BindToType(string assemblyName, stringtypeName)
-04
-    {
-05
-        Type typeToDeserialize = null;
-06
- 
-07
-        String currentAssembly = Assembly.GetExecutingAssembly().FullName;
-08
- 
-09
-        // In this case we are always using the current assembly
-10
-        assemblyName = currentAssembly;
-11
- 
-12
-        // Get the type using the typeName and assemblyName
-13
-        typeToDeserialize = Type.GetType(String.Format("{0}, {1}",
-14
-            typeName, assemblyName));
-15
- 
-16
-        return typeToDeserialize;
-17
-    }
-18
-}
-19
- 
-20
-public static MyRequestObject Deserialize(byte[] b)
-21
-{
-22
-    MyRequestObject mro = null;
-23
-    System.Runtime.Serialization.Formatters.Binary.BinaryFormatter formatter = newSystem.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-24
-    System.IO.MemoryStream ms = new System.IO.MemoryStream(b);
-25
- 
-26
-    // To prevent errors serializing between version number differences (e.g. Version 1 serializes, and Version 2 deserializes)
-27
-    formatter.Binder = new AllowAllVersionsDeserializationBinder();
-28
- 
-29
-    // Allow the exceptions to bubble up
-30
-    // System.ArgumentNullException
-31
-    // System.Runtime.Serialization.SerializationException
-32
-    // System.Security.SecurityException
-33
-    mro = (MyRequestObject)formatter.Deserialize(ms);
-34
-    ms.Close();
-35
-    return mro;
-36
-}
-
-         */
 
         /// <summary>
         /// Restore the state of the control from the given string, which must have been
@@ -5203,8 +5270,8 @@ public static MyRequestObject Deserialize(byte[] b)
             const int HDN_DIVIDERDBLCLICKW = (HDN_FIRST - 25);
             const int HDN_BEGINTRACKA = (HDN_FIRST - 6);
             const int HDN_BEGINTRACKW = (HDN_FIRST - 26);
-            //const int HDN_ENDTRACKA = (HDN_FIRST - 7);
-            //const int HDN_ENDTRACKW = (HDN_FIRST - 27);
+            const int HDN_ENDTRACKA = (HDN_FIRST - 7);
+            const int HDN_ENDTRACKW = (HDN_FIRST - 27);
             const int HDN_TRACKA = (HDN_FIRST - 8);
             const int HDN_TRACKW = (HDN_FIRST - 28);
 
@@ -5261,7 +5328,11 @@ public static MyRequestObject Deserialize(byte[] b)
                         }
                     }
                     break;
-
+                case HDN_ENDTRACKA:
+                case HDN_ENDTRACKW:
+                    if (this.ShowGroups)
+                        this.ResizeLastGroup();
+                    break;
                 case HDN_TRACKA:
                 case HDN_TRACKW:
                     if (nmheader.iItem >= 0 && nmheader.iItem < this.Columns.Count) {
@@ -5398,6 +5469,8 @@ public static MyRequestObject Deserialize(byte[] b)
                 if (pos.cx < this.Bounds.Width) // only when shrinking
                     // pos.cx is the window width, not the client area width, so we have to subtract the border widths
                     this.ResizeFreeSpaceFillingColumns(pos.cx - (this.Bounds.Width - this.ClientSize.Width));
+                if (this.ShowGroups)
+                    this.ResizeLastGroup();
             }
 
             return false;
@@ -5408,18 +5481,6 @@ public static MyRequestObject Deserialize(byte[] b)
         #region Column header clicking, column hiding and resizing
 
         /// <summary>
-        /// Gets the header control for the ListView
-        /// </summary>
-        public HeaderControl HeaderControl {
-            get {
-                if (this.headerControl == null)
-                    this.headerControl = new HeaderControl(this);
-                return this.headerControl;
-            }
-        }
-        private HeaderControl headerControl;
-
-        /// <summary>
         /// The user has right clicked on the column headers. Do whatever is required
         /// </summary>
         /// <returns>Return true if this event has been handle</returns>
@@ -5427,17 +5488,39 @@ public static MyRequestObject Deserialize(byte[] b)
             ColumnClickEventArgs eventArgs = new ColumnClickEventArgs(columnIndex);
             this.OnColumnRightClick(eventArgs);
 
-            if (columnIndex >= 0 && this.ShowCommandMenuOnRightClick) {
-                this.ShowColumnCommandMenu(columnIndex, Cursor.Position);
-                return true;
-            }
+            return this.ShowHeaderRightClickMenu(columnIndex, Cursor.Position);
+        }
 
-            if (this.SelectColumnsOnRightClick) {
-                this.ShowColumnSelectMenu(Cursor.Position);
+        /// <summary>
+        /// Show a menu that is appropriate when the given column header is clicked.
+        /// </summary>
+        /// <param name="columnIndex">The index of the header that was clicked. This
+        /// can be -1, indicating that the header was clicked outside of a column</param>
+        /// <param name="pt">Where should the menu be shown</param>
+        /// <returns>True if a menu was displayed</returns>
+        protected virtual bool ShowHeaderRightClickMenu(int columnIndex, Point pt) {
+            ToolStripDropDown m = this.MakeHeaderRightClickMenu(columnIndex);
+            if (m.Items.Count > 0) {
+                m.Show(pt);
                 return true;
             }
 
             return false;
+        }
+
+        protected virtual ToolStripDropDown MakeHeaderRightClickMenu(int columnIndex) {
+            ToolStripDropDown m = new ContextMenuStrip();
+
+            if (columnIndex >= 0 && this.ShowFilterMenuOnRightClick)
+                m = this.MakeExcelFilteringMenu(m, columnIndex);
+
+            if (columnIndex >= 0 && this.ShowCommandMenuOnRightClick) 
+                m = this.MakeColumnCommandMenu(m, columnIndex);
+
+            if (this.SelectColumnsOnRightClick) 
+                m = this.MakeColumnSelectMenu(m);
+
+            return m;
         }
 
         /// <summary>
@@ -5454,6 +5537,7 @@ public static MyRequestObject Deserialize(byte[] b)
         /// are visible on this listview
         /// </summary>
         /// <param name="pt">Where should the menu be placed</param>
+        [Obsolete("Use ShowHeaderRightClickMenu instead")]
         protected virtual void ShowColumnSelectMenu(Point pt) {
             ToolStripDropDown m = this.MakeColumnSelectMenu(new ContextMenuStrip());
             m.Show(pt);
@@ -5465,6 +5549,7 @@ public static MyRequestObject Deserialize(byte[] b)
         /// </summary>
         /// <param name="columnIndex"></param>
         /// <param name="pt">Where should the menu be placed</param>
+        [Obsolete("Use ShowHeaderRightClickMenu instead")]
         protected virtual void ShowColumnCommandMenu(int columnIndex, Point pt) {
             ToolStripDropDown m = this.MakeColumnCommandMenu(new ContextMenuStrip(), columnIndex);
             if (this.SelectColumnsOnRightClick) {
@@ -5651,22 +5736,43 @@ public static MyRequestObject Deserialize(byte[] b)
         }
 
         private void ColumnSelectMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
-            this.lastMenuItemClicked = (ToolStripMenuItem)e.ClickedItem;
-            OLVColumn col = this.lastMenuItemClicked.Tag as OLVColumn;
+            System.Diagnostics.Debug.WriteLine("ColumnSelectMenu_ItemClicked");
+            this.contextMenuStaysOpen = false;
+            ToolStripMenuItem menuItemClicked = (ToolStripMenuItem)e.ClickedItem;
+            OLVColumn col = menuItemClicked.Tag as OLVColumn;
             if (col == null)
                 return;
-            this.lastMenuItemClicked.Checked = !this.lastMenuItemClicked.Checked;
-            col.IsVisible = this.lastMenuItemClicked.Checked;
+            menuItemClicked.Checked = !menuItemClicked.Checked;
+            col.IsVisible = menuItemClicked.Checked;
+            this.contextMenuStaysOpen = this.SelectColumnsMenuStaysOpen;
             this.BeginInvoke(new MethodInvoker(this.RebuildColumns));
         }
-        ToolStripMenuItem lastMenuItemClicked;
+        internal bool contextMenuStaysOpen;
 
         private void ColumnSelectMenu_Closing(object sender, ToolStripDropDownClosingEventArgs e) {
-            e.Cancel = (this.SelectColumnsMenuStaysOpen &&
-                e.CloseReason == ToolStripDropDownCloseReason.ItemClicked &&
-                this.lastMenuItemClicked != null &&
-                this.lastMenuItemClicked.Tag is OLVColumn);
+            System.Diagnostics.Debug.WriteLine("-");
+            System.Diagnostics.Debug.WriteLine(e.CloseReason);
+            System.Diagnostics.Debug.WriteLine(this.contextMenuStaysOpen);
+            e.Cancel = (this.contextMenuStaysOpen && e.CloseReason == ToolStripDropDownCloseReason.ItemClicked);
         }
+
+        public virtual ToolStripDropDown MakeExcelFilteringMenu(ToolStripDropDown strip, int columnIndex) {
+            OLVColumn column = this.GetColumn(columnIndex);
+            if (column == null)
+                return strip;
+
+            FilterMenuBuilder strategy = this.ExcelFilterer;
+            if (strategy == null)
+                return strip;
+
+            return strategy.MakeFilterMenu(strip, this, column);
+        }
+
+        public FilterMenuBuilder ExcelFilterer {
+            get { return excelFilterer; }
+            set { excelFilterer = value; }
+        }
+        private FilterMenuBuilder excelFilterer = new FilterMenuBuilder();
 
         /// <summary>
         /// Override the OnColumnReordered method to do what we want
@@ -6197,7 +6303,7 @@ public static MyRequestObject Deserialize(byte[] b)
         /// <returns>The index of the object. -1 means the object was not present</returns>
         public virtual int IndexOf(Object modelObject) {
             for (int i = 0; i < this.GetItemCount(); i++) {
-                if (this.GetModelObject(i) == modelObject)
+                if (this.GetModelObject(i).Equals(modelObject))
                     return i;
             }
             return -1;
@@ -6338,6 +6444,7 @@ public static MyRequestObject Deserialize(byte[] b)
         /// <remarks>Freeze()/Unfreeze() calls nest correctly</remarks>
         public virtual void Freeze() {
             freezeCount++;
+            this.OnFreezing(new FreezeEventArgs(freezeCount));
         }
 
         /// <summary>
@@ -6352,6 +6459,8 @@ public static MyRequestObject Deserialize(byte[] b)
             freezeCount--;
             if (freezeCount == 0)
                 DoUnfreeze();
+
+            this.OnFreezing(new FreezeEventArgs(freezeCount));
         }
 
         /// <summary>
@@ -6600,6 +6709,39 @@ public static MyRequestObject Deserialize(byte[] b)
                 group.InsertGroupOldStyle(this);
                 group.SetItemsOldStyle();
             }
+            this.ResizeLastGroup();
+        }
+
+        internal void ResizeLastGroup()
+        {
+            // Don't mess with the control in design mode
+            if (this.IsDesignMode) 
+                return;
+
+            // Sanity checks
+            if (this.GetItemCount() == 0 || !this.ShowGroups || this.Groups.Count == 0) 
+                return;
+            
+            // Get the last group and make sure we know which OLVGroup it came from
+            ListViewGroup grp = this.Groups[this.Groups.Count-1];
+            OLVGroup olvGroup = grp.Tag as OLVGroup;
+            if (olvGroup == null)
+                return;
+
+            int height = this.GetItem(0).Bounds.Height;
+
+            // Is the Horizontal scrollbar visible
+            if (NativeMethods.HasHorizontalScrollBar(this))
+                height += SystemInformation.HorizontalScrollBarHeight;
+            
+            if (this.SpaceBetweenGroups > height) 
+                return;
+            
+            NativeMethods.LVGROUPMETRICS metrics = new NativeMethods.LVGROUPMETRICS();
+            metrics.cbSize = ((uint)Marshal.SizeOf(typeof(NativeMethods.LVGROUPMETRICS)));
+            metrics.mask = (uint)GroupMetricsMask.LVGMF_BORDERSIZE;
+            metrics.Bottom = (uint)height;
+            NativeMethods.SetGroupMetrics(this, olvGroup.GroupId, metrics);
         }
 
         /// <summary>
@@ -7511,73 +7653,30 @@ public static MyRequestObject Deserialize(byte[] b)
         /// <returns></returns>
         protected override bool ProcessDialogKey(Keys keyData) {
 
-            bool isSimpleTabKey = ((keyData & Keys.KeyCode) == Keys.Tab) && ((keyData & (Keys.Alt | Keys.Control)) == Keys.None);
-
-            if (isSimpleTabKey && this.IsCellEditing) { // Tab key while editing
-                // If the cell editing was cancelled, don't handle the tab
-                if (!this.PossibleFinishCellEditing())
-                    return true;
-
-                // We can only Tab between columns when we are in Details view
-                if (this.View != View.Details)
-                    return true;
-
-                OLVListItem olvi = this.cellEditEventArgs.ListViewItem;
-                int subItemIndex = this.cellEditEventArgs.SubItemIndex;
-                int displayIndex = this.GetColumn(subItemIndex).DisplayIndex;
-
-                // Move to the next or previous editable subitem, depending on Shift key. Wrap at the edges
-                List<OLVColumn> columnsInDisplayOrder = this.ColumnsInDisplayOrder;
-                do {
-                    if ((keyData & Keys.Shift) == Keys.Shift)
-                        displayIndex = (olvi.SubItems.Count + displayIndex - 1) % olvi.SubItems.Count;
-                    else
-                        displayIndex = (displayIndex + 1) % olvi.SubItems.Count;
-                } while (!columnsInDisplayOrder[displayIndex].IsEditable);
-
-                // If we found a different editable cell, start editing it
-                subItemIndex = columnsInDisplayOrder[displayIndex].Index;
-                if (this.cellEditEventArgs.SubItemIndex != subItemIndex) {
-                    this.StartCellEdit(olvi, subItemIndex);
-                    return true;
-                }
-            }
+            if (this.IsCellEditing) 
+                return this.CellEditKeyEngine.HandleKey(this, keyData);
 
             // Treat F2 as a request to edit the primary column
-            if (keyData == Keys.F2 && !this.IsCellEditing) {
+            if (keyData == Keys.F2) {
                 this.EditSubItem((OLVListItem)this.FocusedItem, 0);
                 return base.ProcessDialogKey(keyData);
             }
 
-            // We have to catch Return/Enter/Escape here since some types of controls
-            // (e.g. ComboBox, UserControl) don't trigger key events that we can listen for.
-            // Treat Return or Enter as committing the current edit operation
-            if ((keyData == Keys.Return || keyData == Keys.Enter) && this.IsCellEditing) {
-                this.PossibleFinishCellEditing();
-                return true;
-            }
-
-            // Treat Escaoe as cancel the current edit operation
-            if (keyData == Keys.Escape && this.IsCellEditing) {
-                this.CancelCellEdit();
-                return true;
-            }
-
             // Treat Ctrl-C as Copy To Clipboard. 
-            if (this.CopySelectionOnControlC && (keyData & Keys.Control) == Keys.Control && (keyData & Keys.KeyCode) == Keys.C) {
+            if (this.CopySelectionOnControlC && keyData == (Keys.C | Keys.Control)) {
                 this.CopySelectionToClipboard();
                 return true;
             }
 
             // Treat Ctrl-A as Select All.
-            if (this.SelectAllOnControlA && (keyData & Keys.Control) == Keys.Control && (keyData & Keys.KeyCode) == Keys.A) {
+            if (this.SelectAllOnControlA && keyData == (Keys.A | Keys.Control)) {
                 this.SelectAll();
                 return true;
             }
 
             return base.ProcessDialogKey(keyData);
         }
-
+       
         /// <summary>
         /// Begin an edit operation on the given cell.
         /// </summary>
@@ -7605,7 +7704,7 @@ public static MyRequestObject Deserialize(byte[] b)
         /// </summary>
         /// <param name="item">The row to be edited</param>
         /// <param name="subItemIndex">The index of the cell to be edited</param>
-        protected virtual void StartCellEdit(OLVListItem item, int subItemIndex) {
+        public virtual void StartCellEdit(OLVListItem item, int subItemIndex) {
             OLVColumn column = this.GetColumn(subItemIndex);
             Rectangle r = this.CalculateCellEditorBounds(item, subItemIndex);
             Control c = this.GetCellEditor(item, subItemIndex);
@@ -7637,7 +7736,7 @@ public static MyRequestObject Deserialize(byte[] b)
             this.PauseAnimations(true);
         }
         private Control cellEditor;
-        private CellEditEventArgs cellEditEventArgs;
+        internal CellEditEventArgs cellEditEventArgs;
 
         /// <summary>
         /// Calculate the bounds of the edit control for the given item/column
@@ -7840,7 +7939,6 @@ public static MyRequestObject Deserialize(byte[] b)
             // For non detail views, we just use the requested portion
             Rectangle r = this.GetItemRect(item.Index, portion);
             if (r.Y < -10000000 || r.Y > 10000000) {
-                System.Diagnostics.Debug.WriteLine("here");
                 r.Y = item.Bounds.Y;
             }
             if (this.View != View.Details)
@@ -7923,12 +8021,13 @@ public static MyRequestObject Deserialize(byte[] b)
             // Reset any existing autocomplete
             tb.AutoCompleteCustomSource.Clear();
 
+            // CONSIDER: Should we use ClusteringStrategy here?
+
             // Build a list of unique values, to be used as autocomplete on the editor
             Dictionary<string, bool> alreadySeen = new Dictionary<string, bool>();
             List<string> values = new List<string>();
-            string valueAsString;
             for (int i = 0; i < maxRows; i++) {
-                valueAsString = column.GetStringValue(this.GetModelObject(i));
+                string valueAsString = column.GetStringValue(this.GetModelObject(i));
                 if (!String.IsNullOrEmpty(valueAsString) && !alreadySeen.ContainsKey(valueAsString)) {
                     values.Add(valueAsString);
                     alreadySeen[valueAsString] = true;
@@ -7937,7 +8036,7 @@ public static MyRequestObject Deserialize(byte[] b)
 
             tb.AutoCompleteCustomSource.AddRange(values.ToArray());
             tb.AutoCompleteSource = AutoCompleteSource.CustomSource;
-            tb.AutoCompleteMode = AutoCompleteMode.Append;
+            tb.AutoCompleteMode = column.AutoCompleteEditorMode;
         }
 
         /// <summary>
@@ -8615,6 +8714,8 @@ public static MyRequestObject Deserialize(byte[] b)
         Dictionary<string, bool> visitedUrlMap = new Dictionary<string, bool>(); // Which urls have been visited?
 
         #endregion
+
+
     }
 
     #region Delegate declarations
@@ -8677,6 +8778,11 @@ public static MyRequestObject Deserialize(byte[] b)
     /// The callbacks for RightColumnClick events
     /// </summary>
     public delegate void ColumnRightClickEventHandler(object sender, ColumnClickEventArgs e);
+
+    /// <summary>
+    /// This delegate will be used to own draw header column.
+    /// </summary>
+    public delegate bool HeaderDrawingDelegate(Graphics g, Rectangle r, int columnIndex, OLVColumn column, bool isPressed, HeaderStateStyle stateStyle);
 
     /// <summary>
     /// This delegate is called when a group has been created but not yet made
@@ -8753,6 +8859,7 @@ public static MyRequestObject Deserialize(byte[] b)
         /// Create an OLVColumn
         /// </summary>
         public OLVColumn() {
+            this.ClusteringStrategy = new ClusteringStrategy(this);
         }
 
         /// <summary>
@@ -8856,9 +8963,12 @@ public static MyRequestObject Deserialize(byte[] b)
         }
         private string aspectToStringFormat;
 
+
         /// <summary>
         /// Gets or set whether the contents of this column's cells should be word wrapped
         /// </summary>
+        /// <remarks>If this column uses a custom IRenderer (that is, one that is not descended
+        /// from BaseRenderer), then that renderer is responsible for implementing word wrapping.</remarks>
         [Category("ObjectListView"),
          Description("Draw this column cell's word wrapped"),
          DefaultValue(false)]
@@ -8866,13 +8976,23 @@ public static MyRequestObject Deserialize(byte[] b)
             get { return wordWrap; }
             set { 
                 wordWrap = value;
-                if (wordWrap) {
+
+                // If there isn't a renderer and they are turning word wrap off, we don't need to do anything
+                if (this.Renderer == null && !wordWrap)
+                    return;
+
+                // All other cases require a renderer of some sort
+                if (this.Renderer == null)
                     this.Renderer = new HighlightTextRenderer();
-                    ((BaseRenderer)this.Renderer).CanWrap = true;
-                    ((BaseRenderer)this.Renderer).UseGdiTextRendering = false;
-                } else {
-                    this.Renderer = null;
-                }
+
+                BaseRenderer renderer = this.Renderer as BaseRenderer;
+
+                // If there is a custom renderer (not descended from BaseRenderer), 
+                // we leave it up to them to implement wrapping
+                if (renderer == null)
+                    return;
+
+                renderer.CanWrap = wordWrap;
             }
         }
         private bool wordWrap;
@@ -8884,10 +9004,28 @@ public static MyRequestObject Deserialize(byte[] b)
          Description("Should the editor for cells of this column use AutoComplete"),
          DefaultValue(true)]
         public bool AutoCompleteEditor {
-            get { return autoCompleteEditor; }
-            set { autoCompleteEditor = value; }
+            get { return this.AutoCompleteEditorMode != AutoCompleteMode.None; }
+            set {
+                if (value) {
+                    if (this.AutoCompleteEditorMode == AutoCompleteMode.None)
+                        this.AutoCompleteEditorMode = AutoCompleteMode.Append;
+                } else
+                    this.AutoCompleteEditorMode = AutoCompleteMode.None;
+            }
         }
-        private bool autoCompleteEditor = true;
+
+        /// <summary>
+        /// Gets or sets whether the cell editor should use AutoComplete
+        /// </summary>
+        [Category("ObjectListView"),
+         Description("Should the editor for cells of this column use AutoComplete"),
+         DefaultValue(AutoCompleteMode.Append)]
+        public AutoCompleteMode AutoCompleteEditorMode
+        {
+            get { return autoCompleteEditorMode; }
+            set { autoCompleteEditorMode = value; }
+        }
+        private AutoCompleteMode autoCompleteEditorMode = AutoCompleteMode.Append;
 
         /// <summary>
         /// Should this column show a checkbox, rather than a string?
@@ -8916,6 +9054,24 @@ public static MyRequestObject Deserialize(byte[] b)
             }
         }
         private bool checkBoxes;
+
+        /// <summary>
+        /// Gets or sets the clustering strategy used for this column. The clustering
+        /// strategy is used to build a Filtering menu for this item. If this is null,
+        /// a useful default will be chosen. To disable filtering on this colummn, set
+        /// UsesFiltering to false.
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public IClusteringStrategy ClusteringStrategy {
+            get {
+                if (this.clusteringStrategy == null)
+                    this.clusteringStrategy = this.DecideDefaultClusteringStrategy();
+                return clusteringStrategy;
+            }
+            set { this.clusteringStrategy = value; }
+        }
+        private IClusteringStrategy clusteringStrategy;
 
         /// <summary>
         /// Should this column resize to fill the free space in the listview?
@@ -9111,6 +9267,17 @@ public static MyRequestObject Deserialize(byte[] b)
             }
         }
         private string cachedGroupWithItemCountSingularFormat;
+
+        /// <summary>
+        /// Gets or sets a delegate that will be used to own draw header column.
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public HeaderDrawingDelegate HeaderDrawing {
+            get { return headerDrawing; }
+            set { headerDrawing = value; }
+        }
+        private HeaderDrawingDelegate headerDrawing;
 
         /// <summary>
         /// Gets or sets the style that will be used to draw the header for this column
@@ -9513,6 +9680,56 @@ public static MyRequestObject Deserialize(byte[] b)
         private bool useInitialLetterForGroup;
 
         /// <summary>
+        /// Gets or sets whether or not this column should be filterable
+        /// </summary>
+        [Category("ObjectListView"),
+         Description("Does this column want to show a Filter menu item when its header is right clicked"),
+         DefaultValue(true)]
+        public bool UsesFiltering {
+            get { return usesFiltering; }
+            set { usesFiltering = value; }
+        }
+        private bool usesFiltering = true;
+
+        /// <summary>
+        /// Gets or sets a filter that will only include model where the model's value
+        /// for this column is one of the values in ValuesChosenForFiltering
+        /// </summary>
+        public IModelFilter ValueBasedFilter {
+            get { 
+                if (valueBasedFilter != null)
+                    return valueBasedFilter;
+                    
+                if (!this.UsesFiltering)
+                    return null;
+
+                if (this.ClusteringStrategy == null)
+                    return null;
+
+                if (this.ValuesChosenForFiltering == null || this.ValuesChosenForFiltering.Count == 0)
+                    return null;
+
+                return new OneOfFilter(this.ClusteringStrategy.GetClusterKey, this.ValuesChosenForFiltering);
+            }
+            set { valueBasedFilter = value; }
+        }
+        private IModelFilter valueBasedFilter;
+
+        /// <summary>
+        /// Gets or sets the values that will be used to generate a filter for this
+        /// column. For a model to be included by the generated filter, its value for this column
+        /// must be in this list. If the list is null or empty, this column will
+        /// not be used for filtering.
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public IList ValuesChosenForFiltering {
+            get { return this.valuesChosenForFiltering; }
+            set { this.valuesChosenForFiltering = value; }
+        }
+        private IList valuesChosenForFiltering = new ArrayList();
+
+        /// <summary>
         /// What is the width of this column?
         /// </summary>
         [Category("ObjectListView"),
@@ -9712,7 +9929,8 @@ public static MyRequestObject Deserialize(byte[] b)
         /// </summary>
         /// <remarks>
         /// If the column has been given a ToStringDelegate, that will be used to do
-        /// the conversion, otherwise just use ToString(). Nulls are always converted
+        /// the conversion, otherwise just use ToString(). 
+        /// The returned value will not be null. Nulls are always converted
         /// to empty strings.
         /// </remarks>
         /// <param name="value">The value of the aspect that should be displayed</param>
@@ -9735,6 +9953,20 @@ public static MyRequestObject Deserialize(byte[] b)
         #endregion
 
         #region Utilities
+
+        /// <summary>
+        /// Decide the clustering strategy that will be used for this column
+        /// </summary>
+        /// <returns></returns>
+        private IClusteringStrategy DecideDefaultClusteringStrategy() {
+            if (!this.UsesFiltering)
+                return null;
+
+            if (this.UseInitialLetterForGroup)
+                return new FirstLetterClusteringStrategy(this);
+
+            return new ClusteringStrategy(this);
+        }
 
         /// <summary>
         /// Create groupies
