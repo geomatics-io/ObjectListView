@@ -244,6 +244,7 @@ namespace BrightIdeasSoftware
             this.objectListView = olv;
             this.modelObjects = modelObjects;
             this.includeHiddenColumns = olv.IncludeHiddenColumnsInDataTransfer;
+            this.includeColumnHeaders = olv.IncludeColumnHeadersInCopy;
         }
 
         #endregion
@@ -259,6 +260,16 @@ namespace BrightIdeasSoftware
             get { return includeHiddenColumns; }
         }
         private bool includeHiddenColumns;
+
+        /// <summary>
+        /// Gets or sets whether column headers will also be included in the text
+        /// and HTML representation.
+        /// </summary>
+        public bool IncludeColumnHeaders
+        {
+            get { return includeColumnHeaders; }
+        }
+        private bool includeColumnHeaders;
 
         /// <summary>
         /// Gets the ObjectListView that is being used as the source of the data
@@ -283,13 +294,33 @@ namespace BrightIdeasSoftware
         /// into the data object.
         /// </summary>
         public void CreateTextFormats() {
-            List<OLVColumn> columns = this.IncludeHiddenColumns ? this.ListView.AllColumns : this.ListView.ColumnsInDisplayOrder;
+            IList<OLVColumn> columns = this.IncludeHiddenColumns ? this.ListView.AllColumns : this.ListView.ColumnsInDisplayOrder;
 
             // Build text and html versions of the selection
             StringBuilder sbText = new StringBuilder();
             StringBuilder sbHtml = new StringBuilder("<table>");
 
-            foreach (object modelObject in this.ModelObjects) {
+            // Include column headers
+            if (includeColumnHeaders)
+            {
+                sbHtml.Append("<tr><td>");
+                foreach (OLVColumn col in columns)
+                {
+                    if (col != columns[0])
+                    {
+                        sbText.Append("\t");
+                        sbHtml.Append("</td><td>");
+                    }
+                    string strValue = col.Text;
+                    sbText.Append(strValue);
+                    sbHtml.Append(strValue); //TODO: Should encode the string value
+                }
+                sbText.AppendLine();
+                sbHtml.AppendLine("</td></tr>");
+            }
+
+            foreach (object modelObject in this.ModelObjects)
+            {
                 sbHtml.Append("<tr><td>");
                 foreach (OLVColumn col in columns) {
                     if (col != columns[0]) {
@@ -317,7 +348,7 @@ namespace BrightIdeasSoftware
         /// Make a HTML representation of our model objects
         /// </summary>
         public string CreateHtml() {
-            List<OLVColumn> columns = this.ListView.ColumnsInDisplayOrder;
+            IList<OLVColumn> columns = this.ListView.ColumnsInDisplayOrder;
 
             // Build html version of the selection
             StringBuilder sbHtml = new StringBuilder("<table>");
