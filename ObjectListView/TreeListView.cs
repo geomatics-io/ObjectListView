@@ -140,7 +140,7 @@ namespace BrightIdeasSoftware
             this.OwnerDraw = true;
             this.View = View.Details;
 
-            this.DataSource = this.TreeModel;
+            this.VirtualListDataSource = this.TreeModel;
             this.TreeColumnRenderer = new TreeRenderer();
 
             // This improves hit detection even if we don't have any state image
@@ -184,7 +184,7 @@ namespace BrightIdeasSoftware
 
         /// <summary>
         /// Gets or  sets the filter that is applied to our whole list of objects.
-        /// TreeListViews do not current whole list filters.
+        /// TreeListViews do not currently support whole list filters.
         /// </summary>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -229,8 +229,13 @@ namespace BrightIdeasSoftware
             get { return this.TreeModel.RootObjects; }
             set {
                 // Make sure that column 0 is showing a tree
-                if (this.GetColumn(0).Renderer == null)
-                    this.GetColumn(0).Renderer = this.TreeColumnRenderer;
+                if (this.Columns.Count > 0) {
+                    OLVColumn columnZero = this.GetColumn(0);
+                    if (!(columnZero.Renderer is TreeRenderer)) 
+                        columnZero.Renderer = this.TreeColumnRenderer;
+                    
+                    columnZero.WordWrap = columnZero.WordWrap;
+                }
                 if (value == null)
                     this.TreeModel.RootObjects = new ArrayList();
                 else
@@ -240,19 +245,20 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// The renderer that will be used to draw the tree structure
+        /// Gets or sets the renderer that will be used to draw the tree structure.
+        /// Setting this to null resets the renderer to default.
         /// </summary>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual BaseRenderer TreeColumnRenderer {
+        public virtual TreeRenderer TreeColumnRenderer {
             get { return treeRenderer; }
             set {
-                treeRenderer = value;
+                treeRenderer = value ?? new TreeRenderer();
                 if (this.Columns.Count > 0)
-                    this.GetColumn(0).Renderer = value;
+                    this.GetColumn(0).Renderer = treeRenderer;
             }
         }
-        private BaseRenderer treeRenderer;
+        private TreeRenderer treeRenderer;
 
         /// <summary>
         /// Should a wait cursor be shown when a branch is being expanded?
@@ -332,7 +338,7 @@ namespace BrightIdeasSoftware
 
             // Give ourselves a new data structure
             this.TreeModel = new Tree(this);
-            this.DataSource = this.TreeModel;
+            this.VirtualListDataSource = this.TreeModel;
 
             // Put back the bits we didn't want to forget
             this.CanExpandGetter = canExpand;
