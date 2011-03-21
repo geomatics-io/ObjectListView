@@ -22,8 +22,8 @@ namespace ObjectListViewDemo
     /// <remarks>Instances of this helper class know how to retrieve icon from the Windows shell for
     /// a given file path. These icons are then added to the imagelist on the given control. ListViews need 
     /// special handling since they have two image lists which need to be kept in sync.</remarks>
-	public class SysImageListHelper
-	{
+    public class SysImageListHelper
+    {
         private SysImageListHelper()
         {
         }
@@ -116,12 +116,12 @@ namespace ObjectListViewDemo
             return this.SmallImageCollection.IndexOfKey(path);
         }
     }
-	
-	/// <summary>
-	/// ShellUtilities contains routines to interact with the Windows Shell.
-	/// </summary>
-	public static class ShellUtilities
-	{
+    
+    /// <summary>
+    /// ShellUtilities contains routines to interact with the Windows Shell.
+    /// </summary>
+    public static class ShellUtilities
+    {
         /// <summary>
         /// Execute the default verb on the file or directory identified by the given path.
         /// For documents, this will open them with their normal application. For executables,
@@ -230,7 +230,7 @@ namespace ObjectListViewDemo
         private const int SHGFI_SHELLICONSIZE      = 0x00004;     // get shell size icon
         private const int SHGFI_PIDL               = 0x00008;     // pszPath is a pidl
         private const int SHGFI_USEFILEATTRIBUTES  = 0x00010;     // use passed dwFileAttribute
-		//if (_WIN32_IE >= 0x0500)
+        //if (_WIN32_IE >= 0x0500)
         private const int SHGFI_ADDOVERLAYS        = 0x00020;     // apply the appropriate overlays
         private const int SHGFI_OVERLAYINDEX       = 0x00040;     // Get the index of the overlay
 
@@ -240,16 +240,16 @@ namespace ObjectListViewDemo
         private const int MAX_PATH = 260;
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-		private struct SHFILEINFO
-		{
-			public IntPtr hIcon; 
-			public int    iIcon; 
-			public int    dwAttributes; 
-			[MarshalAs(UnmanagedType.ByValTStr, SizeConst=MAX_PATH)]
-			public string szDisplayName;
-			[MarshalAs(UnmanagedType.ByValTStr, SizeConst=80)]
-			public string szTypeName; 
-		}
+        private struct SHFILEINFO
+        {
+            public IntPtr hIcon; 
+            public int    iIcon; 
+            public int    dwAttributes; 
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst=MAX_PATH)]
+            public string szDisplayName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst=80)]
+            public string szTypeName; 
+        }
 
         private const int SW_SHOWNORMAL = 1;
 
