@@ -934,6 +934,13 @@ namespace BrightIdeasSoftware
             return SendMessage(lv.Handle, LVM_SETTOOLTIPS, 0, tooltip.Handle);
         }
 
+        static public bool HasHorizontalScrollBar(ListView lv) {
+            const int GWL_STYLE = -16;
+            const int WS_HSCROLL = 0x00100000;
+
+            return (NativeMethods.GetWindowLong(lv.Handle, GWL_STYLE) & WS_HSCROLL) != 0;
+        }
+
         public static int GetWindowLong(IntPtr hWnd, int nIndex) {
             if (IntPtr.Size == 4)
                 return (int)GetWindowLong32(hWnd, nIndex);
