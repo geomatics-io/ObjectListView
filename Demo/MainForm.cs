@@ -24,46 +24,47 @@ using System.Threading;
 using System.Drawing.Imaging;
 
 using BrightIdeasSoftware;
+using System.Runtime.InteropServices;
 
 namespace ObjectListViewDemo
 {
-	/// <summary>
-	/// Description of MainForm.
-	/// </summary>
-	public partial class MainForm
-	{
+    /// <summary>
+    /// Description of MainForm.
+    /// </summary>
+    public partial class MainForm
+    {
         /// <summary>
         ///
         /// </summary>
         /// <param name="args"></param>
-		[STAThread]
+        [STAThread]
         public static void Main(string[] args)
-		{
+        {
             Application.EnableVisualStyles();
-			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new MainForm());
-		}
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MainForm());
+        }
 
         /// <summary>
         ///
         /// </summary>
-		public MainForm()
-		{
-			//
-			// The InitializeComponent() call is required for Windows Forms designer support.
-			//
-			InitializeComponent();
-			InitializeExamples();
-		}
+        public MainForm()
+        {
+            //
+            // The InitializeComponent() call is required for Windows Forms designer support.
+            //
+            InitializeComponent();
+            InitializeExamples();
+        }
 
-		List<Person> masterList;
-		void InitializeExamples()
-		{
+        List<Person> masterList;
+        void InitializeExamples()
+        {
             // Use different font under Vista
             if (ObjectListView.IsVistaOrLater)
                 this.Font = new Font("Segoe UI", 9);
 
-			masterList = new List<Person>();
+            masterList = new List<Person>();
             masterList.Add(new Person("Wilhelm Frat", "Gymnast", 21, new DateTime(1984, 9, 23), 45.67, false, "ak", "Aggressive, belligerent "));
             masterList.Add(new Person("Alana Roderick", "Gymnast", 21, new DateTime(1974, 9, 23), 245.67, false, "gp", "Beautiful, exquisite"));
             masterList.Add(new Person("Frank Price", "Dancer", 30, new DateTime(1965, 11, 1), 75.5, false, "ns", "Competitive, spirited"));
@@ -75,7 +76,7 @@ namespace ObjectListViewDemo
             masterList.Add(new Person("Urny Unmin", "Economist", 41, new DateTime(1956, 9, 24), 212.25, true, "cr", "Heinous, aesthetically challenged"));
             masterList.Add(new Person("Terrance Darby", "Singer", 35, new DateTime(1970, 9, 29), 1145, false, "mb", "Introverted, relationally challenged"));
             masterList.Add(new Person("Phillip Nottingham", "Programmer", 27, new DateTime(1974, 8, 28), 245.7, false, "sj", "Jocular, gregarious"));
-			masterList.Add(new Person("Mister Null"));
+            masterList.Add(new Person("Mister Null"));
 
             List<Person> list = new List<Person>();
             foreach (Person p in masterList)
@@ -88,10 +89,10 @@ namespace ObjectListViewDemo
             //        list.Add(new Person(p));
             //}
 
-			InitializeSimpleExample(list);
-			InitializeComplexExample(list);
-			InitializeDataSetExample();
-			InitializeVirtualListExample();
+            InitializeSimpleExample(list);
+            InitializeComplexExample(list);
+            InitializeDataSetExample();
+            InitializeVirtualListExample();
             InitializeExplorerExample();
             InitializeTreeListExample();
             InitializeListPrinting();
@@ -99,28 +100,28 @@ namespace ObjectListViewDemo
             InitializeDragDropExample(list);
         }
 
-		void TimedRebuildList (ObjectListView olv)
-		{
-			Stopwatch stopWatch = new Stopwatch();
+        void TimedRebuildList (ObjectListView olv)
+        {
+            Stopwatch stopWatch = new Stopwatch();
 
-			try {
-				this.Cursor = Cursors.WaitCursor;
-				stopWatch.Start();
-				olv.BuildList();
-			} finally {
-				stopWatch.Stop();
-				this.Cursor = Cursors.Default;
-			}
+            try {
+                this.Cursor = Cursors.WaitCursor;
+                stopWatch.Start();
+                olv.BuildList();
+            } finally {
+                stopWatch.Stop();
+                this.Cursor = Cursors.Default;
+            }
 
-			this.toolStripStatusLabel1.Text =
-				String.Format("Build time: {0} items in {1}ms, average per item: {2:F}ms",
-				              olv.Items.Count,
-				              stopWatch.ElapsedMilliseconds,
-				              (float)stopWatch.ElapsedMilliseconds / olv.Items.Count);
-		}
+            this.toolStripStatusLabel1.Text =
+                String.Format("Build time: {0} items in {1}ms, average per item: {2:F}ms",
+                              olv.Items.Count,
+                              stopWatch.ElapsedMilliseconds,
+                              (float)stopWatch.ElapsedMilliseconds / olv.Items.Count);
+        }
 
-		void InitializeSimpleExample(List<Person> list)
-		{
+        void InitializeSimpleExample(List<Person> list)
+        {
             this.comboBox6.SelectedIndex = 0;
 
             // Give this column an aspect putter, since it fetches its value using a method rather than a property
@@ -130,12 +131,12 @@ namespace ObjectListViewDemo
             // Uncomment this to see a fancy cell highlighting while editing
             //this.olvSimple.AddDecoration(new EditingCellBorderDecoration { UseLightbox = true });
 
-			// Just one line of code make everything happen.
-			this.olvSimple.SetObjects(list);
-		}
+            // Just one line of code make everything happen.
+            this.olvSimple.SetObjects(list);
+        }
 
-		void InitializeComplexExample(List<Person> list)
-		{
+        void InitializeComplexExample(List<Person> list)
+        {
             this.olvComplex.AddDecoration(new EditingCellBorderDecoration { UseLightbox = true });
 
             // The following line makes getting aspect about 10x faster. Since getting the aspect is
@@ -156,9 +157,9 @@ namespace ObjectListViewDemo
                 return ((String)cellValue).ToUpperInvariant();
             };
             this.personColumn.ImageGetter = delegate(object row) {
-				// People whose names start with a vowel get a star,
-				// otherwise the first half of the alphabet gets hearts
-				// and the second half gets music
+                // People whose names start with a vowel get a star,
+                // otherwise the first half of the alphabet gets hearts
+                // and the second half gets music
                 string name = ((Person)row).Name;
                 if (name.Length > 0 && "AEIOU".Contains(name.Substring(0, 1)))
                     return 0; // star
@@ -166,7 +167,7 @@ namespace ObjectListViewDemo
                     return 1; // heart
                 else
                     return 2; // music
-			};
+            };
 
             // Cooking skill columns
             this.columnCookingSkill.MakeGroupies(
@@ -198,26 +199,26 @@ namespace ObjectListViewDemo
 
             // Birthday column
             this.birthdayColumn.GroupKeyGetter = delegate(object row) {
-				return ((Person)row).BirthDate.Month;
-			};
-			this.birthdayColumn.GroupKeyToTitleConverter = delegate (object key) {
-				return (new DateTime(1, (int)key, 1)).ToString("MMMM");
-			};
-			this.birthdayColumn.ImageGetter = delegate (object row) {
-				Person p = (Person)row;
-				if (p.BirthDate != null && (p.BirthDate.Year % 10) == 4)
-					return 3;
-				else
-					return -1; // no image
-			};
+                return ((Person)row).BirthDate.Month;
+            };
+            this.birthdayColumn.GroupKeyToTitleConverter = delegate (object key) {
+                return (new DateTime(1, (int)key, 1)).ToString("MMMM");
+            };
+            this.birthdayColumn.ImageGetter = delegate (object row) {
+                Person p = (Person)row;
+                if (p.BirthDate != null && (p.BirthDate.Year % 10) == 4)
+                    return 3;
+                else
+                    return -1; // no image
+            };
 
-			// Use this column to test sorting and group on TimeSpan objects
-			this.daysSinceBirthColumn.AspectGetter = delegate (object row) {
-				return DateTime.Now - ((Person)row).BirthDate;
-			};
-			this.daysSinceBirthColumn.AspectToStringConverter = delegate (object aspect) {
-				return ((TimeSpan)aspect).Days.ToString();
-			};
+            // Use this column to test sorting and group on TimeSpan objects
+            this.daysSinceBirthColumn.AspectGetter = delegate (object row) {
+                return DateTime.Now - ((Person)row).BirthDate;
+            };
+            this.daysSinceBirthColumn.AspectToStringConverter = delegate (object aspect) {
+                return ((TimeSpan)aspect).Days.ToString();
+            };
 
             // Install a custom renderer that draws the Tile view in a special way
             this.olvComplex.ItemRenderer = new BusinessCardRenderer();
@@ -460,8 +461,8 @@ namespace ObjectListViewDemo
             private BusinessCardRenderer businessCardRenderer = new BusinessCardRenderer();
         }
 
-		void InitializeDataSetExample ()
-		{
+        void InitializeDataSetExample ()
+        {
             this.olvColumn1.ImageGetter  = delegate (object row) { return "user"; };
 
             this.salaryColumn.MakeGroupies(
@@ -477,7 +478,7 @@ namespace ObjectListViewDemo
             this.rowHeightUpDown.Value = 32;
 
             LoadXmlIntoList();
-		}
+        }
 
         // A sorter to order Person objects according to a given column in a list view
         internal class MasterListSorter : Comparer<Person>
@@ -551,8 +552,8 @@ namespace ObjectListViewDemo
             List<Person> Objects;
         }
 
-		void InitializeVirtualListExample ()
-		{
+        void InitializeVirtualListExample ()
+        {
             this.olvVirtual.BooleanCheckStateGetter = delegate(object x) {
                 return ((Person)x).IsActive;
             };
@@ -560,7 +561,7 @@ namespace ObjectListViewDemo
                 ((Person)x).IsActive = newValue;
                 return newValue;
             };
-            this.olvVirtual.DataSource = new ExampleVirtualDataSource(this.olvVirtual, this.masterList);
+            this.olvVirtual.VirtualListDataSource = new ExampleVirtualDataSource(this.olvVirtual, this.masterList);
 
             // Install a custom sorter, just to show how it could be done. We don't
             // have a backing store that can sort all 10 million items, so we have to be
@@ -569,13 +570,13 @@ namespace ObjectListViewDemo
                 masterList.Sort(new MasterListSorter(col, order));
             };
 
-			// Install aspect getters to optimize performance
-			this.olvColumn4.AspectGetter = delegate (object x) {return ((Person)x).Name;};
-			this.olvColumn5.AspectGetter = delegate (object x) {return ((Person)x).Occupation;};
-			this.olvColumn7.AspectGetter = delegate (object x) {return ((Person)x).CulinaryRating;};
-			this.olvColumn8.AspectGetter = delegate (object x) {return ((Person)x).YearOfBirth;};
-			this.olvColumn9.AspectGetter = delegate (object x) {return ((Person)x).BirthDate;};
-			this.olvColumn10.AspectGetter = delegate (object x) {return ((Person)x).GetRate();};
+            // Install aspect getters to optimize performance
+            this.olvColumn4.AspectGetter = delegate (object x) {return ((Person)x).Name;};
+            this.olvColumn5.AspectGetter = delegate (object x) {return ((Person)x).Occupation;};
+            this.olvColumn7.AspectGetter = delegate (object x) {return ((Person)x).CulinaryRating;};
+            this.olvColumn8.AspectGetter = delegate (object x) {return ((Person)x).YearOfBirth;};
+            this.olvColumn9.AspectGetter = delegate (object x) {return ((Person)x).BirthDate;};
+            this.olvColumn10.AspectGetter = delegate (object x) {return ((Person)x).GetRate();};
             this.olvColumn10.AspectPutter = delegate(object x, object newValue) { ((Person)x).SetRate((double)newValue); };
 
             // Install a RowFormatter to setup a tooltip on the item
@@ -583,18 +584,18 @@ namespace ObjectListViewDemo
                 lvi.ToolTipText = String.Format("This is a long tool tip for '{0}' that does nothing except waste space.", lvi.Text);
             };
 
-			this.olvColumn4.ImageGetter = delegate (object row) {
-				// People whose names start with a vowel get a star,
-				// otherwise the first half of the alphabet gets hearts
-				// and the second half gets music
-				if ("AEIOU".Contains(((Person)row).Name.Substring(0, 1)))
-					return 0; // star
-				else if (((Person)row).Name.CompareTo("N") < 0)
-					return 1; // heart
-				else
-					return 2; // music
-			};
-			this.olvColumn5.ImageGetter  = delegate (object row) { return "user"; }; // user icon
+            this.olvColumn4.ImageGetter = delegate (object row) {
+                // People whose names start with a vowel get a star,
+                // otherwise the first half of the alphabet gets hearts
+                // and the second half gets music
+                if ("AEIOU".Contains(((Person)row).Name.Substring(0, 1)))
+                    return 0; // star
+                else if (((Person)row).Name.CompareTo("N") < 0)
+                    return 1; // heart
+                else
+                    return 2; // music
+            };
+            this.olvColumn5.ImageGetter  = delegate (object row) { return "user"; }; // user icon
 
             this.olvColumn7.Renderer = new MultiImageRenderer("star", 5, 0, 50);
 
@@ -602,7 +603,7 @@ namespace ObjectListViewDemo
             this.comboBox2.SelectedIndex = 4;
             this.comboBox8.SelectedIndex = 0;
             this.comboBoxNagLevel.SelectedIndex = 0;
-		}
+        }
 
         void InitializeExplorerExample()
         {
@@ -683,8 +684,8 @@ namespace ObjectListViewDemo
         }
 
 
-        void InitializeTreeListExample()
-        {
+        void InitializeTreeListExample() {
+            
             this.treeListView.CanExpandGetter = delegate(object x) {
                 return (x is DirectoryInfo);
             };
@@ -713,7 +714,7 @@ namespace ObjectListViewDemo
             //this.treeListView.CheckBoxes = false;
 
             // You can change the way the connection lines are drawn by changing the pen
-            TreeListView.TreeRenderer renderer = (TreeListView.TreeRenderer)this.treeListView.TreeColumnRenderer;
+            TreeListView.TreeRenderer renderer = this.treeListView.TreeColumnRenderer;
             renderer.LinePen = new Pen(Color.Firebrick, 0.5f);
             renderer.LinePen.DashStyle = DashStyle.Dot;
 
@@ -773,6 +774,7 @@ namespace ObjectListViewDemo
                     roots.Add(new DirectoryInfo(di.Name));
             }
             this.treeListView.Roots = roots;
+          
         }
 
         void InitializeListPrinting()
@@ -797,80 +799,80 @@ namespace ObjectListViewDemo
             return String.Format("{0} bytes", size); ;
         }
 
-		void LoadXmlIntoList()
-		{
-			DataSet ds = LoadDatasetFromXml("Persons.xml");
+        void LoadXmlIntoList()
+        {
+            DataSet ds = LoadDatasetFromXml("Persons.xml");
 
-			if (ds.Tables.Count > 0)
-			{
-				this.dataGridView1.DataSource = ds;
-				this.dataGridView1.DataMember = "Person";
+            if (ds.Tables.Count > 0)
+            {
+                this.dataGridView1.DataSource = ds;
+                this.dataGridView1.DataMember = "Person";
                 // Install this data source
                 this.olvData.DataSource = new BindingSource(ds, "Person");
 
                 // Test with BindingSource
-                //this.listViewDataSet.DataSource = new BindingSource(ds, "Person");
+                //this.listViewDataSet.VirtualListDataSource = new BindingSource(ds, "Person");
 
                 // Test with DataTable
                 //DataTable personTable = ds.Tables["Person"];
-                //this.listViewDataSet.DataSource = personTable;
+                //this.listViewDataSet.VirtualListDataSource = personTable;
 
                 // Test with DataView
                 //DataTable personTable = ds.Tables["Person"];
-                //this.listViewDataSet.DataSource = new DataView(personTable);
+                //this.listViewDataSet.VirtualListDataSource = new DataView(personTable);
 
                 // Test with DataSet
                 //this.listViewDataSet.DataMember = "Person";
-                //this.listViewDataSet.DataSource = ds;
+                //this.listViewDataSet.VirtualListDataSource = ds;
 
                 // Test with DataViewManager
                 //this.listViewDataSet.DataMember = "Person";
-                //this.listViewDataSet.DataSource = new DataViewManager(ds);
+                //this.listViewDataSet.VirtualListDataSource = new DataViewManager(ds);
 
-				// Test with nulls
+                // Test with nulls
                 //this.listViewDataSet.DataMember = null;
-                //this.listViewDataSet.DataSource = null;
-			}
-		}
+                //this.listViewDataSet.VirtualListDataSource = null;
+            }
+        }
 
-		DataSet LoadDatasetFromXml(string fileName)
-		{
-			DataSet ds = new DataSet();
-			FileStream fs = null;
+        DataSet LoadDatasetFromXml(string fileName)
+        {
+            DataSet ds = new DataSet();
+            FileStream fs = null;
 
-			try {
-				fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+            try {
+                fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
                 using (StreamReader reader = new StreamReader(fs)) {
                     ds.ReadXml(reader);
                 }
-			} catch (Exception e) {
-				MessageBox.Show(e.ToString());
-			} finally {
-				if (fs != null)
-					fs.Close();
-			}
+            } catch (Exception e) {
+                MessageBox.Show(e.ToString());
+            } finally {
+                if (fs != null)
+                    fs.Close();
+            }
 
-			return ds;
-		}
+            return ds;
+        }
 
-		void TimedReloadXml ()
-		{
-			Stopwatch stopWatch = new Stopwatch();
+        void TimedReloadXml ()
+        {
+            Stopwatch stopWatch = new Stopwatch();
 
-			try {
-				this.Cursor = Cursors.WaitCursor;
-				stopWatch.Start();
-				this.LoadXmlIntoList();
-			} finally {
-				stopWatch.Stop();
-				this.Cursor = Cursors.Default;
-			}
+            try {
+                this.Cursor = Cursors.WaitCursor;
+                stopWatch.Start();
+                this.LoadXmlIntoList();
+            } finally {
+                stopWatch.Stop();
+                this.Cursor = Cursors.Default;
+            }
 
-			this.toolStripStatusLabel1.Text =
-				String.Format("XML Load: {0} items in {1}ms, average per item: {2:F}ms",
-				              olvData.Items.Count,
-				              stopWatch.ElapsedMilliseconds,
-				              stopWatch.ElapsedMilliseconds / olvData.Items.Count);
+            this.toolStripStatusLabel1.Text =
+                String.Format("XML Load: {0} items in {1}ms, average per item: {2:F}ms",
+                              olvData.Items.Count,
+                              stopWatch.ElapsedMilliseconds,
+                              stopWatch.ElapsedMilliseconds / olvData.Items.Count);
         }
 
         #region Form event handlers
@@ -889,7 +891,7 @@ namespace ObjectListViewDemo
         #region Utilities
 
         void ShowGroupsChecked(ObjectListView olv, CheckBox cb)
-		{
+        {
             if (cb.Checked && olv.View == View.List) {
                 cb.Checked = false;
                 MessageBox.Show("ListView's cannot show groups when in List view.", "Object List View Demo", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -897,13 +899,13 @@ namespace ObjectListViewDemo
                 olv.ShowGroups = cb.Checked;
                 olv.BuildList();
             }
-		}
+        }
 
-		void ShowLabelsOnGroupsChecked(ObjectListView olv, CheckBox cb)
-		{
-			olv.ShowItemCountOnGroups = cb.Checked;
+        void ShowLabelsOnGroupsChecked(ObjectListView olv, CheckBox cb)
+        {
+            olv.ShowItemCountOnGroups = cb.Checked;
             if (olv.ShowGroups)
-    			olv.BuildGroups();
+                olv.BuildGroups();
         }
 
         void HandleSelectionChanged(ObjectListView listView)
@@ -955,20 +957,20 @@ namespace ObjectListViewDemo
 
         #region Simple Tab Event Handlers
 
-		void CheckBox3CheckedChanged(object sender, System.EventArgs e)
-		{
-			ShowGroupsChecked(this.olvSimple, (CheckBox)sender);
-		}
+        void CheckBox3CheckedChanged(object sender, System.EventArgs e)
+        {
+            ShowGroupsChecked(this.olvSimple, (CheckBox)sender);
+        }
 
-		void CheckBox4CheckedChanged(object sender, System.EventArgs e)
-		{
-			ShowLabelsOnGroupsChecked(this.olvSimple, (CheckBox)sender);
-		}
+        void CheckBox4CheckedChanged(object sender, System.EventArgs e)
+        {
+            ShowLabelsOnGroupsChecked(this.olvSimple, (CheckBox)sender);
+        }
 
-		void Button1Click(object sender, System.EventArgs e)
-		{
+        void Button1Click(object sender, System.EventArgs e)
+        {
             this.TimedRebuildList(this.olvSimple);
-		}
+        }
 
         void Button4Click(object sender, System.EventArgs e) {
             // Silly example just to make sure that object selection works
@@ -981,9 +983,15 @@ namespace ObjectListViewDemo
 
         private void button7_Click(object sender, EventArgs e)
         {
-            Person person = new Person("Some One Else " + System.Environment.TickCount);
-            this.olvSimple.AddObject(person);
-            this.olvSimple.EnsureModelVisible(person);
+            //Person person = new Person("Some One Else " + System.Environment.TickCount);
+            //this.olvSimple.AddObject(person);
+            //this.olvSimple.EnsureModelVisible(person);
+
+            this.olvSimple.AllColumns.Add(new OLVColumn("Dummy column: " + Environment.TickCount, null));
+            OLVColumn new1 = new OLVColumn("Second Dummy: " + Environment.TickCount, null);
+            new1.IsVisible = false;
+            this.olvSimple.AllColumns.Add(new1);
+            this.olvSimple.RebuildColumns();
         }
 
         private void button6_Click(object sender, EventArgs e)
@@ -996,12 +1004,12 @@ namespace ObjectListViewDemo
         #region Complex Tab Event Handlers
 
         void CheckBox1CheckedChanged(object sender, System.EventArgs e)
-		{
-			ShowGroupsChecked(this.olvComplex, (CheckBox)sender);
-		}
+        {
+            ShowGroupsChecked(this.olvComplex, (CheckBox)sender);
+        }
 
-		void CheckBox2CheckedChanged(object sender, System.EventArgs e)
-		{
+        void CheckBox2CheckedChanged(object sender, System.EventArgs e)
+        {
             this.olvComplex.UseTranslucentSelection = ((CheckBox)sender).Checked;
             this.olvComplex.UseTranslucentHotItem = ((CheckBox)sender).Checked;
 
@@ -1014,27 +1022,27 @@ namespace ObjectListViewDemo
             this.olvComplex.Invalidate();
         }
 
-		void Button2Click(object sender, System.EventArgs e)
-		{
+        void Button2Click(object sender, System.EventArgs e)
+        {
             this.TimedRebuildList(this.olvComplex);
         }
 
-		void Button5Click(object sender, System.EventArgs e)
-		{
+        void Button5Click(object sender, System.EventArgs e)
+        {
             this.olvComplex.CopySelectionToClipboard();
             olvComplex.SelectedObjects = olvSimple.SelectedObjects;
             olvComplex.Select();
             //this.olvComplex.ShowHeaderInAllViews = !this.olvComplex.ShowHeaderInAllViews;
 
-		}
+        }
 
-		void CheckBox6CheckedChanged(object sender, EventArgs e)
-		{
+        void CheckBox6CheckedChanged(object sender, EventArgs e)
+        {
             if (comboBox1.SelectedIndex == 3 && this.checkBox6.Checked)
                 this.olvComplex.TileSize = new Size(250, 120);
 
             ChangeOwnerDrawn(this.olvComplex, (CheckBox)sender);
-		}
+        }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -1047,19 +1055,19 @@ namespace ObjectListViewDemo
 
         #region Dataset Tab Event Handlers
 
-		void CheckBox7CheckedChanged(object sender, System.EventArgs e)
-		{
-			ShowGroupsChecked(this.olvData, (CheckBox)sender);
-		}
+        void CheckBox7CheckedChanged(object sender, System.EventArgs e)
+        {
+            ShowGroupsChecked(this.olvData, (CheckBox)sender);
+        }
 
-		void CheckBox8CheckedChanged(object sender, System.EventArgs e)
-		{
-			ShowLabelsOnGroupsChecked(this.olvData, (CheckBox)sender);
-		}
+        void CheckBox8CheckedChanged(object sender, System.EventArgs e)
+        {
+            ShowLabelsOnGroupsChecked(this.olvData, (CheckBox)sender);
+        }
 
-		void Button3Click(object sender, System.EventArgs e)
-		{
-			this.TimedReloadXml();
+        void Button3Click(object sender, System.EventArgs e)
+        {
+            this.TimedReloadXml();
         }
 
         void CheckBox5CheckedChanged(object sender, EventArgs e)
@@ -1099,8 +1107,8 @@ namespace ObjectListViewDemo
 
         #region Virtual Tab Event Handlers
 
-		void CheckBox9CheckedChanged(object sender, EventArgs e)
-		{
+        void CheckBox9CheckedChanged(object sender, EventArgs e)
+        {
             this.ChangeOwnerDrawn(this.olvVirtual, (CheckBox)sender);
         }
 
@@ -1119,12 +1127,12 @@ namespace ObjectListViewDemo
             this.olvVirtual.DeselectAll();
         }
 
-		#endregion
+        #endregion
 
         #region Explorer Tab event handlers
 
         void TextBoxFolderPathTextChanged(object sender, EventArgs e)
-		{
+        {
             if (Directory.Exists(this.textBoxFolderPath.Text)) {
                 this.textBoxFolderPath.ForeColor = Color.Black;
                 this.buttonGo.Enabled = true;
@@ -1136,48 +1144,48 @@ namespace ObjectListViewDemo
             }
         }
 
-		void ButtonGoClick(object sender, EventArgs e)
-		{
-			string path = this.textBoxFolderPath.Text;
-			this.PopulateListFromPath(path);
-		}
+        void ButtonGoClick(object sender, EventArgs e)
+        {
+            string path = this.textBoxFolderPath.Text;
+            this.PopulateListFromPath(path);
+        }
 
-		void PopulateListFromPath(string path)
-		{
-			DirectoryInfo pathInfo = new DirectoryInfo(path);
-			if (!pathInfo.Exists)
-				return;
+        void PopulateListFromPath(string path)
+        {
+            DirectoryInfo pathInfo = new DirectoryInfo(path);
+            if (!pathInfo.Exists)
+                return;
 
             Stopwatch sw = new Stopwatch();
 
             Cursor.Current = Cursors.WaitCursor;
             sw.Start();
-			this.olvFiles.SetObjects(pathInfo.GetFileSystemInfos());
+            this.olvFiles.SetObjects(pathInfo.GetFileSystemInfos());
             sw.Stop();
             Cursor.Current = Cursors.Default;
 
             float msPerItem = (olvFiles.Items.Count == 0 ? 0 : (float)sw.ElapsedMilliseconds / olvFiles.Items.Count);
             this.toolStripStatusLabel1.Text = String.Format("Timed build: {0} items in {1}ms ({2:F}ms per item)",
                 olvFiles.Items.Count, sw.ElapsedMilliseconds, msPerItem);
-		}
+        }
 
-		void CheckBox12CheckedChanged(object sender, EventArgs e)
-		{
-			ShowGroupsChecked(this.olvFiles, (CheckBox)sender);
-		}
+        void CheckBox12CheckedChanged(object sender, EventArgs e)
+        {
+            ShowGroupsChecked(this.olvFiles, (CheckBox)sender);
+        }
 
-		void CheckBox11CheckedChanged(object sender, EventArgs e)
-		{
+        void CheckBox11CheckedChanged(object sender, EventArgs e)
+        {
             this.ShowLabelsOnGroupsChecked(this.olvFiles, (CheckBox)sender);
-		}
+        }
 
-		void CheckBox10CheckedChanged(object sender, EventArgs e)
-		{
+        void CheckBox10CheckedChanged(object sender, EventArgs e)
+        {
             this.ChangeOwnerDrawn(this.olvFiles, (CheckBox)sender);
-		}
+        }
 
-		void ComboBox4SelectedIndexChanged(object sender, EventArgs e)
-		{
+        void ComboBox4SelectedIndexChanged(object sender, EventArgs e)
+        {
            this.ChangeView(this.olvFiles, (ComboBox)sender);
            this.button13.Enabled = (this.olvFiles.View == View.Details || this.olvFiles.View == View.Tile);
        }
@@ -1265,31 +1273,31 @@ namespace ObjectListViewDemo
         void UpdatePrintPreview()
         {
             if (this.rbShowSimple.Checked == true)
-				this.listViewPrinter1.ListView = this.olvSimple;
-			else if (this.rbShowComplex.Checked == true)
-				this.listViewPrinter1.ListView = this.olvComplex;
-			else if (this.rbShowDataset.Checked == true)
-				this.listViewPrinter1.ListView = this.olvData;
+                this.listViewPrinter1.ListView = this.olvSimple;
+            else if (this.rbShowComplex.Checked == true)
+                this.listViewPrinter1.ListView = this.olvComplex;
+            else if (this.rbShowDataset.Checked == true)
+                this.listViewPrinter1.ListView = this.olvData;
             else if (this.rbShowVirtual.Checked == true)
                 this.listViewPrinter1.ListView = this.olvVirtual;
             else if (this.rbShowFileExplorer.Checked == true)
                 this.listViewPrinter1.ListView = this.olvFiles;
 
-			this.listViewPrinter1.DocumentName = this.tbTitle.Text;
-			this.listViewPrinter1.Header = this.tbHeader.Text.Replace("\\t", "\t");
+            this.listViewPrinter1.DocumentName = this.tbTitle.Text;
+            this.listViewPrinter1.Header = this.tbHeader.Text.Replace("\\t", "\t");
             this.listViewPrinter1.Footer = this.tbFooter.Text.Replace("\\t", "\t");
-			this.listViewPrinter1.Watermark = this.tbWatermark.Text;
+            this.listViewPrinter1.Watermark = this.tbWatermark.Text;
 
-			this.listViewPrinter1.IsShrinkToFit = this.cbShrinkToFit.Checked;
-			this.listViewPrinter1.IsTextOnly = !this.cbIncludeImages.Checked;
-			this.listViewPrinter1.IsPrintSelectionOnly = this.cbPrintOnlySelection.Checked;
+            this.listViewPrinter1.IsShrinkToFit = this.cbShrinkToFit.Checked;
+            this.listViewPrinter1.IsTextOnly = !this.cbIncludeImages.Checked;
+            this.listViewPrinter1.IsPrintSelectionOnly = this.cbPrintOnlySelection.Checked;
 
-			if (this.rbStyleMinimal.Checked == true)
-				this.ApplyMinimalFormatting();
-			else if (this.rbStyleModern.Checked == true)
-				this.ApplyModernFormatting();
-			else if (this.rbStyleTooMuch.Checked == true)
-				this.ApplyOverTheTopFormatting();
+            if (this.rbStyleMinimal.Checked == true)
+                this.ApplyMinimalFormatting();
+            else if (this.rbStyleModern.Checked == true)
+                this.ApplyModernFormatting();
+            else if (this.rbStyleTooMuch.Checked == true)
+                this.ApplyOverTheTopFormatting();
 
             if (this.cbCellGridLines.Checked == false)
                 this.listViewPrinter1.ListGridPen = null;
@@ -1298,7 +1306,7 @@ namespace ObjectListViewDemo
             this.listViewPrinter1.LastPage = (int)this.numericUpDown2.Value;
 
             this.printPreviewControl1.InvalidatePreview();
-		}
+        }
 
         /// <summary>
         /// Give the report a minimal set of default formatting values.
@@ -1679,8 +1687,8 @@ namespace ObjectListViewDemo
             this.olvComplex.RemoveObjects(this.olvComplex.SelectedObjects);
         }
 
-		void Button18Click(object sender, EventArgs e)
-		{
+        void Button18Click(object sender, EventArgs e)
+        {
             this.olvFast.RemoveObjects(this.olvFast.SelectedObjects);
         }
 
@@ -2392,6 +2400,10 @@ namespace ObjectListViewDemo
                 e.Parameters.ItemComparer = new StrangeItemComparer(this.olvComplex.GetColumn(0), e.Parameters.PrimarySortOrder);
             }
         }
+
+        private void checkBox2_CheckedChanged(object sender, EventArgs e) {
+            this.olvFast.CheckBoxes = ((CheckBox)sender).Checked;
+        }
     }
 
     /// <summary>
@@ -2467,26 +2479,26 @@ namespace ObjectListViewDemo
         Partnered
     }
 
-	class Person
-	{
+    class Person
+    {
         public bool IsActive = true;
 
-		public Person(string name)
-		{
-			this.name = name;
-		}
+        public Person(string name)
+        {
+            this.name = name;
+        }
 
-		public Person(string name, string occupation, int culinaryRating, DateTime birthDate, double hourlyRate, bool canTellJokes, string photo, string comments)
-		{
-			this.name = name;
-			this.Occupation = occupation;
-			this.culinaryRating = culinaryRating;
-			this.birthDate = birthDate;
-			this.hourlyRate = hourlyRate;
+        public Person(string name, string occupation, int culinaryRating, DateTime birthDate, double hourlyRate, bool canTellJokes, string photo, string comments)
+        {
+            this.name = name;
+            this.Occupation = occupation;
+            this.culinaryRating = culinaryRating;
+            this.birthDate = birthDate;
+            this.hourlyRate = hourlyRate;
             this.CanTellJokes = canTellJokes;
             this.Comments = comments;
             this.Photo = photo;
-		}
+        }
 
         public Person(Person other)
         {
@@ -2516,14 +2528,14 @@ namespace ObjectListViewDemo
         }
         private string occupation;
 
-		public int CulinaryRating {
-			get { return culinaryRating; }
+        public int CulinaryRating {
+            get { return culinaryRating; }
             set { culinaryRating = value; }
         }
         private int culinaryRating;
 
-		public DateTime BirthDate {
-			get { return birthDate; }
+        public DateTime BirthDate {
+            get { return birthDate; }
             set { birthDate = value; }
         }
         private DateTime birthDate;
@@ -2546,14 +2558,14 @@ namespace ObjectListViewDemo
             hourlyRate = value;
         }
 
-		// Allows tests for fields.
+        // Allows tests for fields.
         public string Photo;
         public string Comments;
-		public int serialNumber;
+        public int serialNumber;
         public bool? CanTellJokes;
 
         // Allow tests for enums
         public MaritalStatus MaritalStatus = MaritalStatus.Single;
-	}
+    }
 
 }
