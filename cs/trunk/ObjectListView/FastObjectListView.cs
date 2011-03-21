@@ -62,7 +62,7 @@ namespace BrightIdeasSoftware
         /// Make a FastObjectListView
         /// </summary>
         public FastObjectListView() {
-            this.DataSource = new FastObjectListDataSource(this);
+            this.VirtualListDataSource = new FastObjectListDataSource(this);
             this.GroupingStrategy = new FastListGroupingStrategy();
         }
 
@@ -83,7 +83,7 @@ namespace BrightIdeasSoftware
         public override IEnumerable Objects {
             get {
                 // This is much faster than the base method
-                return ((FastObjectListDataSource)this.DataSource).ObjectList;
+                return ((FastObjectListDataSource)this.VirtualListDataSource).ObjectList;
             }
             set { base.Objects = value; }
         }
