@@ -234,6 +234,13 @@ namespace BrightIdeasSoftware
         public event EventHandler<FormatCellEventArgs> FormatCell;
 
         /// <summary>
+        /// This event is triggered when the frozeness of the control changes.
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("This event is triggered when frozeness of the control changes.")]
+        public event EventHandler<FreezeEventArgs> Freezing;
+
+        /// <summary>
         /// This event is triggered when a row needs to be formatted.
         /// </summary>
         [Category("ObjectListView"),
@@ -500,6 +507,15 @@ namespace BrightIdeasSoftware
         protected virtual void OnFormatRow(FormatRowEventArgs args) {
             if (this.FormatRow != null)
                 this.FormatRow(this, args);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
+        protected virtual void OnFreezing(FreezeEventArgs args) {
+            if (this.Freezing != null)
+                this.Freezing(this, args);
         }
 
         /// <summary>
@@ -1294,6 +1310,30 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class CellOverEventArgs : CellEventArgs
     {
+    }
+
+    /// <summary>
+    /// Tells the world that the frozen-ness of the ObjectListView has changed.
+    /// </summary>
+    public class FreezeEventArgs : EventArgs
+    {
+        /// <summary>
+        /// Make a FreezeEventArgs
+        /// </summary>
+        /// <param name="freeze"></param>
+        public FreezeEventArgs(int freeze) {
+            this.FreezeLevel = freeze;
+        }
+
+        /// <summary>
+        /// How frozen is the control? 0 means that the control is unfrozen, 
+        /// more than 0 indicates froze.
+        /// </summary>
+        public int FreezeLevel {
+            get { return this.freezeLevel; }
+            set { this.freezeLevel = value; }
+        }
+        private int freezeLevel;
     }
 
     /// <summary>
