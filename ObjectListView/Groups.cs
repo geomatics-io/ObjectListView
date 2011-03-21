@@ -585,12 +585,18 @@ namespace BrightIdeasSoftware
         /// <param name="olv"></param>
         public void InsertGroupOldStyle(ObjectListView olv) {
             this.ListView = olv;
+
+            // Create/update the associated ListViewGroup
             if (this.ListViewGroup == null)
                 this.ListViewGroup = new ListViewGroup();
             this.ListViewGroup.Header = this.Header;
             this.ListViewGroup.HeaderAlignment = this.HeaderAlignment;
             this.ListViewGroup.Name = this.Name;
-            this.ListViewGroup.Tag = this.Tag;
+
+            // Remember which OLVGroup created the ListViewGroup
+            this.ListViewGroup.Tag = this; 
+            
+            // Add the group to the control
             olv.Groups.Add(this.ListViewGroup);
 
             // Add any extra information
@@ -623,7 +629,7 @@ namespace BrightIdeasSoftware
         internal NativeMethods.LVGROUP2 AsNativeGroup(bool withId) {
 
             NativeMethods.LVGROUP2 group = new NativeMethods.LVGROUP2();
-            group.cbSize = ((uint)Marshal.SizeOf(typeof(NativeMethods.LVGROUP2)));
+            group.cbSize = (uint)Marshal.SizeOf(typeof(NativeMethods.LVGROUP2));
             group.mask = (uint)(GroupMask.LVGF_HEADER ^ GroupMask.LVGF_ALIGN ^ GroupMask.LVGF_STATE);
             group.pszHeader = this.Header;
             group.uAlign = (uint)this.HeaderAlignment;
@@ -735,7 +741,6 @@ namespace BrightIdeasSoftware
             metrics.Bottom = (uint)this.ListView.SpaceBetweenGroups;
             return NativeMethods.SetGroupMetrics(this.ListView, this.GroupId, metrics);
         }
-        
         #endregion
     }
 }
