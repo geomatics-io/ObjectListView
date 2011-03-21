@@ -247,7 +247,11 @@ namespace BrightIdeasSoftware
          DefaultValue(false)]
         public bool CanWrap {
             get { return canWrap; }
-            set { canWrap = value; }
+            set { 
+                canWrap = value;
+                if (canWrap)
+                    this.UseGdiTextRendering = false;
+            }
         }
         private bool canWrap;
 
@@ -2074,7 +2078,10 @@ namespace BrightIdeasSoftware
 
             // Run through all the subitems in the view for our column, and for each one that
             // has an animation attached to it, see if the frame needs updating.
-            foreach (OLVListItem lvi in this.ListView.Items) {
+
+            for (int i=0; i<this.ListView.GetItemCount(); i++) {
+                OLVListItem lvi = this.ListView.GetItem(i);
+
                 // Get the animation state from the subitem. If there isn't an animation state, skip this row.
                 OLVListSubItem lvsi = lvi.GetSubItem(subItemIndex);
                 AnimationState state = lvsi.AnimationState;
