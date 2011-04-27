@@ -52,7 +52,7 @@ OK, here's the bullet point feature list:
 * Easily enable :ref:`drag and drop <dragdrop-label>`.
 * Supports all ListView views (report, list, large and small icons).
 * Supports automatic grouping.
-* Supports sophisticate :ref:`group formatting <recipe-groupformatting>`, including collapsible groups (Vista only).
+* Supports sophisticated :ref:`group formatting <recipe-groupformatting>`, including collapsible groups (Vista and later only).
 * Columns can be fixed-width, have a minimum and/or maximum width, or be space-filling (:ref:`Column Widths <recipe-column-width>`)
 * Displays a :ref:`"list is empty" message <recipe-emptymsg>` when the list is empty (obviously).
 * Supports fancy :ref:`tooltips <recipe-tooltips>` for cells and for headers.
@@ -63,12 +63,15 @@ OK, here's the bullet point feature list:
 * Supports :ref:`image and text overlays <recipe-overlays>` as well as arbitrary :ref:`decorations <recipe-decorations>`.
 * Supports :ref:`hyperlinks <recipe-hyperlink>`.
 * Supports :ref:`hot tracking <recipe-hottracking>` with text font/color changes and with decorations.
-* Supports :ref:`column header formatting <recipe-headerformatting>`.
-* Supports :ref:`groups on virtual lists <recipe-virtualgroups>` (Vista only).
+* Supports :ref:`column header formatting <recipe-headerformatting>` including word wrapping and vertical text.
+* Supports :ref:`groups on virtual lists <recipe-virtualgroups>` (Vista and later only).
 * Supports :ref:`transluscent hot item and selection <recipe-vistascheme>` like Vista even on XP.
 * Supports :ref:`filtering <recipe-filtering>`, including the very common :ref:`iTunes-like text filtering <recipe-text-filtering>`.
 * Supports :ref:`animations <animations-label>` on cells, row, and the entire list.
+* Supports :ref:`column selection <column-selection-label>` through right-click on header.
+* Supports :ref:`Excel-like column filtering <column-filtering-label>`.
 * The `DataListView` version supports data binding.
+* The `FastDataListView` version supports data binding on large lists (100,000 plus rows).
 * The `FastObjectListView` version can build a list of 10,000 objects in less than 0.1 seconds.
 * The `VirtualObjectListView` version supports millions of rows through ListView's virtual mode.
 * The `TreeListView` version combines an expandable tree structure with the columns of a ListView.
@@ -81,14 +84,14 @@ OK, I'm interested. What do I do next?
 The source code to `ObjectListView` can be `downloaded here <download.html>`_. You
 can also download a demonstration, documentation and unit tests on the same page.
 
-After that, you might want to look at the :ref:`Getting Started` and the
+After that, you might want to look at the :ref:`Getting Started <gettingstarted>` and the
 :ref:`Cookbook` sections. Please make sure you have read and understood these
 sections before asking questions in the Forum_. There is also an article
 describing the `ObjectListView at CodeProject`_.
 
 At some point, you will want to do something with an ObjectListView and it won't
 be immediately obvious how to make it happen. After dutifully scouring the
-:ref:`Getting Started` and the :ref:`Cookbook` sections, you decide that is is
+:ref:`Getting Started <gettingstarted>` and the :ref:`Cookbook` sections, you decide that is is
 still not obvious. The Forum_ section is the place to find all your as-yet-
 unasked questions.
 
@@ -101,7 +104,7 @@ phillip_piper@bigfoot.com.
 
 .. _ObjectListView at CodeProject: http://www.codeproject.com/KB/list/ObjectListView.aspx
 
-.. _Forum: https://sourceforge.net/project/platformdownload.php?group_id=225207
+.. _Forum: http://sourceforge.net/projects/objectlistview/forums/forum/812922
 
 .. _reported here: https://sourceforge.net/tracker/?func=add&group_id=225207&atid=1064157
 
@@ -243,34 +246,11 @@ When thinking about using some new code, it's always interesting to hear what ot
 
    -- `vcleak <http://www.codeproject.com/script/Forums/View.aspx?fid=350107&msg=1716837>`_
 
-   
-Note to Visual Studio 2005 users
---------------------------------
 
-During the development of v2.4, my only copy of Visual Studio 2005 was wiped out by a hard disk crash. I can no longer test my code against Visual Studio 2005. However, I have continued to write my code with VS 2005 and .NET 2.0 in mind. So, to make the library compile with VS 2005, it should be enough to add any missing files to the project (*Filters.cs* is the only new file). With this file added, the library should compile without problem.
-
-However, the Sparkle animation library was written with .NET 3.5 in mind. The ObjectListView control does not use this library directly, but the demo does. To run the demo, you will have to:
-
-* remove the Sparkle animation library from the solution
-
-* comment out any reference to AnimatedDecoration class in *MainForm.cs*
-
-* remove the *AnimatedDecoration.cs* file from the demo project
-
-
-Once these steps are done, ObjectListView will work again under VS 2005.
 
 
 Future directions
 -----------------
-
-The next full version, 2.5, should add the following new features:
-
-* Virtual DataListView, aiming to handling 100,000 row datasets with good performance
-
-* Excel-like automatic user-interface for filters (right click on header to allow a filter to be given on values in that column)
-
-* Any other great ideas that people suggest
 
 v2.5.1 will bug fix and tweak v2.5.
 
@@ -296,15 +276,15 @@ Site contents
    whatsnew
    features
    gettingStarted
+   faq
    recipes
    Recipe - Cell Editing <cellEditing>
    Recipe - Owner Drawn <ownerDraw>
    Recipe - Drag and Drop <dragdrop>
    Recipe - Overlays <overlays>
-   faq
+   filtering
    download
    Technical Blog <blog>
    changelog
    samples
    animations
-   reference
