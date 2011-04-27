@@ -1,10 +1,13 @@
 /*
- * VirtualObjectListView - A virtual listview to show various aspects of a collection of objects
+ * VirtualObjectListView - A virtual listview delays fetching model objects until they are actually displayed.
  *
  * Author: Phillip Piper
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2011-04-05   JPP  - CheckedObjects now only returns objects that are currently in the list.
+ *                     ClearObjects() now resets all check state info.
+ * 2011-03-31   JPP  - Filtering on grouped virtual lists no longer behaves strangely.
  * 2011-03-17   JPP  - Virtual lists can (finally) set CheckBoxes back to false if it has been set to true.
  *                     (this is a little hacky and may not work reliably).
  *                   - GetNextItem() and GetPreviousItem() now work on grouped virtual lists.
@@ -135,7 +138,6 @@ namespace BrightIdeasSoftware
                 }
             }
         }
-        private bool checkBoxes = false;
 
         /// <summary>
         /// Get or set the collection of model objects that are checked.
@@ -168,11 +170,18 @@ namespace BrightIdeasSoftware
                 if (!this.CheckBoxes)
                     return objects;
 
+                // If a custom check state getter is install, we can't use our check state management
+                // We have to use the (slower) base version.
                 if (this.CheckStateGetter != null)
                     return base.CheckedObjects;
 
+                // If the data source has somehow vanished, we can't do anything
+                if (this.VirtualListDataSource == null)
+                    return objects;
+
+                // Collect items that are checked AND that still exist in the list.
                 foreach (KeyValuePair<Object, CheckState> kvp in this.checkStateMap) {
-                    if (kvp.Value == CheckState.Checked)
+                    if (kvp.Value == CheckState.Checked && this.VirtualListDataSource.GetObjectIndex(kvp.Key) >= 0)
                         objects.Add(kvp.Key);
                 }
                 return objects;
@@ -301,8 +310,13 @@ namespace BrightIdeasSoftware
 
             this.BeginUpdate();
             try {
+                int originalSize = this.VirtualListSize;
                 filterable.ApplyFilters(this.ModelFilter, this.ListFilter);
                 this.UpdateVirtualListSize();
+
+                // If the filtering actually did something, rebuild the groups if they are being shown
+                if (originalSize != this.VirtualListSize && this.ShowGroups)
+                    this.BuildGroups();
             } finally {
                 this.EndUpdate();
             }
@@ -493,8 +507,10 @@ namespace BrightIdeasSoftware
         public override void ClearObjects() {
             if (this.InvokeRequired)
                 this.Invoke(new MethodInvoker(this.ClearObjects));
-            else
+            else {
+                this.checkStateMap.Clear();
                 this.SetObjects(new ArrayList());
+            }
         }
 
         /// <summary>
@@ -820,15 +836,6 @@ namespace BrightIdeasSoftware
             state = base.PutCheckState(modelObject, state);
             this.checkStateMap[modelObject] = state;
             return state;
-        }
-
-        /// <summary>
-        /// Prepare the listview to show alternate row backcolors
-        /// </summary>
-        /// <remarks>Alternate colored backrows can't be handle in the same way as our base class.
-        /// With virtual lists, they are handled at RetrieveVirtualItem time.</remarks>
-        protected override void PrepareAlternateBackColors() {
-            // do nothing
         }
 
         /// <summary>
