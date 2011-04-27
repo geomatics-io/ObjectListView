@@ -5,17 +5,32 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2011-04-25  JPP  - Added SubItemChecking event
+ *                  - Fixed bug in handling of NewValue on CellEditFinishing event
+ * 2011-04-12  JPP  - Added UseFilterIndicator 
+ *                  - Added some more localizable messages
+ * 2011-04-10  JPP  - FormatCellEventArgs now has a CellValue property, which is the model value displayed
+ *                    by the cell. For example, for the Birthday column, the CellValue might be 
+ *                    DateTime(1980, 12, 31), whereas the cell's text might be 'Dec 31, 1980'.
+ * 2011-04-04  JPP  - Tweaked UseTranslucentSelection and UseTranslucentHotItem to look (a little) more
+ *                    like Vista/Win7.
+ *                  - Alternate colours are now only applied in Details view (as they always should have been)
+ *                  - Alternate colours are now correctly recalculated after removing objects
+ * 2011-03-29  JPP  - Added SelectColumnOnRightClickBehaviour to allow the selecting of columns mechanism 
+ *                    to be changed. Can now be InlineMenu (the default), SubMenu, or ModelDialog.
+ *                  - ColumnSelectionForm was moved from the demo into the ObjectListView project itself.
+ *                  - Ctrl-C copying is now able to use the DragSource to create the data transfer object.
  * 2011-03-19  JPP  - All model object comparisons now use Equals rather than == (thanks to vulkanino)
  *                  - [Small Break] GetNextItem() and GetPreviousItem() now accept and return OLVListView
  *                    rather than ListViewItems.
  * 2011-03-07  JPP  - [Big] Added Excel-style filtering. Right click on a header to show a Filtering menu.
- *                  - Added CellEditKeyEngine to allow key handling to be completely customised.
+ *                  - Added CellEditKeyEngine to allow key handling when cell editing to be completely customised.
  *                    Add CellEditTabChangesRows and CellEditEnterChangesRows to show some of these abilities.
  * 2011-03-06  JPP  - Added OLVColumn.AutoCompleteEditorMode in preference to AutoCompleteEditor 
  *                    (which is now just a wrapper). Thanks to Clive Haskins 
  *                  - Added lots of docs to new classes
  * 2011-02-25  JPP  - Preserve word wrap settings on TreeListView
- *                  - Resize last group to keep it on screen (thanks to 
+ *                  - Resize last group to keep it on screen (thanks to ?)
  * 2010-11-16  JPP  - Fixed (once and for all) DisplayIndex problem with Generator
  *                  - Changed the serializer used in SaveState()/RestoreState() so that it resolves on
  *                    class name alone.
@@ -421,7 +436,7 @@
  * - Support undocumented group features: subseted groups, group footer items
  * - Complete custom designer
  *
- * Copyright (C) 2006-2009 Phillip Piper
+ * Copyright (C) 2006-2011 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -444,7 +459,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -479,15 +493,13 @@ namespace BrightIdeasSoftware
     /// Sorting by column clicking and grouping by column are handled automatically.
     /// </para>
     /// <para>
-    /// Right clicking on the column header should present a popup menu that allows the user to
-    /// choose which columns will be visible in the list. This behaviour can be disabled by
-    /// setting SelectColumnsOnRightClick to false.
+    /// Right clicking on a column header should present a menu which can contain:
+    /// commands (sort, group, ungroup); filtering; and column selection. Whether these
+    /// parts of the menu appear is controlled by ShowCommandMenuOnRightClick, 
+    /// ShowFilterMenuOnRightClick and SelectColumnsOnRightClick respectively.
     /// </para>
     /// <para>
     /// This list puts sort indicators in the column headers to show the column sorting direction.
-    /// On Windows XP and later, the system standard images are used.
-    /// If you wish to replace the standard images with your own images, put entries in the small image list
-    /// with the key values "sort-indicator-up" and "sort-indicator-down".
     /// </para>
     /// <para>
     /// For these classes to build correctly, the project must have references to these assemblies:
@@ -501,8 +513,10 @@ namespace BrightIdeasSoftware
     /// </list>
     /// </remarks>
     //[Designer("BrightIdeasSoftware.Design.ObjectListViewDesigner")] // Uncomment this if you are feeling brave :)
-    public partial class ObjectListView : ListView, ISupportInitialize
-    {
+    public partial class ObjectListView : ListView, ISupportInitialize {
+        
+        #region Life and death
+        
         /// <summary>
         /// Create an ObjectListView
         /// </summary>
@@ -536,6 +550,8 @@ namespace BrightIdeasSoftware
                 this.glassPanels.Clear();
             }
         }
+
+        #endregion
 
         #region Static properties
 
@@ -591,23 +607,16 @@ namespace BrightIdeasSoftware
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         public virtual List<OLVColumn> AllColumns {
-            get {
-                return this.allColumns;
-            }
-            set {
-                if (value == null)
-                    this.allColumns = new List<OLVColumn>();
-                else
-                    this.allColumns = value;
-            }
+            get { return this.allColumns; }
+            set { this.allColumns = value ?? new List<OLVColumn>(); }
         }
         private List<OLVColumn> allColumns = new List<OLVColumn>();
 
         /// <summary>
-        /// If every second row has a background different to the control, what color should it be?
+        /// Gets or sets the background color of every second row 
         /// </summary>
         [Category("ObjectListView"),
-         Description("If using alternate colors, what foregroundColor should alterate rows be?"),
+         Description("If using alternate colors, what color should the background of alterate rows be?"),
          DefaultValue(typeof(Color), "")]
         public Color AlternateRowBackColor {
             get { return alternateRowBackColor; }
@@ -616,15 +625,12 @@ namespace BrightIdeasSoftware
         private Color alternateRowBackColor = Color.Empty;
 
         /// <summary>
-        /// Return the alternate row background color that has been set, or the default color
+        /// Gets the alternate row background color that has been set, or the default color
         /// </summary>
         [Browsable(false)]
         public virtual Color AlternateRowBackColorOrDefault {
             get {
-                if (alternateRowBackColor == Color.Empty)
-                    return Color.LemonChiffon;
-                else
-                    return alternateRowBackColor;
+                return this.alternateRowBackColor == Color.Empty ? Color.LemonChiffon : this.alternateRowBackColor;
             }
         }
 
@@ -664,35 +670,6 @@ namespace BrightIdeasSoftware
         public virtual ImageList BaseSmallImageList {
             get { return base.SmallImageList; }
             set { base.SmallImageList = value; }
-        }
-
-        /// <summary>
-        /// How does a user indicate that they want to edit cells?
-        /// </summary>
-        public enum CellEditActivateMode
-        {
-            /// <summary>
-            /// This list cannot be edited. F2 does nothing.
-            /// </summary>
-            None = 0,
-
-            /// <summary>
-            /// A single click on  a <strong>subitem</strong> will edit the value. Single clicking the primary column,
-            /// selects the row just like normal. The user must press F2 to edit the primary column.
-            /// </summary>
-            SingleClick = 1,
-
-            /// <summary>
-            /// Double clicking a subitem or the primary column will edit that cell.
-            /// F2 will edit the primary column.
-            /// </summary>
-            DoubleClick = 2,
-
-            /// <summary>
-            /// Pressing F2 is the only way to edit the cells. Once the primary column is being edited,
-            /// the other cells in the row can be edited by pressing Tab.
-            /// </summary>
-            F2Only = 3
         }
 
         /// <summary>
@@ -743,8 +720,9 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the behaviour of the Tab key when editing a cell on the left or right
         /// edge of the control. If this is false (the default), pressing Tab will wrap to the other side
-        /// of the same row. If this is true, Tab when on the right most cell will advance to the next row 
-        /// and Shift-Tab when on the left-most cell will change to the previous row.
+        /// of the same row. If this is true, pressing Tab when editing the right most cell will advance 
+        /// to the next row 
+        /// and Shift-Tab when editing the left-most cell will change to the previous row.
         /// </summary>
         [Category("ObjectListView"),
         Description("Should Tab/Shift-Tab change rows while cell editing?"),
@@ -789,7 +767,7 @@ namespace BrightIdeasSoftware
         private bool cellEditEnterChangesRows = false;
 
         /// <summary>
-        /// Gets the tool tip that shows tips for the cells
+        /// Gets the tool tip control that shows tips for the cells
         /// </summary>
         [Browsable(false)]
         public ToolTipControl CellToolTip {
@@ -893,7 +871,6 @@ namespace BrightIdeasSoftware
         /// a specialised editor with it.
         /// </summary>
         [Editor("BrightIdeasSoftware.Design.OLVColumnCollectionEditor", "System.Drawing.Design.UITypeEditor")]
-        //[Editor(typeof(BrightIdeasSoftware.Design.OLVColumnCollectionEditor), typeof(System.Drawing.Design.UITypeEditor))]
         new public ListView.ColumnHeaderCollection Columns {
             get {
                 return base.Columns;
@@ -924,6 +901,7 @@ namespace BrightIdeasSoftware
             }
         }
 
+
         /// <summary>
         /// Get the area of the control that shows the list, minus any header control
         /// </summary>
@@ -948,13 +926,41 @@ namespace BrightIdeasSoftware
         /// Gets or sets if the selected rows should be copied to the clipboard when the user presses Ctrl-C
         /// </summary>
         [Category("ObjectListView"),
-        Description("Should the control copyy the selection to the clipboard when the user presses Ctrl-C?"),
+        Description("Should the control copy the selection to the clipboard when the user presses Ctrl-C?"),
         DefaultValue(true)]
         public virtual bool CopySelectionOnControlC {
             get { return copySelectionOnControlC; }
             set { copySelectionOnControlC = value; }
         }
         private bool copySelectionOnControlC = true;
+
+
+        /// <summary>
+        /// Gets or sets whether the Control-C copy to clipboard functionality show use
+        /// the installed DragSource to create the data object that is placed onto the clipboard.
+        /// </summary>
+        /// <remarks>This is normally what is desired, unless a custom DragSource is installed 
+        /// that does some very specialized drag-drop behaviour.</remarks>
+        [Category("ObjectListView"),
+        Description("Should the Ctrl-C copy process use the DragSource to create the Clipboard data object?"),
+        DefaultValue(true)]
+        public bool CopySelectionOnControlCUsesDragSource {
+            get { return this.copySelectionOnControlCUsesDragSource; }
+            set { this.copySelectionOnControlCUsesDragSource = value; }
+        }
+        private bool copySelectionOnControlCUsesDragSource = true;
+
+        /// <summary>
+        /// Gets the list of decorations that will be drawn the ListView
+        /// </summary>
+        /// <remarks>
+        /// A decoration scrolls with the list contents. An overlay is fixed in place.
+        /// </remarks>
+        [Browsable(false)]
+        protected IList<IDecoration> Decorations {
+            get { return this.decorations; }
+        }
+        private List<IDecoration> decorations = new List<IDecoration>();
 
         /// <summary>
         /// When owner drawing, this renderer will draw columns that do not have specific renderer
@@ -1121,6 +1127,42 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets the collection of objects that survive any filtering that may be in place.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This collection is the result of filtering the current list of objects. 
+        /// It is not a snapshot of the filtered list that was last used to build the control. 
+        /// </para>
+        /// <para>
+        /// Normal warnings apply when using this with virtual lists. It will work, but it
+        /// may take a while.
+        /// </para>
+        /// </remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        virtual public IEnumerable FilteredObjects {
+            get {
+                if (this.IsFiltering)
+                    return this.FilterObjects(this.Objects, this.ModelFilter, this.ListFilter);
+                else
+                    return this.Objects;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the strategy object that will be used to build the Filter menu
+        /// </summary>
+        /// <remarks>If this is null, no filter menu will be built.</remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public FilterMenuBuilder FilterMenuBuildStrategy {
+            get { return filterMenuBuilder; }
+            set { filterMenuBuilder = value; }
+        }
+        private FilterMenuBuilder filterMenuBuilder = new FilterMenuBuilder();
+
+        /// <summary>
         /// Get or set whether or not the listview is frozen. When the listview is
         /// frozen, it will not update itself.
         /// </summary>
@@ -1275,6 +1317,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets the header control for the ListView
         /// </summary>
+        [Browsable(false)]
         public HeaderControl HeaderControl {
             get {
                 if (this.headerControl == null)
@@ -1569,6 +1612,15 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets whether or not the current list is filtering its contents
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        virtual public bool IsFiltering {
+            get { return this.UseFiltering && (this.ModelFilter != null || this.ListFilter != null); }
+        }
+
+        /// <summary>
         /// When the user types into a list, should the values in the current sort column be searched to find a match?
         /// If this is false, the primary column will always be used regardless of the sort column.
         /// </summary>
@@ -1670,6 +1722,43 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets or  sets the filter that is applied to our whole list of objects.
+        /// </summary>
+        /// <remarks>
+        /// The list is updated immediately to reflect this filter. 
+        /// </remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual IListFilter ListFilter {
+            get { return listFilter; }
+            set {
+                listFilter = value;
+                if (this.UseFiltering)
+                    this.UpdateFiltering();
+            }
+        }
+        private IListFilter listFilter;
+
+        /// <summary>
+        /// Gets or  sets the filter that is applied to each model objects in the list
+        /// </summary>
+        /// <remarks>
+        /// The list is updated immediately to reflect this filter. 
+        /// </remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual IModelFilter ModelFilter {
+            get { return modelFilter; }
+            set {
+                modelFilter = value;
+                if (this.UseFiltering)
+                    this.UpdateFiltering();
+            }
+        }
+        private IModelFilter modelFilter;
+
+
+        /// <summary>
         /// Gets the hit test info last time the mouse was moved.
         /// </summary>
         /// <remarks>Useful for hot item processing.</remarks>
@@ -1718,33 +1807,6 @@ namespace BrightIdeasSoftware
             set { ownerDrawnHeader = value; }
         }
         private bool ownerDrawnHeader;
-
-        /// <summary>
-        /// Which column did we last sort by
-        /// </summary>
-        [Browsable(false),
-        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual OLVColumn PrimarySortColumn {
-            get { return this.primarySortColumn; }
-            set {
-                this.primarySortColumn = value;
-                if (this.TintSortColumn) {
-                    this.SelectedColumn = value;
-                }
-            }
-        }
-        private OLVColumn primarySortColumn;
-
-        /// <summary>
-        /// Which direction did we last sort
-        /// </summary>
-        [Browsable(false),
-        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual SortOrder PrimarySortOrder {
-            get { return primarySortOrder; }
-            set { primarySortOrder = value; }
-        }
-        private SortOrder primarySortOrder;
 
         /// <summary>
         /// Get/set the collection of objects that this list will show
@@ -1846,16 +1908,31 @@ namespace BrightIdeasSoftware
         private List<IOverlay> overlays = new List<IOverlay>();
 
         /// <summary>
-        /// Gets the list of decorations that will be drawn the ListView
+        /// Which column did we last sort by
         /// </summary>
-        /// <remarks>
-        /// A decoration scrolls with the list contents. An overlay is fixed in place.
-        /// </remarks>
-        [Browsable(false)]
-        protected IList<IDecoration> Decorations {
-            get { return this.decorations; }
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual OLVColumn PrimarySortColumn {
+            get { return this.primarySortColumn; }
+            set {
+                this.primarySortColumn = value;
+                if (this.TintSortColumn) {
+                    this.SelectedColumn = value;
+                }
+            }
         }
-        private List<IDecoration> decorations = new List<IDecoration>();
+        private OLVColumn primarySortColumn;
+
+        /// <summary>
+        /// Which direction did we last sort
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual SortOrder PrimarySortOrder {
+            get { return primarySortOrder; }
+            set { primarySortOrder = value; }
+        }
+        private SortOrder primarySortOrder;
 
         /// <summary>
         /// Gets or sets if non-editable checkboxes are drawn as disabled.
@@ -1978,21 +2055,43 @@ namespace BrightIdeasSoftware
         /// When the user right clicks on the column headers, should a menu be presented which will allow
         /// them to choose which columns will be shown in the view?
         /// </summary>
+        /// <remarks>This is just a compatibility wrapper for the SelectColumnsOnRightClickBehaviour
+        /// property.</remarks>
         [Category("ObjectListView"),
         Description("When the user right clicks on the column headers, should a menu be presented which will allow them to choose which columns will be shown in the view?"),
         DefaultValue(true)]
         public virtual bool SelectColumnsOnRightClick {
-            get { return selectColumnsOnRightClick; }
-            set { selectColumnsOnRightClick = value; }
+            get { return this.SelectColumnsOnRightClickBehaviour != ColumnSelectBehaviour.None; }
+            set {
+                if (value) {
+                    if (this.SelectColumnsOnRightClickBehaviour == ColumnSelectBehaviour.None)
+                        this.SelectColumnsOnRightClickBehaviour = ColumnSelectBehaviour.InlineMenu;
+                } else {
+                    this.SelectColumnsOnRightClickBehaviour = ColumnSelectBehaviour.None;
+                }
+            }
         }
-        private bool selectColumnsOnRightClick = true;
+
+        /// <summary>
+        /// Gets or sets how the user will be able to select columns when the header is right clicked
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("When the user right clicks on the column headers, how will the user be able to select columns?"),
+        DefaultValue(ColumnSelectBehaviour.InlineMenu)]
+        public virtual ColumnSelectBehaviour SelectColumnsOnRightClickBehaviour {
+            get { return selectColumnsOnRightClickBehaviour; }
+            set { selectColumnsOnRightClickBehaviour = value; }
+        }
+        private ColumnSelectBehaviour selectColumnsOnRightClickBehaviour = ColumnSelectBehaviour.Submenu;
 
         /// <summary>
         /// When the column select menu is open, should it stay open after an item is selected?
         /// Staying open allows the user to turn more than one column on or off at a time.
         /// </summary>
+        /// <remarks>This only works when SelectColumnsOnRightClickBehaviour is set to InlineMenu.
+        /// It has no effect when the behaviour is set to SubMenu.</remarks>
         [Category("ObjectListView"),
-        Description("When the column select menu is open, should it stay open after an item is selected?"),
+        Description("When the column select inline menu is open, should it stay open after an item is selected?"),
         DefaultValue(true)]
         public virtual bool SelectColumnsMenuStaysOpen {
             get { return selectColumnsMenuStaysOpen; }
@@ -2537,6 +2636,66 @@ namespace BrightIdeasSoftware
         private bool useCustomSelectionColors;
 
         /// <summary>
+        /// Gets or sets whether this ObjectListView will use the same hot item and selection 
+        /// mechanism that Vista Explorer does.
+        /// </summary>
+        /// <remarks>This property has many imperfections:
+        /// <list type="bullet">
+        /// <item><description>This only works on Vista and later</description></item>
+        /// <item><description>It does nothing for owner drawn lists.
+        /// Owner drawn lists are (naturally) controlled by their renderers.</description></item>
+        /// <item><description>It does not work well with AlternateRowBackColors.</description></item>
+        /// <item><description>It does not play well with HotItemStyles.</description></item>
+        /// <item><description>It looks a little bit silly is FullRowSelect is false.</description></item>
+        /// </list>
+        /// But if you absolutely have to look like Vista, this is your property. 
+        /// Do not complain if settings this messes up other things.
+        /// </remarks>
+        [Category("ObjectListView"),
+         Description("Should the list use the same hot item and selection mechanism as Vista?"),
+         DefaultValue(false)]
+        public bool UseExplorerTheme {
+            get { return useExplorerTheme; }
+            set {
+                useExplorerTheme = value;
+                if (this.Created)
+                    NativeMethods.SetWindowTheme(this.Handle, value ? "explorer" : "", null);
+            }
+        }
+        private bool useExplorerTheme;
+
+        /// <summary>
+        /// Gets or sets whether the list should enable filtering
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("Should the list enable filtering?"),
+        DefaultValue(false)]
+        virtual public bool UseFiltering {
+            get { return useFiltering; }
+            set {
+                useFiltering = value;
+                this.UpdateFiltering();
+            }
+        }
+        private bool useFiltering;
+
+        /// <summary>
+        /// Gets or sets whether the list should put an indicator into a column's header to show that
+        /// it is filtering on that column
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("Should an image be drawn in a column's header when that column is being used for filtering?"),
+        DefaultValue(true)]
+        virtual public bool UseFilterIndicator {
+            get { return useFilterIndicator; }
+            set { 
+                useFilterIndicator = value;
+                this.Invalidate();
+            }
+        }
+        private bool useFilterIndicator = true;
+
+        /// <summary>
         /// Should the item under the cursor be formatted in a special way?
         /// </summary>
         [Category("ObjectListView"),
@@ -2626,198 +2785,17 @@ namespace BrightIdeasSoftware
                 useTranslucentSelection = value;
                 if (value) {
                     RowBorderDecoration rbd = new RowBorderDecoration();
-                    rbd.BorderPen = new Pen(Color.FromArgb(128, Color.Turquoise), 1);
-                    rbd.FillBrush = new SolidBrush(Color.FromArgb(64, Color.Turquoise));
-                    rbd.BoundsPadding = new Size(0, -1);
-                    rbd.CornerRounding = 12.0f;
+                    rbd.BorderPen = new Pen(Color.FromArgb(154, 223, 251));
+                    rbd.FillBrush = new SolidBrush(Color.FromArgb(48, 163, 217, 225));
+                    rbd.BoundsPadding = new Size(0, 0);
+                    rbd.CornerRounding = 6.0f;
                     this.SelectedRowDecoration = rbd;
                 } else
                     this.SelectedRowDecoration = null;
             }
         }
         private bool useTranslucentSelection;
-
-        /// <summary>
-        /// Gets or sets whether this ObjectListView will use the same hot item and selection 
-        /// mechanism that Vista Explorer does.
-        /// </summary>
-        /// <remarks>This property has many imperfections:
-        /// <list type="bullet">
-        /// <item><description>This only works on Vista and later</description></item>
-        /// <item><description>It does nothing for owner drawn lists.
-        /// Owner drawn lists are (naturally) controlled by their renderers.</description></item>
-        /// <item><description>It does not work well with AlternateRowBackColors.</description></item>
-        /// <item><description>It does not play well with HotItemStyles.</description></item>
-        /// <item><description>It looks a little bit silly is FullRowSelect is false.</description></item>
-        /// </list>
-        /// But if you absolutely have to look like Vista, this is your property. 
-        /// Do not complain if settings this messes up other things.
-        /// </remarks>
-        [Category("ObjectListView"),
-         Description("Should the list use the same hot item and selection mechanism as Vista?"),
-         DefaultValue(false)]
-        public bool UseExplorerTheme {
-            get { return useExplorerTheme; }
-            set {
-                useExplorerTheme = value;
-                if (this.Created)
-                    NativeMethods.SetWindowTheme(this.Handle, value ? "explorer" : "", null);
-            }
-        }
-        private bool useExplorerTheme;
-
-        /// <summary>
-        /// Gets or sets whether the list should enable filtering
-        /// </summary>
-        [Category("ObjectListView"),
-        Description("Should the list enable filtering?"),
-        DefaultValue(false)]
-        virtual public bool UseFiltering {
-            get { return useFiltering; }
-            set {
-                useFiltering = value;
-                this.UpdateFiltering();
-            }
-        }
-        private bool useFiltering;
-
-        /// <summary>
-        /// Do the actual work of filtering
-        /// </summary>
-        /// <param name="objects"></param>
-        /// <param name="aModelFilter"></param>
-        /// <param name="aListFilter"></param>
-        /// <returns></returns>
-        virtual protected IEnumerable FilterObjects(IEnumerable objects, IModelFilter aModelFilter, IListFilter aListFilter) {
-            // Being cautious
-            objects = objects ?? new ArrayList();
-
-            // Tell the world to filter the objects. If they do so, don't do anything else
-            FilterEventArgs args = new FilterEventArgs(objects);
-            this.OnFilter(args);
-            if (args.FilteredObjects != null)
-                return args.FilteredObjects;
-
-            // Apply a filter to the list as a whole
-            if (aListFilter != null)
-                objects = aListFilter.Filter(objects);
-
-            // Apply the object filter if there is one
-            if (aModelFilter != null) {
-                ArrayList filteredObjects = new ArrayList();
-                foreach (object model in objects) {
-                    if (aModelFilter.Filter(model))
-                        filteredObjects.Add(model);
-                }
-                objects = filteredObjects;
-            }
-
-            return objects;
-        }
-
-        /// <summary>
-        /// Gets the collection of objects that survive any filtering that may be in place.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// This collection is the result of filtering the current list of objects. 
-        /// It is not a snapshot of the filtered list that was last used to build the control. 
-        /// </para>
-        /// <para>
-        /// Normal warnings apply when using this with virtual lists. It will work, but it
-        /// may take a while.
-        /// </para>
-        /// </remarks>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        virtual public IEnumerable FilteredObjects {
-            get {
-                if (this.IsFiltering)
-                    return this.FilterObjects(this.Objects, this.ModelFilter, this.ListFilter);
-                else
-                    return this.Objects;
-            }
-        }
-
-        /// <summary>
-        /// Gets whether or not the current list is filtering its contents
-        /// </summary>
-        [Browsable(false),
-        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        virtual public bool IsFiltering {
-            get { return this.UseFiltering && (this.ModelFilter != null || this.ListFilter != null); }
-        }
-
-        /// <summary>
-        /// Gets or  sets the filter that is applied to each model objects in the list
-        /// </summary>
-        /// <remarks>
-        /// The list is updated immediately to reflect this filter. 
-        /// </remarks>
-        [Browsable(false),
-        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual IModelFilter ModelFilter {
-            get { return modelFilter; }
-            set {
-                modelFilter = value;
-                if (this.UseFiltering)
-                    this.UpdateFiltering();
-            }
-        }
-        private IModelFilter modelFilter;
-
-        /// <summary>
-        /// Gets or  sets the filter that is applied to our whole list of objects.
-        /// </summary>
-        /// <remarks>
-        /// The list is updated immediately to reflect this filter. 
-        /// </remarks>
-        [Browsable(false),
-        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual IListFilter ListFilter {
-            get { return listFilter; }
-            set {
-                listFilter = value;
-                if (this.UseFiltering)
-                    this.UpdateFiltering();
-            }
-        }
-        private IListFilter listFilter;
-
-        /// <summary>
-        /// Remove all column filtering.
-        /// </summary>
-        public virtual void ResetColumnFiltering() {
-            foreach (OLVColumn column in this.Columns) {
-                column.ValuesChosenForFiltering.Clear();
-            }
-            this.UpdateColumnFiltering();
-        }
-
-        /// <summary>
-        /// Update the filtering of this ObjectListView based on the value filtering
-        /// defined in each column
-        /// </summary>
-        public virtual void UpdateColumnFiltering() {
-            List<IModelFilter> filters = new List<IModelFilter>();
-            foreach (OLVColumn column in this.Columns) {
-                IModelFilter filter = column.ValueBasedFilter;
-                if (filter != null)
-                    filters.Add(filter);
-            }
-            if (filters.Count == 0)
-                this.ModelFilter = null;
-            else
-                this.ModelFilter = new CompositeAllFilter(filters);
-        }
-
-        /// <summary>
-        /// When some setting related to filtering changes, this method is called.
-        /// </summary>
-        protected virtual void UpdateFiltering() {
-            this.BuildList(true);
-        }
-
+        
         /// <summary>
         /// Gets or sets if the ObjectListView will use a translucent hot row highlighting mechanism like Vista.
         /// </summary>
@@ -2832,10 +2810,11 @@ namespace BrightIdeasSoftware
                 if (value) {
                     this.HotItemStyle = new HotItemStyle();
                     RowBorderDecoration rbd = new RowBorderDecoration();
-                    rbd.BorderPen = new Pen(Color.FromArgb(128, Color.LightSeaGreen), 1);
-                    rbd.FillBrush = new SolidBrush(Color.FromArgb(48, Color.LightSeaGreen));
+                    rbd.BorderPen = new Pen(Color.FromArgb(154, 223, 251));
                     rbd.BoundsPadding = new Size(0, 0);
-                    rbd.CornerRounding = 4.0f;
+                    rbd.CornerRounding = 6.0f;
+                    rbd.FillGradientFrom = Color.FromArgb(0, 255, 255, 255);
+                    rbd.FillGradientTo = Color.FromArgb(64, 183, 237, 240);
                     this.HotItemStyle.Decoration = rbd;
                 } else
                     this.HotItemStyle = null;
@@ -3127,6 +3106,17 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Resize the columns to the maximum of the header width and the data.
+        /// </summary>		
+        public void AutoResizeColumns()
+        {
+            foreach (OLVColumn c in this.Columns)
+            {
+                c.Width = -2;
+            }
+        }
+
+        /// <summary>
         /// Organise the view items into groups, based on the last sort column or the first column
         /// if there is no last sort column
         /// </summary>
@@ -3244,7 +3234,9 @@ namespace BrightIdeasSoftware
         /// Make a list of groups that should be shown according to the given parameters
         /// </summary>
         /// <param name="parms"></param>
-        /// <returns></returns>
+        /// <returns>The list of groups to be created</returns>
+        /// <remarks>This should not change the state of the control. It is possible that the
+        /// groups created will not be used. They may simply be discarded.</remarks>
         protected virtual IList<OLVGroup> MakeGroups(GroupingParameters parms) {
 
             // There is a lot of overlap between this method and FastListGroupingStrategy.MakeGroups()
@@ -3508,11 +3500,18 @@ namespace BrightIdeasSoftware
         /// 10,000,000 rows, this method will faithfully try to copy all of them to the clipboard.
         /// From the user's point of view, your program will appear to have hung.</remarks>
         public virtual void CopySelectionToClipboard() {
-            //THINK: Do we want to include something like this?
-            //if (this.SelectedIndices.Count > 10000)
-            //    return;
+            IList selection = this.SelectedObjects;
+            if (selection.Count == 0)
+                return;
 
-            this.CopyObjectsToClipboard(this.SelectedObjects);
+            // Use the DragSource object to create the data object, if so configured.
+            // This relies on the assumption that DragSource will handle the selected objects only.
+            // It is legal for StartDrag to return null.
+            object data = null;
+            if (this.CopySelectionOnControlCUsesDragSource && this.DragSource != null)
+                data = this.DragSource.StartDrag(this, MouseButtons.Left, this.ModelToItem(selection[0]));
+
+            Clipboard.SetDataObject(data ?? new OLVDataObject(this, selection));
         }
 
         /// <summary>
@@ -3522,6 +3521,8 @@ namespace BrightIdeasSoftware
             if (objectsToCopy.Count == 0)
                 return;
 
+            // We don't know where these objects came from, so we can't use the DragSource to create
+            // the data object, like we do with CopySelectionToClipboard() above.
             OLVDataObject dataObject = new OLVDataObject(this, objectsToCopy);
             dataObject.CreateTextFormats();
             Clipboard.SetDataObject(dataObject);
@@ -3742,9 +3743,6 @@ namespace BrightIdeasSoftware
                     OLVListItem lvi = this.GetItem(i);
                     this.SetSubItemImages(lvi.Index, lvi);
                 }
-
-                if (this.LastSortColumn == null && this.UseAlternatingBackColors && this.View == View.Details)
-                    this.PrepareAlternateBackColors();
 
                 // Tell the world that the list has changed
                 this.OnItemsChanged(new ItemsChangedEventArgs());
@@ -4083,9 +4081,7 @@ namespace BrightIdeasSoftware
                             this.Items.RemoveAt(i);
                     }
                 }
-
-                if (this.LastSortColumn == null && this.UseAlternatingBackColors && this.View == View.Details)
-                    this.PrepareAlternateBackColors();
+                this.PostProcessRows();
 
                 // Tell the world that the list has changed
                 this.OnItemsChanged(new ItemsChangedEventArgs());
@@ -5508,17 +5504,25 @@ namespace BrightIdeasSoftware
             return false;
         }
 
+        /// <summary>
+        /// Create the menu that should be displayed when the user right clicks
+        /// on the given column header.
+        /// </summary>
+        /// <param name="columnIndex">Index of the column that was right clicked.
+        /// This can be negative, which indicates a click outside of any header.</param>
+        /// <returns>The toolstrip that should be displayed</returns>
         protected virtual ToolStripDropDown MakeHeaderRightClickMenu(int columnIndex) {
             ToolStripDropDown m = new ContextMenuStrip();
 
-            if (columnIndex >= 0 && this.ShowFilterMenuOnRightClick)
-                m = this.MakeExcelFilteringMenu(m, columnIndex);
+            if (columnIndex >= 0 && this.UseFiltering && this.ShowFilterMenuOnRightClick)
+                m = this.MakeFilteringMenu(m, columnIndex);
 
             if (columnIndex >= 0 && this.ShowCommandMenuOnRightClick) 
                 m = this.MakeColumnCommandMenu(m, columnIndex);
 
-            if (this.SelectColumnsOnRightClick) 
+            if (this.SelectColumnsOnRightClickBehaviour != ColumnSelectBehaviour.None) {
                 m = this.MakeColumnSelectMenu(m);
+            }
 
             return m;
         }
@@ -5631,6 +5635,36 @@ namespace BrightIdeasSoftware
         private string menuLabelUnsort = "Unsort";
 
         /// <summary>
+        /// 
+        /// </summary>
+        [Category("Labels - ObjectListView"), DefaultValue("Columns"), Localizable(true)]
+        public string MenuLabelColumns {
+            get { return this.menuLabelColumns; }
+            set { this.menuLabelColumns = value; }
+        }
+        private string menuLabelColumns = "Columns";
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Category("Labels - ObjectListView"), DefaultValue("Select Columns..."), Localizable(true)]
+        public string MenuLabelSelectColumns {
+            get { return this.menuLabelSelectColumns; }
+            set { this.menuLabelSelectColumns = value; }
+        }
+        private string menuLabelSelectColumns = "Select Columns...";
+
+        /// <summary>
+        /// Gets or sets the image that will be place next to the Sort Ascending command
+        /// </summary>
+        static public Bitmap SortAscendingImage = BrightIdeasSoftware.Properties.Resources.SortAscending;
+
+        /// <summary>
+        /// Gets or sets the image that will be placed next to the Sort Descending command
+        /// </summary>
+        static public Bitmap SortDescendingImage = BrightIdeasSoftware.Properties.Resources.SortDescending;
+
+        /// <summary>
         /// Append the column selection menu items to the given menu strip.
         /// </summary>
         /// <param name="strip">The menu to which the items will be added.</param>
@@ -5642,15 +5676,18 @@ namespace BrightIdeasSoftware
             if (column == null)
                 return strip;
 
+            if (strip.Items.Count > 0)
+                strip.Items.Add(new ToolStripSeparator());
+
             string label = String.Format(this.MenuLabelSortAscending, column.Text);
             if (!String.IsNullOrEmpty(label)) {
-                strip.Items.Add(label, null, (EventHandler)delegate(object sender, EventArgs args) {
+                strip.Items.Add(label, ObjectListView.SortAscendingImage, (EventHandler)delegate(object sender, EventArgs args) {
                     this.Sort(column, SortOrder.Ascending);
                 });
             }
             label = String.Format(this.MenuLabelSortDescending, column.Text);
             if (!String.IsNullOrEmpty(label)) {
-                strip.Items.Add(label, null, (EventHandler)delegate(object sender, EventArgs args) {
+                strip.Items.Add(label, ObjectListView.SortDescendingImage, (EventHandler)delegate(object sender, EventArgs args) {
                     this.Sort(column, SortOrder.Descending);
                 });
             }
@@ -5711,12 +5748,46 @@ namespace BrightIdeasSoftware
         /// <param name="strip">The menu to which the items will be added.</param>
         /// <returns>Return the menu to which the items were added</returns>
         public virtual ToolStripDropDown MakeColumnSelectMenu(ToolStripDropDown strip) {
-            strip.ItemClicked += new ToolStripItemClickedEventHandler(ColumnSelectMenu_ItemClicked);
-            strip.Closing += new ToolStripDropDownClosingEventHandler(ColumnSelectMenu_Closing);
 
-            // Sort columns by display order
+            System.Diagnostics.Debug.Assert(this.SelectColumnsOnRightClickBehaviour != ColumnSelectBehaviour.None);
+
+            // Append a separator if the menu isn't empty and the last item isn't already a separator
+            if (strip.Items.Count > 0 && (!(strip.Items[strip.Items.Count-1] is ToolStripSeparator)))
+                strip.Items.Add(new ToolStripSeparator());
+
             if (this.AllColumns.Count > 0 && this.AllColumns[0].LastDisplayIndex == -1)
                 this.RememberDisplayIndicies();
+
+            if (this.SelectColumnsOnRightClickBehaviour == ColumnSelectBehaviour.ModelDialog) {
+                strip.Items.Add(this.MenuLabelSelectColumns, null, delegate(object sender, EventArgs args) {
+                    (new ColumnSelectionForm()).OpenOn(this);
+                });
+            }
+
+            if (this.SelectColumnsOnRightClickBehaviour == ColumnSelectBehaviour.Submenu) {
+                ToolStripMenuItem menu = new ToolStripMenuItem(this.MenuLabelColumns);
+                menu.DropDownItemClicked += new ToolStripItemClickedEventHandler(ColumnSelectMenu_ItemClicked);
+                strip.Items.Add(menu);
+                this.AddItemsToColumnSelectMenu(menu.DropDownItems);
+            }
+
+            if (this.SelectColumnsOnRightClickBehaviour == ColumnSelectBehaviour.InlineMenu) {
+                strip.ItemClicked += new ToolStripItemClickedEventHandler(ColumnSelectMenu_ItemClicked);
+                strip.Closing += new ToolStripDropDownClosingEventHandler(ColumnSelectMenu_Closing);
+                this.AddItemsToColumnSelectMenu(strip.Items);
+            }
+
+            return strip;
+        }
+
+        /// <summary>
+        /// Create the menu items that will allow columns to be choosen and add them to the 
+        /// given collection
+        /// </summary>
+        /// <param name="items"></param>
+        protected void AddItemsToColumnSelectMenu(ToolStripItemCollection items) {
+
+            // Sort columns by display order
             List<OLVColumn> columns = new List<OLVColumn>(this.AllColumns);
             columns.Sort(delegate(OLVColumn x, OLVColumn y) { return (x.LastDisplayIndex - y.LastDisplayIndex); });
 
@@ -5729,14 +5800,11 @@ namespace BrightIdeasSoftware
                 // The 'Index' property returns -1 when the column is not visible, so if the
                 // column isn't visible we have to enable the item. Also the first column can't be turned off
                 mi.Enabled = !col.IsVisible || (col.Index > 0);
-                strip.Items.Add(mi);
+                items.Add(mi);
             }
-
-            return strip;
         }
 
         private void ColumnSelectMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
-            System.Diagnostics.Debug.WriteLine("ColumnSelectMenu_ItemClicked");
             this.contextMenuStaysOpen = false;
             ToolStripMenuItem menuItemClicked = (ToolStripMenuItem)e.ClickedItem;
             OLVColumn col = menuItemClicked.Tag as OLVColumn;
@@ -5750,29 +5818,27 @@ namespace BrightIdeasSoftware
         internal bool contextMenuStaysOpen;
 
         private void ColumnSelectMenu_Closing(object sender, ToolStripDropDownClosingEventArgs e) {
-            System.Diagnostics.Debug.WriteLine("-");
-            System.Diagnostics.Debug.WriteLine(e.CloseReason);
-            System.Diagnostics.Debug.WriteLine(this.contextMenuStaysOpen);
-            e.Cancel = (this.contextMenuStaysOpen && e.CloseReason == ToolStripDropDownCloseReason.ItemClicked);
+            e.Cancel = this.contextMenuStaysOpen && e.CloseReason == ToolStripDropDownCloseReason.ItemClicked;
+            this.contextMenuStaysOpen = false;
         }
 
-        public virtual ToolStripDropDown MakeExcelFilteringMenu(ToolStripDropDown strip, int columnIndex) {
+        /// <summary>
+        /// Create a Filtering menu
+        /// </summary>
+        /// <param name="strip"></param>
+        /// <param name="columnIndex"></param>
+        /// <returns></returns>
+        public virtual ToolStripDropDown MakeFilteringMenu(ToolStripDropDown strip, int columnIndex) {
             OLVColumn column = this.GetColumn(columnIndex);
             if (column == null)
                 return strip;
 
-            FilterMenuBuilder strategy = this.ExcelFilterer;
+            FilterMenuBuilder strategy = this.FilterMenuBuildStrategy;
             if (strategy == null)
                 return strip;
 
             return strategy.MakeFilterMenu(strip, this, column);
         }
-
-        public FilterMenuBuilder ExcelFilterer {
-            get { return excelFilterer; }
-            set { excelFilterer = value; }
-        }
-        private FilterMenuBuilder excelFilterer = new FilterMenuBuilder();
 
         /// <summary>
         /// Override the OnColumnReordered method to do what we want
@@ -6075,9 +6141,12 @@ namespace BrightIdeasSoftware
             CheckState currentState = column.GetCheckState(rowObject);
             CheckState newState = CalculateToggledCheckState(column, currentState);
 
-            // TODO: Fire event
+            SubItemCheckingEventArgs args = new SubItemCheckingEventArgs(column, this.ModelToItem(rowObject), column.Index, currentState, newState);
+            this.OnSubItemChecking(args);
+            if (args.Canceled)
+                return;
 
-            switch (newState) {
+            switch (args.NewValue) {
                 case CheckState.Checked:
                     this.CheckSubItem(rowObject, column);
                     break;
@@ -6577,9 +6646,6 @@ namespace BrightIdeasSoftware
             if (this.ShowSortIndicators)
                 this.ShowSortIndicator(args.ColumnToSort, args.SortOrder);
 
-            if (this.UseAlternatingBackColors && this.View == View.Details)
-                this.PrepareAlternateBackColors();
-
             this.LastSortColumn = args.ColumnToSort;
             this.LastSortOrder = args.SortOrder;
 
@@ -6802,7 +6868,9 @@ namespace BrightIdeasSoftware
         }
 
         private OLVListSubItem MakeSubItem(object rowObject, OLVColumn column) {
-            OLVListSubItem subItem = new OLVListSubItem(column.GetStringValue(rowObject),
+            object cellValue = column.GetValue(rowObject);
+            OLVListSubItem subItem = new OLVListSubItem(cellValue,
+                                                        column.ValueToString(cellValue),
                                                         column.GetImage(rowObject));
             if (this.UseHyperlinks && column.Hyperlink) {
                 IsHyperlinkEventArgs args = new IsHyperlinkEventArgs();
@@ -6839,6 +6907,7 @@ namespace BrightIdeasSoftware
                 }
             }
         }
+
 
         /// <summary>
         /// Make sure the ListView has the extended style that says to display subitem images.
@@ -6932,9 +7001,6 @@ namespace BrightIdeasSoftware
             // Items collection are cached. Getting the Count flushes that cache.
             int count = this.Items.Count;
 
-            //if (this.ShowImagesOnSubItems)
-            //    this.ForceSubItemImagesExStyle();
-
             int i = 0;
             if (this.ShowGroups) {
                 foreach (ListViewGroup group in this.Groups) {
@@ -6955,7 +7021,7 @@ namespace BrightIdeasSoftware
         /// Do the work required after one item in a listview have been created
         /// </summary>
         protected virtual void PostProcessOneRow(int rowIndex, int displayIndex, OLVListItem olvi) {
-            if (this.UseAlternatingBackColors) {
+            if (this.UseAlternatingBackColors && this.View == View.Details) {
                 if (displayIndex % 2 == 1) {
                     olvi.BackColor = this.AlternateRowBackColorOrDefault;
                 } else {
@@ -6979,6 +7045,7 @@ namespace BrightIdeasSoftware
         /// whether the row should be colored. But when organised by groups, lvi.Index is not
         /// useable because it still refers to the position in the overall list, not the display order.
         ///</remarks>
+        [Obsolete("This method is no longer used. Override PostProcessOneRow() to achieve a similar result")]
         protected virtual void PrepareAlternateBackColors() {
         }
 
@@ -7965,12 +8032,7 @@ namespace BrightIdeasSoftware
         /// <returns>A Control to edit the given cell</returns>
         protected virtual Control GetCellEditor(OLVListItem item, int subItemIndex) {
             OLVColumn column = this.GetColumn(subItemIndex);
-            Object value = column.GetValue(item.RowObject);
-
-            // If the value of the cell is null, we can't decide what type of editor to use.
-            // Run through the first 1000 rows looking for a non-null value in this column.
-            for (int i = 0; value == null && i < Math.Min(this.GetItemCount(), 1000); i++)
-                value = column.GetValue(this.GetModelObject(i));
+            Object value = column.GetValue(item.RowObject) ?? this.GetFirstNonNullValue(column);
 
             // TODO: What do we do if value is still null here?
 
@@ -7982,6 +8044,21 @@ namespace BrightIdeasSoftware
                 editor = this.MakeDefaultCellEditor(column);
 
             return editor;
+        }
+
+        /// <summary>
+        /// Get the first non-null value of the given column.
+        /// At most 1000 rows will be considered.
+        /// </summary>
+        /// <param name="column"></param>
+        /// <returns>The first non-null value, or null if no non-null values were found</returns>
+        internal object GetFirstNonNullValue(OLVColumn column) {
+            for (int i = 0; i < Math.Min(this.GetItemCount(), 1000); i++) {
+                object value = column.GetValue(this.GetModelObject(i));
+                if (value != null)
+                    return value;
+            }
+            return null;
         }
 
         /// <summary>
@@ -8095,8 +8172,7 @@ namespace BrightIdeasSoftware
 
             // If someone doesn't cancel the editing process, write the value back into the model
             if (!this.cellEditEventArgs.Cancel) {
-                Object value = this.GetControlValue(this.cellEditor);
-                this.cellEditEventArgs.Column.PutValue(this.cellEditEventArgs.RowObject, value);
+                this.cellEditEventArgs.Column.PutValue(this.cellEditEventArgs.RowObject, this.cellEditEventArgs.NewValue);
                 this.RefreshItem(this.cellEditEventArgs.ListViewItem);
             }
 
@@ -8700,6 +8776,83 @@ namespace BrightIdeasSoftware
 
         #endregion
 
+        #region Filtering
+
+        /// <summary>
+        /// Create a filter that will enact all the filtering currently installed
+        /// on the visible columns.
+        /// </summary>
+        public virtual IModelFilter CreateColumnFilter() {
+            List<IModelFilter> filters = new List<IModelFilter>();
+            foreach (OLVColumn column in this.Columns) {
+                IModelFilter filter = column.ValueBasedFilter;
+                if (filter != null)
+                    filters.Add(filter);
+            }
+            return (filters.Count == 0) ? null : new CompositeAllFilter(filters);
+        }
+
+        /// <summary>
+        /// Do the actual work of filtering
+        /// </summary>
+        /// <param name="objects"></param>
+        /// <param name="aModelFilter"></param>
+        /// <param name="aListFilter"></param>
+        /// <returns></returns>
+        virtual protected IEnumerable FilterObjects(IEnumerable objects, IModelFilter aModelFilter, IListFilter aListFilter) {
+            // Being cautious
+            objects = objects ?? new ArrayList();
+
+            // Tell the world to filter the objects. If they do so, don't do anything else
+            FilterEventArgs args = new FilterEventArgs(objects);
+            this.OnFilter(args);
+            if (args.FilteredObjects != null)
+                return args.FilteredObjects;
+
+            // Apply a filter to the list as a whole
+            if (aListFilter != null)
+                objects = aListFilter.Filter(objects);
+
+            // Apply the object filter if there is one
+            if (aModelFilter != null) {
+                ArrayList filteredObjects = new ArrayList();
+                foreach (object model in objects) {
+                    if (aModelFilter.Filter(model))
+                        filteredObjects.Add(model);
+                }
+                objects = filteredObjects;
+            }
+
+            return objects;
+        }
+
+        /// <summary>
+        /// Remove all column filtering.
+        /// </summary>
+        public virtual void ResetColumnFiltering() {
+            foreach (OLVColumn column in this.Columns) {
+                column.ValuesChosenForFiltering.Clear();
+            }
+            this.UpdateColumnFiltering();
+        }
+
+        /// <summary>
+        /// Update the filtering of this ObjectListView based on the value filtering
+        /// defined in each column
+        /// </summary>
+        public virtual void UpdateColumnFiltering() {
+            this.ModelFilter = this.CreateColumnFilter();
+        }
+
+        /// <summary>
+        /// When some setting related to filtering changes, this method is called.
+        /// </summary>
+        protected virtual void UpdateFiltering() {
+            this.BuildList(true);
+        }
+
+        #endregion
+
         #region Implementation variables
 
         private Rectangle lastUpdateRectangle; // remember the update rect from the last WM_PAINT message
@@ -8714,2035 +8867,5 @@ namespace BrightIdeasSoftware
         Dictionary<string, bool> visitedUrlMap = new Dictionary<string, bool>(); // Which urls have been visited?
 
         #endregion
-
-
-    }
-
-    #region Delegate declarations
-
-    /// <summary>
-    /// These delegates are used to extract an aspect from a row object
-    /// </summary>
-    public delegate Object AspectGetterDelegate(Object rowObject);
-
-    /// <summary>
-    /// These delegates are used to put a changed value back into a model object
-    /// </summary>
-    public delegate void AspectPutterDelegate(Object rowObject, Object newValue);
-
-    /// <summary>
-    /// These delegates can be used to convert an aspect value to a display string,
-    /// instead of using the default ToString()
-    /// </summary>
-    public delegate string AspectToStringConverterDelegate(Object value);
-
-    /// <summary>
-    /// These delegates are used to get the tooltip for a cell
-    /// </summary>
-    public delegate String CellToolTipGetterDelegate(OLVColumn column, Object modelObject);
-
-    /// <summary>
-    /// These delegates are used to the state of the checkbox for a row object.
-    /// </summary>
-    /// <remarks><para>
-    /// For reasons known only to someone in Microsoft, we can only set
-    /// a boolean on the ListViewItem to indicate it's "checked-ness", but when
-    /// we receive update events, we have to use a tristate CheckState. So we can
-    /// be told about an indeterminate state, but we can't set it ourselves.
-    /// </para>
-    /// <para>As of version 2.0, we can now return indeterminate state.</para>
-    /// </remarks>
-    public delegate CheckState CheckStateGetterDelegate(Object rowObject);
-
-    /// <summary>
-    /// These delegates are used to get the state of the checkbox for a row object.
-    /// </summary>
-    /// <param name="rowObject"></param>
-    /// <returns></returns>
-    public delegate bool BooleanCheckStateGetterDelegate(Object rowObject);
-
-    /// <summary>
-    /// These delegates are used to put a changed check state back into a model object
-    /// </summary>
-    public delegate CheckState CheckStatePutterDelegate(Object rowObject, CheckState newValue);
-
-    /// <summary>
-    /// These delegates are used to put a changed check state back into a model object
-    /// </summary>
-    /// <param name="rowObject"></param>
-    /// <param name="newValue"></param>
-    /// <returns></returns>
-    public delegate bool BooleanCheckStatePutterDelegate(Object rowObject, bool newValue);
-
-    /// <summary>
-    /// The callbacks for RightColumnClick events
-    /// </summary>
-    public delegate void ColumnRightClickEventHandler(object sender, ColumnClickEventArgs e);
-
-    /// <summary>
-    /// This delegate will be used to own draw header column.
-    /// </summary>
-    public delegate bool HeaderDrawingDelegate(Graphics g, Rectangle r, int columnIndex, OLVColumn column, bool isPressed, HeaderStateStyle stateStyle);
-
-    /// <summary>
-    /// This delegate is called when a group has been created but not yet made
-    /// into a real ListViewGroup. The user can take this opportunity to fill
-    /// in lots of other details about the group.
-    /// </summary>
-    public delegate void GroupFormatterDelegate(OLVGroup group, GroupingParameters parms);
-
-    /// <summary>
-    /// These delegates are used to retrieve the object that is the key of the group to which the given row belongs.
-    /// </summary>
-    public delegate Object GroupKeyGetterDelegate(Object rowObject);
-
-    /// <summary>
-    /// These delegates are used to convert a group key into a title for the group
-    /// </summary>
-    public delegate string GroupKeyToTitleConverterDelegate(Object groupKey);
-
-    /// <summary>
-    /// These delegates are used to get the tooltip for a column header
-    /// </summary>
-    public delegate String HeaderToolTipGetterDelegate(OLVColumn column);
-
-    /// <summary>
-    /// These delegates are used to fetch the image selector that should be used
-    /// to choose an image for this column.
-    /// </summary>
-    public delegate Object ImageGetterDelegate(Object rowObject);
-
-    /// <summary>
-    /// These delegates are used to draw a cell
-    /// </summary>
-    public delegate bool RenderDelegate(EventArgs e, Graphics g, Rectangle r, Object rowObject);
-
-    /// <summary>
-    /// These delegates are used to fetch a row object for virtual lists
-    /// </summary>
-    public delegate Object RowGetterDelegate(int rowIndex);
-
-    /// <summary>
-    /// These delegates are used to format a listviewitem before it is added to the control.
-    /// </summary>
-    public delegate void RowFormatterDelegate(OLVListItem olvItem);
-
-    /// <summary>
-    /// These delegates are used to sort the listview in some custom fashion
-    /// </summary>
-    public delegate void SortDelegate(OLVColumn column, SortOrder sortOrder);
-
-    #endregion
-
-    #region Column
-
-    /// <summary>
-    /// An OLVColumn knows which aspect of an object it should present.
-    /// </summary>
-    /// <remarks>
-    /// The column knows how to:
-    /// <list type="bullet">
-    ///	<item><description>extract its aspect from the row object</description></item>
-    ///	<item><description>convert an aspect to a string</description></item>
-    ///	<item><description>calculate the image for the row object</description></item>
-    ///	<item><description>extract a group "key" from the row object</description></item>
-    ///	<item><description>convert a group "key" into a title for the group</description></item>
-    /// </list>
-    /// <para>For sorting to work correctly, aspects from the same column
-    /// must be of the same type, that is, the same aspect cannot sometimes
-    /// return strings and other times integers.</para>
-    /// </remarks>
-    [Browsable(false)]
-    public partial class OLVColumn : ColumnHeader
-    {
-        /// <summary>
-        /// Create an OLVColumn
-        /// </summary>
-        public OLVColumn() {
-            this.ClusteringStrategy = new ClusteringStrategy(this);
-        }
-
-        /// <summary>
-        /// Initialize a column to have the given title, and show the given aspect
-        /// </summary>
-        /// <param name="title">The title of the column</param>
-        /// <param name="aspect">The aspect to be shown in the column</param>
-        public OLVColumn(string title, string aspect)
-            : this() {
-            this.Text = title;
-            this.AspectName = aspect;
-        }
-
-        #region Public Properties
-
-        /// <summary>
-        /// This delegate will be used to extract a value to be displayed in this column.
-        /// </summary>
-        /// <remarks>
-        /// If this is set, AspectName is ignored.
-        /// </remarks>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public AspectGetterDelegate AspectGetter {
-            get { return aspectGetter; }
-            set { aspectGetter = value; }
-        }
-        private AspectGetterDelegate aspectGetter;
-
-        /// <summary>
-        /// Remember if this aspect getter for this column was generated internally, and can therefore
-        /// be regenerated at will
-        /// </summary>
-        [Obsolete("This property is no longer maintained", true),
-         Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public bool AspectGetterAutoGenerated {
-            get { return aspectGetterAutoGenerated; }
-            set { aspectGetterAutoGenerated = value; }
-        }
-        private bool aspectGetterAutoGenerated;
-
-        /// <summary>
-        /// The name of the property or method that should be called to get the value to display in this column.
-        /// This is only used if a ValueGetterDelegate has not been given.
-        /// </summary>
-        /// <remarks>This name can be dotted to chain references to properties or parameter-less methods.</remarks>
-        /// <example>"DateOfBirth"</example>
-        /// <example>"Owner.HomeAddress.Postcode"</example>
-        [Category("ObjectListView"),
-         Description("The name of the property or method that should be called to get the aspect to display in this column"),
-         DefaultValue(null)]
-        public string AspectName {
-            get { return aspectName; }
-            set {
-                aspectName = value;
-                this.aspectMunger = null;
-            }
-        }
-        private string aspectName;
-
-        /// <summary>
-        /// This delegate will be used to put an edited value back into the model object.
-        /// </summary>
-        /// <remarks>
-        /// This does nothing if IsEditable == false.
-        /// </remarks>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public AspectPutterDelegate AspectPutter {
-            get { return aspectPutter; }
-            set { aspectPutter = value; }
-        }
-        private AspectPutterDelegate aspectPutter;
-
-        /// <summary>
-        /// The delegate that will be used to translate the aspect to display in this column into a string.
-        /// </summary>
-        /// <remarks>If this value is set, AspectToStringFormat will be ignored.</remarks>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public AspectToStringConverterDelegate AspectToStringConverter {
-            get { return aspectToStringConverter; }
-            set { aspectToStringConverter = value; }
-        }
-        private AspectToStringConverterDelegate aspectToStringConverter;
-
-        /// <summary>
-        /// This format string will be used to convert an aspect to its string representation.
-        /// </summary>
-        /// <remarks>
-        /// This string is passed as the first parameter to the String.Format() method.
-        /// This is only used if AspectToStringConverter has not been set.</remarks>
-        /// <example>"{0:C}" to convert a number to currency</example>
-        [Category("ObjectListView"),
-         Description("The format string that will be used to convert an aspect to its string representation"),
-         DefaultValue(null)]
-        public string AspectToStringFormat {
-            get { return aspectToStringFormat; }
-            set { aspectToStringFormat = value; }
-        }
-        private string aspectToStringFormat;
-
-
-        /// <summary>
-        /// Gets or set whether the contents of this column's cells should be word wrapped
-        /// </summary>
-        /// <remarks>If this column uses a custom IRenderer (that is, one that is not descended
-        /// from BaseRenderer), then that renderer is responsible for implementing word wrapping.</remarks>
-        [Category("ObjectListView"),
-         Description("Draw this column cell's word wrapped"),
-         DefaultValue(false)]
-        public bool WordWrap {
-            get { return wordWrap; }
-            set { 
-                wordWrap = value;
-
-                // If there isn't a renderer and they are turning word wrap off, we don't need to do anything
-                if (this.Renderer == null && !wordWrap)
-                    return;
-
-                // All other cases require a renderer of some sort
-                if (this.Renderer == null)
-                    this.Renderer = new HighlightTextRenderer();
-
-                BaseRenderer renderer = this.Renderer as BaseRenderer;
-
-                // If there is a custom renderer (not descended from BaseRenderer), 
-                // we leave it up to them to implement wrapping
-                if (renderer == null)
-                    return;
-
-                renderer.CanWrap = wordWrap;
-            }
-        }
-        private bool wordWrap;
-
-        /// <summary>
-        /// Gets or sets whether the cell editor should use AutoComplete
-        /// </summary>
-        [Category("ObjectListView"),
-         Description("Should the editor for cells of this column use AutoComplete"),
-         DefaultValue(true)]
-        public bool AutoCompleteEditor {
-            get { return this.AutoCompleteEditorMode != AutoCompleteMode.None; }
-            set {
-                if (value) {
-                    if (this.AutoCompleteEditorMode == AutoCompleteMode.None)
-                        this.AutoCompleteEditorMode = AutoCompleteMode.Append;
-                } else
-                    this.AutoCompleteEditorMode = AutoCompleteMode.None;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets whether the cell editor should use AutoComplete
-        /// </summary>
-        [Category("ObjectListView"),
-         Description("Should the editor for cells of this column use AutoComplete"),
-         DefaultValue(AutoCompleteMode.Append)]
-        public AutoCompleteMode AutoCompleteEditorMode
-        {
-            get { return autoCompleteEditorMode; }
-            set { autoCompleteEditorMode = value; }
-        }
-        private AutoCompleteMode autoCompleteEditorMode = AutoCompleteMode.Append;
-
-        /// <summary>
-        /// Should this column show a checkbox, rather than a string?
-        /// </summary>
-        /// <remarks>
-        /// Setting this on column 0 has no effect. Column 0 check box is controlled
-        /// by the list view itself.
-        /// </remarks>
-        [Category("ObjectListView"),
-         Description("Should values in this column be treated as a checkbox, rather than a string?"),
-         DefaultValue(false)]
-        public virtual bool CheckBoxes {
-            get { return checkBoxes; }
-            set {
-                if (this.checkBoxes == value)
-                    return;
-
-                this.checkBoxes = value;
-                if (this.checkBoxes) {
-                    if (this.Renderer == null)
-                        this.Renderer = new CheckStateRenderer();
-                } else {
-                    if (this.Renderer is CheckStateRenderer)
-                        this.Renderer = null;
-                }
-            }
-        }
-        private bool checkBoxes;
-
-        /// <summary>
-        /// Gets or sets the clustering strategy used for this column. The clustering
-        /// strategy is used to build a Filtering menu for this item. If this is null,
-        /// a useful default will be chosen. To disable filtering on this colummn, set
-        /// UsesFiltering to false.
-        /// </summary>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public IClusteringStrategy ClusteringStrategy {
-            get {
-                if (this.clusteringStrategy == null)
-                    this.clusteringStrategy = this.DecideDefaultClusteringStrategy();
-                return clusteringStrategy;
-            }
-            set { this.clusteringStrategy = value; }
-        }
-        private IClusteringStrategy clusteringStrategy;
-
-        /// <summary>
-        /// Should this column resize to fill the free space in the listview?
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// If you want two (or more) columns to equally share the available free space, set this property to True.
-        /// If you want this column to have a larger or smaller share of the free space, you must
-        /// set the FreeSpaceProportion property explicitly.
-        /// </para>
-        /// <para>
-        /// Space filling columns are still governed by the MinimumWidth and MaximumWidth properties.
-        /// </para>
-        /// /// </remarks>
-        [Category("ObjectListView"),
-         Description("Will this column resize to fill unoccupied horizontal space in the listview?"),
-         DefaultValue(false)]
-        public bool FillsFreeSpace {
-            get { return this.FreeSpaceProportion > 0; }
-            set {
-                if (value)
-                    this.freeSpaceProportion = 1;
-                else
-                    this.freeSpaceProportion = 0;
-            }
-        }
-
-        /// <summary>
-        /// What proportion of the unoccupied horizontal space in the control should be given to this column?
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// There are situations where it would be nice if a column (normally the rightmost one) would expand as
-        /// the list view expands, so that as much of the column was visible as possible without having to scroll
-        /// horizontally (you should never, ever make your users have to scroll anything horizontally!).
-        /// </para>
-        /// <para>
-        /// A space filling column is resized to occupy a proportion of the unoccupied width of the listview (the
-        /// unoccupied width is the width left over once all the the non-filling columns have been given their space).
-        /// This property indicates the relative proportion of that unoccupied space that will be given to this column.
-        /// The actual value of this property is not important -- only its value relative to the value in other columns.
-        /// For example:
-        /// <list type="bullet">
-        /// <item><description>
-        /// If there is only one space filling column, it will be given all the free space, regardless of the value in FreeSpaceProportion.
-        /// </description></item>
-        /// <item><description>
-        /// If there are two or more space filling columns and they all have the same value for FreeSpaceProportion,
-        /// they will share the free space equally.
-        /// </description></item>
-        /// <item><description>
-        /// If there are three space filling columns with values of 3, 2, and 1
-        /// for FreeSpaceProportion, then the first column with occupy half the free space, the second will
-        /// occupy one-third of the free space, and the third column one-sixth of the free space.
-        /// </description></item>
-        /// </list>
-        /// </para>
-        /// </remarks>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public int FreeSpaceProportion {
-            get { return freeSpaceProportion; }
-            set { freeSpaceProportion = Math.Max(0, value); }
-        }
-        private int freeSpaceProportion;
-
-        /// <summary>
-        /// This delegate is called when a group has been created but not yet made
-        /// into a real ListViewGroup. The user can take this opportunity to fill
-        /// in lots of other details about the group.
-        /// </summary>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public GroupFormatterDelegate GroupFormatter {
-            get { return groupFormatter; }
-            set { groupFormatter = value; }
-        }
-        private GroupFormatterDelegate groupFormatter;
-
-        /// <summary>
-        /// This delegate is called to get the object that is the key for the group
-        /// to which the given row belongs.
-        /// </summary>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public GroupKeyGetterDelegate GroupKeyGetter {
-            get { return groupKeyGetter; }
-            set { groupKeyGetter = value; }
-        }
-        private GroupKeyGetterDelegate groupKeyGetter;
-
-        /// <summary>
-        /// This delegate is called to convert a group key into a title for that group.
-        /// </summary>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public GroupKeyToTitleConverterDelegate GroupKeyToTitleConverter {
-            get { return groupKeyToTitleConverter; }
-            set { groupKeyToTitleConverter = value; }
-        }
-        private GroupKeyToTitleConverterDelegate groupKeyToTitleConverter;
-
-        /// <summary>
-        /// When the listview is grouped by this column and group title has an item count,
-        /// how should the lable be formatted?
-        /// </summary>
-        /// <remarks>
-        /// The given format string can/should have two placeholders:
-        /// <list type="bullet">
-        /// <item><description>{0} - the original group title</description></item>
-        /// <item><description>{1} - the number of items in the group</description></item>
-        /// </list>
-        /// </remarks>
-        /// <example>"{0} [{1} items]"</example>
-        [Category("ObjectListView"),
-         Description("The format to use when suffixing item counts to group titles"),
-         DefaultValue(null),
-         Localizable(true)]
-        public string GroupWithItemCountFormat {
-            get { return groupWithItemCountFormat; }
-            set { groupWithItemCountFormat = value; }
-        }
-        private string groupWithItemCountFormat;
-
-        /// <summary>
-        /// Gets this.GroupWithItemCountFormat or a reasonable default
-        /// </summary>
-        /// <remarks>
-        /// If GroupWithItemCountFormat is not set, its value will be taken from the ObjectListView if possible.
-        /// </remarks>
-        [Browsable(false)]
-        public string GroupWithItemCountFormatOrDefault {
-            get {
-                if (!String.IsNullOrEmpty(this.GroupWithItemCountFormat))
-                    return this.GroupWithItemCountFormat;
-
-                if (this.ListView != null) {
-                    cachedGroupWithItemCountFormat = ((ObjectListView)this.ListView).GroupWithItemCountFormatOrDefault;
-                    return cachedGroupWithItemCountFormat;
-                }
-
-                // There is one rare but pathelogically possible case where the ListView can
-                // be null (if the column is grouping a ListView, but is not one of the columns
-                // for that ListView) so we have to provide a workable default for that rare case.
-                return cachedGroupWithItemCountFormat ?? "{0} [{1} items]";
-            }
-        }
-        private string cachedGroupWithItemCountFormat;
-
-        /// <summary>
-        /// When the listview is grouped by this column and a group title has an item count,
-        /// how should the lable be formatted if there is only one item in the group?
-        /// </summary>
-        /// <remarks>
-        /// The given format string can/should have two placeholders:
-        /// <list type="bullet">
-        /// <item><description>{0} - the original group title</description></item>
-        /// <item><description>{1} - the number of items in the group (always 1)</description></item>
-        /// </list>
-        /// </remarks>
-        /// <example>"{0} [{1} item]"</example>
-        [Category("ObjectListView"),
-         Description("The format to use when suffixing item counts to group titles"),
-         DefaultValue(null),
-         Localizable(true)]
-        public string GroupWithItemCountSingularFormat {
-            get { return groupWithItemCountSingularFormat; }
-            set { groupWithItemCountSingularFormat = value; }
-        }
-        private string groupWithItemCountSingularFormat;
-
-        /// <summary>
-        /// Get this.GroupWithItemCountSingularFormat or a reasonable default
-        /// </summary>
-        /// <remarks>
-        /// <para>If this value is not set, the values from the list view will be used</para>
-        /// </remarks>
-        [Browsable(false)]
-        public string GroupWithItemCountSingularFormatOrDefault {
-            get {
-                if (!String.IsNullOrEmpty(this.GroupWithItemCountSingularFormat))
-                    return this.GroupWithItemCountSingularFormat;
-
-                if (this.ListView != null) {
-                    cachedGroupWithItemCountSingularFormat = ((ObjectListView)this.ListView).GroupWithItemCountSingularFormatOrDefault;
-                    return cachedGroupWithItemCountSingularFormat;
-                }
-
-                // There is one rare but pathelogically possible case where the ListView can
-                // be null (if the column is grouping a ListView, but is not one of the columns
-                // for that ListView) so we have to provide a workable default for that rare case.
-                return cachedGroupWithItemCountSingularFormat ?? "{0} [{1} item]";
-            }
-        }
-        private string cachedGroupWithItemCountSingularFormat;
-
-        /// <summary>
-        /// Gets or sets a delegate that will be used to own draw header column.
-        /// </summary>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public HeaderDrawingDelegate HeaderDrawing {
-            get { return headerDrawing; }
-            set { headerDrawing = value; }
-        }
-        private HeaderDrawingDelegate headerDrawing;
-
-        /// <summary>
-        /// Gets or sets the style that will be used to draw the header for this column
-        /// </summary>
-        /// <remarks>This is only uses when the owning ObjectListView has HeaderUsesThemes set to false.</remarks>
-        [Category("ObjectListView"),
-         Description("What style will be used to draw the header of this column"),
-         DefaultValue(null)]
-        public HeaderFormatStyle HeaderFormatStyle {
-            get { return this.headerFormatStyle; }
-            set { this.headerFormatStyle = value; }
-        }
-        private HeaderFormatStyle headerFormatStyle;
-
-        /// <summary>
-        /// Gets or sets the font in which the header for this column will be drawn
-        /// </summary>
-        /// <remarks>This property will be made obsolete in v2.5. Use HeaderFormatStyle instead</remarks>
-        /// <remarks>This is only uses when HeaderUsesThemes is false.</remarks>
-        [Browsable(false)]
-        [DefaultValue(null)]
-        public Font HeaderFont {
-            get { return this.HeaderFormatStyle == null ? null : this.HeaderFormatStyle.Normal.Font; }
-            set {
-                if (value == null && this.HeaderFormatStyle == null)
-                    return;
-
-                if (this.HeaderFormatStyle == null)
-                    this.HeaderFormatStyle = new HeaderFormatStyle();
-
-                this.HeaderFormatStyle.SetFont(value);
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the color in which the text of the header for this column will be drawn
-        /// </summary>
-        /// <remarks>This property will be made obsolete in v2.5. Use HeaderFormatStyle instead</remarks>
-        /// <remarks>This is only uses when HeaderUsesThemes is false.</remarks>
-        [Browsable(false)]
-        [DefaultValue(typeof(Color), "")]
-        public Color HeaderForeColor {
-            get { return this.HeaderFormatStyle == null ? Color.Empty : this.HeaderFormatStyle.Normal.ForeColor; }
-            set {
-                if (value.IsEmpty && this.HeaderFormatStyle == null)
-                    return;
-
-                if (this.HeaderFormatStyle == null)
-                    this.HeaderFormatStyle = new HeaderFormatStyle();
-
-                this.HeaderFormatStyle.SetForeColor(value);
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets whether the text values in this column will act like hyperlinks
-        /// </summary>
-        /// <remarks>This is only taken into account when HeaderUsesThemes is false.</remarks>
-        [Category("ObjectListView"),
-         Description("Name of the image that will be shown in the column header."),
-         DefaultValue(null),
-         TypeConverter(typeof(ImageKeyConverter)), 
-         Editor("System.Windows.Forms.Design.ImageIndexEditor, System.Design, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", typeof(System.Drawing.Design.UITypeEditor)), 
-         RefreshProperties(RefreshProperties.Repaint)]
-        public string HeaderImageKey {
-            get { return headerImageKey; }
-            set { headerImageKey = value; }
-        }
-        private string headerImageKey = null;
-
-
-        /// <summary>
-        /// Gets or sets how the text of the header will be drawn?
-        /// </summary>
-        [Category("ObjectListView"),
-         Description("How will the header text be aligned?"),
-         DefaultValue(HorizontalAlignment.Left)]
-        public HorizontalAlignment HeaderTextAlign {
-            get { return headerTextAlign.HasValue ? headerTextAlign.Value : this.TextAlign; }
-            set { headerTextAlign = value; }
-        }
-        private HorizontalAlignment? headerTextAlign;
-
-        /// <summary>
-        /// Gets the header alignment converted to a StringAlignment
-        /// </summary>
-        [Browsable(false)]
-        public StringAlignment HeaderTextAlignAsStringAlignment {
-            get {
-                switch (this.HeaderTextAlign) {
-                    case HorizontalAlignment.Left: return StringAlignment.Near;
-                    case HorizontalAlignment.Center: return StringAlignment.Center;
-                    case HorizontalAlignment.Right: return StringAlignment.Far;
-                    default: return StringAlignment.Near;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets whether or not this column has an image in the header
-        /// </summary>
-        [Browsable(false)]
-        public bool HasHeaderImage {
-            get {
-                return (this.ListView != null &&
-                    this.ListView.SmallImageList != null &&
-                    this.ListView.SmallImageList.Images.ContainsKey(this.HeaderImageKey));
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets whether the text values in this column will act like hyperlinks
-        /// </summary>
-        [Category("ObjectListView"),
-         Description("Will the text values of this column act like hyperlinks?"),
-         DefaultValue(false)]
-        public bool Hyperlink {
-            get { return hyperlink; }
-            set { hyperlink = value; }
-        }
-        private bool hyperlink;
-
-        /// <summary>
-        /// This is the name of property that will be invoked to get the image selector of the
-        /// image that should be shown in this column.
-        /// It can return an int, string, Image or null.
-        /// </summary>
-        /// <remarks>
-        /// <para>This is ignored if ImageGetter is not null.</para>
-        /// <para>The property can use these return value to identify the image:</para>
-        /// <list type="bullet">
-        /// <item><description>null or -1 -- indicates no image</description></item>
-        /// <item><description>an int -- the int value will be used as an index into the image list</description></item>
-        /// <item><description>a String -- the string value will be used as a key into the image list</description></item>
-        /// <item><description>an Image -- the Image will be drawn directly (only in OwnerDrawn mode)</description></item>
-        /// </list>
-        /// </remarks>
-        [Category("ObjectListView"),
-         Description("The name of the property that holds the image selector"),
-         DefaultValue(null)]
-        public string ImageAspectName {
-            get { return imageAspectName; }
-            set { imageAspectName = value; }
-        }
-        private string imageAspectName;
-
-        /// <summary>
-        /// This delegate is called to get the image selector of the image that should be shown in this column.
-        /// It can return an int, string, Image or null.
-        /// </summary>
-        /// <remarks><para>This delegate can use these return value to identify the image:</para>
-        /// <list type="bullet">
-        /// <item><description>null or -1 -- indicates no image</description></item>
-        /// <item><description>an int -- the int value will be used as an index into the image list</description></item>
-        /// <item><description>a String -- the string value will be used as a key into the image list</description></item>
-        /// <item><description>an Image -- the Image will be drawn directly (only in OwnerDrawn mode)</description></item>
-        /// </list>
-        /// </remarks>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public ImageGetterDelegate ImageGetter {
-            get { return imageGetter; }
-            set { imageGetter = value; }
-        }
-        private ImageGetterDelegate imageGetter;
-
-        /// <summary>
-        /// Can the values shown in this column be edited?
-        /// </summary>
-        /// <remarks>This defaults to true, since the primary means to control the editability of a listview
-        /// is on the listview itself. Once a listview is editable, all the columns are too, unless the
-        /// programmer explicitly marks them as not editable</remarks>
-        [Category("ObjectListView"),
-         Description("Can the value in this column be edited?"),
-         DefaultValue(true)]
-        public bool IsEditable {
-            get { return isEditable; }
-            set { isEditable = value; }
-        }
-        private bool isEditable = true;
-
-        /// <summary>
-        /// Is this column a fixed width column?
-        /// </summary>
-        [Browsable(false)]
-        public bool IsFixedWidth {
-            get {
-                return (this.MinimumWidth != -1 && this.MaximumWidth != -1 && this.MinimumWidth >= this.MaximumWidth);
-            }
-        }
-
-        /// <summary>
-        /// Get/set whether this column should be used when the view is switched to tile view.
-        /// </summary>
-        /// <remarks>Column 0 is always included in tileview regardless of this setting.
-        /// Tile views do not work well with many "columns" of information, 2 or 3 works best.</remarks>
-        [Category("ObjectListView"),
-         Description("Will this column be used when the view is switched to tile view"),
-         DefaultValue(false)]
-        public bool IsTileViewColumn {
-            get { return isTileViewColumn; }
-            set { isTileViewColumn = value; }
-        }
-        private bool isTileViewColumn;
-
-        /// <summary>
-        /// Gets or sets whether the text of this header should be
-        /// rendered vertically.
-        /// </summary>
-        /// <remarks>
-        /// <para>If this is true, it is a good idea to set ToolTipText to the name of the column so it's easy to read.</para>
-        /// <para>Currently (2010-08), vertical headers are text only. They do not draw their image.</para>
-        /// </remarks>
-        [Category("ObjectListView"),
-         Description("Will the header for this column be drawn vertically?"),
-         DefaultValue(false)]
-        public bool IsHeaderVertical {
-            get { return isHeaderVertical; }
-            set { isHeaderVertical = value; }
-        }
-        private bool isHeaderVertical;
-
-        /// <summary>
-        /// Can this column be seen by the user?
-        /// </summary>
-        /// <remarks>After changing this value, you must call RebuildColumns() before the changes will be effected.</remarks>
-        [Category("ObjectListView"),
-         Description("Can this column be seen by the user?"),
-         DefaultValue(true)]
-        public bool IsVisible {
-            get { return isVisible; }
-            set { isVisible = value; }
-        }
-        private bool isVisible = true;
-
-        /// <summary>
-        /// Where was this column last positioned within the Detail view columns
-        /// </summary>
-        /// <remarks>DisplayIndex is volatile. Once a column is removed from the control,
-        /// there is no way to discover where it was in the display order. This property
-        /// guards that information even when the column is not in the listview's active columns.</remarks>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public int LastDisplayIndex = -1;
-
-        /// <summary>
-        /// What is the maximum width that the user can give to this column?
-        /// </summary>
-        /// <remarks>-1 means there is no maximum width. Give this the same value as MinimumWidth to make a fixed width column.</remarks>
-        [Category("ObjectListView"),
-         Description("What is the maximum width to which the user can resize this column?"),
-         DefaultValue(-1)]
-        public int MaximumWidth {
-            get { return maxWidth; }
-            set {
-                maxWidth = value;
-                if (maxWidth != -1 && this.Width > maxWidth)
-                    this.Width = maxWidth;
-            }
-        }
-        private int maxWidth = -1;
-
-        /// <summary>
-        /// What is the minimum width that the user can give to this column?
-        /// </summary>
-        /// <remarks>-1 means there is no minimum width. Give this the same value as MaximumWidth to make a fixed width column.</remarks>
-        [Category("ObjectListView"),
-         Description("What is the minimum width to which the user can resize this column?"),
-         DefaultValue(-1)]
-        public int MinimumWidth {
-            get { return minWidth; }
-            set {
-                minWidth = value;
-                if (this.Width < minWidth)
-                    this.Width = minWidth;
-            }
-        }
-        private int minWidth = -1;
-
-        /// <summary>
-        /// Get/set the renderer that will be invoked when a cell needs to be redrawn
-        /// </summary>
-        [Category("ObjectListView"),
-        Description("The renderer will draw this column when the ListView is owner drawn"),
-        DefaultValue(null)]
-        public IRenderer Renderer {
-            get { return renderer; }
-            set { renderer = value; }
-        }
-        private IRenderer renderer;
-
-        /// <summary>
-        /// This delegate is called when a cell needs to be drawn in OwnerDrawn mode.
-        /// </summary>
-        /// <remarks>This method is kept primarily for backwards compatibility.
-        /// New code should implement an IRenderer, though this property will be maintained.</remarks>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public RenderDelegate RendererDelegate {
-            get {
-                if (this.Renderer is Version1Renderer)
-                    return ((Version1Renderer)this.Renderer).RenderDelegate;
-                else
-                    return null;
-            }
-            set {
-                if (value == null)
-                    this.Renderer = null;
-                else
-                    this.Renderer = new Version1Renderer(value);
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the horizontal alignment of the contents of the column.
-        /// </summary>
-        /// <remarks>.NET will not allow column 0 to have any alignment except
-        /// to the left. We can't change the basic behaviour of the listview,
-        /// but when owner drawn, column 0 can now have other alignments.</remarks>
-        new public HorizontalAlignment TextAlign {
-            get {
-                if (this.textAlign.HasValue)
-                    return this.textAlign.Value;
-                else
-                    return base.TextAlign;
-            }
-            set {
-                this.textAlign = value;
-                base.TextAlign = value;
-            }
-        }
-        private HorizontalAlignment? textAlign;
-
-        /// <summary>
-        /// Gets the StringAlignment equivilent of the column text alignment
-        /// </summary>
-        public StringAlignment TextStringAlign {
-            get {
-                switch (this.TextAlign) {
-                    case HorizontalAlignment.Center:
-                        return StringAlignment.Center;
-                    case HorizontalAlignment.Left:
-                        return StringAlignment.Near;
-                    case HorizontalAlignment.Right:
-                        return StringAlignment.Far;
-                    default:
-                        return StringAlignment.Near;
-                }
-            }
-        }
-
-        /// <summary>
-        /// What string should be displayed when the mouse is hovered over the header of this column?
-        /// </summary>
-        /// <remarks>If a HeaderToolTipGetter is installed on the owning ObjectListView, this
-        /// value will be ignored.</remarks>
-        [Category("ObjectListView"),
-         Description("The tooltip to show when the mouse is hovered over the header of this column"),
-         DefaultValue((String)null),
-         Localizable(true)]
-        public String ToolTipText {
-            get { return toolTipText; }
-            set { toolTipText = value; }
-        }
-        private String toolTipText;
-
-        /// <summary>
-        /// Should this column have a tri-state checkbox?
-        /// </summary>
-        /// <remarks>
-        /// If this is true, the user can choose the third state (normally Indeterminate).
-        /// </remarks>
-        [Category("ObjectListView"),
-         Description("Should values in this column be treated as a tri-state checkbox?"),
-         DefaultValue(false)]
-        public virtual bool TriStateCheckBoxes {
-            get { return triStateCheckBoxes; }
-            set {
-                triStateCheckBoxes = value;
-                if (value && !this.CheckBoxes)
-                    this.CheckBoxes = true;
-            }
-        }
-        private bool triStateCheckBoxes;
-
-        /// <summary>
-        /// Group objects by the initial letter of the aspect of the column
-        /// </summary>
-        /// <remarks>
-        /// One common pattern is to group column by the initial letter of the value for that group.
-        /// The aspect must be a string (obviously).
-        /// </remarks>
-        [Category("ObjectListView"),
-         Description("The name of the property or method that should be called to get the aspect to display in this column"),
-         DefaultValue(false)]
-        public bool UseInitialLetterForGroup {
-            get { return useInitialLetterForGroup; }
-            set { useInitialLetterForGroup = value; }
-        }
-        private bool useInitialLetterForGroup;
-
-        /// <summary>
-        /// Gets or sets whether or not this column should be filterable
-        /// </summary>
-        [Category("ObjectListView"),
-         Description("Does this column want to show a Filter menu item when its header is right clicked"),
-         DefaultValue(true)]
-        public bool UsesFiltering {
-            get { return usesFiltering; }
-            set { usesFiltering = value; }
-        }
-        private bool usesFiltering = true;
-
-        /// <summary>
-        /// Gets or sets a filter that will only include model where the model's value
-        /// for this column is one of the values in ValuesChosenForFiltering
-        /// </summary>
-        public IModelFilter ValueBasedFilter {
-            get { 
-                if (valueBasedFilter != null)
-                    return valueBasedFilter;
-                    
-                if (!this.UsesFiltering)
-                    return null;
-
-                if (this.ClusteringStrategy == null)
-                    return null;
-
-                if (this.ValuesChosenForFiltering == null || this.ValuesChosenForFiltering.Count == 0)
-                    return null;
-
-                return new OneOfFilter(this.ClusteringStrategy.GetClusterKey, this.ValuesChosenForFiltering);
-            }
-            set { valueBasedFilter = value; }
-        }
-        private IModelFilter valueBasedFilter;
-
-        /// <summary>
-        /// Gets or sets the values that will be used to generate a filter for this
-        /// column. For a model to be included by the generated filter, its value for this column
-        /// must be in this list. If the list is null or empty, this column will
-        /// not be used for filtering.
-        /// </summary>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public IList ValuesChosenForFiltering {
-            get { return this.valuesChosenForFiltering; }
-            set { this.valuesChosenForFiltering = value; }
-        }
-        private IList valuesChosenForFiltering = new ArrayList();
-
-        /// <summary>
-        /// What is the width of this column?
-        /// </summary>
-        [Category("ObjectListView"),
-        Description("The width in pixels of this column"),
-        DefaultValue(60)]
-        new public int Width {
-            get { return base.Width; }
-            set {
-                if (this.MaximumWidth != -1 && value > this.MaximumWidth)
-                    base.Width = this.MaximumWidth;
-                else
-                    base.Width = Math.Max(this.MinimumWidth, value);
-            }
-        }
-
-        #endregion
-
-        #region Object commands
-
-        /// <summary>
-        /// For a given group value, return the string that should be used as the groups title.
-        /// </summary>
-        /// <param name="value">The group key that is being converted to a title</param>
-        /// <returns>string</returns>
-        public string ConvertGroupKeyToTitle(object value) {
-            if (this.groupKeyToTitleConverter == null)
-                if (value == null)
-                    return "{null}";
-                else
-                    return this.ValueToString(value);
-            else
-                return this.groupKeyToTitleConverter(value);
-        }
-
-        /// <summary>
-        /// Get the checkedness of the given object for this column
-        /// </summary>
-        /// <param name="rowObject">The row object that is being displayed</param>
-        /// <returns>The checkedness of the object</returns>
-        public CheckState GetCheckState(object rowObject) {
-            if (!this.CheckBoxes)
-                return CheckState.Unchecked;
-
-            bool? aspectAsBool = this.GetValue(rowObject) as bool?;
-            if (aspectAsBool.HasValue) {
-                if (aspectAsBool.Value)
-                    return CheckState.Checked;
-                else
-                    return CheckState.Unchecked;
-            } else
-                return CheckState.Indeterminate;
-        }
-
-        /// <summary>
-        /// Put the checkedness of the given object for this column
-        /// </summary>
-        /// <param name="rowObject">The row object that is being displayed</param>
-        /// <param name="newState"></param>
-        /// <returns>The checkedness of the object</returns>
-        public void PutCheckState(object rowObject, CheckState newState) {
-            if (newState == CheckState.Checked)
-                this.PutValue(rowObject, true);
-            else
-                if (newState == CheckState.Unchecked)
-                    this.PutValue(rowObject, false);
-                else
-                    this.PutValue(rowObject, null);
-        }
-
-        /// <summary>
-        /// For a given row object, extract the value indicated by the AspectName property of this column.
-        /// </summary>
-        /// <param name="rowObject">The row object that is being displayed</param>
-        /// <returns>An object, which is the aspect named by AspectName</returns>
-        public object GetAspectByName(object rowObject) {
-            if (this.aspectMunger == null)
-                this.aspectMunger = new Munger(this.AspectName);
-
-            return this.aspectMunger.GetValue(rowObject);
-        }
-        private Munger aspectMunger;
-
-        /// <summary>
-        /// For a given row object, return the object that is the key of the group that this row belongs to.
-        /// </summary>
-        /// <param name="rowObject">The row object that is being displayed</param>
-        /// <returns>Group key object</returns>
-        public object GetGroupKey(object rowObject) {
-            if (this.groupKeyGetter == null) {
-                object key = this.GetValue(rowObject);
-                String keyAsString = key as String;
-                if (keyAsString != null && this.UseInitialLetterForGroup) {
-                    if (keyAsString.Length > 0)
-                        key = keyAsString.Substring(0, 1).ToUpper();
-                }
-                return key;
-            } else
-                return this.groupKeyGetter(rowObject);
-        }
-
-        /// <summary>
-        /// For a given row object, return the image selector of the image that should displayed in this column.
-        /// </summary>
-        /// <param name="rowObject">The row object that is being displayed</param>
-        /// <returns>int or string or Image. int or string will be used as index into image list. null or -1 means no image</returns>
-        public Object GetImage(object rowObject) {
-            if (this.CheckBoxes)
-                return this.GetCheckStateImage(rowObject);
-
-            if (this.ImageGetter != null)
-                return this.ImageGetter(rowObject);
-
-            if (!String.IsNullOrEmpty(this.ImageAspectName)) {
-                if (this.imageAspectMunger == null)
-                    this.imageAspectMunger = new Munger(this.ImageAspectName);
-
-                return this.imageAspectMunger.GetValue(rowObject);
-            }
-
-            // I think this is wrong. ImageKey is meant for the image in the header, not in the rows
-            if (!String.IsNullOrEmpty(this.ImageKey))
-                return this.ImageKey;
-
-            return this.ImageIndex;
-        }
-        private Munger imageAspectMunger;
-
-        /// <summary>
-        /// Return the image that represents the check box for the given model
-        /// </summary>
-        /// <param name="rowObject"></param>
-        /// <returns></returns>
-        public string GetCheckStateImage(Object rowObject) {
-            CheckState checkState = this.GetCheckState(rowObject);
-
-            if (checkState == CheckState.Checked)
-                return ObjectListView.CHECKED_KEY;
-
-            if (checkState == CheckState.Unchecked)
-                return ObjectListView.UNCHECKED_KEY;
-
-            return ObjectListView.INDETERMINATE_KEY;
-        }
-
-        /// <summary>
-        /// For a given row object, return the string representation of the value shown in this column.
-        /// </summary>
-        /// <remarks>
-        /// For aspects that are string (e.g. aPerson.Name), the aspect and its string representation are the same.
-        /// For non-strings (e.g. aPerson.DateOfBirth), the string representation is very different.
-        /// </remarks>
-        /// <param name="rowObject"></param>
-        /// <returns></returns>
-        public string GetStringValue(object rowObject) {
-            return this.ValueToString(this.GetValue(rowObject));
-        }
-
-        /// <summary>
-        /// For a given row object, return the object that is to be displayed in this column.
-        /// </summary>
-        /// <param name="rowObject">The row object that is being displayed</param>
-        /// <returns>An object, which is the aspect to be displayed</returns>
-        public object GetValue(object rowObject) {
-            if (this.AspectGetter == null)
-                return this.GetAspectByName(rowObject);
-            else
-                return this.AspectGetter(rowObject);
-        }
-
-        /// <summary>
-        /// Update the given model object with the given value using the column's
-        /// AspectName.
-        /// </summary>
-        /// <param name="rowObject">The model object to be updated</param>
-        /// <param name="newValue">The value to be put into the model</param>
-        public void PutAspectByName(Object rowObject, Object newValue) {
-            if (this.aspectMunger == null)
-                this.aspectMunger = new Munger(this.AspectName);
-
-            this.aspectMunger.PutValue(rowObject, newValue);
-        }
-
-        /// <summary>
-        /// Update the given model object with the given value
-        /// </summary>
-        /// <param name="rowObject">The model object to be updated</param>
-        /// <param name="newValue">The value to be put into the model</param>
-        public void PutValue(Object rowObject, Object newValue) {
-            if (this.aspectPutter == null)
-                this.PutAspectByName(rowObject, newValue);
-            else
-                this.aspectPutter(rowObject, newValue);
-        }
-
-        /// <summary>
-        /// Convert the aspect object to its string representation.
-        /// </summary>
-        /// <remarks>
-        /// If the column has been given a ToStringDelegate, that will be used to do
-        /// the conversion, otherwise just use ToString(). 
-        /// The returned value will not be null. Nulls are always converted
-        /// to empty strings.
-        /// </remarks>
-        /// <param name="value">The value of the aspect that should be displayed</param>
-        /// <returns>A string representation of the aspect</returns>
-        public string ValueToString(object value) {
-            // CONSIDER: Should we give aspect-to-string converters a chance to work on a null value?
-            if (value == null)
-                return String.Empty;
-
-            if (this.AspectToStringConverter != null) 
-                return this.AspectToStringConverter(value) ?? String.Empty;
-
-            string fmt = this.AspectToStringFormat;
-            if (String.IsNullOrEmpty(fmt))
-                return value.ToString();
-            else
-                return String.Format(fmt, value);
-        }
-
-        #endregion
-
-        #region Utilities
-
-        /// <summary>
-        /// Decide the clustering strategy that will be used for this column
-        /// </summary>
-        /// <returns></returns>
-        private IClusteringStrategy DecideDefaultClusteringStrategy() {
-            if (!this.UsesFiltering)
-                return null;
-
-            if (this.UseInitialLetterForGroup)
-                return new FirstLetterClusteringStrategy(this);
-
-            return new ClusteringStrategy(this);
-        }
-
-        /// <summary>
-        /// Create groupies
-        /// This is an untyped version to help with Generator and OLVColumn attributes
-        /// </summary>
-        /// <param name="values"></param>
-        /// <param name="descriptions"></param>
-        public void MakeGroupies(object[] values, string[] descriptions) {
-            this.MakeGroupies(values, descriptions, null, null, null);
-        }
-
-        /// <summary>
-        /// Create groupies
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="values"></param>
-        /// <param name="descriptions"></param>
-        public void MakeGroupies<T>(T[] values, string[] descriptions) {
-            this.MakeGroupies(values, descriptions, null, null, null);
-        }
-
-        /// <summary>
-        /// Create groupies
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="values"></param>
-        /// <param name="descriptions"></param>
-        /// <param name="images"></param>
-        public void MakeGroupies<T>(T[] values, string[] descriptions, object[] images) {
-            this.MakeGroupies(values, descriptions, images, null, null);
-        }
-
-        /// <summary>
-        /// Create groupies
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="values"></param>
-        /// <param name="descriptions"></param>
-        /// <param name="images"></param>
-        /// <param name="subtitles"></param>
-        public void MakeGroupies<T>(T[] values, string[] descriptions, object[] images, string[] subtitles) {
-            this.MakeGroupies(values, descriptions, images, subtitles, null);
-        }
-
-        /// <summary>
-        /// Create groupies.
-        /// Install delegates that will group the columns aspects into progressive partitions.
-        /// If an aspect is less than value[n], it will be grouped with description[n].
-        /// If an aspect has a value greater than the last element in "values", it will be grouped
-        /// with the last element in "descriptions".
-        /// </summary>
-        /// <param name="values">Array of values. Values must be able to be
-        /// compared to the aspect (using IComparable)</param>
-        /// <param name="descriptions">The description for the matching value. The last element is the default description.
-        /// If there are n values, there must be n+1 descriptions.</param>
-        /// <example>
-        /// this.salaryColumn.MakeGroupies(
-        ///     new UInt32[] { 20000, 100000 },
-        ///     new string[] { "Lowly worker",  "Middle management", "Rarified elevation"});
-        /// </example>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="images"></param>
-        /// <param name="subtitles"></param>
-        /// <param name="tasks"></param>
-        public void MakeGroupies<T>(T[] values, string[] descriptions, object[] images, string[] subtitles, string[] tasks) {
-            if (values.Length + 1 != descriptions.Length)
-                throw new ArgumentException("descriptions must have one more element than values.");
-
-            // Install a delegate that returns the index of the description to be shown
-            this.GroupKeyGetter = delegate(object row) {
-                Object aspect = this.GetValue(row);
-                if (aspect == null || aspect == System.DBNull.Value)
-                    return -1;
-                IComparable comparable = (IComparable)aspect;
-                for (int i = 0; i < values.Length; i++) {
-                    if (comparable.CompareTo(values[i]) < 0)
-                        return i;
-                }
-
-                // Display the last element in the array
-                return descriptions.Length - 1;
-            };
-
-            // Install a delegate that simply looks up the given index in the descriptions.
-            this.GroupKeyToTitleConverter = delegate(object key) {
-                if ((int)key < 0)
-                    return "";
-
-                return descriptions[(int)key];
-            };
-
-            // Install one delegate that does all the other formatting
-            this.GroupFormatter = delegate(OLVGroup group, GroupingParameters parms) {
-                int key = (int)group.Key; // we know this is an int since we created it in GroupKeyGetter
-
-                if (key >= 0) {
-                    if (images != null && key < images.Length)
-                        group.TitleImage = images[key];
-
-                    if (subtitles != null && key < subtitles.Length)
-                        group.Subtitle = subtitles[key];
-
-                    if (tasks != null && key < tasks.Length)
-                        group.Task = tasks[key];
-                }
-            };
-        }
-
-        #endregion
-    }
-
-    #endregion
-
-    #region OLVListItem and OLVListSubItem
-
-    /// <summary>
-    /// OLVListItems are specialized ListViewItems that know which row object they came from,
-    /// and the row index at which they are displayed, even when in group view mode. They
-    /// also know the image they should draw against themselves
-    /// </summary>
-    public class OLVListItem : ListViewItem
-    {
-        #region Constructors
-
-        /// <summary>
-        /// Create a OLVListItem for the given row object
-        /// </summary>
-        public OLVListItem(object rowObject) {
-            this.rowObject = rowObject;
-        }
-
-        /// <summary>
-        /// Create a OLVListItem for the given row object, represented by the given string and image
-        /// </summary>
-        public OLVListItem(object rowObject, string text, Object image)
-            : base(text, -1) {
-            this.rowObject = rowObject;
-            this.imageSelector = image;
-        }
-
-        #endregion
-
-        #region Properties
-
-        /// <summary>
-        /// Gets the bounding rectangle of the item, including all subitems
-        /// </summary>
-        new public Rectangle Bounds {
-            get {
-                try {
-                    return base.Bounds;
-                } catch (System.ArgumentException) {
-                    // If the item is part of a collapsed group, Bounds will throw an exception
-                    return Rectangle.Empty;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Enable tri-state checkbox.
-        /// </summary>
-        /// <remarks>.NET's Checked property was not built to handle tri-state checkboxes,
-        /// and will return True for both Checked and Indeterminate states.</remarks>
-        public CheckState CheckState {
-            get {
-                switch (this.StateImageIndex) {
-                    case 0:
-                        return System.Windows.Forms.CheckState.Unchecked;
-                    case 1:
-                        return System.Windows.Forms.CheckState.Checked;
-                    case 2:
-                        return System.Windows.Forms.CheckState.Indeterminate;
-                    default:
-                        return System.Windows.Forms.CheckState.Unchecked;
-                }
-            }
-            set {
-                if (this.checkState == value)
-                    return;
-
-                this.checkState = value;
-
-                //THINK: I don't think we need this, since the Checked property just uses StateImageIndex, which we are about to set.
-                //this.Checked = (checkState == CheckState.Checked);
-
-                // We have to specifically set the state image
-                switch (value) {
-                    case System.Windows.Forms.CheckState.Unchecked:
-                        this.StateImageIndex = 0;
-                        break;
-                    case System.Windows.Forms.CheckState.Checked:
-                        this.StateImageIndex = 1;
-                        break;
-                    case System.Windows.Forms.CheckState.Indeterminate:
-                        this.StateImageIndex = 2;
-                        break;
-                }
-            }
-        }
-        private CheckState checkState;
-
-        /// <summary>
-        /// Gets if this item has any decorations set for it.
-        /// </summary>
-        public bool HasDecoration {
-            get {
-                return this.decorations != null && this.decorations.Count > 0;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the decoration that will be drawn over this item
-        /// </summary>
-        /// <remarks>Setting this replaces all other decorations</remarks>
-        public IDecoration Decoration {
-            get {
-                if (this.HasDecoration)
-                    return this.Decorations[0];
-                else
-                    return null;
-            }
-            set {
-                this.Decorations.Clear();
-                if (value != null)
-                    this.Decorations.Add(value);
-            }
-        }
-
-        /// <summary>
-        /// Gets the collection of decorations that will be drawn over this item
-        /// </summary>
-        public IList<IDecoration> Decorations {
-            get {
-                if (this.decorations == null)
-                    this.decorations = new List<IDecoration>();
-                return this.decorations;
-            }
-        }
-        private IList<IDecoration> decorations;
-
-        /// <summary>
-        /// Get or set the image that should be shown against this item
-        /// </summary>
-        /// <remarks><para>This can be an Image, a string or an int. A string or an int will
-        /// be used as an index into the small image list.</para></remarks>
-        public Object ImageSelector {
-            get { return imageSelector; }
-            set {
-                imageSelector = value;
-                if (value is Int32)
-                    this.ImageIndex = (Int32)value;
-                else if (value is String)
-                    this.ImageKey = (String)value;
-                else
-                    this.ImageIndex = -1;
-            }
-        }
-        private Object imageSelector;
-
-        /// <summary>
-        /// Gets or sets the the model object that is source of the data for this list item.
-        /// </summary>
-        public object RowObject {
-            get { return rowObject; }
-            set { rowObject = value; }
-        }
-        private object rowObject;
-
-        #endregion
-
-        #region Accessing
-
-        /// <summary>
-        /// Return the sub item at the given index
-        /// </summary>
-        /// <param name="index">Index of the subitem to be returned</param>
-        /// <returns>An OLVListSubItem</returns>
-        public virtual OLVListSubItem GetSubItem(int index) {
-            if (index >= 0 && index < this.SubItems.Count)
-                return (OLVListSubItem)this.SubItems[index];
-            else
-                return null;
-        }
-
-
-        /// <summary>
-        /// Return bounds of the given subitem
-        /// </summary>
-        /// <remarks>This correctly calculates the bounds even for column 0.</remarks>
-        public virtual Rectangle GetSubItemBounds(int subItemIndex) {
-            if (subItemIndex == 0) {
-                Rectangle r = this.Bounds;
-                Point sides = NativeMethods.GetScrolledColumnSides(this.ListView, subItemIndex);
-                r.X = sides.X + 1;
-                r.Width = sides.Y - sides.X;
-                return r;
-            } else {
-                OLVListSubItem subItem = this.GetSubItem(subItemIndex);
-                if (subItem == null)
-                    return new Rectangle();
-                else
-                    return subItem.Bounds;
-            }
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// A ListViewSubItem that knows which image should be drawn against it.
-    /// </summary>
-    [Browsable(false)]
-    public class OLVListSubItem : ListViewItem.ListViewSubItem
-    {
-        #region Constructors
-
-        /// <summary>
-        /// Create a OLVListSubItem
-        /// </summary>
-        public OLVListSubItem() {
-        }
-
-        /// <summary>
-        /// Create a OLVListSubItem that shows the given string and image
-        /// </summary>
-        public OLVListSubItem(string text, Object image) {
-            this.Text = text;
-            this.ImageSelector = image;
-        }
-
-        #endregion
-
-        #region Properties
-
-        /// <summary>
-        /// Gets if this subitem has any decorations set for it.
-        /// </summary>
-        public bool HasDecoration {
-            get {
-                return this.decorations != null && this.decorations.Count > 0;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the decoration that will be drawn over this item
-        /// </summary>
-        /// <remarks>Setting this replaces all other decorations</remarks>
-        public IDecoration Decoration {
-            get {
-                if (this.HasDecoration)
-                    return this.Decorations[0];
-                else
-                    return null;
-            }
-            set {
-                this.Decorations.Clear();
-                if (value != null)
-                    this.Decorations.Add(value);
-            }
-        }
-
-        /// <summary>
-        /// Gets the collection of decorations that will be drawn over this item
-        /// </summary>
-        public IList<IDecoration> Decorations {
-            get {
-                if (this.decorations == null)
-                    this.decorations = new List<IDecoration>();
-                return this.decorations;
-            }
-        }
-        private IList<IDecoration> decorations;
-
-        /// <summary>
-        /// Get or set the image that should be shown against this item
-        /// </summary>
-        /// <remarks><para>This can be an Image, a string or an int. A string or an int will
-        /// be used as an index into the small image list.</para></remarks>
-        public Object ImageSelector {
-            get { return imageSelector; }
-            set { imageSelector = value; }
-        }
-        private Object imageSelector;
-
-        /// <summary>
-        /// Gets or sets the url that should be invoked when this subitem is clicked
-        /// </summary>
-        public string Url {
-            get { return this.url; }
-            set { this.url = value; }
-        }
-        private string url;
-
-        #endregion
-
-        #region Implementation Properties
-
-        /// <summary>
-        /// Return the state of the animatation of the image on this subitem.
-        /// Null means there is either no image, or it is not an animation
-        /// </summary>
-        internal ImageRenderer.AnimationState AnimationState;
-
-        #endregion
-    }
-
-    #endregion
-
-    /// <summary>
-    /// Instances of this class encapsulate the information gathered during a OlvHitTest()
-    /// operation.
-    /// </summary>
-    /// <remarks>Custom renderers can use HitTestLocation.UserDefined and the UserData
-    /// object to store more specific locations for use during event handlers.</remarks>
-    public class OlvListViewHitTestInfo
-    {
-        /// <summary>
-        /// Create a OlvListViewHitTestInfo
-        /// </summary>
-        /// <param name="hti"></param>
-        public OlvListViewHitTestInfo(ListViewHitTestInfo hti) {
-            this.item = (OLVListItem)hti.Item;
-            this.subItem = (OLVListSubItem)hti.SubItem;
-            this.location = hti.Location;
-
-            switch (hti.Location) {
-                case ListViewHitTestLocations.StateImage:
-                    this.HitTestLocation = HitTestLocation.CheckBox;
-                    break;
-                case ListViewHitTestLocations.Image:
-                    this.HitTestLocation = HitTestLocation.Image;
-                    break;
-                case ListViewHitTestLocations.Label:
-                    this.HitTestLocation = HitTestLocation.Text;
-                    break;
-                default:
-                    this.HitTestLocation = HitTestLocation.Nothing;
-                    break;
-            }
-        }
-
-        #region Public fields
-
-        /// <summary>
-        /// Where is the hit location?
-        /// </summary>
-        public HitTestLocation HitTestLocation;
-
-        /// <summary>
-        /// Custom renderers can use this information to supply more details about the hit location
-        /// </summary>
-        public Object UserData;
-
-        #endregion
-
-        #region Public read-only properties
-
-        /// <summary>
-        /// Gets the item that was hit
-        /// </summary>
-        public OLVListItem Item {
-            get { return item; }
-            internal set { item = value; }
-        }
-        private OLVListItem item;
-
-        /// <summary>
-        /// Gets the subitem that was hit
-        /// </summary>
-        public OLVListSubItem SubItem {
-            get { return subItem; }
-            internal set { subItem = value; }
-        }
-        private OLVListSubItem subItem;
-
-        /// <summary>
-        /// Gets the part of the subitem that was hit
-        /// </summary>
-        public ListViewHitTestLocations Location {
-            get { return location; }
-            internal set { location = value; }
-        }
-        private ListViewHitTestLocations location;
-
-        /// <summary>
-        /// Gets the ObjectListView that was tested
-        /// </summary>
-        public ObjectListView ListView {
-            get {
-                if (this.Item == null)
-                    return null;
-                else
-                    return (ObjectListView)this.Item.ListView;
-            }
-        }
-
-        /// <summary>
-        /// Gets the model object that was hit
-        /// </summary>
-        public Object RowObject {
-            get {
-                if (this.Item == null)
-                    return null;
-                else
-                    return this.Item.RowObject;
-            }
-        }
-
-        /// <summary>
-        /// Gets the index of the row under the hit point or -1
-        /// </summary>
-        public int RowIndex {
-            get {
-                if (this.Item == null)
-                    return -1;
-                else
-                    return this.Item.Index;
-            }
-        }
-
-        /// <summary>
-        /// Gets the index of the column under the hit point
-        /// </summary>
-        public int ColumnIndex {
-            get {
-                if (this.Item == null || this.SubItem == null)
-                    return -1;
-                else
-                    return this.Item.SubItems.IndexOf(this.SubItem);
-            }
-        }
-
-        /// <summary>
-        /// Gets the column that was hit
-        /// </summary>
-        public OLVColumn Column {
-            get {
-                int index = this.ColumnIndex;
-                if (index < 0)
-                    return null;
-                else
-                    return this.ListView.GetColumn(index);
-            }
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// An indication of where a hit was within ObjectListView cell
-    /// </summary>
-    public enum HitTestLocation
-    {
-        /// <summary>
-        /// Nowhere
-        /// </summary>
-        Nothing,
-
-        /// <summary>
-        /// On the text
-        /// </summary>
-        Text,
-
-        /// <summary>
-        /// On the image
-        /// </summary>
-        Image,
-
-        /// <summary>
-        /// On the checkbox
-        /// </summary>
-        CheckBox,
-
-        /// <summary>
-        /// On the expand button (TreeListView)
-        /// </summary>
-        ExpandButton,
-
-        /// <summary>
-        /// in the cell but not in any more specific location
-        /// </summary>
-        InCell,
-
-        /// <summary>
-        /// UserDefined location1 (used for custom renderers)
-        /// </summary>
-        UserDefined
-    }
-
-    /// <summary>
-    /// This class contains all the settings used when groups are created
-    /// </summary>
-    public class GroupingParameters
-    {
-        /// <summary>
-        /// Create a GroupingParameters
-        /// </summary>
-        /// <param name="olv"></param>
-        /// <param name="groupByColumn"></param>
-        /// <param name="groupByOrder"></param>
-        /// <param name="column"></param>
-        /// <param name="order"></param>
-        /// <param name="secondaryColumn"></param>
-        /// <param name="secondaryOrder"></param>
-        /// <param name="titleFormat"></param>
-        /// <param name="titleSingularFormat"></param>
-        /// <param name="sortItemsByPrimaryColumn"></param>
-        public GroupingParameters(ObjectListView olv, OLVColumn groupByColumn, SortOrder groupByOrder,
-            OLVColumn column, SortOrder order, OLVColumn secondaryColumn, SortOrder secondaryOrder,
-            string titleFormat, string titleSingularFormat, bool sortItemsByPrimaryColumn) {
-            this.ListView = olv;
-            this.GroupByColumn = groupByColumn;
-            this.GroupByOrder = groupByOrder;
-            this.PrimarySort = column;
-            this.PrimarySortOrder = order;
-            this.SecondarySort = secondaryColumn;
-            this.SecondarySortOrder = secondaryOrder;
-            this.SortItemsByPrimaryColumn = sortItemsByPrimaryColumn;
-            this.TitleFormat = titleFormat;
-            this.TitleSingularFormat = titleSingularFormat;
-        }
-
-        /// <summary>
-        /// Gets or sets the ObjectListView being grouped
-        /// </summary>
-        public ObjectListView ListView {
-            get { return this.listView; }
-            set { this.listView = value; }
-        }
-        private ObjectListView listView;
-
-        /// <summary>
-        /// Gets or sets the column used to create groups
-        /// </summary>
-        public OLVColumn GroupByColumn {
-            get { return this.groupByColumn; }
-            set { this.groupByColumn = value; }
-        }
-        private OLVColumn groupByColumn;
-
-        /// <summary>
-        /// In what order will the groups themselves be sorted?
-        /// </summary>
-        public SortOrder GroupByOrder {
-            get { return this.groupByOrder; }
-            set { this.groupByOrder = value; }
-        }
-        private SortOrder groupByOrder;
-
-        /// <summary>
-        /// If this is set, this comparer will be used to order the groups
-        /// </summary>
-        public IComparer<OLVGroup> GroupComparer {
-            get { return this.groupComparer; }
-            set { this.groupComparer = value; }
-        }
-        private IComparer<OLVGroup> groupComparer;
-
-        /// <summary>
-        /// If this is set, this comparer will be used to order items within each group
-        /// </summary>
-        public IComparer<OLVListItem> ItemComparer {
-            get { return this.itemComparer; }
-            set { this.itemComparer = value; }
-        }
-        private IComparer<OLVListItem> itemComparer;
-
-        /// <summary>
-        /// Gets or sets the column that will be the primary sort
-        /// </summary>
-        public OLVColumn PrimarySort {
-            get { return this.primarySort; }
-            set { this.primarySort = value; }
-        }
-        private OLVColumn primarySort;
-
-        /// <summary>
-        /// Gets or sets the ordering for the primary sort
-        /// </summary>
-        public SortOrder PrimarySortOrder {
-            get { return this.primarySortOrder; }
-            set { this.primarySortOrder = value; }
-        }
-        private SortOrder primarySortOrder;
-
-        /// <summary>
-        /// Gets or sets the column used for secondary sorting
-        /// </summary>
-        public OLVColumn SecondarySort {
-            get { return this.secondarySort; }
-            set { this.secondarySort = value; }
-        }
-        private OLVColumn secondarySort;
-
-        /// <summary>
-        /// Gets or sets the ordering for the secondary sort
-        /// </summary>
-        public SortOrder SecondarySortOrder {
-            get { return this.secondarySortOrder; }
-            set { this.secondarySortOrder = value; }
-        }
-        private SortOrder secondarySortOrder;
-
-        /// <summary>
-        /// Gets or sets the title format used for groups with zero or more than one element
-        /// </summary>
-        public string TitleFormat {
-            get { return this.titleFormat; }
-            set { this.titleFormat = value; }
-        }
-        private string titleFormat;
-
-        /// <summary>
-        /// Gets or sets the title format used for groups with only one element
-        /// </summary>
-        public string TitleSingularFormat {
-            get { return this.titleSingularFormat; }
-            set { this.titleSingularFormat = value; }
-        }
-        private string titleSingularFormat;
-
-        /// <summary>
-        /// Gets or sets whether the items should be sorted by the primary column
-        /// </summary>
-        public bool SortItemsByPrimaryColumn {
-            get { return this.sortItemsByPrimaryColumn; }
-            set { this.sortItemsByPrimaryColumn = value; }
-        }
-        private bool sortItemsByPrimaryColumn;
-    }
-
-    /// <summary>
-    /// A simple-minded implementation of a Dictionary that can handle null as a key.
-    /// </summary>
-    /// <typeparam name="TKey">The type of the dictionary key</typeparam>
-    /// <typeparam name="TValue">The type of the values to be stored</typeparam>
-    /// <remarks>This is not a full implementation and is only meant to handle
-    /// collecting groups by their keys, since groups can have null as a key value.</remarks>
-    internal class NullableDictionary<TKey, TValue> : Dictionary<TKey, TValue>
-    {
-        private bool hasNullKey;
-        private TValue nullValue;
-
-        new public TValue this[TKey key] {
-            get {
-                if (key == null) {
-                    if (hasNullKey)
-                        return nullValue;
-                    else
-                        throw new KeyNotFoundException();
-                } else
-                    return base[key];
-            }
-            set {
-                if (key == null) {
-                    this.hasNullKey = true;
-                    this.nullValue = value;
-                } else
-                    base[key] = value;
-            }
-        }
-
-        new public bool ContainsKey(TKey key) {
-            if (key == null)
-                return this.hasNullKey;
-            else
-                return base.ContainsKey(key);
-        }
-
-        new public IList Keys {
-            get {
-                ArrayList list = new ArrayList(base.Keys);
-                if (this.hasNullKey)
-                    list.Add(null);
-                return list;
-            }
-        }
     }
 }
