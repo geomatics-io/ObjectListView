@@ -92,12 +92,6 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ColumnSelectionForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ColumnSelectionForm.Designer.cs">
-      <DependentUpon>ColumnSelectionForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -112,10 +106,6 @@
       <DependentUpon>Resource1.resx</DependentUpon>
     </Compile>
     <Compile Include="ShellUtilities.cs" />
-    <EmbeddedResource Include="ColumnSelectionForm.resx">
-      <SubType>Designer</SubType>
-      <DependentUpon>ColumnSelectionForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.Designer.cs</DependentUpon>
       <SubType>Designer</SubType>
