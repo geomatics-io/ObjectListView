@@ -7,6 +7,93 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
+April 2011 - Version 2.5 (beta)
+-------------------------------
+
+New features
+^^^^^^^^^^^^
+
+* Excel like filtering. Right clicking on a header will show a "Filter" menu, which will allow you to select the values that will survive the filtering.
+
+* `FastDataListView`. Just like a normal `DataListView`, only faster. On my laptop, it comfortably handles datasets of 100,000 rows without trouble. NOTE: This does not virtualize the data access part -- only the UI portion. So, if you have a query that returns one million rows, all the rows will still be loaded from the database. Once loaded, however, they will be managed by a virtual list.
+
+* Fully customizable character map during cell edit mode. 
+  This was an overkill solution for the various flavours of "tab wraps to new line" requests.
+  As convinence wrappers, `CellEditTabChangesRows` and `CellEditEnterChangesRows` properties have
+  been added. 
+
+* Support for VS 2010. The target framework must be a "full" version of .Net. It will not work with a "Client Profile" (which is unfortunately the default for new projects in VS 2010).
+
+
+Breaking changes
+^^^^^^^^^^^^^^^^
+
+* [Large]: On `VirtualObjectListView`, `DataSource` was renamed to `VirtualListDataSource`. This was necessary to allow FastDataListView which is both a DataListView AND a VirtualListView -- which both used a 'DataSource' property :(
+
+* [Small] `GetNextItem()` and `GetPreviousItem()` now accept and return `OLVListView` rather than `ListViewItems`.
+
+* [Small] Renderer for tree column must now be a subclass of `TreeRenderer`, not just a general `IRenderer`
+
+Minor features
+^^^^^^^^^^^^^^
+
+* Column selection mechanism can be customised, through the `SelectColumnsOnRightClickBehaviour`. The default is `InlineMenu`, which behaves like previous versions. Other options are SubMenu and ModalDialog.
+
+* Added `OLVColumn.AutoCompleteEditorMode` in preference to `AutoCompleteEditor`  (which is now just a wrapper). Thanks to Clive Haskins 
+
+* Added `IncludeColumnHeadersInCopy` 
+
+* Added `Freezing` event
+
+* Allow a delegate to owner draw the header
+
+* Virtual lists can (finally) set `CheckBoxes` back to *false* if it has been set to true. (This was a little hacky and may not work reliably).
+
+* All model object comparisons now use `Equals()` rather than `==` (thanks to vulkanino)
+
+* Reorganized files into folders
+
+* Tweaked `UseTranslucentSelection` and `UseTranslucentHotItem` to look (a little) more like Vista/Win7.
+
+* Added ability to have a gradient background on `BorderDecoration`
+
+* Ctrl-C copying is now able to use the `DragSource` to create the data transfer object (controlled via `CopySelectionOnControlCUsesDragSource` property).
+
+* While editing a cell, `Alt-[arrow]` will try to edit the cell in that direction
+  (showing off what the cell edit character mapping can achieve)
+
+Bug fixes (not a complete list)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Fixed (once and for all) `DisplayIndex` problem with `Generator`
+
+* Preserve word wrap settings on `TreeListView`
+
+* Resize last group to keep it on screen
+
+* Changed the serializer used in `SaveState()`/`RestoreState()` so that it resolves classes on name alone
+
+* When grouping, group comparer, collapsible groups and `GroupByOrder` being `None` are now all honoured correctly
+
+* Trying to use animated gifs in a virtual list no longer crashes. It still doesn't work, but it doesn't crash.
+
+* `GetNextItem()` and `GetPreviousItem()` now work on grouped virtual lists.
+
+* Fixed bug in `GroupWithItemCountSingularFormatOrDefault`
+
+* Fixed strange flickering in grouped, owner drawn OLV's using `RefreshObject()`
+
+* Alternate colours are now only applied in `Details` view (as they always should have been)
+
+* Alternate colours are now correctly recalculated after removing objects
+
+* `CheckedObjects` on virtual lists now only returns objects that are currently in the list.
+
+* `ClearObjects()` on a virtual list now resets all check state info.
+
+* Filtering on grouped virtual lists no longer behaves strangely
+
+
 14 September 2010 - Version 2.4.1
 ---------------------------------
  

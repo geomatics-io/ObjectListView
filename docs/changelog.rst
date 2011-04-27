@@ -9,6 +9,7 @@ Change Log
 
 Version Index
 -------------
+* `v2.5 beta - 28 April 2011`_
 * `v2.4.1 - 15 September 2010`_
 * `v2.4 - 17 April 2010`_
 * `v2.3 - 14 October 2009`_
@@ -32,8 +33,183 @@ Version Index
 * `Previous versions - 04 April 2007`_
 
 
+v2.5 beta - 28 April 2011
+-------------------------
+
+2011-04-08 09:56 (#1102) - docs/whatsnew.rst, docs/filtering.rst, docs/listCtrlPrinter.rst, docs/overlays.rst, docs/conf.py, docs/majorClasses.rst, docs/changelog.rst, docs/download.rst, docs/index.rst, docs/recipes.rst, docs/images/text-filter-highlighting.png
+  - Updated docs
+
+2011-04-08 09:54 (#1099) - ObjectListView/TreeListView.cs
+  - Clear cached info after refreshing objects
+
+2011-04-05 19:56 (#1098) - ObjectListView/VirtualObjectListView.cs
+  - CheckedObjects now only returns objects that are currently in the list.
+  - ClearObjects() now resets all check state info.
+
+2011-04-05 19:55 (#1097) - ObjectListView/OLVColumn.cs
+  - Hide ValueBasedFilter property from code generator
+
+2011-04-05 19:55 (#1096) - ObjectListView/ObjectListView.cs
+  - Alternate colours are now only applied in Details view (as they always should have been)
+  - Alternate colours are now correctly recalculated after removing objects
+
+2011-04-05 19:54 (#1095) - ObjectListView/FastObjectListView.cs
+  - Optimize EnumerableToArray for most common cases
+
+2011-04-04 20:00 (#1094) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Make sure that buttons do what they are supposed to
+  - Added tooltips to quite a few controls
+
+2011-04-04 19:59 (#1093) - ObjectListView/DragDrop/DragSource.cs
+  - Updated comment
+
+2011-04-04 19:58 (#1092) - ObjectListView/Filtering/ClustersFromGroupsStrategy.cs
+  - Updated comment
+
+2011-04-04 19:58 (#1091) - ObjectListView/Rendering/Decorations.cs
+  - Added ability to have a gradient background on BorderDecoration
+
+2011-04-04 19:57 (#1090) - ObjectListView/Rendering/TreeRenderer.cs
+  - Initial version
+
+2011-04-04 19:57 (#1089) - ObjectListView/ObjectListView.cs
+  - Tweaked UseTranslucentSelection and UseTranslucentHotItem to look (a little) more like Vista/Win7.
+  - Rearranged some properties and methods
+
+2011-04-01 18:13 (#1088) - ObjectListView/OLVColumn.cs
+  - Separated from ObjectListView.cs
+
+2011-04-01 18:13 (#1087) - ObjectListView/ObjectListView.cs
+  - Added SelectColumnOnRightClickBehaviour to allow the selecting of columns mechanism to be changed. Can now be InlineMenu (the default), SubMenu, or ModelDialog.
+  - ColumnSelectionForm was moved from the demo into the ObjectListView project itself.
+  - Ctrl-C copying is now able to use the DragSource to create the data transfer object (controlled via CopySelectionOnControlCUsesDragSource property).
+  - Added GetFirstNonNullValue()
+  - Split many classes out of the ObjectListView.cs file
+
+2011-04-01 18:09 (#1086) - ObjectListView/Implementation/Enums.cs, ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/Implementation/DropSink.cs, ObjectListView/Implementation/OLVListItem.cs, ObjectListView/Implementation/Delegates.cs, ObjectListView/Implementation/DragSource.cs, ObjectListView/Implementation/GroupingParameters.cs, ObjectListView/Implementation/NullableDictionary.cs, ObjectListView/Implementation/OLVListSubItem.cs
+  - Added and removed files
+
+2011-04-01 18:08 (#1085) - ObjectListView/Filtering/FirstLetterClusteringStrategy.cs, ObjectListView/Filtering/ClustersFromGroupsStrategy.cs, ObjectListView/Filtering/IClusteringStrategy.cs, ObjectListView/Filtering/DateTimeClusteringStrategy.cs, ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/Filtering/ClusteringStrategy.cs
+  - Added new strategies
+  - Strategies are given a column when they are assigned, not when they are created
+  - "Apply" button on Filter menu is now a menu item, rather than just a button. It was too easy for a mouse click to miss as a button.
+
+2011-04-01 18:05 (#1084) - ObjectListView/DragDrop, ObjectListView/DragDrop/DragSource.cs, ObjectListView/DragDrop/OLVDataObject.cs, ObjectListView/DragDrop/DropSink.cs
+  - Initial checkin
+
+2011-04-01 18:05 (#1083) - ObjectListView/CellEditing/EditorRegistry.cs
+  - Use OLVColumn.DataType if the value to be edited is null
+
+2011-04-01 18:04 (#1082) - ObjectListView/ObjectListView2008.csproj, ObjectListView/ObjectListView.csproj, ObjectListView/ObjectListView2010.csproj
+  - Added newly created files
+
+2011-04-01 18:03 (#1081) - ObjectListView/TreeListView.cs
+  - Moved TreeRenderer to its own file
+
+2011-04-01 18:02 (#1080) - ObjectListView/VirtualObjectListView.cs
+  - Filtering on grouped virtual lists no longer behaves strangely
+
+2011-04-01 18:01 (#1079) - ObjectListView/FastObjectListView.cs
+  - Made GetNthObject() more defensive
+
+2011-04-01 18:01 (#1078) - Demo/ColumnSelectionForm.Designer.cs, Demo/ColumnSelectionForm.cs, Demo/MainForm.Designer.cs, Demo/ObjectListViewDemo2008.csproj, Demo/MainForm.cs, Demo/ObjectListViewDemo.csproj, Demo/ObjectListViewDemo2010.csproj, Demo/ColumnSelectionForm.resx, Demo/MainForm.resx
+  - Moved ColumnSelectionForm to main ObjectListView project
+  - Gave olvComplex.BirthdayColumn a specific clustering strategy
+
+2011-03-20 16:45 (#1077) - ObjectListView/ObjectListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/CellEditing/CellEditKeyEngine.cs
+  - All model object comparisons now use Equals rather than == (thanks to vulkanino)
+  - [Small Break] SelectedItem, GetNextItem() and GetPreviousItem() now accept and return OLVListView rather than ListViewItems.
+
+2011-03-20 16:27 (#1076) - ObjectListView/ObjectListView.csproj
+  - Added missing files to project. Reorganized
+
+2011-03-20 16:26 (#1075) - ObjectListView/ObjectListView2010.csproj
+  - Signed project
+
+2011-03-20 16:23 (#1074) - ObjectListView/ObjectListView2008.csproj
+  - Changed project to reflect file structure
+
+2011-03-12 10:59 (#1073) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, ObjectListView/VirtualObjectListView.cs, Demo/MainForm.resx
+  - Try to make CheckBoxes = false work on Virtual lists
+
+2011-03-08 19:45 (#1072) - ObjectListView/ObjectListView.cs, ObjectListView/Implementation/DataSourceAdapter.cs, ObjectListView/DataListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/TreeListView.cs, ObjectListView/CellEditing/CellEditKeyEngine.cs, ObjectListView/Implementation/Events.cs, ObjectListView/FastObjectListView.cs, ObjectListView/ObjectListView2010.csproj
+  - Merged FastDataListView into trunk
+  - Added OnFreezing() event
+
+2011-03-07 23:49 (#1058) - ObjectListView/CellEditing/CellEditors.cs, ObjectListView/Filtering/ToolStripCheckedListBox.cs, ObjectListView/Filtering/IClusteringStrategy.cs, ObjectListView/CellEditing/EditorRegistry.cs, ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/Filtering/Cluster.cs, ObjectListView/ExcelFiltering.cs, ObjectListView/CellEditing/CellEditKeyEngine.cs, ObjectListView/Filters.cs, ObjectListView/CellEditors.cs, ObjectListView/Filtering/ICluster.cs, ObjectListView/Filtering/FirstLetterClusteringStrategy.cs, ObjectListView/Filtering, ObjectListView/CellEditing, ObjectListView/CellEditKeyEngine.cs, ObjectListView/Filtering/ClusteringStrategy.cs, ObjectListView/Filtering/Filters.cs, ObjectListView/ObjectListView2010.csproj
+  - Finished new cell editing scheme
+  - Finished (almost) filtering
+
+2011-03-07 23:44 (#1057) - ObjectListView/ObjectListView.cs
+  - [Big] Added Excel-style filtering. Right click on a header to show a Filtering menu.
+  - Added CellEditKeyEngine to allow key handling to be completely customised. Add CellEditTabChangesRows and CellEditEnterChangesRows to show some of these abilities.
+
+2011-03-07 00:18 (#1056) - ObjectListView/ObjectListView.cs, ObjectListView/CellEditKeyEngine.cs, ObjectListView/ExcelFiltering.cs
+  - Added OLVColumn.AutoCompleteEditorMode in preference to AutoCompleteEditor (which is now just a wrapper)
+  - Added lots of docs
+
+2011-03-05 15:01 (#1051) - ObjectListView/HeaderControl.cs
+  - Added owner drawn delegate for column heading
+
+2011-03-05 15:00 (#1050) - ObjectListView/Filters.cs
+  - Added OneOfFilter
+
+2011-03-05 15:00 (#1049) - ObjectListView/DragSource.cs
+  - Use IList rather than List for public methods
+
+2011-02-25 09:39 (#1048) - ListViewPrinterDemo/ListViewPrinterDemo2010.csproj, ObjectListView/ExcelFiltering.cs, ListViewPrinter/ListViewPrinter2010.csproj, Tests/Tests2010.csproj, ObjectListView2010.sln, ObjectListView/ObjectListView2010.csproj
+  - Added VS2010 projects
+
+2011-02-25 09:34 (#1046) - ObjectListView/VirtualGroups.cs
+  - Correctly honor group comparer and collapsible groups settings
+
+2011-02-25 09:33 (#1045) - ObjectListView/TreeListView.cs
+  - TreeListView can now be word wrapped
+  - The renderer now must be a TreeRenderer
+
+2011-02-25 09:32 (#1044) - ObjectListView/Renderers.cs
+  - Word wrap requires GDI+ renderering
+
+2011-02-25 09:31 (#1043) - ObjectListView/ObjectListView.cs
+  - Preserve word wrap settings on TreeListView
+  - Resize last group to keep it on screen
+
+2011-02-25 09:28 (#1042) - ObjectListView/NativeMethods.cs
+  - Added HasHorizontalScrollBar()
+
+2011-02-25 09:28 (#1041) - ObjectListView/Groups.cs
+  - Minor formatting tweaks
+
+2011-02-25 09:27 (#1040) - ObjectListView/Filters.cs
+  - Added CompositeModelFilter
+  - Removed all tabs
+
+2011-01-06 07:55 (#1039) - ObjectListView/ObjectListView.cs, ObjectListView/HeaderControl.cs
+  - Honour showSortIndicators setting
+
+2011-01-06 07:53 (#1038) - ObjectListView/DragSource.cs
+  - Added ability to include column headers in data object
+
+2010-11-16 21:37 (#1037) - Tests/TestGenerator.cs
+  - Added tests for DisplayIndex in Generator tests
+
+2010-11-16 21:36 (#1036) - ObjectListView/ObjectListView.cs, ObjectListView/Attributes.cs, ObjectListView/Generator.cs
+  - Fixed (once and for all) DisplayIndex problem with Generator
+  - Changed the serializer used in SaveState()/RestoreState() so that it resolves on class name alone.
+  - Fixed bug in GroupWithItemCountSingularFormatOrDefault
+  - Fixed strange flickering in grouped, owner drawn OLV's using RefreshObject()
+
+2010-11-10 05:05 (#1035) - ObjectListView/ObjectListView.cs
+  - Fixed problem with newly added columns in the AllColumns collection always coming to the front
+  - Fixed flickering problem involving owner drawn, grouped OLV on Vista and Win7 when using RefreshObjects()
+
+
+
 v2.4.1 - 15 September 2010
 --------------------------
+
+2010-09-15 07:42 (#1030) - docs/whatsnew.rst, docs/changelog.rst, docs/download.rst, docs/gettingStarted.rst, docs/recipes.rst
+  - Final v2.4.1
 
 2010-09-14 11:22 (#1028) - Demo/MainForm.Designer.cs, Demo/MainForm.resx
   - Make sure the image list for TreeListView demo is 32-bit

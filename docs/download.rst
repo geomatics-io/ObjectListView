@@ -33,7 +33,10 @@ v2.4.1 released on 14 September 2010 is the most recent stable release.
 Not-so-stable releases
 ----------------------
 
-There are current no not-so-stable releases.
+`ObjectListView 2.5 beta`_ is now available (April 2010). This will have bugs. Please log them
+on the tracker against the 2.5beta version and I will fix them before the final 2.5 release.
+
+.. _ObjectListView 2.5 beta: http://sourceforge.net/projects/objectlistview/files/objectlistview/v2.5/ObjectListViewFull-2.5beta.zip/download
 
 Bleeding-edge source
 --------------------
@@ -41,7 +44,7 @@ Bleeding-edge source
 If you are a very keen developer, you can access the SVN repository directly for this
 project. The following SVN command will fetch the most recent version from the repository::
 
- svn co https://objectlistview.svn.sourceforge.net/svnroot/objectlistview/trunk objectlistview
+ svn co https://objectlistview.svn.sourceforge.net/svnroot/objectlistview/cs/trunk objectlistview
 
 There are details on `how to use Subversion here <http://p.sf.net/sourceforge/svn>`_ on SourceForge.
 

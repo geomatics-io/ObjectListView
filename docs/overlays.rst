@@ -38,6 +38,14 @@ predefined. These predefined overlays are exposed to the IDE, so that they
 can be configured directly from there. So, for the majority of cases, this
 is the only understanding of overlays that you will need.
 
+Disabling overlays
+------------------
+
+Though they seem simple, overlays are actually quite tricky underneath.
+If they are causing problems (for example, if you are seeing `GlassPanelForms`
+turn up where you are not expecting them), you can completely disable them
+by setting `UseOverlays` to *false*.
+
 Implementation
 --------------
 
