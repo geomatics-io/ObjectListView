@@ -36,6 +36,12 @@ namespace BrightIdeasSoftware{
     /// and how those clusters will be presented to the user
     /// </summary>
     public interface IClusteringStrategy {
+
+        /// <summary>
+        /// Gets or sets the column upon which this strategy will operate
+        /// </summary>
+        OLVColumn Column { get; set; }
+
         /// <summary>
         /// Get the cluster key by which the given model will be partitioned by this strategy
         /// </summary>

@@ -82,8 +82,7 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// Create a clustering strategy
         /// </summary>
-        public ClusteringStrategy(OLVColumn column) {
-            this.Column = column;
+        public ClusteringStrategy() {
             this.DisplayLabelFormatSingular = DefaultDisplayLabelFormatSingular;
             this.DisplayLabelFormatPlural = DefaultDisplayLabelFormatPlural;
         }

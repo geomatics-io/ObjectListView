@@ -1,11 +1,11 @@
 ﻿/*
- * FirstLetterClusteringStrategy - A strategy to cluster objects by the first letter of a value
+ * ClusteringStrategy - Implements a simple clustering strategy
  *
  * Author: Phillip Piper
- * Date: 4-March-2011 11:59 pm
+ * Date: 1-April-2011 8:12am
  *
  * Change log:
- * 2011-03-04  JPP  - First version
+ * 2011-04-01  JPP  - First version
  * 
  * Copyright (C) 2011 Phillip Piper
  *
@@ -25,27 +25,26 @@
  * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
  */
 
+using System;
+using System.Collections.Generic;
+using System.Text;
+
 namespace BrightIdeasSoftware {
 
     /// <summary>
-    /// This class implements a strategy where the model objects are clustered
-    /// according to the first letter of the string representation of the value
-    /// in the configured column.
+    /// This class calculates clusters from the groups that the column uses.
     /// </summary>
-    public class FirstLetterClusteringStrategy : ClusteringStrategy {
-        #region Life and death
-
-        /// <summary>
-        /// Create a strategy based around the values of the given column
-        /// </summary>
-        /// <param name="column"></param>
-        public FirstLetterClusteringStrategy(OLVColumn column)
-            : base(column) {
-        }
-
-        #endregion
-
-        #region IClusterStrategy implementation
+    /// <remarks>
+    /// <para>
+    /// This is the default strategy for all non-date, filterable columns.
+    /// </para>
+    /// <para>
+    /// This class does not strictly mimic the groups created by the given column.
+    /// In particular, if the programmer changes the default grouping technique
+    /// by listening for grouping events, this class will not mimic that behaviour.
+    /// </para>
+    /// </remarks>
+    public class ClustersFromGroupsStrategy : ClusteringStrategy {
 
         /// <summary>
         /// Get the cluster key by which the given model will be partitioned by this strategy
@@ -53,12 +52,7 @@ namespace BrightIdeasSoftware {
         /// <param name="model"></param>
         /// <returns></returns>
         public override object GetClusterKey(object model) {
-            object value = this.Column.GetValue(model);
-            if (value == null)
-                return null;
-
-            string valueAsString = this.Column.ValueToString(value);
-            return valueAsString.Length == 0 ? EMPTY_LABEL : valueAsString.Substring(0, 1);
+            return this.Column.GetGroupKey(model);
         }
 
         /// <summary>
@@ -67,9 +61,9 @@ namespace BrightIdeasSoftware {
         /// <param name="cluster"></param>
         /// <returns></returns>
         public override string GetClusterDisplayLabel(ICluster cluster) {
-            return this.ApplyDisplayFormat(cluster, cluster.ClusterKey as string);
+            string s = this.Column.ConvertGroupKeyToTitle(cluster.ClusterKey);
+            if (s == String.Empty) s = EMPTY_LABEL;
+            return this.ApplyDisplayFormat(cluster, s);
         }
-
-        #endregion
     }
 }
