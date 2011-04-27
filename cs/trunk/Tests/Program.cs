@@ -277,7 +277,7 @@ namespace BrightIdeasSoftware.Tests
             string name = pinfo.Name;
             
             // Some name are so long they make the formatting strange.
-            var pairs = new List<string[]>(new string[][] {
+            List<string[]> pairs = new List<string[]>(new string[][] {
                 new string[] { "GroupWithItemCountSingularFormatOrDefault", "GroupWithItemCountSingularFormat OrDefault" },
                 new string[] { "RenderNonEditableCheckboxesAsDisabled", "RenderNonEditableCheckboxes AsDisabled" },
                 new string[] { "UpdateSpaceFillingColumnsWhenDraggingColumnDivider", "UpdateSpaceFillingColumnsWhenDragging ColumnDivider" },
@@ -286,7 +286,7 @@ namespace BrightIdeasSoftware.Tests
             
             });
 
-            foreach (var pair in pairs) {
+            foreach (string[] pair in pairs) {
                 if (name == pair[0]) {
                     name = pair[1];
                     break;
@@ -398,7 +398,7 @@ namespace BrightIdeasSoftware.Tests
         private static string MakeParameterList(MethodInfo info) {
             StringBuilder sb = new StringBuilder();
 
-            foreach (var parameter in info.GetParameters()) {
+            foreach (ParameterInfo parameter in info.GetParameters()) {
                 sb.Append(GetTypeName(parameter.ParameterType));
                 sb.Append(" ");
                 sb.Append(parameter.Name);

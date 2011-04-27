@@ -49,7 +49,7 @@ namespace BrightIdeasSoftware.Tests
         public void Test_AddObjects() {
             this.olv.SetObjects(null);
             this.olv.AddObjects(PersonDb.All);
-            foreach (var x in PersonDb.All)
+            foreach (object x in PersonDb.All)
                 Assert.AreNotEqual(-1, this.olv.IndexOf(x));
             Assert.AreEqual(PersonDb.All.Count, this.olv.GetItemCount());
         }
@@ -70,7 +70,7 @@ namespace BrightIdeasSoftware.Tests
             toRemove.Add(PersonDb.All[2]);
             toRemove.Add(PersonDb.All[5]);
             this.olv.RemoveObjects(toRemove);
-            foreach (var x in toRemove)
+            foreach (object x in toRemove)
                 Assert.AreEqual(-1, this.olv.IndexOf(x));
             Assert.AreEqual(PersonDb.All.Count - toRemove.Count, this.olv.GetItemCount());
         }
