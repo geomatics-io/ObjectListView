@@ -68,11 +68,11 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ListViewPrinter\ListViewPrinter.csproj">
+    <ProjectReference Include="..\ListViewPrinter\ListViewPrinter2005.csproj">
       <Project>{E73A10BD-2B5A-4BAC-897F-3A58CFC07631}</Project>
       <Name>ListViewPrinter</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ObjectListView\ObjectListView.csproj">
+    <ProjectReference Include="..\ObjectListView\ObjectListView2005.csproj">
       <Project>{18FEDA0C-D147-4286-B39A-01204808106A}</Project>
       <Name>ObjectListView</Name>
     </ProjectReference>
