@@ -54,7 +54,7 @@
     <Compile Include="TestTreeView.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ObjectListView\ObjectListView.csproj">
+    <ProjectReference Include="..\ObjectListView\ObjectListView2005.csproj">
       <Project>{18FEDA0C-D147-4286-B39A-01204808106A}</Project>
       <Name>ObjectListView</Name>
     </ProjectReference>
