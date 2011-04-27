@@ -5,6 +5,7 @@
  * Date: 4-March-2011 11:59 pm
  *
  * Change log:
+ * 2011-04-12  JPP  - Added some images to menu
  * 2011-03-04  JPP  - First version
  * 
  * Copyright (C) 2011 Phillip Piper
@@ -30,6 +31,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
 using System.Collections;
+using System.Drawing;
 
 namespace BrightIdeasSoftware {
 
@@ -40,7 +42,7 @@ namespace BrightIdeasSoftware {
     /// a filter that will enact the users choices.
     /// </summary>
     /// <remarks>
-    /// Almost all of the methods in this class are declared as virtual protected
+    /// Almost all of the methods in this class are declared as "virtual protected"
     /// so that subclasses can provide alternative behaviours.
     /// </remarks>
     public class FilterMenuBuilder {
@@ -72,6 +74,16 @@ namespace BrightIdeasSoftware {
         /// </summary>
         static public string SELECT_ALL_LABEL = "Select All";
 
+        /// <summary>
+        /// Gets or sets the image that will be placed next to the Clear Filtering menu item
+        /// </summary>
+        static public Bitmap ClearFilteringImage = BrightIdeasSoftware.Properties.Resources.ClearFiltering;
+
+        /// <summary>
+        /// Gets or sets the image that will be placed next to all "Apply" menu items on the filtering menu
+        /// </summary>
+        static public Bitmap FilteringImage = BrightIdeasSoftware.Properties.Resources.Filtering;
+
         #endregion
 
         #region Public properties
@@ -86,7 +98,6 @@ namespace BrightIdeasSoftware {
             set { treatNullAsDataValue = value; }
         }
         private bool treatNullAsDataValue = true;
-        
 
         /// <summary>
         /// Gets or sets the maximum number of objects that the clustering strategy
@@ -116,7 +127,7 @@ namespace BrightIdeasSoftware {
             if (listView == null) throw new ArgumentNullException("listView");
             if (column == null) throw new ArgumentNullException("column");
 
-            if (!column.UsesFiltering || column.ClusteringStrategy == null)
+            if (!column.UseFiltering || column.ClusteringStrategy == null)
                 return strip;
 
             List<ICluster> clusters = this.Cluster(column.ClusteringStrategy, listView, column);
@@ -192,14 +203,14 @@ namespace BrightIdeasSoftware {
             }
             checkedList.ItemCheck += new ItemCheckEventHandler(HandleItemCheckedWrapped);
 
-            ToolStripMenuItem clearAll = new ToolStripMenuItem(CLEAR_ALL_FILTERS_LABEL, null, delegate(object sender, EventArgs args) {
+            ToolStripMenuItem clearAll = new ToolStripMenuItem(CLEAR_ALL_FILTERS_LABEL, ClearFilteringImage, delegate(object sender, EventArgs args) {
                 this.ClearAllFilters(column);
             });
-            ToolStripButton toolStripButton = new ToolStripButton(APPLY_LABEL, null, delegate(object sender, EventArgs args) {
+            ToolStripMenuItem apply = new ToolStripMenuItem(APPLY_LABEL, FilteringImage, delegate(object sender, EventArgs args) {
                 this.EnactFilter(checkedList, column);
             });
             ToolStripMenuItem subMenu = new ToolStripMenuItem(FILTERING_LABEL, null, new ToolStripItem[] { 
-                clearAll, new ToolStripSeparator(), checkedList, toolStripButton });
+                clearAll, new ToolStripSeparator(), checkedList, apply });
             return subMenu;
         }
 
