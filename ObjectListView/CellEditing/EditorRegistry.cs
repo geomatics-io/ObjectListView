@@ -5,6 +5,7 @@
  * Date: 6-March-2011 7:53 am
  *
  * Change log:
+ * 2011-03-31  JPP  - Use OLVColumn.DataType if the value to be edited is null
  * 2011-03-06  JPP  - Separated from CellEditors.cs
  * 
  * Copyright (C) 2011 Phillip Piper
@@ -155,23 +156,28 @@ namespace BrightIdeasSoftware {
         public Control GetEditor(Object model, OLVColumn column, Object value) {
             Control editor;
 
+            // Give the first chance delegate a chance to decide
             if (this.firstChanceCreator != null) {
                 editor = this.firstChanceCreator(model, column, value);
                 if (editor != null)
                     return editor;
             }
 
-            if (value != null && this.creatorMap.ContainsKey(value.GetType())) {
-                editor = this.creatorMap[value.GetType()](model, column, value);
+            // Try to find a creator based on the type of the value (or the column)
+            Type type = value == null ? column.DataType : value.GetType();
+            if (type != null && this.creatorMap.ContainsKey(type)) {
+                editor = this.creatorMap[type](model, column, value);
                 if (editor != null)
                     return editor;
             }
 
-            if (this.defaultCreator != null)
-                return this.defaultCreator(model, column, value);
-
+            // Enums without other processing get a special editor
             if (value != null && value.GetType().IsEnum)
                 return this.CreateEnumEditor(value.GetType());
+
+            // Give any default creator a final chance
+            if (this.defaultCreator != null)
+                return this.defaultCreator(model, column, value);
 
             return null;
         }
