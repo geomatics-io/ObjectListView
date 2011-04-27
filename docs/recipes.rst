@@ -18,7 +18,7 @@ Learning to cook
 1. What flavour of ObjectListView do I want to use?
 ---------------------------------------------------
 
-There are five flavours of ObjectListView:
+There are six flavours of ObjectListView:
 
 ObjectListView - Plain Vanilla
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -41,9 +41,8 @@ DataListView - Strawberry Smoothie
 .. image:: images/smoothie2.jpg
     :class: left-padded
 
-
 *Everything is just smooth and easy*
-
+ 
 A `DataListView` is for the ultra-slothful: those who literally do not want to even write one line of code.
 
 A `DataListView` can be given a `DataSource` from within the IDE, and it will
@@ -51,6 +50,23 @@ automatically keep itself sync with that `DataSource`. Further, if the
 `DataListView` is marked as editable, edits will be automatically written into the
 `DataSource`.
 
+
+FastDataListView - Chilli Smoothie
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: images/chili-smoothie2.jpg
+   :target: http://www.flickr.com/photos/flashfire/3178281016/
+   :class: left-padded
+
+*Fast and easy*
+
+A `FastDataListView` combines speed with ease of use: the speed of a virtual list with the
+ease of `DataListView`. On my mid-range laptop, a `FastDataListView` can easily handle data sets of 100,000 rows or more.
+
+A `FastDataListView` virtualizes the display of the data set -- it does not change the process of
+loading data into the dataset. If your dataset is a SQL statement that fetches one million rows
+from a remote database, your program will still have to load all one millions rows. Once loaded, however, 
+`FastDataListView` will show them almost instantly.
 
 VirtualObjectListView - Expresso
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -85,10 +101,11 @@ When you want speed, speed, and more speed, but you don't want the bitterness of
 the `VirtualObjectListView`, a `FastObjectListView` is your weapon of choice. It
 operates just like a normal `ObjectListView` -- only much faster.
 
-It does have two limitations:
+It does have a couple of limitations:
 
 * It also cannot use *Tile* view
 * It cannot show animated GIFs
+* It cannot show groups on XP
 
 But apart from that it operates just like a normal `ObjectListView`.
 
@@ -384,7 +401,7 @@ property to  *true*. If you want the user to be able to give check boxes the
 *Indeterminate* value, you should set the `TriStateCheckBoxes` property to
 *true*.
 
-To make the checkboxes work, you can do:
+To make the checkboxes work, you can:
 
 1. Do nothing else
 
@@ -393,7 +410,7 @@ form of selection. You can find the objects that are checked via the
 `CheckObjects` property, and you can change which rows are checked by setting
 the same property.
 
-2. Using CheckedAspectName
+2. Use CheckedAspectName
 
 If your check box reflects data from your model, `CheckedAspectName` is the next
 possibility.
@@ -405,7 +422,7 @@ the `ObjectListView` will handle everything else, both the getting and the
 setting of this property's value. The property must be of type `bool` (or of type
 `bool?` if you want to use tri-state).
 
-3. Using delegates
+3. Use delegates
 
 If `CheckedAspectName` is too simple for your needs, you can install
 `CheckStateGetter` and `CheckStatePutter` delegates. The first delegate is used to
@@ -480,6 +497,9 @@ property, the control must iterate the whole list, asking in turn if this object
 is checked. This is fine if the list has only 100 or even 1000 objects, but if
 the list has 10,000,000 objects, your program is going to hang.
 
+Virtual lists persist the "checkedness" of individual objects across calls to
+`SetObjects()` (and other list modifying operations). To make the list forget
+the "checkedness" of all objects, call `ClearObjects()`. 
 
 .. _recipe-tileview:
 
@@ -601,7 +621,7 @@ Yes. You can use a `TypedObjectListView` wrapper.
 
 One annoyance with `ObjectListView` is all the casting that is needed. Because the
 `ObjectListView` makes no assumptions about what sort of model objects you will be
-using, it handles all models as objects and it's up to you to cast them to the
+using, it handles all models as `objects` and it's up to you to cast them to the
 right type when you need to. This leads to many delegates starting with a cast
 like this::
 
@@ -893,6 +913,14 @@ TabControl-like container.
 
 Overlays are purely cosmetic. They do not respond to any user interactions.
 
+Disabling
+^^^^^^^^^
+
+Overlays look simple but are quite complex underneath. If they seem to be misbehaving
+(e.g. if you are seeing `GlassPanelForms` in placing where you don't want them),
+you can completely disable overlays by setting `UseOverlays` to *false*.
+
+
 .. _recipe-decorations:
 
 20. How can I put an image (or some text) over the top of a row or cell?
@@ -1031,8 +1059,7 @@ you can simply assign that menu to the `ContextMenuStrip` property of the `Objec
 (this is standard .NET, nothing specific to an `ObjectListView`).
 
 If you want to show a context menu specific to the object clicked,
-you can listen for `CellRightClick` events (if you have v2.2.1 or later.
-For earlier versions, see below)::
+you can listen for `CellRightClick` events::
 
     private void olv_CellRightClick(object sender, CellRightClickEventArgs e) {
         e.MenuStrip = this.DecideRightClickMenu(e.Model, e.Column);
@@ -1042,6 +1069,9 @@ If `MenuStrip` is not null, it will be shown where the mouse was clicked.
 
 It's entirely reasonable for `e.Model` to be *null*. That means the user clicked
 on the list background.
+
+v2.2 or earlier
+^^^^^^^^^^^^^^^
 
 If you have v2.2 or earlier,
 you need to listen for `OnMouseClick` event and do something like this::
@@ -1070,7 +1100,7 @@ on the list background.
 25. How do I change the font or color of the column headers?
 ------------------------------------------------------------
 
-Set `ObjectListView.HeaderUsesThemes` to `false` and then create 
+Set `ObjectListView.HeaderUsesThemes` to *false* and then create 
 a `HeaderFormatStyle` object (either in code or within the IDE), give it
 the characteristics you want, and then assign that style to either 
 `ObjectListView.HeaderFormatStyle` (to format all column headers) or 
@@ -1093,10 +1123,10 @@ produce some truly dreadful designs, but when well used, the effect can be pleas
 
     *"I've setup the HeaderFormat like you say, but the stupid thing does nothing"*
 	
-Make sure `HeaderUsesThemes` is `false`. If this is `true`, `ObjectListView` will
+Make sure `HeaderUsesThemes` is *false*. If this is *true*, `ObjectListView` will
 use the OS's theme to draw the header, ignoring the `HeaderFormatStyle` completely.
 
-There is also `ObjectListView.HeaderWordWrap` which when `true` says to
+There is also `ObjectListView.HeaderWordWrap` which when *true* says to
 word wrap the text within the header.
 
 .. image:: images/header-formatting.png
@@ -1363,136 +1393,27 @@ Implementating this feature required the use of undocumented features. That mean
 there is no guarantee that it will continue working in later versions of Windows
 (or even on current versions). You have been warned.
 
-[Update: August 2010] There is at least one fairly reliable anomaly with this.
-If you use filtering on grouped virtual list, you will sometimes get Chinese
-characters on rows that should have disappeared. I haven't been able to track
-down why this happens -- yet :)
 
 .. _recipe-filtering:
 
 32. Can I filter the contents of the ObjectListView?
 ----------------------------------------------------
 
-[v2.4] `ObjectListView` supports filtering on lists. To enable filtering
-on a list, you must set `UseFiltering` to `true`. To ensure backward
-compatibility, it is `false` by default.
+This needs a :ref:`whole page to itself <filtering-label>`.
+  
+In brief, you must set `UseFiltering` to *true*, and then set either the `ModelFilter` property
+or the `ListFilter` property to an appropriate filter. 
 
-Once filtering is enabled, `ObjecListView` supports two sorts of filtering: 
-(1) whole list filtering;
-(2) model filtering.
-
-Whole list filtering is useful for filtering that applies to the entire list.
-Tail and head filtering are classic examples of such filtering. If you have a log file
-viewer and you only want to show the last 500 lines, you can set a filter
-to simply show the last 500 objects::
-
-   this.olvLogView.ListFilter = new TailFilter(500);
-   
-Since this filter operates on the list as a whole, it runs quickly. By cutting down
-the number of objects shown in the list, it can speed up the list considerably.
-
-Model filtering considers each object in turn and decides if it should be included.
-Because it considers every object individually, it is slower than a whole list filter,
-but it is still fast enough for normal use. On my mid-range laptop, model filtering on
-a list of 50,000 objects still has a sub-second response time. 
-
-You can make your own filters by implmenting the `IModelFilter` or `IListFilter`
-interface, or by subclassing `AbstractModelFilter` or `AbstractListFilter`.
-These interfaces are just about as simple as they could be::
-
-    public interface IModelFilter
-    {
-        bool Filter(object modelObject);
-    }
-
-    public interface IListFilter
-    {
-        IEnumerable Filter(IEnumerable modelObjects);
-    }
-	
-If you only wanted to show emergency calls, you could make a filter like this::
-
-    public class OnlyEmergenciesFilter : IModelFilter
-    {
-        public bool Filter(object modelObject) {
-            return ((PhoneCall)x).IsEmergency; 
-        }
-    }
-    ...
-    this.olv1.ModelFilter = new OnlyEmergenciesFilter();
-	
-Rather than subclassing, you will often be able to use an instance of `ModelFilter` directly.
-This accepts a delegate that decides if the given model should be included. Again, to only
-show emergency calls, you could install a filter like this::
+ObjectListView provides a number
+of pre-built filter, including a text based filter (see :ref:`recipe-text-filtering`).
+The base `ModelFilter` class can be given a delegate and used directly::
 
    this.olv1.ModelFilter = new ModelFilter(delegate(object x) { 
        return ((PhoneCall)x).IsEmergency; 
    });
-   
-To remove a filter, simply set `ModelFilter` (or `ListFilter`) to `null`.
-   
-Filters and virtual lists
-^^^^^^^^^^^^^^^^^^^^^^^^^
 
-As always, since virtual lists keep their data to themselves, `ObjectListView` cannot filter 
-their contents directly. However, if the `VirtualListDataSource` behind the virtual list
-implements the new `IFilterableDataSource` data source, then the virtual list can be filtered too.
-
-The `IFilterableDataSource` is very simple::
-
-    public interface IFilterableDataSource
-    {
-        /// <summary>
-        /// All subsequent retrievals on this data source should be filtered
-        /// through the given filters. null means no filtering of that kind.
-        /// </summary>
-        void ApplyFilters(IModelFilter modelFilter, IListFilter listFilter);
-    }
-
-The data source should store the given filters, and apply them to all subsequent operations.
-
-Filtering and TreeListViews
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Filtering and `TreeListViews` interact in a predictable but perhaps unexpected fashion. 
-
-Filtering considers only rows that are currently exposed (that is, all their ancestorss 
-are expanded).
-
-Within those rows, rows will be included by the filtering process if they **or any of their
-descendents** will be included by the filtering. (Yes, this is recursive). If a bottom level
-child matches the filtering criteria, then all its ancestors will be considered to have
-matched as well and thus will be shown in the control.
-
-In the majority of situations, this gives the most predictable and useful visual results.
-
-Filtering and RefreshObject()
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`RefreshObject()` does *not* change the "filtered-ness" of an object: an object that was
-visible before `RefreshObject()` will still be visible after, and an object that was
-filtered before `RefreshObject()` was called will still be filtered afterwards.
-
-There are a main reason for this behaviour is that `RefreshObject()` has always had  
-the contract that it will not rebuild, resort or regroup the list. If the filtered-ness
-of an object changes, `RefreshObject()` would have to break one or more of these
-conditions.
-
-1. For a grouped list, `RefreshObject()` may have to create a new group or remove an 
-   existing group. This would break the "no rebuild"
-   and "no regrouping" contract.
-   
-2. If there is a `ListFilter` installed, `RefreshObject()` would have to rebuild the whole list.
-
-3. In a `TreeListView`, the newly hidden (or revealed) object might be a deeply nest child row,
-   which would require all the parents to also be hidden or revealed, again breaking the contracts.
-
-If you make a change to model objects and want filters to be reconsidered for them, you have
-to call `BuildList(true)` or reapply the filters. `RefreshObject()` will not work.
-   
 .. _recipe-text-filtering:
 
-   
 33. Is there an easy way to only show rows that contain some text?
 ------------------------------------------------------------------
 
@@ -1506,7 +1427,7 @@ After executing this line, the `olv1` will only show rows where the text "search
 occurs in at least one cell of that row. 
 
 This searching uses each cell's string representation. This can lead to some odd, but still
-accurate results, when owner drawn is `true`. For example, subitem check boxes are drawn
+accurate results, when owner drawn is *true*. For example, subitem check boxes are drawn
 as boxes, but their string representation is "true" and "false." If you're text filter is
 "rue" it will match all rows where a subitem check box is checked.
 
@@ -1584,7 +1505,7 @@ of the text in the header.
 
 .. image:: images/header-with-image.png
 
-For the image to appear `OLVColumn.HeaderUsesTheme` must be `false`. Otherwise,
+For the image to appear `OLVColumn.HeaderUsesTheme` must be *false*. Otherwise,
 the header will be drawn strictly in accordance with the OS's current theme
 (which certainly will not include an image).
 
@@ -1600,7 +1521,7 @@ process so any value you set on them in the IDE *will not* be persisted.
 For checkbox column, or image only columns, the header text can take up
 much more space than the data it is labelling. In such cases, you can make 
 the columns header be drawn vertically, by setting `OLVColumn.IsHeaderVertical`
-property to `true`.
+property to *true*.
 
 Setting this gives something like this:
 
@@ -1655,3 +1576,57 @@ If you don't want the items within the group to be sorted at all, set
 
 There is no way to NOT sort the groups. They have to be ordered in some
 fashion.
+
+40. How do I change what happens the user presses Tab or Enter when editing a cell?
+-----------------------------------------------------------------------------------
+
+   *In my app, I want the user to be able to edit all cells just by repeatedly
+   hitting [Tab]. So, when the user hits [Tab] when editing the last cell, I don't
+   want it to wrap back to the first cell -- I want it to change rows.
+   How can do I that?*
+   
+There must be a thousand variations on this question, but the two most common are:
+
+  1. how to make `[Tab]` change rows when editing the last cell.
+  
+  2. how to make `[Enter]` change rows, not just commit the change.
+
+To address these two most common case, ObjectListView now has `CellEditTabChangesRows` 
+and `CellEditEnterChangesRows` properies. 
+
+  * `CellEditTabChangesRows` makes ObjectListView
+    change the row being edited when the user presses `[Tab]` while editing the last
+    editable cell on a row. 
+    
+  * `CellEditEnterChangesRows` makes ObjectListView 
+    try to edit the cell below the cell being edited when the user press `[Enter]`.
+
+These behaviours are achieved by modifying the `CellEditKeyEngine` settings. 
+This engine allows you to completely
+customise the behaviour of keys during a cell edit operation.
+
+For example, to make [Ctrl-Up] start editing the cell above the current cell::
+
+    olv1.CellEditKeyEngine.SetKeyBehaviour(Keys.Up|Keys.Control, CellEditCharacterBehaviour.ChangeRowUp, CellEditAtEdgeBehaviour.ChangeRow);
+
+NOTE: The interface to `CellEditKeyEngine` will almost certainly change in the next version.
+
+41. How do I change the way the "Filtering" menu works?
+-------------------------------------------------------
+
+  *I really like the 'Filter' menu, but I want to change the values that are 
+  shown in the check list. How do I do that?*
+  
+This is complex enough to needs its own page (:ref:`column-filtering-label`), but briefly:
+
+The values in the check list are controlled by the `ClusteringStrategy` that is installed on a column.
+By default, the clustering strategy copies the grouping behaviour of that column. To change
+this, you must set `ClusteringStrategy` to a strategy that does what you want.
+
+To create your own strategy, you must implement `IClusteringStrategy` or subclass
+the safe base clas `ClusteringStrategy`. If you are showing dates or times in a column, 
+the `DateTimeClusteringStrategy` can probably be configured to do exactly what you want. 
+
+To hide the 'Filter' menu item for all columns, set `ShowFilterMenuOnRightClick` to *false*.
+
+To hide the 'Filter' menu item for a particular column, set `UsesFiltering` to *false* on that column.
