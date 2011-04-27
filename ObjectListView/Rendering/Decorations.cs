@@ -5,6 +5,7 @@
  * Date: 19/08/2009 10:56 PM
  *
  * Change log:
+ * 2011-04-04   JPP  - Added ability to have a gradient background on BorderDecoration
  * v2.4
  * 2010-04-15   JPP  - Tweaked LightBoxDecoration a little
  * v2.3
@@ -303,11 +304,41 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the brush that will be used to fill the border
         /// </summary>
+        /// <remarks>This value is ignored when using gradient brush</remarks>
         public Brush FillBrush {
             get { return this.fillBrush; }
             set { this.fillBrush = value; }
         }
         private Brush fillBrush = new SolidBrush(Color.FromArgb(64, Color.Blue));
+
+        /// <summary>
+        /// Gets or sets the color that will be used as the start of a gradient fill.
+        /// </summary>
+        /// <remarks>This and FillGradientTo must be given value to show a gradient</remarks>
+        public Color? FillGradientFrom {
+            get { return this.fillGradientFrom; }
+            set { this.fillGradientFrom = value; }
+        }
+        private Color? fillGradientFrom;
+
+        /// <summary>
+        /// Gets or sets the color that will be used as the end of a gradient fill.
+        /// </summary>
+        /// <remarks>This and FillGradientFrom must be given value to show a gradient</remarks>
+        public Color? FillGradientTo {
+            get { return this.fillGradientTo; }
+            set { this.fillGradientTo = value; }
+        }
+        private Color? fillGradientTo;
+
+        /// <summary>
+        /// Gets or sets the fill mode that will be used for the gradient.
+        /// </summary>
+        public LinearGradientMode FillGradientMode {
+            get { return this.fillGradientMode; }
+            set { this.fillGradientMode = value; }
+        }
+        private LinearGradientMode fillGradientMode = LinearGradientMode.Vertical;
 
         #endregion
 
@@ -349,6 +380,11 @@ namespace BrightIdeasSoftware
         protected void DrawFilledBorder(Graphics g, Rectangle bounds) {
             bounds.Inflate(this.BoundsPadding);
             GraphicsPath path = this.GetRoundedRect(bounds, this.CornerRounding);
+            if (this.FillGradientFrom != null && this.FillGradientTo != null) {
+                if (this.FillBrush != null)
+                    this.FillBrush.Dispose();
+                this.FillBrush = new LinearGradientBrush(bounds, this.FillGradientFrom.Value, this.FillGradientTo.Value, this.FillGradientMode);
+            }
             if (this.FillBrush != null)
                 g.FillPath(this.FillBrush, path);
             if (this.BorderPen != null)
@@ -466,6 +502,11 @@ namespace BrightIdeasSoftware
             this.CornerRounding = 8;
             this.BoundsPadding = new Size(10, 8);
 
+        }
+
+        public EditingCellBorderDecoration(bool useLightBox) : this()
+        {
+            this.UseLightbox = useLightbox;
         }
 
         #endregion 
