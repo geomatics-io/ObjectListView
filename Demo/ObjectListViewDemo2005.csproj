@@ -47,17 +47,16 @@
     <FileAlignment>4096</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DefineConstants>DEBUG</DefineConstants>
+    <DefineConstants>DEBUG;WITHOUT_ANIMATION</DefineConstants>
     <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <DocumentationFile>
     </DocumentationFile>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DefineConstants>
-    </DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>WITHOUT_ANIMATION</DefineConstants>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <DocumentationFile>
     </DocumentationFile>
   </PropertyGroup>
@@ -70,12 +69,6 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ColumnSelectionForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ColumnSelectionForm.Designer.cs">
-      <DependentUpon>ColumnSelectionForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -89,10 +82,6 @@
       <DependentUpon>Resource1.resx</DependentUpon>
     </Compile>
     <Compile Include="ShellUtilities.cs" />
-    <EmbeddedResource Include="ColumnSelectionForm.resx">
-      <SubType>Designer</SubType>
-      <DependentUpon>ColumnSelectionForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.Designer.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -187,11 +176,11 @@
     <None Include="Resources\movie16.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ListViewPrinter\ListViewPrinter.csproj">
+    <ProjectReference Include="..\ListViewPrinter\ListViewPrinter2005.csproj">
       <Project>{E73A10BD-2B5A-4BAC-897F-3A58CFC07631}</Project>
       <Name>ListViewPrinter</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ObjectListView\ObjectListView.csproj">
+    <ProjectReference Include="..\ObjectListView\ObjectListView2005.csproj">
       <Project>{18FEDA0C-D147-4286-B39A-01204808106A}</Project>
       <Name>ObjectListView</Name>
     </ProjectReference>
