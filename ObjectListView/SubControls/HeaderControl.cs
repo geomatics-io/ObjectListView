@@ -5,6 +5,8 @@
  * Date: 25/11/2008 17:15 
  *
  * Change log:
+ * 2011-04-12  JPP  - Added ability to draw filter indicator in a column's header
+ * v2.4.1
  * 2010-08-23  JPP  - Added ability to draw header vertically (thanks to Mark Fenwick)
  *                  - Uses OLVColumn.HeaderTextAlign to decide how to align the column's header
  * 2010-08-08  JPP  - Added ability to have image in header
@@ -50,6 +52,7 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Windows.Forms.VisualStyles;
 using System.Drawing.Drawing2D;
+using BrightIdeasSoftware.Properties;
 
 namespace BrightIdeasSoftware
 {
@@ -200,6 +203,8 @@ namespace BrightIdeasSoftware
                 r.Width -= 16;
             if (column.HasHeaderImage)
                 r.Width -= column.ImageList.ImageSize.Width + 3;
+            if (this.HasFilterIndicator(column))
+                r.Width -= this.CalculateFilterIndicatorWidth(r);
             SizeF size = TextRenderer.MeasureText(g, column.Text, f, new Size(r.Width, 100), flags);
             return size.Height + fudge;
         }
@@ -212,6 +217,15 @@ namespace BrightIdeasSoftware
         protected bool HasSortIndicator(OLVColumn column) {
             if (!this.ListView.ShowSortIndicators) return false;
             return column == this.ListView.LastSortColumn && this.ListView.LastSortOrder != SortOrder.None;
+        }
+
+        /// <summary>
+        /// Should the given column be drawn with a filter indicator against it?
+        /// </summary>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        protected bool HasFilterIndicator(OLVColumn column) {
+            return (this.ListView.UseFiltering && this.ListView.UseFilterIndicator && column.HasFilterIndicator);
         }
 
         /// <summary>
@@ -510,6 +524,7 @@ namespace BrightIdeasSoftware
             foreach (OLVColumn column in this.ListView.Columns) {
                 if (column.HasHeaderImage || 
                     column.IsHeaderVertical || 
+                    this.HasFilterIndicator(column) ||
                     column.TextAlign != column.HeaderTextAlign ||
                     this.NeedsCustomDraw(column.HeaderFormatStyle))
                     return true;
@@ -580,6 +595,9 @@ namespace BrightIdeasSoftware
                 else
                     r = this.DrawUnthemedSortIndicator(g, r);
             }
+
+            if (this.HasFilterIndicator(column))
+                r = this.DrawFilterIndicator(g, r);
 
             // Finally draw the text
             this.DrawHeaderImageAndText(g, r, column, stateStyle);
@@ -697,6 +715,26 @@ namespace BrightIdeasSoftware
             return r;
         }
 
+        protected Rectangle DrawFilterIndicator(Graphics g, Rectangle r) {
+            int width = this.CalculateFilterIndicatorWidth(r);
+            if (width <= 0)
+                return r;
+
+            Image indicator = Resources.ColumnFilterIndicator;
+            int x = r.Right - width;
+            int y = r.Top + (r.Height - indicator.Height) / 2;
+            g.DrawImageUnscaled(indicator, x, y);
+
+            r.Width -= width;
+            return r;
+        }
+
+        private int CalculateFilterIndicatorWidth(Rectangle r) {
+            if (Resources.ColumnFilterIndicator == null || r.Width < 48)
+                return 0;
+            return Resources.ColumnFilterIndicator.Width + 1;
+        }
+
         /// <summary>
         /// Draw the header's image and text
         /// </summary>
@@ -705,6 +743,7 @@ namespace BrightIdeasSoftware
         /// <param name="column"></param>
         /// <param name="stateStyle"></param>
         protected void DrawHeaderImageAndText(Graphics g, Rectangle r, OLVColumn column, HeaderStateStyle stateStyle) {
+
             TextFormatFlags flags = this.TextFormatFlags;
             flags |= TextFormatFlags.VerticalCenter;
             if (column.HeaderTextAlign == HorizontalAlignment.Center)
