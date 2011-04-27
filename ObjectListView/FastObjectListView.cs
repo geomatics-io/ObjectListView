@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2011-04-25   JPP  - Fixed problem with removing objects from filtered or sorted list
  * v2.4
  * 2010-04-05   JPP  - Added filtering
  * v2.3
@@ -132,7 +133,10 @@ namespace BrightIdeasSoftware
         /// <param name="n"></param>
         /// <returns></returns>
         public override object GetNthObject(int n) {
-            return this.filteredObjectList[n];
+            if (n >= 0 && n < this.filteredObjectList.Count)
+                return this.filteredObjectList[n];
+            else
+                return null;
         }
 
         /// <summary>
@@ -175,8 +179,11 @@ namespace BrightIdeasSoftware
         /// <param name="column"></param>
         /// <param name="sortOrder"></param>
         public override void Sort(OLVColumn column, SortOrder sortOrder) {
-            if (sortOrder != SortOrder.None)
-                this.filteredObjectList.Sort(new ModelObjectComparer(column, sortOrder, this.listView.SecondarySortColumn, this.listView.SecondarySortOrder));
+            if (sortOrder != SortOrder.None) {
+                ModelObjectComparer comparer = new ModelObjectComparer(column, sortOrder, this.listView.SecondarySortColumn, this.listView.SecondarySortOrder);
+                this.fullObjectList.Sort(comparer);
+                this.filteredObjectList.Sort(comparer);
+            }
             this.RebuildIndexMap();
         }
 
@@ -194,7 +201,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// 
+        /// Remove the given collection of models from this source.
         /// </summary>
         /// <param name="modelObjects"></param>
         public override void RemoveObjects(ICollection modelObjects) {
@@ -203,18 +210,19 @@ namespace BrightIdeasSoftware
                 int i = this.GetObjectIndex(modelObject);
                 if (i >= 0)
                     indicesToRemove.Add(i);
+
+                // Remove the objects from the unfiltered list
+                this.fullObjectList.Remove(modelObject);
             }
+
             // Sort the indices from highest to lowest so that we
             // remove latter ones before earlier ones. In this way, the
             // indices of the rows doesn't change after the deletes.
             indicesToRemove.Sort();
             indicesToRemove.Reverse();
 
-            foreach (int i in indicesToRemove)
+            foreach (int i in indicesToRemove) 
                 this.listView.SelectedIndices.Remove(i);
-
-            foreach (int i in indicesToRemove)
-                this.fullObjectList.RemoveAt(i);
 
             this.FilterObjects();
             this.RebuildIndexMap();
@@ -233,15 +241,20 @@ namespace BrightIdeasSoftware
         }
 
         private static ArrayList EnumerableToArray(IEnumerable collection) {
+            if (collection == null)
+                return new ArrayList();
+
+            ArrayList array = collection as ArrayList;
+            if (array != null)
+                return array;
+
+            ICollection iCollection = collection as ICollection;
+            if (iCollection != null)
+                return new ArrayList(iCollection);
+
             ArrayList newObjects = new ArrayList();
-            if (collection != null) {
-                if (collection is ICollection)
-                    newObjects = new ArrayList((ICollection)collection);
-                else {
-                    foreach (object x in collection)
-                        newObjects.Add(x);
-                }
-            }
+            foreach (object x in collection)
+                newObjects.Add(x);
             return newObjects;
         }
 
@@ -255,13 +268,13 @@ namespace BrightIdeasSoftware
         #region IFilterableDataSource Members
 
         /// <summary>
-        /// 
+        /// Apply the given filters to this data source. One or both may be null.
         /// </summary>
-        /// <param name="modelFilter"></param>
-        /// <param name="listFilter"></param>
-        public override void ApplyFilters(IModelFilter modelFilter, IListFilter listFilter) {
-            this.modelFilter = modelFilter;
-            this.listFilter = listFilter;
+        /// <param name="iModelFilter"></param>
+        /// <param name="iListFilter"></param>
+        public override void ApplyFilters(IModelFilter iModelFilter, IListFilter iListFilter) {
+            this.modelFilter = iModelFilter;
+            this.listFilter = iListFilter;
             this.SetObjects(this.fullObjectList);
         }
 
@@ -278,7 +291,7 @@ namespace BrightIdeasSoftware
             for (int i = 0; i < this.filteredObjectList.Count; i++)
                 this.objectsToIndexMap[this.filteredObjectList[i]] = i;
         }
-        Dictionary<Object, int> objectsToIndexMap = new Dictionary<Object, int>();
+        readonly Dictionary<Object, int> objectsToIndexMap = new Dictionary<Object, int>();
 
         /// <summary>
         /// Build our filtered list from our full list.
