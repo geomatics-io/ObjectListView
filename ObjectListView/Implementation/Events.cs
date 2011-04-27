@@ -64,7 +64,7 @@ namespace BrightIdeasSoftware
     /// </remarks>
     public delegate void CellEditEventHandler(object sender, CellEditEventArgs e);
 
-    partial class ObjectListView
+    public partial class ObjectListView
     {
         //-----------------------------------------------------------------------------------
         #region Events
@@ -203,6 +203,13 @@ namespace BrightIdeasSoftware
         [Category("ObjectListView"),
         Description("This event is triggered when a cell needs a tool tip.")]
         public event EventHandler<ToolTipShowingEventArgs> CellToolTipShowing;
+
+        /// <summary>
+        /// This event is triggered when a checkbox is checked/unchecked on a subitem
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("This event is triggered when a checkbox is checked/unchecked on a subitem.")]
+        public event EventHandler<SubItemCheckingEventArgs> SubItemChecking;
 
         /// <summary>
         /// Triggered when a column header is right clicked.
@@ -463,6 +470,15 @@ namespace BrightIdeasSoftware
             if (this.CellToolTipShowing != null)
                 this.CellToolTipShowing(this, args);
         }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
+        protected virtual void OnSubItemChecking(SubItemCheckingEventArgs args) {
+            if (this.SubItemChecking != null)
+                this.SubItemChecking(this, args);
+        }
 
         /// <summary>
         /// 
@@ -688,6 +704,58 @@ namespace BrightIdeasSoftware
         }
 
         #endregion
+    }
+    
+    public partial class TreeListView
+    {
+
+        #region Events
+
+        /// <summary>
+         /// This event is triggered when user input requests the expansion of a list item.
+         /// </summary>
+        public event EventHandler<TreeBranchExpandingEventArgs> Expanding;
+ 
+         /// <summary>
+         /// This event is triggered when user input requests the collapse of a list item.
+         /// </summary>
+        public event EventHandler<TreeBranchCollapsingEventArgs> Collapsing;
+ 
+         /// <summary>
+         /// This event is triggered after the expansion of a list item due to user input.
+         /// </summary>
+        public event EventHandler<TreeBranchExpandedEventArgs> Expanded;
+ 
+         /// <summary>
+         /// This event is triggered after the collapse of a list item due to user input.
+         /// </summary>
+        public event EventHandler<TreeBranchCollapsedEventArgs> Collapsed;
+ 
+         #endregion
+ 
+         #region OnEvents
+
+        protected virtual void OnExpanding(TreeBranchExpandingEventArgs e) {
+            if (this.Expanding != null)
+                this.Expanding(this, e);
+        }
+
+        protected virtual void OnCollapsing(TreeBranchCollapsingEventArgs e) {
+            if (this.Collapsing != null)
+                this.Collapsing(this, e);
+        }
+
+        protected virtual void OnExpanded(TreeBranchExpandedEventArgs e) {
+             if (this.Expanded != null)
+                 this.Expanded(this, e);
+         }
+ 
+         protected virtual void OnCollapsed(TreeBranchCollapsedEventArgs e) {
+             if (this.Collapsed != null)
+                 this.Collapsed(this, e);
+         }
+ 
+         #endregion
     }
 
     //-----------------------------------------------------------------------------------
@@ -1487,7 +1555,13 @@ namespace BrightIdeasSoftware
         /// Gets or set if this event completelely handled. If it was, no further processing
         /// will be done for it.
         /// </summary>
-        public bool Handled;
+        public bool Handled
+        {
+            get { return handled; }
+            set { handled = value; }
+        }
+        private bool handled;
+        
     }
 
     /// <summary>
@@ -1585,13 +1659,19 @@ namespace BrightIdeasSoftware
         public int DisplayIndex {
             get { return this.displayIndex; }
             internal set { this.displayIndex = value; }
-        }
+        }   
         private int displayIndex = -1;
 
         /// <summary>
         /// Should events be triggered for each cell in this row?
         /// </summary>
-        public bool UseCellFormatEvents;
+        public bool UseCellFormatEvents
+        {
+            get { return useCellFormatEvents; }
+            set { useCellFormatEvents = value; }
+        }
+        private bool useCellFormatEvents;
+        
     }
 
     /// <summary>
@@ -1628,6 +1708,14 @@ namespace BrightIdeasSoftware
             internal set { this.subItem = value; }
         }
         private OLVListSubItem subItem;
+
+        /// <summary>
+        /// Gets the model value that is being displayed by the cell.
+        /// </summary>
+        /// <remarks>This is null when the view is not in details view</remarks>
+        public object CellValue {
+            get { return this.SubItem == null ? null : this.SubItem.ModelValue; }
+        }
     }
 
     /// <summary>
@@ -1638,8 +1726,15 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets the url that was associated with this cell.
         /// </summary>
-        public string Url;
+        public string Url
+        {
+            get { return url; }
+            set { url = value; }
+        }
+        private string url;
+        
     }
+
 
     /// <summary>
     /// The event args when the hot item changed
@@ -1650,8 +1745,13 @@ namespace BrightIdeasSoftware
         /// Gets or set if this event completelely handled. If it was, no further processing
         /// will be done for it.
         /// </summary>
-        public bool Handled;
-
+        public bool Handled
+        {
+            get { return handled; }
+            set { handled = value; }
+        }
+        private bool handled;
+            
         /// <summary>
         /// Gets the part of the cell that the mouse is over
         /// </summary>
@@ -1707,6 +1807,76 @@ namespace BrightIdeasSoftware
         }
         private int oldHotRowIndex;
     }
+    
+    /// <summary>
+    /// Let the world know that a checkbox on a subitem is changing
+    /// </summary>
+    public class SubItemCheckingEventArgs : CancellableEventArgs
+    {
+        /// <summary>
+        /// Create a new event block
+        /// </summary>
+        /// <param name="column"></param>
+        /// <param name="item"></param>
+        /// <param name="subItemIndex"></param>
+        /// <param name="currentValue"></param>
+        /// <param name="newValue"></param>
+        public SubItemCheckingEventArgs(OLVColumn column, OLVListItem item, int subItemIndex, CheckState currentValue, CheckState newValue) {
+            this.column = column;
+            this.listViewItem = item;
+            this.subItemIndex = subItemIndex;
+            this.currentValue = currentValue;
+            this.newValue = newValue;
+        }
+
+        /// <summary>
+        /// The column of the cell that is having its checkbox changed.
+        /// </summary>
+        public OLVColumn Column {
+            get { return this.column; }
+        }
+        private OLVColumn column;
+
+        /// <summary>
+        /// The model object of the row of the cell that is having its checkbox changed.
+        /// </summary>
+        public Object RowObject {
+            get { return this.listViewItem.RowObject; }
+        }
+
+        /// <summary>
+        /// The listview item of the cell that is having its checkbox changed.
+        /// </summary>
+        public OLVListItem ListViewItem {
+            get { return this.listViewItem; }
+        }
+        private OLVListItem listViewItem;
+
+        /// <summary>
+        /// The current check state of the cell.
+        /// </summary>
+        public CheckState CurrentValue {
+            get { return this.currentValue; }
+        }
+        private CheckState currentValue;
+
+        /// <summary>
+        /// The proposed new check state of the cell.
+        /// </summary>
+        public CheckState NewValue {
+            get { return this.newValue; }
+            set { this.newValue = value; }
+        }
+        private CheckState newValue;
+
+        /// <summary>
+        /// The index of the cell that is going to be or has been edited.
+        /// </summary>
+        public int SubItemIndex {
+            get { return this.subItemIndex; }
+        }
+        private int subItemIndex;
+    }
 
     /// <summary>
     /// This event argument block is used when groups are created for a list.
@@ -1741,7 +1911,13 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Has this event been cancelled by the event handler?
         /// </summary>
-        public bool Canceled;
+        public bool Canceled
+        {
+            get { return canceled; }
+            set { canceled = value; }
+        }
+        private bool canceled;
+        
     }
     
     /// <summary>
@@ -1763,8 +1939,162 @@ namespace BrightIdeasSoftware
         public OLVGroup Group {
             get { return this.group; }
         }
-        private OLVGroup group;
+        private readonly OLVGroup group;
+    }
+
+    /// <summary>
+    /// This event argument block is used when a branch of a tree is about to be expanded
+    /// </summary>
+    public class TreeBranchExpandingEventArgs : CancellableEventArgs
+    {
+        /// <summary>
+        /// Create a new event args
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="item"></param>
+        public TreeBranchExpandingEventArgs(object model, OLVListItem item)
+        {
+            this.Model = model;
+            this.Item = item;
+        }
+
+        /// <summary>
+        /// Gets the model that is about to expand
+        /// </summary>
+        public object Model
+        {
+            get { return model; }
+            private set { model = value; }
+        }
+        private object model;
+
+        /// <summary>
+        /// Gets the OLVListItem that is about to be expanded
+        /// </summary>
+        public OLVListItem Item
+        {
+            get { return item; }
+            private set { item = value; }
+        }
+        private OLVListItem item;
+
+    }
+
+    /// <summary>
+    /// This event argument block is used when a branch of a tree has just been expanded
+    /// </summary>
+    public class TreeBranchExpandedEventArgs : EventArgs
+    {
+        /// <summary>
+        /// Create a new event args
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="item"></param>
+        public TreeBranchExpandedEventArgs(object model, OLVListItem item)
+        {
+            this.Model = model;
+            this.Item = item;
+        }
+
+        /// <summary>
+        /// Gets the model that is was expanded
+        /// </summary>
+        public object Model
+        {
+            get { return model; }
+            private set { model = value; }
+        }
+        private object model;
+
+        /// <summary>
+        /// Gets the OLVListItem that was expanded
+        /// </summary>
+        public OLVListItem Item
+        {
+            get { return item; }
+            private set { item = value; }
+        }
+        private OLVListItem item;
+
+    }
+
+    /// <summary>
+    /// This event argument block is used when a branch of a tree is about to be collapsed
+    /// </summary>
+    public class TreeBranchCollapsingEventArgs : CancellableEventArgs
+    {
+        /// <summary>
+        /// Create a new event args
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="item"></param>
+        public TreeBranchCollapsingEventArgs(object model, OLVListItem item)
+        {
+            this.Model = model;
+            this.Item = item;
+        }
+
+        /// <summary>
+        /// Gets the model that is about to collapse
+        /// </summary>
+        public object Model
+        {
+            get { return model; }
+            private set { model = value; }
+        }
+        private object model;
+
+        /// <summary>
+        /// Gets the OLVListItem that is about to be collapsed
+        /// </summary>
+        public OLVListItem Item
+        {
+            get { return item; }
+            private set { item = value; }
+        }
+        private OLVListItem item;
+    }
+
+
+    /// <summary>
+    /// This event argument block is used when a branch of a tree has just been collapsed
+    /// </summary>
+    public class TreeBranchCollapsedEventArgs : EventArgs
+    {
+        /// <summary>
+        /// Create a new event args
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="item"></param>
+        public TreeBranchCollapsedEventArgs(object model, OLVListItem item)
+        {
+            this.Model = model;
+            this.Item = item;
+        }
+
+        /// <summary>
+        /// Gets the model that is was collapsed
+        /// </summary>
+        public object Model
+        {
+            get { return model; }
+            private set { model = value; }
+        }
+        private object model;
+
+        /// <summary>
+        /// Gets the OLVListItem that was collapsed
+        /// </summary>
+        public OLVListItem Item
+        {
+            get { return item; }
+            private set { item = value; }
+        }
+        private OLVListItem item;
+
     }
 
     #endregion
+
+
 }
