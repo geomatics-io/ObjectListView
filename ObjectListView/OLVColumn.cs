@@ -1271,6 +1271,11 @@ namespace BrightIdeasSoftware {
         /// <param name="subtitles"></param>
         /// <param name="tasks"></param>
         public void MakeGroupies<T>(T[] values, string[] descriptions, object[] images, string[] subtitles, string[] tasks) {
+            // Sanity checks
+            if (values == null)
+                throw new ArgumentNullException("values");
+            if (descriptions == null)
+                throw new ArgumentNullException("descriptions");
             if (values.Length + 1 != descriptions.Length)
                 throw new ArgumentException("descriptions must have one more element than values.");
 
@@ -1295,6 +1300,64 @@ namespace BrightIdeasSoftware {
                     return "";
 
                 return descriptions[(int)key];
+            };
+
+            // Install one delegate that does all the other formatting
+            this.GroupFormatter = delegate(OLVGroup group, GroupingParameters parms) {
+                int key = (int)group.Key; // we know this is an int since we created it in GroupKeyGetter
+
+                if (key >= 0) {
+                    if (images != null && key < images.Length)
+                        group.TitleImage = images[key];
+
+                    if (subtitles != null && key < subtitles.Length)
+                        group.Subtitle = subtitles[key];
+
+                    if (tasks != null && key < tasks.Length)
+                        group.Task = tasks[key];
+                }
+            };
+        }
+        /// <summary>
+        /// Create groupies based on exact value matches.
+        /// </summary>
+        /// <remarks>
+        /// Install delegates that will group rows into partitions based on equality of this columns aspects.
+        /// If an aspect is equal to value[n], it will be grouped with description[n].
+        /// If an aspect is not equal to any value, it will be grouped with "[other]".
+        /// </remarks>
+        /// <param name="values">Array of values. Values must be able to be
+        /// equated to the aspect</param>
+        /// <param name="descriptions">The description for the matching value.</param>
+        /// <example>
+        /// this.marriedColumn.MakeEqualGroupies(
+        ///     new MaritalStatus[] { MaritalStatus.Single, MaritalStatus.Married, MaritalStatus.Divorced, MaritalStatus.Partnered },
+        ///     new string[] { "Looking",  "Content", "Looking again", "Mostly content" });
+        /// </example>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="images"></param>
+        /// <param name="subtitles"></param>
+        /// <param name="tasks"></param>
+        public void MakeEqualGroupies<T>(T[] values, string[] descriptions, object[] images, string[] subtitles, string[] tasks) {
+            // Sanity checks
+            if (values == null)
+                throw new ArgumentNullException("values");
+            if (descriptions == null)
+                throw new ArgumentNullException("descriptions");
+            if (values.Length != descriptions.Length)
+                throw new ArgumentException("descriptions must have the same number of elements as values.");
+
+            ArrayList valuesArray = new ArrayList(values);
+
+            // Install a delegate that returns the index of the description to be shown
+            this.GroupKeyGetter = delegate(object row) {
+                return valuesArray.IndexOf(this.GetValue(row));
+            };
+
+            // Install a delegate that simply looks up the given index in the descriptions.
+            this.GroupKeyToTitleConverter = delegate(object key) {
+                int intKey = (int)key; // we know this is an int since we created it in GroupKeyGetter
+                return (intKey < 0) ? "[other]" : descriptions[intKey];
             };
 
             // Install one delegate that does all the other formatting
