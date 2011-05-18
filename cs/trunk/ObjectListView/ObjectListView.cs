@@ -568,6 +568,21 @@ namespace BrightIdeasSoftware
         static private bool? isVistaOrLater;
 
         /// <summary>
+        /// Gets whether the program running on Win7 or later?
+        /// </summary>
+        static public bool IsWin7OrLater {
+            get {
+                if (!ObjectListView.isWin7OrLater.HasValue) {
+                    // For some reason, Win7 is v6.1, not v7.0
+                    Version version = Environment.OSVersion.Version;
+                    ObjectListView.isWin7OrLater = version.Major > 6 || (version.Major == 6 && version.Minor > 0);
+                }
+                return ObjectListView.isWin7OrLater.Value;
+            }
+        }
+        static private bool? isWin7OrLater;
+
+        /// <summary>
         /// Gets or sets how what smoothing mode will be applied to graphic operations.
         /// </summary>
         static public System.Drawing.Drawing2D.SmoothingMode SmoothingMode {
@@ -936,7 +951,7 @@ namespace BrightIdeasSoftware
 
 
         /// <summary>
-        /// Gets or sets whether the Control-C copy to clipboard functionality show use
+        /// Gets or sets whether the Control-C copy to clipboard functionality should use
         /// the installed DragSource to create the data object that is placed onto the clipboard.
         /// </summary>
         /// <remarks>This is normally what is desired, unless a custom DragSource is installed 
@@ -954,7 +969,12 @@ namespace BrightIdeasSoftware
         /// Gets the list of decorations that will be drawn the ListView
         /// </summary>
         /// <remarks>
+        /// <para>
+        /// Do not modify the contents of this list directly. Use the AddDecoration() and RemoveDecoration() methods.
+        /// </para>
+        /// <para>
         /// A decoration scrolls with the list contents. An overlay is fixed in place.
+        /// </para>
         /// </remarks>
         [Browsable(false)]
         protected IList<IDecoration> Decorations {
@@ -970,13 +990,8 @@ namespace BrightIdeasSoftware
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public IRenderer DefaultRenderer {
-            get { return defaultRenderer; }
-            set {
-                if (value == null)
-                    defaultRenderer = new BaseRenderer();
-                else
-                    defaultRenderer = value;
-            }
+            get { return this.defaultRenderer; }
+            set { this.defaultRenderer = value ?? new BaseRenderer(); }
         }
         private IRenderer defaultRenderer = new BaseRenderer();
 
@@ -996,9 +1011,12 @@ namespace BrightIdeasSoftware
         /// by this ListView.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// If the given sink is an instance of SimpleDropSink, then events from the drop sink
         /// will be automatically forwarded to the ObjectListView (which means that handlers
         /// for those event can be configured within the IDE).
+        /// </para>
+        /// <para>If this is set to null, the control will not accept drops.</para>
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -1054,7 +1072,7 @@ namespace BrightIdeasSoftware
         /// <remarks>If the EmptyListMsgOverlay has been changed to something other than a TextOverlay,
         /// this property does nothing</remarks>
         [Category("ObjectListView"),
-         Description("When the list has no items, show this m in the control"),
+         Description("When the list has no items, show this message in the control"),
          DefaultValue(null),
          Localizable(true)]
         public virtual String EmptyListMsg {
@@ -1098,6 +1116,16 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Return the font for the 'list empty' message or a reasonable default
+        /// </summary>
+        [Browsable(false)]
+        public virtual Font EmptyListMsgFontOrDefault {
+            get {
+               return this.EmptyListMsgFont ?? new Font("Tahoma", 14);
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the overlay responsible for drawing the List Empty msg.
         /// </summary>
         [Browsable(false),
@@ -1112,19 +1140,6 @@ namespace BrightIdeasSoftware
             }
         }
         private IOverlay emptyListMsgOverlay;
-
-        /// <summary>
-        /// Return the font for the 'list empty' m or a default
-        /// </summary>
-        [Browsable(false)]
-        public virtual Font EmptyListMsgFontOrDefault {
-            get {
-                if (this.EmptyListMsgFont == null)
-                    return new Font("Tahoma", 14);
-                else
-                    return this.EmptyListMsgFont;
-            }
-        }
 
         /// <summary>
         /// Gets the collection of objects that survive any filtering that may be in place.
@@ -1197,6 +1212,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the image list from which group header will take their images
         /// </summary>
+        /// <remarks>If this is not set, then group headers will not show any images.</remarks>
         [Category("ObjectListView"),
          Description("The image list from which group header will take their images"),
          DefaultValue(null)]
@@ -1210,10 +1226,11 @@ namespace BrightIdeasSoftware
         private ImageList groupImageList;
 
         /// <summary>
-        /// When a group title has an item count, how should the lable be formatted?
+        /// Gets how the group label should be formatted when a group is empty or
+        /// contains more than one item
         /// </summary>
         /// <remarks>
-        /// The given format string can/should have two placeholders:
+        /// The given format string must have two placeholders:
         /// <list type="bullet">
         /// <item><description>{0} - the original group title</description></item>
         /// <item><description>{1} - the number of items in the group</description></item>
@@ -1244,11 +1261,10 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// When a group title has an item count, how should the lable be formatted if
-        /// there is only one item in the group?
+        /// Gets how the group label should be formatted when a group contains only a single item
         /// </summary>
         /// <remarks>
-        /// The given format string can/should have two placeholders:
+        /// The given format string must have two placeholders:
         /// <list type="bullet">
         /// <item><description>{0} - the original group title</description></item>
         /// <item><description>{1} - the number of items in the group (always 1)</description></item>
@@ -1266,7 +1282,7 @@ namespace BrightIdeasSoftware
         private string groupWithItemCountSingularFormat;
 
         /// <summary>
-        /// Return this.GroupWithItemCountSingularFormat or a reasonable default
+        /// Gets GroupWithItemCountSingularFormat or a reasonable default
         /// </summary>
         [Browsable(false)]
         public virtual string GroupWithItemCountSingularFormatOrDefault {
@@ -1279,7 +1295,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Gets or sets whether or now the groups in this ObjectListView should be collapsible.
+        /// Gets or sets whether or not the groups in this ObjectListView should be collapsible.
         /// </summary>
         /// <remarks>
         /// This feature only works under Vista and later.
@@ -1295,7 +1311,7 @@ namespace BrightIdeasSoftware
         private bool hasCollapsibleGroups = true;
 
         /// <summary>
-        /// Does this listview have a m that should be drawn when the list is empty?
+        /// Does this listview have a message that should be drawn when the list is empty?
         /// </summary>
         [Browsable(false)]
         public virtual bool HasEmptyListMsg {
@@ -1331,11 +1347,9 @@ namespace BrightIdeasSoftware
         /// Gets or sets the font in which the text of the column headers will be drawn
         /// </summary>
         /// <remarks>Individual columns can override this through their HeaderFormatStyle property.</remarks>
-        /// <remarks>This property will be made obsolete in v2.5. Use HeaderFormatStyle instead</remarks>
-        //[Category("ObjectListView"),
-        // Description("What font will be used to draw the text of the column headers"),
         [DefaultValue(null)]
         [Browsable(false)]
+        [Obsolete("Use a HeaderFormatStyle instead", false)]
         public Font HeaderFont {
             get { return this.HeaderFormatStyle == null ? null : this.HeaderFormatStyle.Normal.Font; }
             set {
@@ -1352,8 +1366,14 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the style that will be used to draw the columm headers of the listview
         /// </summary>
-        /// <remarks>This is only uses when HeaderUsesThemes is false.</remarks>
-        /// <remarks>Individual columns can override this through their HeaderFormatStyle property.</remarks>
+        /// <remarks>
+        /// <para>
+        /// This is only used when HeaderUsesThemes is false.
+        /// </para>
+        /// <para>
+        /// Individual columns can override this through their HeaderFormatStyle property.
+        /// </para>
+        /// </remarks>
         [Category("ObjectListView"),
          Description("What style will be used to draw the control's header"),
          DefaultValue(null)]
@@ -1376,23 +1396,25 @@ namespace BrightIdeasSoftware
         private int headerMaximumHeight = -1;
 
         /// <summary>
-        /// Gets or sets whether the header will be drawn using OS's theming styles. If this is false, it will use
-        /// HeaderFormatStyle property to draw the header.
+        /// Gets or sets whether the header will be drawn strictly according to the OS's theme. 
         /// </summary>
         /// <remarks>
         /// <para>
         /// If this is set to true, the header will be rendered completely by the system, without
-        /// any of ObjectListViews fancy processing.
+        /// any of ObjectListViews fancy processing -- no images in header, no filter indicators,
+        /// no word wrapping, no header styling.
         /// </para>
-        /// <para>If this is set to false, the header
-        /// will not be drawn using the OS themed style, This is sometimes what's required
-        /// since themeing does not allow the background, frame or text color to be
-        /// changed. The effect of not being themed will be different from OS to OS. At
-        /// very least, the sort indicator will not be standard.
+        /// <para>If this is set to false, ObjectListView will render the header as it thinks best.
+        /// If no special features are required, then ObjectListView will delegate rendering to the OS.
+        /// Otherwise, ObjectListView will draw the header according to the configuration settings.
+        /// </para>
+        /// <para>
+        /// The effect of not being themed will be different from OS to OS. At
+        /// very least, the sort indicator will not be standard. 
         /// </para>
         /// </remarks>
         [Category("ObjectListView"),
-         Description("Will the column headers be drawn using OS theme?"),
+         Description("Will the column headers be drawn strictly according to OS theme?"),
          DefaultValue(true)]
         public bool HeaderUsesThemes {
             get { return this.headerUsesThemes; }
@@ -1408,10 +1430,8 @@ namespace BrightIdeasSoftware
         /// <para>Line breaks will be applied between words. Words that are too long
         /// will still be ellipsed.</para>
         /// <para>
-        /// If this is set to true, the header
-        /// will not be properly themed, since themeing does not allow word wrapped text.
-        /// The effect of not being themed will be different from OS to OS. At
-        /// very least, the sort indicator will not be standard.
+        /// As with all settings that make the header look different, HeaderUsesThemes must be set to false, otherwise
+        /// the OS will be responsible for drawing the header, and it does not allow word wrapped text.
         /// </para>
         /// </remarks>
         [Category("ObjectListView"),
@@ -4039,7 +4059,9 @@ namespace BrightIdeasSoftware
         /// Remove the given model object from the ListView
         /// </summary>
         /// <param name="modelObject">The model to be removed</param>
-        /// <remarks>See RemoveObjects() for more details</remarks>
+        /// <remarks>See RemoveObjects() for more details
+        /// <para>This method is thread-safe.</para>
+        /// </remarks>
         public virtual void RemoveObject(object modelObject) {
             if (this.InvokeRequired)
                 this.Invoke((MethodInvoker)delegate() { this.RemoveObject(modelObject); });
@@ -4048,11 +4070,12 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Remove all of the given objects from the control
+        /// Remove all of the given objects from the control.
         /// </summary>
         /// <param name="modelObjects">Collection of objects to be removed</param>
         /// <remarks>
         /// <para>Nulls and model objects that are not in the ListView are silently ignored.</para>
+        /// <para>This method is thread-safe.</para>
         /// </remarks>
         public virtual void RemoveObjects(ICollection modelObjects) {
             if (this.InvokeRequired) {
@@ -4095,6 +4118,66 @@ namespace BrightIdeasSoftware
         /// </summary>
         public virtual void SelectAll() {
             NativeMethods.SelectAllItems(this);
+        }
+
+        /// <summary>
+        /// Set the given image to be fixed in the bottom right of the list view.
+        /// This image will not scroll when the list view scrolls.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This method uses ListView's native ability to display a background image.
+        /// It has a few limitations: 
+        /// </para>
+        /// <list type="bullet">
+        /// <item><description>It doesn't work well with owner drawn mode. In owner drawn mode, each cell draws itself,
+        /// including its background, which covers the background image.</description></item>
+        /// <item><description>It doesn't look very good when grid lines are enabled, since the grid lines are drawn over the image.</description></item>
+        /// <item><description>It does not work at all on XP.</description></item>
+        /// <item><description>Obviously, it doesn't look good when alternate row background colors are enabled.</description></item>
+        /// </list>
+        /// <para>
+        /// If you can live with these limitations, native watermarks are quite neat. They are true backgrounds, not
+        /// translucent overlays like the OverlayImage uses. They also have the decided advantage over overlays in that
+        /// they work correctly even in MDI applications.
+        /// </para>
+        /// <para>Setting this clears any background image.</para>
+        /// </remarks>
+        /// <param name="image">The image to be drawn. If null, any existing image will be removed.</param>
+        public void SetNativeBackgroundWatermark(Image image) {
+            NativeMethods.SetBackgroundImage(this, image, true, false, 0, 0);
+        }
+
+        /// <summary>
+        /// Set the given image to be background of the ListView so that it appears at the given
+        /// percentage offsets within the list.
+        /// </summary>
+        /// <remarks>
+        /// <para>This has the same limitations as described in <see cref="SetNativeBackgroundWatermark"/>. Make sure those limitations
+        /// are understood before using the method.</para>
+        /// <para>This is very similar to setting the <see cref="System.Windows.Forms.Control.BackgroundImage"/> property of the standard .NET ListView, except that the standard
+        /// BackgroundImage does not handle images with transparent areas properly -- it renders transparent areas as black. This 
+        /// method does not have that problem.</para>
+        /// <para>Setting this clears any background watermark.</para>
+        /// </remarks>
+        /// <param name="image">The image to be drawn. If null, any existing image will be removed.</param>
+        /// <param name="xOffset">The horizontal percentage where the image will be placed. 0 is absolute left, 100 is absolute right.</param>
+        /// <param name="yOffset">The vertical percentage where the image will be placed.</param>
+        public void SetNativeBackgroundImage(Image image, int xOffset, int yOffset) {
+            NativeMethods.SetBackgroundImage(this, image, false, false, xOffset, yOffset);
+        }
+
+        /// <summary>
+        /// Set the given image to be the tiled background of the ListView.
+        /// </summary>
+        /// <remarks>
+        /// <para>This has the same limitations as described in <see cref="SetNativeBackgroundWatermark"/> and <see cref="SetNativeBackgroundImage"/>.
+        /// Make sure those limitations
+        /// are understood before using the method.</para>
+        /// </remarks>
+        /// <param name="image">The image to be drawn. If null, any existing image will be removed.</param>
+        public void SetNativeBackgroundTiledImage(Image image) {
+            NativeMethods.SetBackgroundImage(this, image, false, true, 0, 0);
         }
 
         /// <summary>
@@ -6718,6 +6801,7 @@ namespace BrightIdeasSoftware
             if (il == null) {
                 il = new ImageList();
                 il.ImageSize = new Size(16, 16);
+                il.ColorDepth = ColorDepth.Depth32Bit;
             }
 
             // This arrangement of points works well with (16,16) images, and OK with others
@@ -7226,6 +7310,7 @@ namespace BrightIdeasSoftware
         private ImageList MakeResizedImageList(int width, int height, ImageList source) {
             ImageList il = new ImageList();
             il.ImageSize = new Size(width, height);
+            il.ColorDepth = ColorDepth.Depth32Bit;
 
             // If there's nothing to copy, just return the new list
             if (source == null)
@@ -7276,6 +7361,7 @@ namespace BrightIdeasSoftware
             if (this.StateImageList == null) {
                 this.StateImageList = new ImageList();
                 this.StateImageList.ImageSize = new Size(16, 16);
+                this.StateImageList.ColorDepth = ColorDepth.Depth32Bit;
             }
 
             if (this.RowHeight != -1 &&
@@ -7283,6 +7369,7 @@ namespace BrightIdeasSoftware
                 this.StateImageList.ImageSize.Height != this.RowHeight) {
                 this.StateImageList = new ImageList();
                 this.StateImageList.ImageSize = new Size(16, this.RowHeight);
+                this.StateImageList.ColorDepth = ColorDepth.Depth32Bit;
             }
 
             if (!this.CheckBoxes)
@@ -7343,6 +7430,7 @@ namespace BrightIdeasSoftware
             if (il == null) {
                 il = new ImageList();
                 il.ImageSize = new Size(16, 16);
+                il.ColorDepth = ColorDepth.Depth32Bit;
             }
 
             this.AddCheckStateBitmap(il, CHECKED_KEY, CheckBoxState.CheckedNormal);
@@ -7432,7 +7520,6 @@ namespace BrightIdeasSoftware
                 g = buffer.Graphics;
             }
 
-            // Default to high quality drawing
             g.TextRenderingHint = ObjectListView.TextRenderingHint;
             g.SmoothingMode = ObjectListView.SmoothingMode;
 
