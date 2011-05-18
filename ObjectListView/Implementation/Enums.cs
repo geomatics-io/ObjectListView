@@ -84,11 +84,16 @@ namespace BrightIdeasSoftware {
             /// </summary>
             ModelDialog,
 
+            /*
+             * NonModelDialog is just a little bit tricky since the OLV can change views while the dialog is showing
+             * So, just comment this out for the time being.
+             
             /// <summary>
             /// A non-model dialog will be presented to allow the user to choose columns
             /// </summary>
-            //NonModelDialog
-            // NonModelDialog is just a little bit tricky since the OLV can change views while the dialog is showing
+            NonModelDialog
+             * 
+             */
         }
     }
 }

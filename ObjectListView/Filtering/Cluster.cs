@@ -35,8 +35,13 @@ namespace BrightIdeasSoftware {
     /// Concrete implementation of the ICluster interface.
     /// </summary>
     public class Cluster : ICluster {
-        #region LIfe and death
 
+        #region Life and death
+
+        /// <summary>
+        /// Create a cluster
+        /// </summary>
+        /// <param name="key">The key for the cluster</param>
         public Cluster(object key) {
             this.Count = 1;
             this.ClusterKey = key;

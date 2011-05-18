@@ -379,7 +379,8 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Completely rebuild the tree structure
         /// </summary>
-        /// <param name="preserveState">If true, the control will try to preserve selection and expansion</param>
+        /// <param name="selected">If not null, this list of objects will be selected after the tree is rebuilt</param>
+        /// <param name="expanded">If not null, this collection of objects will be expanded after the tree is rebuilt</param>
         protected virtual void RebuildAll(IList selected, IEnumerable expanded) {
             // Remember the bits of info we don't want to forget (anyone ever see Memento?)
             IEnumerable roots = this.Roots;
@@ -995,7 +996,7 @@ namespace BrightIdeasSoftware
             }
 
             /// <summary>
-            /// 
+            /// Sort the tree on the given column and in the given order
             /// </summary>
             /// <param name="column"></param>
             /// <param name="order"></param>
@@ -1027,7 +1028,7 @@ namespace BrightIdeasSoftware
             }
 
             /// <summary>
-            /// 
+            /// Add the given collection of objects to the roots of this tree
             /// </summary>
             /// <param name="modelObjects"></param>
             public virtual void AddObjects(ICollection modelObjects) {
@@ -1040,7 +1041,8 @@ namespace BrightIdeasSoftware
             }
 
             /// <summary>
-            /// 
+            /// Remove all of the given objects from the roots of the tree.
+            /// Any objects that is not already in the roots collection is ignored.
             /// </summary>
             /// <param name="modelObjects"></param>
             public virtual void RemoveObjects(ICollection modelObjects) {
@@ -1055,7 +1057,7 @@ namespace BrightIdeasSoftware
             }
 
             /// <summary>
-            /// 
+            /// Set the roots of this tree to be the given collection
             /// </summary>
             /// <param name="collection"></param>
             public virtual void SetObjects(IEnumerable collection) {
@@ -1483,7 +1485,9 @@ namespace BrightIdeasSoftware
                     lastBranch.IsLastChild = true;
             }
 
-
+            /// <summary>
+            /// Force a refresh of all children recursively
+            /// </summary>
             public virtual void RefreshChildren() {
                 if (this.IsExpanded) {
                     this.FetchChildren();

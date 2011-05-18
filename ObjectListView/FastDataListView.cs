@@ -35,6 +35,17 @@ using System.Drawing.Design;
 
 namespace BrightIdeasSoftware
 {
+    /// <summary>
+    /// A FastDataListView virtualizes the display of data from a DataSource. It operates on
+    /// DataSets and DataTables in the same way as a DataListView, but does so much more efficiently.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A FastDataListView still has to load all its data from the DataSource. If you have SQL statement
+    /// that returns 1 million rows, all 1 million rows will still need to read from the database.
+    /// However, once the rows are loaded, the FastDataListView will only build rows as they are displayed.
+    /// </para>
+    /// </remarks>
     public class FastDataListView : FastObjectListView
     {
         #region Public Properties
