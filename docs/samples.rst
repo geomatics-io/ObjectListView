@@ -11,6 +11,14 @@ These are examples of what can be done with an `ObjectListView`.
 
 +------------------------------------------+----------------------------------------------+
 |                                          |                                              |
+| `Rearrangeable TreeListView`_            | .. image:: images/dragdrop-tlv-small.png     |
+|                                          |   :align: center                             |
+| Shows how to drag and drop branches on   |                                              |
+| a `TreeListView`.                        |                                              |
+|                                          |                                              |
+|                                          |                                              |
++------------------------------------------+----------------------------------------------+
+|                                          |                                              |
 | `Foobar Lookalike`_                      | .. image:: images/foobar-lookalike-small.png |
 |                                          |   :align: center                             |
 | Shows how to creatively use decorations, |                                              |
@@ -28,6 +36,19 @@ These are examples of what can be done with an `ObjectListView`.
 |                                          |                                              |
 +------------------------------------------+----------------------------------------------+
 
+
+Rearrangeable TreeListView
+--------------------------
+
+`TreeListViews` are cool, but it seems that they are tricky. One task that seems to 
+cause problems for some people is how to make the tree rearrangeable -- that is,
+how can I let the users drag the branches around. 
+
+`This sample`_ shows how to do exactly that, and :ref:`this blog <blog-rearrangingtreelistview>` describes the whole process.
+
+.. _This sample: http://sourceforge.net/projects/objectlistview/files/objectlistview/TreeListViewDragDrop.7z
+
+.. image:: images/dragdrop-tlv.png 
 
 Foobar Lookalike
 ----------------
