@@ -735,25 +735,41 @@ namespace BrightIdeasSoftware
  
          #region OnEvents
 
+        /// <summary>
+        /// Trigger the expanding event
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnExpanding(TreeBranchExpandingEventArgs e) {
             if (this.Expanding != null)
                 this.Expanding(this, e);
         }
 
+        /// <summary>
+        /// Trigger the collapsing event
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnCollapsing(TreeBranchCollapsingEventArgs e) {
             if (this.Collapsing != null)
                 this.Collapsing(this, e);
         }
 
+        /// <summary>
+        /// Trigger the expanded event
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnExpanded(TreeBranchExpandedEventArgs e) {
              if (this.Expanded != null)
                  this.Expanded(this, e);
-         }
- 
-         protected virtual void OnCollapsed(TreeBranchCollapsedEventArgs e) {
-             if (this.Collapsed != null)
-                 this.Collapsed(this, e);
-         }
+        }
+
+        /// <summary>
+        /// Trigger the collapsed event
+        /// </summary>
+        /// <param name="e"></param>
+        protected virtual void OnCollapsed(TreeBranchCollapsedEventArgs e) {
+            if (this.Collapsed != null)
+                this.Collapsed(this, e);
+        }
  
          #endregion
     }

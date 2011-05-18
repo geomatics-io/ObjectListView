@@ -119,6 +119,12 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Gets or sets whether this ObjectListView will show checkboxes in the primary column
+        /// </summary>
+        /// <remarks>Due to code in the base ListView class, turning off CheckBoxes on a virtual
+        /// list always throws an InvalidOperationException. This implementation codes around
+        /// that limitation.</remarks>
         [Category("Appearance"),
          Description("Should the list view show checkboxes?"),
          DefaultValue(true)]

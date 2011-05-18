@@ -121,19 +121,34 @@ namespace BrightIdeasSoftware
     /// </summary>
     abstract public class CompositeFilter : IModelFilter {
 
+        /// <summary>
+        /// Create an empty filter
+        /// </summary>
         public CompositeFilter() {
         }
 
+        /// <summary>
+        /// Create a composite filter from the given list of filters
+        /// </summary>
+        /// <param name="filters">A list of filters</param>
         public CompositeFilter(IList<IModelFilter> filters) {
             Filters = filters;
         }
 
+        /// <summary>
+        /// Gets or sets the filters used by this composite
+        /// </summary>
         public IList<IModelFilter> Filters {
             get { return filters; }
             set { filters = value; }
         }
         private IList<IModelFilter> filters = new List<IModelFilter>();
 
+        /// <summary>
+        /// Decide whether or not the given model should be included by the filter
+        /// </summary>
+        /// <param name="modelObject"></param>
+        /// <returns>True if the object is included by the filter</returns>
         virtual public bool Filter(object modelObject) {
             if (this.Filters == null || this.Filters.Count == 0)
                 return true;
@@ -141,6 +156,12 @@ namespace BrightIdeasSoftware
             return this.FilterObject(modelObject);
         }
 
+        /// <summary>
+        /// Decide whether or not the given model should be included by the filter
+        /// </summary>
+        /// <remarks>Filters is guaranteed to be non-empty when this method is called</remarks>
+        /// <param name="modelObject">The model object under consideration</param>
+        /// <returns>True if the object is included by the filter</returns>
         abstract public bool FilterObject(object modelObject);
     }
 
@@ -151,10 +172,20 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class CompositeAllFilter : CompositeFilter {
 
+        /// <summary>
+        /// Create a filter
+        /// </summary>
+        /// <param name="filters"></param>
         public CompositeAllFilter(List<IModelFilter> filters)
             : base(filters) {
         }
 
+        /// <summary>
+        /// Decide whether or not the given model should be included by the filter
+        /// </summary>
+        /// <remarks>Filters is guaranteed to be non-empty when this method is called</remarks>
+        /// <param name="modelObject">The model object under consideration</param>
+        /// <returns>True if the object is included by the filter</returns>
         override public bool FilterObject(object modelObject) {
             foreach (IModelFilter filter in this.Filters)
                 if (!filter.Filter(modelObject))
@@ -171,10 +202,20 @@ namespace BrightIdeasSoftware
     /// </summary>
     public class CompositeAnyFilter : CompositeFilter {
 
+        /// <summary>
+        /// Create a filter from the given filters
+        /// </summary>
+        /// <param name="filters"></param>
         public CompositeAnyFilter(List<IModelFilter> filters)
             : base(filters) {
         }
 
+        /// <summary>
+        /// Decide whether or not the given model should be included by the filter
+        /// </summary>
+        /// <remarks>Filters is guaranteed to be non-empty when this method is called</remarks>
+        /// <param name="modelObject">The model object under consideration</param>
+        /// <returns>True if the object is included by the filter</returns>
         override public bool FilterObject(object modelObject) {
             foreach (IModelFilter filter in this.Filters)
                 if (filter.Filter(modelObject))
