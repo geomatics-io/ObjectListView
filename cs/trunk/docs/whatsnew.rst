@@ -7,8 +7,8 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
-April 2011 - Version 2.5 (beta)
--------------------------------
+May 2011 - Version 2.5
+----------------------
 
 New features
 ^^^^^^^^^^^^
@@ -37,21 +37,25 @@ Breaking changes
 Minor features
 ^^^^^^^^^^^^^^
 
-* Column selection mechanism can be customised, through the `SelectColumnsOnRightClickBehaviour`. The default is `InlineMenu`, which behaves like previous versions. Other options are SubMenu and ModalDialog.
+* Revived support for VS 2005 after being provided with a new copy of VS 2005 Express.
+
+* Column selection mechanism can be customised, through the `SelectColumnsOnRightClickBehaviour`. The default is `InlineMenu`, which behaves like previous versions. Other options are `SubMenu` and `ModalDialog`. This required moving the `ColumnSelectionForm` from the demo project into the ObjectListView project.
 
 * Added `OLVColumn.AutoCompleteEditorMode` in preference to `AutoCompleteEditor`  (which is now just a wrapper). Thanks to Clive Haskins 
 
-* Added `IncludeColumnHeadersInCopy` 
+* Added `ObjectListView.IncludeColumnHeadersInCopy` 
 
-* Added `Freezing` event
+* Added `ObjectListView.Freezing` event
+  
+* Added `TreeListView.ExpandedObjects` property.
+
+* Added `Expanding`, `Expanded`, `Collapsing` and `Collapsed` events to `TreeListView`.
+
+* Added `ObjectListView.SubItemChecking` event, which is triggered when a checkbox on subitem is checked/unchecked.
 
 * Allow a delegate to owner draw the header
 
-* Virtual lists can (finally) set `CheckBoxes` back to *false* if it has been set to true. (This was a little hacky and may not work reliably).
-
 * All model object comparisons now use `Equals()` rather than `==` (thanks to vulkanino)
-
-* Reorganized files into folders
 
 * Tweaked `UseTranslucentSelection` and `UseTranslucentHotItem` to look (a little) more like Vista/Win7.
 
@@ -62,10 +66,16 @@ Minor features
 * While editing a cell, `Alt-[arrow]` will try to edit the cell in that direction
   (showing off what the cell edit character mapping can achieve)
 
+* Added long, :ref:`tutorial-like walk-through <blog-rearrangingtreelistview>` of how to make a `TreeListView` rearrangeable.
+
+* Reorganized files into folders
+
 Bug fixes (not a complete list)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Fixed (once and for all) `DisplayIndex` problem with `Generator`
+
+* Virtual lists can (finally) set `CheckBoxes` back to *false* if it has been set to true. (This was a little hacky and may not work reliably).
 
 * Preserve word wrap settings on `TreeListView`
 
@@ -92,6 +102,12 @@ Bug fixes (not a complete list)
 * `ClearObjects()` on a virtual list now resets all check state info.
 
 * Filtering on grouped virtual lists no longer behaves strangely
+
+* `ModelDropEventArgs.RefreshObjects()` now works correctly on `TreeListViews`.
+
+* Dragging a column divider in the IDE Form Designer now correctly resizes the column.
+
+* Removing objects from filtered or sorted `FastObjectListView` now works without clearing the filter or sorting.
 
 
 14 September 2010 - Version 2.4.1

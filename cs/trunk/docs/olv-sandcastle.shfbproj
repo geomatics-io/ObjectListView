@@ -1,4 +1,5 @@
-﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <!-- The configuration and platform will be used to determine which
          assemblies to include from solution and project documentation
@@ -7,7 +8,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{b29a351f-b856-4361-8340-0eca584a0bd8}</ProjectGuid>
-    <SHFBSchemaVersion>1.9.0.0</SHFBSchemaVersion>
+    <SHFBSchemaVersion>1.9.3.0</SHFBSchemaVersion>
     <!-- AssemblyName, Name, and RootNamespace are not used by SHFB but Visual
          Studio adds them anyway -->
     <AssemblyName>Documentation</AssemblyName>
@@ -22,7 +23,7 @@
     </DocumentationSources>
     <HelpFileFormat>HtmlHelp1</HelpFileFormat>
     <PresentationStyle>vs2005</PresentationStyle>
-    <CopyrightText>Copyright %28C%29 2006-2010 Phillip Piper</CopyrightText>
+    <CopyrightText>Copyright %28C%29 2006-2011 Phillip Piper</CopyrightText>
     <FeedbackEMailAddress>phillip.piper%40gmail.com</FeedbackEMailAddress>
     <HelpTitle>ObjectListView Class Library</HelpTitle>
     <SyntaxFilters>CSharp, VisualBasic</SyntaxFilters>
@@ -82,6 +83,8 @@
       </Filter>
       <Filter entryType="Namespace" fullName="BrightIdeasSoftware.Design" isExposed="False" xmlns="" />
     </ApiFilter>
+    <FrameworkVersion>.NET 2.0.50727</FrameworkVersion>
+    <HtmlHelp1xCompilerPath>..\..\..\..\..\..\Program Files (x86)\HTML Help Workshop\</HtmlHelp1xCompilerPath>
   </PropertyGroup>
   <!-- There are no properties for these groups.  AnyCPU needs to appear in
        order for Visual Studio to perform the build.  The others are optional

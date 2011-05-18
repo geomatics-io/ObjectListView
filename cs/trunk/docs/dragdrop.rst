@@ -114,7 +114,6 @@ If you want to do more than this, you have to start playing with the objects
 that actually implement the drag and drop: `SimpleDataSource` and `SimpleDropSink`
 (though calling the latter "simple" is a bit of a misnomer).
 
-[TODO: give example of setting up FileSpecs]
 
 SimpleDataSource
 ^^^^^^^^^^^^^^^^
@@ -227,3 +226,5 @@ It also cannot work on `DataListView`, `VirtualObjectListView` and `TreeListView
 since the data in those control is outside the control of the `ObjectListView`.
 For those controls, you will have to use (or subclass) a `SimpleDropSink` and do
 the actual rearranging and refreshing yourself.
+See :ref:`this blog <blog-rearrangingtreelistview>` for a detailed discussion of
+how to make a rearrangeable `TreeListView`.
