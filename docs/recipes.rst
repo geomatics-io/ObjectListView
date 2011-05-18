@@ -691,6 +691,14 @@ This allows the convience of reflection, but the speed of hand-written `AspectGe
 A `TreeListView` shows a tree structure with its nice ability to expand and
 collapse, but also shows information in columns.
 
+A functioning `TreeListView` needs three things:
+
+1. A list of top level objects (called `Roots`).
+
+2. A way to know if a given model can be expanded.
+
+3. A way to know which models should appear as the children of another model.
+
 Like all the other `ObjectListViews`, `TreeListView` relies on delegates. The
 two essential delegates for using a `TreeListView` are:
 
@@ -730,6 +738,8 @@ these operate on the top level branches.
 The `TreeListView` caches the list of children under each branch. This is helpful
 when the list of children is expensive to calculate. To force the `TreeListView`
 to refetch the list of children, call `RefreshObject()` on the parent.
+
+To see an example of how to use drag and drop on a `TreeListView`, read :ref:`this blog <blog-rearrangingtreelistview>`.
 
 Notes
 ^^^^^
@@ -997,7 +1007,9 @@ Like overlays, decorations are purely cosmetic. They do not respond to any user 
 21. How can I use drag and drop in an ObjectListView?
 -----------------------------------------------------
 
-This needs its own page to explain properly. :ref:`dragdrop-label`
+This needs its own page to explain properly. :ref:`dragdrop-label`. 
+
+To see a detailed walk-through, have a look at :ref:`this blog <blog-rearrangingtreelistview>`.
 
 .. _recipe-columntinting:
 

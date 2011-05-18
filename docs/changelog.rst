@@ -36,6 +36,39 @@ Version Index
 v2.5 beta - 28 April 2011
 -------------------------
 
+2011-04-27 14:04 (#1113) - ObjectListView/TreeListView.cs
+  - Added ExpandedObjects property and RebuildAll() method.
+
+2011-04-27 13:57 (#1112) - ObjectListView/DragDrop/DropSink.cs
+  - Rewrote how ModelDropEventArgs.RefreshObjects() works on TreeListViews
+
+2011-04-27 13:52 (#1111) - docs/images/mappedimage-renderer.png, docs/images/orange-800x1600.png, docs/images/foobar-lookalike.png, docs/images/coffee.jpg, ListViewPrinter/Properties/AssemblyInfo.cs, Demo/Resources/music16.png, docs/.static/listCtrlPrinter-icon.png, ObjectListView/Resources/sort-ascending.png, docs/.static/blog1-icon.png, Tests/Program.cs, docs/images/printpreview.png, Demo/Resources/goldstar3.png, docs/images/group-formatting.png, docs/images/bar-renderer.png, ObjectListView.sln, docs/images/limeleaf.jpg, docs/images/cell-editing-border.png, Demo/Photos/jp.png, Demo/Photos/jr.png, ObjectListView2005.sln, Demo/Photos/ns.png, Tests/TestBasics.cs, docs/.static/search-icon.png, docs/.static/blog2-icon.png, docs/filtering.rst, docs/images/gettingstarted-example1.png, docs/images/gettingstarted-example3.png, docs/images/gettingstarted-example5.png, Demo/Photos/gp.png, docs/.static/groupListView-icon.png, docs/images/blog2-balloon2.png, docs/images/fancy-screenshot.png, docs/.static/majorClasses-icon.png, ObjectListView/ObjectListView2008.csproj, docs/index.rst, docs/images/image-renderer.png, docs/images/ReportModernExample.jpg, Tests/Tests2005.csproj, docs/images/blog3-listview1.png, docs/.static/blog3-icon.png, Demo/Photos/gab.png, docs/images/blog3-listview3.png, docs/images/fancy-screenshot3.png, docs/images/ModelToScreenProcess.png, docs/images/right-arrow.png, docs/images/blog-overlayimage.png, ObjectListView/Properties/AssemblyInfo.cs, docs/.static/blog-icon.png, docs/images/dialog2-blue-800x1600.png, docs/images/dragdrop-example1.png, docs/.static/changelog-icon.png, Demo/Resources/limeleaf.png, docs/images/overlay.png, Demo/Resources/star16.png, docs/images/header-with-image.png, docs/images/excel-filtering.png, docs/images/ObjectListView.jpg, docs/images/emptylistmsg-example.png, docs/images/vertical-header.png, docs/images/light-blue-800x1600.png, docs/images/multiimage-renderer.png, Demo/AssemblyInfo.cs, ListViewPrinter/ListViewPrinter.csproj, docs/images/dragdrop-dropbackground.png, ObjectListView/Rendering/Decorations.cs, ListViewPrinterDemo/Resources/compass16.png, ObjectListView/ObjectListView.csproj, docs/images/dark-blue-800x1600.png, Demo/Photos/es.png, ListViewPrinterDemo/ListViewPrinterDemo.csproj, docs/.static/gettingStarted-icon.png, docs/.static/orange-800x1600.png, Demo/Resources/goldstart-32.png, docs/images/foobar-lookalike-small.png, docs/images/chili-smoothie2.jpg, ObjectListView/Resources/filter-icons3.png, docs/images/blog-setbkimage.png, docs/images/blog3-listview1a.png, docs/images/dragdrop-dropsubitem.png, docs/.static/faq-icon.png, ObjectListView/Resources/filter.png, docs/images/ownerdrawn-example1.png, docs/images/header-formatting.png, ListViewPrinter/ListViewPrinter2005.csproj, Demo/MainForm.cs, Demo/Photos/np.png, ObjectListView/ObjectListView2005.csproj, docs/.static/recipes-icon.png, ListViewPrinterDemo/ListViewPrinterDemo2005.csproj, docs/.static/whatsnew-icon.png, docs/images/blog-badscroll.png, docs/.static/animations-icon.png, docs/images/hyperlinks.png, docs/.static/ownerDraw-icon.png, docs/images/flags-renderer.png, ObjectListView/Resources/sort-descending.png, docs/images/gettingstarted-example2.png, Demo/Photos/cp.png, docs/images/gettingstarted-example4.png, Demo/Photos/cr.png, docs/images/gettingstarted-example6.png, docs/.static/cellEditing-icon.png, docs/images/blog2-balloon1.png, docs/images/dragdrop-dropbetween.png, Demo/Resources/down16.png, Demo/Photos/sj.png, docs/images/tileview-example.png, docs/images/task-list-small.png, Demo/Resources/fav32.png, ObjectListView/Resources/clear-filter.png, Demo/Resources/folder16.png, Demo/Photos/sp.png, docs/images/redbull.jpg, Demo/Resources/movie16.png, docs/.static/dragdrop-icon.png, docs/images/ClassDiagram.png, docs/.static/samples-icon.png, docs/.static/overlays-icon.png, docs/images/blog3-listview2.png, docs/images/fancy-screenshot2.png, docs/images/blog3-listview4.png, Demo/ObjectListViewDemo.csproj, docs/recipes.rst, docs/images/images-renderer.png, docs/.static/filtering-icon.png, docs/.static/dialog2-blue-800x1600.png, docs/images/tileview-ownerdrawn.png, Demo/Resources/redback1.png, docs/images/dragdrop-feedbackcolor.png, ObjectListView/Rendering/TreeRenderer.cs, docs/images/treelistview.png, docs/images/icecream3.jpg, Demo/Resources/redbull.png, docs/.static/index-icon.png, docs/.static/download-icon.png, Demo/Photos/ak.png, docs/.static/light-blue-800x1600.png, Demo/Photos/mb.png, Demo/Resources/tick16.png, docs/images/dragdrop-infomsg.png, docs/images/decorations-example.png, docs/.static/features-icon.png, docs/images/smoothie2.jpg, docs/.static/dark-blue-800x1600.png, docs/images/ClassDiagram-VirtualList.png, docs/images/text-filter-highlighting.png, docs/images/task-list.png, Demo/ObjectListViewDemo2005.csproj
+  - Updated docs
+  - Gave VS 2005 projects a "2005" suffix
+
+2011-04-25 14:52 (#1110) - ObjectListView/OLVColumn.cs
+  - Minor code cleanup
+
+2011-04-25 14:52 (#1109) - ObjectListView/ObjectListView.cs
+  - Added SubItemChecking event
+  - Fixed bug in handling of NewValue on CellEditFinishing event
+
+2011-04-25 14:50 (#1108) - ObjectListView/FastObjectListView.cs
+  - Fixed problem with removing objects from filtered or sorted list
+
+2011-04-25 14:49 (#1107) - ObjectListView/Implementation/Events.cs
+  - Added SubItemChecking event
+
+2011-04-25 14:49 (#1106) - ObjectListView/Implementation/OLVListSubItem.cs
+  - Added ModelValue property
+
+2011-04-12 18:41 (#1105) - ObjectListView/ObjectListView.cs, ObjectListView/Resources/filter.png, ObjectListView/OLVColumn.cs, ObjectListView/Resources/sort-descending.png, ObjectListView/Properties/Resources.resx, ObjectListView/Resources/clear-filter.png, ObjectListView/ObjectListView2008.csproj, ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/Properties/Resources.Designer.cs, ObjectListView/Resources, ObjectListView/SubControls/HeaderControl.cs, ObjectListView/ObjectListView.csproj, ObjectListView/Resources/sort-ascending.png, ObjectListView/Resources/filter-icons3.png, ObjectListView/ObjectListView2010.csproj
+  - Added images to menus
+  - Added ability to put filter indicator in a column's header
+
+2011-04-08 13:04 (#1104) - ObjectListView/TreeListView.cs, ObjectListView/Implementation/Events.cs
+  - Added Expanding, Expanded, Collapsing and Collapsed events to TreeListView
+
 2011-04-08 09:56 (#1102) - docs/whatsnew.rst, docs/filtering.rst, docs/listCtrlPrinter.rst, docs/overlays.rst, docs/conf.py, docs/majorClasses.rst, docs/changelog.rst, docs/download.rst, docs/index.rst, docs/recipes.rst, docs/images/text-filter-highlighting.png
   - Updated docs
 
