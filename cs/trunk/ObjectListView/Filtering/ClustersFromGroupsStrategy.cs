@@ -62,7 +62,8 @@ namespace BrightIdeasSoftware {
         /// <returns></returns>
         public override string GetClusterDisplayLabel(ICluster cluster) {
             string s = this.Column.ConvertGroupKeyToTitle(cluster.ClusterKey);
-            if (s == String.Empty) s = EMPTY_LABEL;
+            if (String.IsNullOrEmpty(s)) 
+                s = EMPTY_LABEL;
             return this.ApplyDisplayFormat(cluster, s);
         }
     }

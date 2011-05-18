@@ -308,6 +308,10 @@ namespace BrightIdeasSoftware {
                 checkedList.SetItemState(selectAllIndex, CheckState.Indeterminate);
         }
 
+        /// <summary>
+        /// Clear all the filters that are applied to the given column
+        /// </summary>
+        /// <param name="column">The column from which filters are to be removed</param>
         virtual protected void ClearAllFilters(OLVColumn column) {
 
             ObjectListView olv = column.ListView as ObjectListView;
@@ -317,6 +321,11 @@ namespace BrightIdeasSoftware {
             olv.ResetColumnFiltering();
         }
 
+        /// <summary>
+        /// Apply the selected values from the given list as a filter on the given column
+        /// </summary>
+        /// <param name="checkedList">A list in which the checked items should be used as filters</param>
+        /// <param name="column">The column for which a filter should be generated</param>
         virtual protected void EnactFilter(ToolStripCheckedListBox checkedList, OLVColumn column) {
             
             ObjectListView olv = column.ListView as ObjectListView;

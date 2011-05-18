@@ -450,6 +450,11 @@ namespace BrightIdeasSoftware {
 
         #region Utilities
 
+        /// <summary>
+        /// Start editing the indicated cell if that cell is not already being edited
+        /// </summary>
+        /// <param name="olvi">The row to edit</param>
+        /// <param name="subItemIndex">The cell within that row to edit</param>
         protected void StartCellEditIfDifferent(OLVListItem olvi, int subItemIndex) {
             if (this.ItemBeingEdited == olvi && this.SubItemIndexBeingEdited == subItemIndex)
                 return;
@@ -458,14 +463,29 @@ namespace BrightIdeasSoftware {
             this.ListView.StartCellEdit(olvi, subItemIndex);
         }
 
+        /// <summary>
+        /// Gets the adjacent item to the given item in the given direction
+        /// </summary>
+        /// <param name="olvi">The row whose neighbour is sought</param>
+        /// <param name="up">The direction of the adjacentness</param>
+        /// <returns>An OLVListView adjacent to the given item, or null if there are no more items in that direction.</returns>
         protected OLVListItem GetAdjacentItemOrNull(OLVListItem olvi, bool up) {
             return up ? this.ListView.GetPreviousItem(olvi) : this.ListView.GetNextItem(olvi);
         }
 
+        /// <summary>
+        /// Gets the adjacent item to the given item in the given direction, wrapping if needed.
+        /// </summary>
+        /// <param name="olvi">The row whose neighbour is sought</param>
+        /// <param name="up">The direction of the adjacentness</param>
+        /// <returns>An OLVListView adjacent to the given item, or null if there are no more items in that direction.</returns>
         protected OLVListItem GetAdjacentItem(OLVListItem olvi, bool up) {
             return this.GetAdjacentItemOrNull(olvi, up) ?? this.GetAdjacentItemOrNull(null, up);
         }
 
+        /// <summary>
+        /// Gets a collection of columns that are editable in the order they are shown to the user
+        /// </summary>
         protected List<OLVColumn> EditableColumnsInDisplayOrder {
             get {
                 List<OLVColumn> editableColumnsInDisplayOrder = new List<OLVColumn>();
