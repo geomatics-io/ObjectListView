@@ -5,6 +5,8 @@
  * Date: 25/11/2008 17:15 
  *
  * Change log:
+ * 2011-05-11  JPP  - Fixed bug that prevented columns from being resized in IDE Designer
+ *                    by dragging the column divider
  * 2011-04-12  JPP  - Added ability to draw filter indicator in a column's header
  * v2.4.1
  * 2010-08-23  JPP  - Added ability to draw header vertically (thanks to Mark Fenwick)
@@ -53,6 +55,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms.VisualStyles;
 using System.Drawing.Drawing2D;
 using BrightIdeasSoftware.Properties;
+using System.Security.Permissions;
 
 namespace BrightIdeasSoftware
 {
@@ -284,6 +287,7 @@ namespace BrightIdeasSoftware
         /// Override the basic message pump
         /// </summary>
         /// <param name="m"></param>
+        [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         protected override void WndProc(ref Message m) {
             const int WM_DESTROY = 2;
             const int WM_SETCURSOR = 0x20;
@@ -344,7 +348,9 @@ namespace BrightIdeasSoftware
             int columnIndex = this.ColumnIndexUnderCursor;
 
             // If the mouse has moved to a different header, pop the current tip (if any)
-            if (columnIndex != this.columnShowingTip) {
+            // For some reason, references this.ToolTip when in design mode, causes the 
+            // columns to not be resizable by dragging the divider in the Designer. No idea why.
+            if (columnIndex != this.columnShowingTip && !this.ListView.IsDesignMode) {
                 this.ToolTip.PopToolTip(this);
                 this.columnShowingTip = columnIndex;
             }
@@ -522,7 +528,8 @@ namespace BrightIdeasSoftware
                 return true;
             
             foreach (OLVColumn column in this.ListView.Columns) {
-                if (column.HasHeaderImage || 
+                if (column.HasHeaderImage ||
+                    !column.ShowTextInHeader ||
                     column.IsHeaderVertical || 
                     this.HasFilterIndicator(column) ||
                     column.TextAlign != column.HeaderTextAlign ||
@@ -715,6 +722,12 @@ namespace BrightIdeasSoftware
             return r;
         }
 
+        /// <summary>
+        /// Draw an indication that this column has a filter applied to it
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <returns></returns>
         protected Rectangle DrawFilterIndicator(Graphics g, Rectangle r) {
             int width = this.CalculateFilterIndicatorWidth(r);
             if (width <= 0)
@@ -759,49 +772,70 @@ namespace BrightIdeasSoftware
             // Tweak the text rectangle a little to improve aethestics
             r.Inflate(-3, 0);
             r.Y -= 2;
-            Rectangle textRect = r;
             const int imageTextGap = 3;
 
             if (column.IsHeaderVertical) {
-                try {
-                    // Create a matrix transformation that will rotate the text 90 degrees vertically
-                    // AND place the text in the middle of where it was previously. [Think of tipping
-                    // a box over by its bottom left edge -- you have to move it back a bit so it's
-                    // in the same place as it started]
-                    Matrix m = new Matrix();
-                    m.RotateAt(-90, new Point(r.X, r.Bottom));
-                    m.Translate(0, r.Height);
-                    g.Transform = m;
-                    StringFormat fmt = new StringFormat(StringFormatFlags.NoWrap);
-                    fmt.Alignment = StringAlignment.Near;
-                    fmt.LineAlignment = column.HeaderTextAlignAsStringAlignment;
-                    //fmt.Trimming = StringTrimming.EllipsisCharacter;
-
-                    // The drawing is rotated 90 degrees, so switch our text boundaries
-                    textRect.Width = r.Height;
-                    textRect.Height = r.Width;
-                    g.DrawString(column.Text, f, new SolidBrush(color), textRect, fmt);
-                } finally {
-                    g.ResetTransform();
-                }
+                DrawVerticalText(g, r, column, f, color);
             } else {
                 // Does the column have a header image and is there space for it?
-                if (column.HasHeaderImage && r.Width > column.ImageList.ImageSize.Width * 2) {
-                    textRect.X += (column.ImageList.ImageSize.Width + imageTextGap);
-                    textRect.Width -= (column.ImageList.ImageSize.Width + imageTextGap);
+                if (column.HasHeaderImage && r.Width > column.ImageList.ImageSize.Width * 2)
+                    DrawImageAndText(g, r, column, flags, f, color, imageTextGap);
+                else
+                    DrawText(g, r, column, flags, f, color);
+            }
+        }
 
-                    Size textSize = TextRenderer.MeasureText(g, column.Text, f, textRect.Size, flags);
-                    int imageY = r.Top + ((r.Height - column.ImageList.ImageSize.Height) / 2);
-                    int imageX = textRect.Left;
-                    if (column.HeaderTextAlign == HorizontalAlignment.Center)
-                        imageX = textRect.Left + ((textRect.Width - textSize.Width) / 2);
-                    if (column.HeaderTextAlign == HorizontalAlignment.Right)
-                        imageX = textRect.Right - textSize.Width;
-                    imageX -= (column.ImageList.ImageSize.Width + imageTextGap);
-                    column.ImageList.Draw(g, imageX, imageY, column.ImageList.Images.IndexOfKey(column.HeaderImageKey));
-                }
+        private void DrawText(Graphics g, Rectangle r, OLVColumn column, TextFormatFlags flags, Font f, Color color) {
+            if (column.ShowTextInHeader)
+                TextRenderer.DrawText(g, column.Text, f, r, color, Color.Transparent, flags);
+        }
 
-                TextRenderer.DrawText(g, column.Text, f, textRect, color, Color.Transparent, flags);
+        private void DrawImageAndText(Graphics g, Rectangle r, OLVColumn column, TextFormatFlags flags, Font f, Color color, int imageTextGap) {
+            Rectangle textRect = r;
+            textRect.X += (column.ImageList.ImageSize.Width + imageTextGap);
+            textRect.Width -= (column.ImageList.ImageSize.Width + imageTextGap);
+
+            Size textSize = Size.Empty;
+            if (column.ShowTextInHeader)
+                textSize = TextRenderer.MeasureText(g, column.Text, f, textRect.Size, flags);
+
+            int imageY = r.Top + ((r.Height - column.ImageList.ImageSize.Height) / 2);
+            int imageX = textRect.Left;
+            if (column.HeaderTextAlign == HorizontalAlignment.Center)
+                imageX = textRect.Left + ((textRect.Width - textSize.Width) / 2);
+            if (column.HeaderTextAlign == HorizontalAlignment.Right)
+                imageX = textRect.Right - textSize.Width;
+            imageX -= (column.ImageList.ImageSize.Width + imageTextGap);
+
+            column.ImageList.Draw(g, imageX, imageY, column.ImageList.Images.IndexOfKey(column.HeaderImageKey));
+
+            this.DrawText(g, textRect, column, flags, f, color);
+        }
+
+        private static void DrawVerticalText(Graphics g, Rectangle r, OLVColumn column, Font f, Color color) {
+            try {
+                // Create a matrix transformation that will rotate the text 90 degrees vertically
+                // AND place the text in the middle of where it was previously. [Think of tipping
+                // a box over by its bottom left edge -- you have to move it back a bit so it's
+                // in the same place as it started]
+                Matrix m = new Matrix();
+                m.RotateAt(-90, new Point(r.X, r.Bottom));
+                m.Translate(0, r.Height);
+                g.Transform = m;
+                StringFormat fmt = new StringFormat(StringFormatFlags.NoWrap);
+                fmt.Alignment = StringAlignment.Near;
+                fmt.LineAlignment = column.HeaderTextAlignAsStringAlignment;
+                //fmt.Trimming = StringTrimming.EllipsisCharacter;
+
+                // The drawing is rotated 90 degrees, so switch our text boundaries
+                Rectangle textRect = r;
+                textRect.Width = r.Height;
+                textRect.Height = r.Width;
+                using (Brush b = new SolidBrush(color))
+                    g.DrawString(column.Text, f, b, textRect, fmt);
+            }
+            finally {
+                g.ResetTransform();
             }
         }
 
