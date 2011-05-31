@@ -5,6 +5,10 @@
  * Date: 28/11/2008 17:15 
  *
  * Change log:
+ * v2.5
+ * 2011-05-20  JPP  - Accessing through an indexer when the target had both a integer and
+ *                    a string indexer didn't work reliably.
+ * v2.4.1
  * 2010-08-10  JPP  - Refactored into Munger/SimpleMunger. 3x faster!
  * v2.3
  * 2009-02-15  JPP  - Made Munger a public class
@@ -323,7 +327,7 @@ namespace BrightIdeasSoftware
                     return this.resolvedFieldInfo.GetValue(target);
 
                 // If that didn't work, try to use the indexer property. 
-                // This covers things like arrays, dictionaries and DataRows
+                // This covers things like dictionaries and DataRows.
                 if (this.indexerPropertyInfo != null)
                     return this.indexerPropertyInfo.GetValue(target, new object[] { this.AspectName });
             } catch (Exception ex) {
@@ -364,7 +368,7 @@ namespace BrightIdeasSoftware
                 }
 
                 // If that didn't work, try to use the indexer property. 
-                // This covers things like arrays, dictionaries and DataRows
+                // This covers things like dictionaries and DataRows.
                 if (this.indexerPropertyInfo != null) {
                     this.indexerPropertyInfo.SetValue(target, value, new object[] { this.AspectName });
                     return true;
@@ -383,11 +387,12 @@ namespace BrightIdeasSoftware
 
         private void ResolveName(object target, string name, int numberMethodParameters) {
 
-            if (cachedTargetType == target.GetType() && cachedName == name)
+            if (cachedTargetType == target.GetType() && cachedName == name && cachedNumberParameters == numberMethodParameters)
                 return;
 
             cachedTargetType = target.GetType();
             cachedName = name;
+            cachedNumberParameters = numberMethodParameters;
 
             resolvedFieldInfo = null;
             resolvedPropertyInfo = null;
@@ -401,9 +406,14 @@ namespace BrightIdeasSoftware
                     resolvedPropertyInfo = pinfo;
                     return;
                 }
-                // See if we can find an indexer property while we are here
-                if (indexerPropertyInfo == null && pinfo.Name == "Item")
-                    indexerPropertyInfo = pinfo;
+                
+                // See if we can find an string indexer property while we are here.
+                // We also need to allow for old style <object> keyed collections.
+                if (indexerPropertyInfo == null && pinfo.Name == "Item") {
+                    Type parameterType = pinfo.GetGetMethod().GetParameters()[0].ParameterType;
+                    if (parameterType == typeof(string) || parameterType == typeof(object))
+                        indexerPropertyInfo = pinfo;
+                }
             }
 
             foreach (FieldInfo info in target.GetType().GetFields(flags)) {
@@ -423,6 +433,7 @@ namespace BrightIdeasSoftware
 
         private Type cachedTargetType;
         private string cachedName;
+        private int cachedNumberParameters;
 
         private FieldInfo resolvedFieldInfo;
         private PropertyInfo resolvedPropertyInfo;
