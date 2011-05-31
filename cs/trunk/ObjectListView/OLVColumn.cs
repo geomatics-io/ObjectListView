@@ -5,6 +5,7 @@
  * Date: 31-March-2011 5:53 pm
  *
  * Change log:
+ * 2011-05-27  JPP  - Added Sortable, Hideable, Groupable, Searchable, ShowTextInHeader properties
  * 2011-04-12  JPP  - Added HasFilterIndicator
  * 2011-03-31  JPP  - Split into its own file
  * 
@@ -159,40 +160,6 @@ namespace BrightIdeasSoftware {
         }
         private string aspectToStringFormat;
 
-
-        /// <summary>
-        /// Gets or set whether the contents of this column's cells should be word wrapped
-        /// </summary>
-        /// <remarks>If this column uses a custom IRenderer (that is, one that is not descended
-        /// from BaseRenderer), then that renderer is responsible for implementing word wrapping.</remarks>
-        [Category("ObjectListView"),
-         Description("Draw this column cell's word wrapped"),
-         DefaultValue(false)]
-        public bool WordWrap {
-            get { return wordWrap; }
-            set {
-                wordWrap = value;
-
-                // If there isn't a renderer and they are turning word wrap off, we don't need to do anything
-                if (this.Renderer == null && !wordWrap)
-                    return;
-
-                // All other cases require a renderer of some sort
-                if (this.Renderer == null)
-                    this.Renderer = new HighlightTextRenderer();
-
-                BaseRenderer baseRenderer = this.Renderer as BaseRenderer;
-
-                // If there is a custom renderer (not descended from BaseRenderer), 
-                // we leave it up to them to implement wrapping
-                if (baseRenderer == null)
-                    return;
-
-                baseRenderer.CanWrap = wordWrap;
-            }
-        }
-        private bool wordWrap;
-
         /// <summary>
         /// Gets or sets whether the cell editor should use AutoComplete
         /// </summary>
@@ -223,11 +190,23 @@ namespace BrightIdeasSoftware {
         private AutoCompleteMode autoCompleteEditorMode = AutoCompleteMode.Append;
 
         /// <summary>
-        /// Should this column show a checkbox, rather than a string?
+        /// Gets whether this column can be hidden by user actions
+        /// </summary>
+        /// <remarks>This take into account both the Hideable property and whether this column
+        /// is the primary column of the listview (column 0).</remarks>
+        [Browsable(false)]
+        public bool CanBeHidden {
+            get {
+                return this.Hideable && (this.Index != 0);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether this column will show a checkbox.
         /// </summary>
         /// <remarks>
         /// Setting this on column 0 has no effect. Column 0 check box is controlled
-        /// by the list view itself.
+        /// by the CheckBoxes property on the ObjectListView itself.
         /// </remarks>
         [Category("ObjectListView"),
          Description("Should values in this column be treated as a checkbox, rather than a string?"),
@@ -341,6 +320,28 @@ namespace BrightIdeasSoftware {
             set { freeSpaceProportion = Math.Max(0, value); }
         }
         private int freeSpaceProportion;
+
+        /// <summary>
+        /// Gets or sets whether groups will be rebuild on this columns values when this column's header is clicked.
+        /// </summary>
+        /// <remarks>
+        /// <para>This setting is only used when ShowGroups is true.</para>
+        /// <para>
+        /// If this is false, clicking the header will not rebuild groups. It will not provide
+        /// any feedback as to why the list is not being regrouped. It is the programmers responsibility to
+        /// provide appropriate feedback.
+        /// </para>
+        /// <para>When this is false, BeforeCreatingGroups events are still fired, which can be used to allow grouping
+        /// or give feedback, on a case by case basis.</para>
+        /// </remarks>
+        [Category("ObjectListView"),
+         Description("Will the list create groups when this header is clicked?"),
+         DefaultValue(true)]
+        public bool Groupable {
+            get { return groupable; }
+            set { groupable = value; }
+        }
+        private bool groupable = true;
 
         /// <summary>
         /// This delegate is called when a group has been created but not yet made
@@ -603,6 +604,21 @@ namespace BrightIdeasSoftware {
         }
 
         /// <summary>
+        /// Gets or sets whether this column can be hidden by the user.
+        /// </summary>
+        /// <remarks>
+        /// <para>Column 0 can never be hidden, regardless of this setting.</para>
+        /// </remarks>
+        [Category("ObjectListView"),
+         Description("Will the user be able to choose to hide this column?"),
+         DefaultValue(true)]
+        public bool Hideable {
+            get { return hideable; }
+            set { hideable = value; }
+        }
+        private bool hideable = true;
+
+        /// <summary>
         /// Gets or sets whether the text values in this column will act like hyperlinks
         /// </summary>
         [Category("ObjectListView"),
@@ -808,6 +824,63 @@ namespace BrightIdeasSoftware {
         }
 
         /// <summary>
+        /// Gets or sets whether the text in this column's cell will be used when doing text searching.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If this is false, text filters will not trying searching this columns cells when looking for matches.
+        /// </para>
+        /// </remarks>
+        [Category("ObjectListView"),
+         Description("Will the text of the cells in this column be considered when searching?"),
+         DefaultValue(true)]
+        public bool Searchable {
+            get { return searchable; }
+            set { searchable = value; }
+        }
+        private bool searchable = true;
+
+        /// <summary>
+        /// Gets or sets whether the header for this column will include the column's Text.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If this is false, the only thing rendered in the column header will be the image from <see cref="HeaderImageKey"/>.
+        /// </para>
+        /// <para>This setting is only considered when <see cref="ObjectListView.HeaderUsesThemes"/> is false on the owning ObjectListView.</para>
+        /// </remarks>
+        [Category("ObjectListView"),
+         Description("Will the header for this column include text?"),
+         DefaultValue(true)]
+        public bool ShowTextInHeader {
+            get { return showTextInHeader; }
+            set { showTextInHeader = value; }
+        }
+        private bool showTextInHeader = true;
+
+        /// <summary>
+        /// Gets or sets whether the contents of the list will be resorted when the user clicks the 
+        /// header of this column.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If this is false, clicking the header will not sort the list, but will not provide
+        /// any feedback as to why the list is not being sorted. It is the programmers responsibility to
+        /// provide appropriate feedback.
+        /// </para>
+        /// <para>When this is false, BeforeSorting events are still fired, which can be used to allow sorting
+        /// or give feedback, on a case by case basis.</para>
+        /// </remarks>
+        [Category("ObjectListView"),
+         Description("Will clicking this columns header resort the list?"),
+         DefaultValue(true)]
+        public bool Sortable {
+            get { return sortable; }
+            set { sortable = value; }
+        }
+        private bool sortable = true;
+
+        /// <summary>
         /// Gets or sets the horizontal alignment of the contents of the column.
         /// </summary>
         /// <remarks>.NET will not allow column 0 to have any alignment except
@@ -960,6 +1033,39 @@ namespace BrightIdeasSoftware {
                     base.Width = Math.Max(this.MinimumWidth, value);
             }
         }
+
+        /// <summary>
+        /// Gets or set whether the contents of this column's cells should be word wrapped
+        /// </summary>
+        /// <remarks>If this column uses a custom IRenderer (that is, one that is not descended
+        /// from BaseRenderer), then that renderer is responsible for implementing word wrapping.</remarks>
+        [Category("ObjectListView"),
+         Description("Draw this column cell's word wrapped"),
+         DefaultValue(false)]
+        public bool WordWrap {
+            get { return wordWrap; }
+            set {
+                wordWrap = value;
+
+                // If there isn't a renderer and they are turning word wrap off, we don't need to do anything
+                if (this.Renderer == null && !wordWrap)
+                    return;
+
+                // All other cases require a renderer of some sort
+                if (this.Renderer == null)
+                    this.Renderer = new HighlightTextRenderer();
+
+                BaseRenderer baseRenderer = this.Renderer as BaseRenderer;
+
+                // If there is a custom renderer (not descended from BaseRenderer), 
+                // we leave it up to them to implement wrapping
+                if (baseRenderer == null)
+                    return;
+
+                baseRenderer.CanWrap = wordWrap;
+            }
+        }
+        private bool wordWrap;
 
         #endregion
 
