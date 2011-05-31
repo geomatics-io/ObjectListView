@@ -249,7 +249,7 @@ Do I need to wait longer and then something will appear?
 
 An `ObjectListView` can show a "this list is empty" message when there is nothing
 to show in the list, so that the user knows the control is supposed to be empty.
-You even have a fair
+You can even apply some fairly customizations to the appearance of the message.
 
 See this recipe: :ref:`recipe-emptymsg`
 
