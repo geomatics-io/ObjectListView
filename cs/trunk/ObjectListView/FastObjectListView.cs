@@ -49,11 +49,11 @@ namespace BrightIdeasSoftware
     /// as opposed to a normal ObjectListView which takes 10-15 seconds. Lists of up to 50,000 items should be
     /// able to be handled with sub-second response times even on low end machines.</para>
     /// <para>
-    /// A FastObjectListView is implemented as a virtual list with some of the virtual modes limits (e.g. no sorting)
+    /// A FastObjectListView is implemented as a virtual list with many of the virtual modes limits (e.g. no sorting)
     /// fixed through coding. There are some functions that simply cannot be provided. Specifically, a FastObjectListView cannot:
     /// <list type="bullet">
     /// <item><description>use Tile view</description></item>
-    /// <item><description>display images on subitems (though you can easily circumvent this limit by making the list owner drawn)</description></item>
+    /// <item><description>show groups on XP</description></item>
     /// </list>
     /// </para>
     /// </remarks>
@@ -233,29 +233,11 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="collection"></param>
         public override void SetObjects(IEnumerable collection) {
-            ArrayList newObjects = EnumerableToArray(collection);
+            ArrayList newObjects = ObjectListView.EnumerableToArray(collection);
 
             this.fullObjectList = newObjects;
             this.FilterObjects();
             this.RebuildIndexMap();
-        }
-
-        private static ArrayList EnumerableToArray(IEnumerable collection) {
-            if (collection == null)
-                return new ArrayList();
-
-            ArrayList array = collection as ArrayList;
-            if (array != null)
-                return array;
-
-            ICollection iCollection = collection as ICollection;
-            if (iCollection != null)
-                return new ArrayList(iCollection);
-
-            ArrayList newObjects = new ArrayList();
-            foreach (object x in collection)
-                newObjects.Add(x);
-            return newObjects;
         }
 
         private ArrayList fullObjectList = new ArrayList();
@@ -307,7 +289,7 @@ namespace BrightIdeasSoftware
 
             // Apply the object filter if there is one
             if (this.modelFilter == null) {
-                this.filteredObjectList = EnumerableToArray(objects);
+                this.filteredObjectList = ObjectListView.EnumerableToArray(objects);
             } else {
                 this.filteredObjectList = new ArrayList();
                 foreach (object model in objects) {
