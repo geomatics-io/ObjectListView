@@ -201,7 +201,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestUnsort() {
+        virtual public void TestUnsort() {
             this.olv.Sort(this.olv.GetColumn(0), SortOrder.Ascending);
             Assert.AreEqual(PersonDb.FirstAlphabeticalName, ((Person)this.olv.GetModelObject(0)).Name);
             this.olv.Unsort();
@@ -224,6 +224,10 @@ namespace BrightIdeasSoftware.Tests
         [Test]
         override public void TestCustomSorting()
         {
+        }
+        
+        [Test]
+        override public void TestUnsort() {
         }
 
         [TestFixtureSetUp]
