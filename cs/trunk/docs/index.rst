@@ -68,7 +68,7 @@ OK, here's the bullet point feature list:
 * Supports :ref:`transluscent hot item and selection <recipe-vistascheme>` like Vista even on XP.
 * Supports :ref:`filtering <recipe-filtering>`, including the very common :ref:`iTunes-like text filtering <recipe-text-filtering>`.
 * Supports :ref:`animations <animations-label>` on cells, row, and the entire list.
-* Supports :ref:`column selection <column-selection-label>` through right-click on header.
+* Supports column selection through right-click on header.
 * Supports :ref:`Excel-like column filtering <column-filtering-label>`.
 * The `DataListView` version supports data binding.
 * The `FastDataListView` version supports data binding on large lists (100,000 plus rows).

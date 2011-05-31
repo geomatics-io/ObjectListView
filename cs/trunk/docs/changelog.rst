@@ -9,7 +9,7 @@ Change Log
 
 Version Index
 -------------
-* `v2.5 beta - 28 April 2011`_
+* `v2.5 - 03 June 2011`_
 * `v2.4.1 - 15 September 2010`_
 * `v2.4 - 17 April 2010`_
 * `v2.3 - 14 October 2009`_
@@ -33,8 +33,78 @@ Version Index
 * `Previous versions - 04 April 2007`_
 
 
-v2.5 beta - 28 April 2011
--------------------------
+v2.5 - 03 June 2011
+-------------------
+
+2011-05-27 18:14 (#1143) - ObjectListView/OLVColumn.cs
+  - Added Sortable, Hideable, Groupable, ShowTextInHeader properties
+
+2011-05-27 18:13 (#1142) - ObjectListView/ObjectListView.cs
+  - Honour new column settings: Sortable, Groupable, Hideable
+
+2011-05-27 18:12 (#1141) - ObjectListView/Utilities/ColumnSelectionForm.cs
+  - Changed to honour OLVColumn.CanBeHidden property
+
+2011-05-27 18:12 (#1140) - ObjectListView/SubControls/HeaderControl.cs
+  - Added ability for a column header to be drawn without text
+
+2011-05-25 19:37 (#1139) - Tests/TestSorting.cs
+  - Unsort doesn't work on fast lists
+
+2011-05-25 19:36 (#1138) - ObjectListView/Resources/coffee.jpg, ObjectListView/VirtualObjectListView.cs
+  - Rearranged some code
+
+2011-05-25 19:36 (#1137) - ObjectListView/Implementation/Munger.cs
+  - Accessing through an indexer when the target had both a integer and a string indexer didn't work reliably.
+
+2011-05-18 22:36 (#1135) - ObjectListView/Rendering/Renderers.cs
+  - Correctly render subitem checkboxes when printing
+
+2011-05-18 22:35 (#1134) - ObjectListView/ObjectListView.cs
+  - Added IsWin7OrLater
+  - Made sure all created image lists are 32-bit
+
+2011-05-13 19:54 (#1132) - ObjectListView/ObjectListView.cs, ObjectListView/ObjectListView2008.csproj
+  - Clearly documented SetNativeBackground* methods
+
+2011-05-13 08:15 (#1130) - ObjectListView/OLVColumn.cs
+  - Added MakeEqualGroupies
+
+2011-05-13 08:15 (#1129) - ObjectListView/ObjectListView.cs, ObjectListView/Implementation/NativeMethods.cs
+  - Added native background image support
+
+2011-05-13 08:12 (#1128) - docs/whatsnew.rst, docs/dragdrop.rst, docs/images/blog4-dropbetween.png, docs/samples.rst, docs/conf.py, docs/blog4.rst, docs/images/blog4-emptyform.png, docs/.static/blog4-icon.png, docs/blog.rst, docs/olv-sandcastle.shfbproj, docs/images/dragdrop-tlv.png, docs/images/blog4-infomessage.png, docs/changelog.rst, docs/images/blog4-nodrop.png, docs/recipes.rst, docs/images/chili-smoothie.jpg, docs/images/blog4-basicform.png, docs/images/dragdrop-tlv-small.png
+  - Docs for 2.5 almost finished
+
+2011-05-11 22:54 (#1127) - ObjectListView/SubControls/HeaderControl.cs
+  - Fixed bug that prevented columns from being resized in IDE Designer by dragging the column divider
+
+2011-05-11 17:52 (#1126) - ObjectListView/SubControls/ToolStripCheckedListBox.cs
+  - Updated documentation comments
+
+2011-05-11 17:51 (#1124) - ObjectListView/Rendering/Decorations.cs
+  - Updated documentation comments
+
+2011-05-11 17:51 (#1123) - ObjectListView/Implementation/Enums.cs, ObjectListView/Implementation/DataSourceAdapter.cs, ObjectListView/Implementation/Events.cs
+  - Updated documentation comments
+
+2011-05-11 17:48 (#1122) - ObjectListView/Filtering/ClustersFromGroupsStrategy.cs, ObjectListView/Filtering/Cluster.cs, ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/Filtering/ClusteringStrategy.cs, ObjectListView/Filtering/Filters.cs
+  - Updated documentation comments
+
+2011-05-11 17:47 (#1121) - ObjectListView/CellEditing/CellEditKeyEngine.cs
+  - Updated documentation comments
+
+2011-05-11 17:47 (#1120) - ObjectListView/TreeListView.cs
+  - Updated documentation comments
+
+2011-05-11 17:46 (#1119) - ObjectListView/VirtualObjectListView.cs
+  - Updated documentation comments
+
+2011-05-11 17:45 (#1118) - ObjectListView/ObjectListView.cs
+  - Updated documentation comments
+
+2011-05-11 17:43 (#1117) - ObjectListView/FastDataListView.cs
+  - Added class comment
 
 2011-04-27 14:04 (#1113) - ObjectListView/TreeListView.cs
   - Added ExpandedObjects property and RebuildAll() method.

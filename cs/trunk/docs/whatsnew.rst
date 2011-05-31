@@ -24,6 +24,7 @@ New features
 
 * Support for VS 2010. The target framework must be a "full" version of .Net. It will not work with a "Client Profile" (which is unfortunately the default for new projects in VS 2010).
 
+* Columns can now disable sorting, grouping, searching and "hide-ability" (`Sortable`, `Groupable` `Searchable` and `Hideable` properties respectively).
 
 Breaking changes
 ^^^^^^^^^^^^^^^^
@@ -69,6 +70,9 @@ Minor features
 * Added long, :ref:`tutorial-like walk-through <blog-rearrangingtreelistview>` of how to make a `TreeListView` rearrangeable.
 
 * Reorganized files into folders
+
+* `TextMatchFilter` was seriously reworked. One text filter can now match on multiple strings. `TextMatchFilter` has new factory methods (which make `TextMatchFilter.MatchKind` redundant).
+
 
 Bug fixes (not a complete list)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

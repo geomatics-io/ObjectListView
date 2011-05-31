@@ -1433,7 +1433,7 @@ The base `ModelFilter` class can be given a delegate and used directly::
 	
 Funnily enough, there is! It's called `TextMatchFilter.` You use it thus::
 
-    this.olv1.ModelFilter = new TextMatchFilter(this.olv1, "search");
+    this.olv1.ModelFilter = TextMatchFilter.Contains(this.olv1, "search");
 	
 After executing this line, the `olv1` will only show rows where the text "search"
 occurs in at least one cell of that row. 
@@ -1441,15 +1441,20 @@ occurs in at least one cell of that row.
 This searching uses each cell's string representation. This can lead to some odd, but still
 accurate results, when owner drawn is *true*. For example, subitem check boxes are drawn
 as boxes, but their string representation is "true" and "false." If you're text filter is
-"rue" it will match all rows where a subitem check box is checked.
+"rue" it will match all rows where a subitem check box is checked. To prevent this,
+you can make a column invisible to text filters by setting `Searchable` to *false*.
 
-The filter can be configured to only consider some of the columns in the `ObjectListView` by
+Alternatively, the filter can be configured to only consider some of the columns in the `ObjectListView` by
 setting the `Columns` property. This is useful for avoiding searching on columns that you
 know will return non-sensical results (like checkboxes above).
 
 It can also be set up to do regular expression searching::
 
-	this.olv1.ModelFilter = new TextMatchFilter(this.olv1, "^[0-9]+", TextMatchFilter.MatchKind.Regex);
+	this.olv1.ModelFilter = TextMatchFilter.Regex(this.olv1, "^[0-9]+");
+
+Or prefix matching (all these factory methods can accept more than one string)::
+
+	this.olv1.ModelFilter = TextMatchFilter.Prefix(this.olv1, "larry", "moe", "curly");
 
 HighlightTextRenderer
 ^^^^^^^^^^^^^^^^^^^^^
@@ -1458,7 +1463,7 @@ If your filtered `ObjectListView` is owner drawn, you can pair this text searchi
 with a special renderer, `HighlightTextRenderer.` This renderer draws a highlight box
 around any substring that matches the given filter. So::
 
-    TextMatchFilter filter = new TextMatchFilter(this.olv1, "er");
+    TextMatchFilter filter = TextMatchFilter.Contains(this.olv1, "er");
     this.olv1.ModelFilter = filter;
     this.olv1.DefaultRenderer = new HighlightTextRenderer(filter);
 
@@ -1520,6 +1525,9 @@ of the text in the header.
 For the image to appear `OLVColumn.HeaderUsesTheme` must be *false*. Otherwise,
 the header will be drawn strictly in accordance with the OS's current theme
 (which certainly will not include an image).
+
+If you only want an image in the header without any text showing,
+set `OLVColumn.ShowTextInHeader` to *false*.
 
 Don't use `ImageKey` or `ImageIndex`. These are Microsoft standard
 properties, but they don't work. Both are hidden from the code generation
