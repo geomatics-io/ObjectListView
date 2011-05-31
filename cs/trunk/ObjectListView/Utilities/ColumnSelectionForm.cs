@@ -75,11 +75,13 @@ namespace BrightIdeasSoftware
             };
 
             this.objectListView1.BooleanCheckStatePutter = delegate(Object rowObject, bool newValue) {
-                // primary column should always be checked so ignore attempts to change it
-                if (!this.IsPrimaryColumn((OLVColumn)rowObject)) {
-                    this.MapColumnToVisible[(OLVColumn)rowObject] = newValue;
-                    EnableControls();
-                }
+                // Some columns should always be shown, so ignore attempts to hide them
+                OLVColumn column = (OLVColumn)rowObject;
+                if (!column.CanBeHidden) 
+                    return true;
+
+                this.MapColumnToVisible[column] = newValue;
+                EnableControls();
                 return newValue;
             };
 
@@ -191,11 +193,6 @@ namespace BrightIdeasSoftware
 
         #region Control enabling
 
-        private bool IsPrimaryColumn(OLVColumn col)
-        {
-            return (col == this.AllColumns[0]);
-        }
-
         /// <summary>
         /// Enable the controls on the dialog to match the current state
         /// </summary>
@@ -213,9 +210,9 @@ namespace BrightIdeasSoftware
 
                 OLVColumn selectedColumn = (OLVColumn)this.objectListView1.SelectedObject;
 
-                // The primary column cannot be hidden (and hence cannot be Shown)
-                this.buttonShow.Enabled = !this.MapColumnToVisible[selectedColumn] && !this.IsPrimaryColumn(selectedColumn);
-                this.buttonHide.Enabled = this.MapColumnToVisible[selectedColumn] && !this.IsPrimaryColumn(selectedColumn);
+                // Some columns cannot be hidden (and hence cannot be Shown)
+                this.buttonShow.Enabled = !this.MapColumnToVisible[selectedColumn] && selectedColumn.CanBeHidden;
+                this.buttonHide.Enabled = this.MapColumnToVisible[selectedColumn] && selectedColumn.CanBeHidden;
             }
         }
         #endregion
