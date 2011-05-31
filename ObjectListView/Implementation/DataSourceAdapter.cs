@@ -37,6 +37,7 @@ using System.Diagnostics;
 namespace BrightIdeasSoftware
 {
     /// <summary>
+    /// A helper class that translates DataSource events for an ObjectListView
     /// </summary>
     public class DataSourceAdapter : IDisposable
     {
@@ -56,6 +57,14 @@ namespace BrightIdeasSoftware
         /// Release all the resources used by this instance
         /// </summary>
         public void Dispose() {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Release all the resources used by this instance
+        /// </summary>
+        public void Dispose(bool all) {
             this.UnbindListView(this.ListView);
             this.UnbindDataSource();
         }
@@ -94,7 +103,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets the ObjectListView upon which this adaptor will operate
         /// </summary>
-        public virtual ObjectListView ListView {
+        public ObjectListView ListView {
             get { return listView; }
             internal set { listView = value; }
         }
@@ -235,6 +244,11 @@ namespace BrightIdeasSoftware
             if (this.CurrencyManager == null || this.ListView.AllColumns.Count != 0)
                 return;
 
+            // Don't generate any columns in design mode. If we do, the user will see them,
+            // but the Designer won't know about them and won't persist them, which is very confusing
+            if (this.ListView.IsDesignMode)
+                return;
+
             PropertyDescriptorCollection properties = this.CurrencyManager.GetItemProperties();
             if (properties.Count == 0)
                 return;
@@ -318,23 +332,19 @@ namespace BrightIdeasSoftware
                     column.AspectGetter = delegate(object row) {
                         // In most cases, rows will be DataRowView objects
                         DataRowView drv = row as DataRowView;
-                        if (drv != null) {
-                            if (drv.Row.RowState == DataRowState.Detached)
-                                return null;
-                            else
-                                return drv[column.AspectName];
-                        } else
+                        if (drv == null) 
                             return column.GetAspectByName(row);
+                        return (drv.Row.RowState == DataRowState.Detached) ? null : drv[column.AspectName];
                     };
                 }
                 if (column.IsEditable && column.AspectPutter == null && !String.IsNullOrEmpty(column.AspectName)) {
                     column.AspectPutter = delegate(object row, object newValue) {
                         // In most cases, rows will be DataRowView objects
                         DataRowView drv = row as DataRowView;
-                        if (drv != null)
-                            drv[column.AspectName] = newValue;
-                        else
+                        if (drv == null)
                             column.PutAspectByName(row, newValue);
+                        else
+                            drv[column.AspectName] = newValue;
                     };
                 }
             }
@@ -358,7 +368,13 @@ namespace BrightIdeasSoftware
         protected virtual void currencyManager_ListChanged(object sender, ListChangedEventArgs e) {
             Debug.Assert(sender == this.CurrencyManager);
 
+            // Ignore changes make while frozen, since we will do a complete rebuild when we unfreeze
+            if (this.ListView.Frozen)
+                return;
+
             //System.Diagnostics.Debug.WriteLine(e.ListChangedType);
+            //Stopwatch sw = new Stopwatch();
+            //sw.Start();
             switch (e.ListChangedType) {
 
                 case ListChangedType.Reset:
@@ -391,6 +407,9 @@ namespace BrightIdeasSoftware
                     this.HandleListChanged_MetadataChanged(e);
                     break;
             }
+            //sw.Stop();
+            //System.Diagnostics.Debug.WriteLine(String.Format("Processing {0} event on {1} rows took {2}ms", e.ListChangedType, this.ListView.GetItemCount(), sw.ElapsedMilliseconds));
+
         }
 
         /// <summary>
@@ -457,9 +476,6 @@ namespace BrightIdeasSoftware
         /// For example, the change could put the item into its own new group.</remarks>
         private void HandleListChanged_ItemChanged(ListChangedEventArgs e) {
             // A single item has changed, so just refresh that.
-
-            if (this.ListView.Frozen) 
-                return;
 
             Object changedRow = this.CurrencyManager.List[e.NewIndex];
             this.ListView.RefreshObject(changedRow);
