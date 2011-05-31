@@ -43,24 +43,25 @@ namespace BrightIdeasSoftware
         #region Constants
 
         private const int LVM_FIRST = 0x1000;
-        private const int LVM_SETIMAGELIST = LVM_FIRST + 3;
-        private const int LVM_SCROLL = LVM_FIRST + 20;
-        private const int LVM_GETHEADER = LVM_FIRST + 31;
-        private const int LVM_GETCOUNTPERPAGE = LVM_FIRST + 40;
-        private const int LVM_SETITEMSTATE = LVM_FIRST + 43;
-        private const int LVM_SETEXTENDEDLISTVIEWSTYLE = LVM_FIRST + 54;
-        private const int LVM_SETITEM = LVM_FIRST + 76;
-        private const int LVM_GETTOOLTIPS = 0x1000 + 78;
-        private const int LVM_SETTOOLTIPS = 0x1000 + 74;
         private const int LVM_GETCOLUMN = LVM_FIRST + 95;
-        private const int LVM_SETCOLUMN = LVM_FIRST + 96;
-        private const int LVM_SETSELECTEDCOLUMN = LVM_FIRST + 140;
-        private const int LVM_INSERTGROUP = LVM_FIRST + 145;
-        private const int LVM_SETGROUPINFO = LVM_FIRST + 147;
+        private const int LVM_GETCOUNTPERPAGE = LVM_FIRST + 40;
         private const int LVM_GETGROUPINFO = LVM_FIRST + 149;
         private const int LVM_GETGROUPSTATE = LVM_FIRST + 92;
-        private const int LVM_SETGROUPMETRICS = LVM_FIRST + 155;
+        private const int LVM_GETHEADER = LVM_FIRST + 31;
+        private const int LVM_GETTOOLTIPS = 0x1000 + 78;
+        private const int LVM_INSERTGROUP = LVM_FIRST + 145;
         private const int LVM_REMOVEALLGROUPS = LVM_FIRST + 160;
+        private const int LVM_SCROLL = LVM_FIRST + 20;
+        private const int LVM_SETBKIMAGE = 0x108A;
+        private const int LVM_SETCOLUMN = LVM_FIRST + 96;
+        private const int LVM_SETEXTENDEDLISTVIEWSTYLE = LVM_FIRST + 54;
+        private const int LVM_SETGROUPINFO = LVM_FIRST + 147;
+        private const int LVM_SETGROUPMETRICS = LVM_FIRST + 155;
+        private const int LVM_SETIMAGELIST = LVM_FIRST + 3;
+        private const int LVM_SETITEM = LVM_FIRST + 76;
+        private const int LVM_SETITEMSTATE = LVM_FIRST + 43;
+        private const int LVM_SETTOOLTIPS = 0x1000 + 74;
+        private const int LVM_SETSELECTEDCOLUMN = LVM_FIRST + 140;
         
         private const int LVS_EX_SUBITEMIMAGES = 0x0002;
 
@@ -86,6 +87,16 @@ namespace BrightIdeasSoftware
         private const int LVCFMT_BITMAP_ON_RIGHT = 0x1000;
         private const int LVCFMT_COL_HAS_IMAGES = 0x8000;
 
+        private const int LVBKIF_SOURCE_NONE = 0x0;
+        private const int LVBKIF_SOURCE_HBITMAP = 0x1;
+        private const int LVBKIF_SOURCE_URL = 0x2;
+        private const int LVBKIF_SOURCE_MASK = 0x3;
+        private const int LVBKIF_STYLE_NORMAL = 0x0;
+        private const int LVBKIF_STYLE_TILE = 0x10;
+        private const int LVBKIF_STYLE_MASK = 0x10;
+        private const int LVBKIF_FLAG_TILEOFFSET = 0x100;
+        private const int LVBKIF_TYPE_WATERMARK = 0x10000000;
+        private const int LVBKIF_FLAG_ALPHABLEND = 0x20000000;
         private const int HDM_FIRST = 0x1200;
         private const int HDM_HITTEST = HDM_FIRST + 6;
         private const int HDM_GETITEMRECT = HDM_FIRST + 7;
@@ -587,37 +598,37 @@ namespace BrightIdeasSoftware
         /// The ListView must have its handle created before calling this.
         /// </para>
         /// <para>
-        /// This doesn't work very well.
+        /// This doesn't work very well. Specifically, it doesn't play well with owner drawn, 
+        /// and grid lines are drawn over it.
         /// </para>
         /// </remarks>
         /// <param name="lv"></param>
-        /// <param name="image"></param>
+        /// <param name="image">The image to be used as the background. If this is null, any existing background image will be cleared.</param>
+        /// <param name="isWatermark">If this is true, the image is pinned to the bottom right and does not scroll. The other parameters are ignored</param>
+        /// <param name="isTiled">If this is true, the image will be tiled to fill the whole control background. The offset parameters will be ignored.</param>
+        /// <param name="xOffset">If both watermark and tiled are false, this indicates the horizontal percentage where the image will be placed. 0 is absolute left, 100 is absolute right.</param>
+        /// <param name="yOffset">If both watermark and tiled are false, this indicates the vertical percentage where the image will be placed.</param>
         /// <returns></returns>
-        public static bool SetBackgroundImage(ListView lv, Image image) {
-            const int LVBKIF_SOURCE_NONE = 0x0;
-            //const int LVBKIF_SOURCE_HBITMAP = 0x1;
-            //const int LVBKIF_SOURCE_URL = 0x2;
-            //const int LVBKIF_SOURCE_MASK = 0x3;
-            //const int LVBKIF_STYLE_NORMAL = 0x0;
-            //const int LVBKIF_STYLE_TILE = 0x10;
-            //const int LVBKIF_STYLE_MASK = 0x10;
-            //const int LVBKIF_FLAG_TILEOFFSET = 0x100;
-            const int LVBKIF_TYPE_WATERMARK = 0x10000000;
-            //const int LVBKIF_FLAG_ALPHABLEND = 0x20000000;
-
-            const int LVM_SETBKIMAGE = 0x108A;
+        public static bool SetBackgroundImage(ListView lv, Image image, bool isWatermark, bool isTiled, int xOffset, int yOffset) {
 
             LVBKIMAGE lvbkimage = new LVBKIMAGE();
+
+            // We have to clear any pre-existing background image, otherwise the attempt to set the image will fail.
+            // We don't know which type may already have been set, so we just clear both the watermark and the image.
+            lvbkimage.ulFlags = LVBKIF_TYPE_WATERMARK;
+            IntPtr result = NativeMethods.SendMessageLVBKIMAGE(lv.Handle, LVM_SETBKIMAGE, 0, ref lvbkimage);
+            lvbkimage.ulFlags = LVBKIF_SOURCE_HBITMAP;
+            result = NativeMethods.SendMessageLVBKIMAGE(lv.Handle, LVM_SETBKIMAGE, 0, ref lvbkimage);
+
             Bitmap bm = image as Bitmap;
-            if (bm == null)
-                lvbkimage.ulFlags = LVBKIF_SOURCE_NONE;
-            else {
+            if (bm != null) {
                 lvbkimage.hBmp = bm.GetHbitmap();
-                lvbkimage.ulFlags = LVBKIF_TYPE_WATERMARK;
+                lvbkimage.ulFlags = isWatermark ? LVBKIF_TYPE_WATERMARK : (isTiled ? LVBKIF_SOURCE_HBITMAP | LVBKIF_STYLE_TILE : LVBKIF_SOURCE_HBITMAP);
+                lvbkimage.xOffset = xOffset;
+                lvbkimage.yOffset = yOffset;
+                result = NativeMethods.SendMessageLVBKIMAGE(lv.Handle, LVM_SETBKIMAGE, 0, ref lvbkimage);
             }
 
-            Application.OleRequired();
-            IntPtr result = NativeMethods.SendMessageLVBKIMAGE(lv.Handle, LVM_SETBKIMAGE, 0, ref lvbkimage);
             return (result != IntPtr.Zero);
         }
 
