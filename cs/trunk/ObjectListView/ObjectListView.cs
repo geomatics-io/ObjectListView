@@ -475,13 +475,10 @@ namespace BrightIdeasSoftware
     /// <remarks>
     /// <para>
     /// An ObjectListView automatically populates a ListView control with information taken 
-    /// from a given collection of objects.
-    /// </para>
-    /// <para>
-    /// The intelligence for this control is in the columns. OLVColumns are
-    /// extended so they understand how to fetch an 'aspect' from each row
-    /// object. They also understand how to sort by their aspect, and
-    /// how to group them.
+    /// from a given collection of objects. It can do this because each column is configured
+    /// to know which bit of the model object (the "aspect") it should be displaying. Columns similarly
+    /// understand how to sort the list based on their aspect, and how to construct groups
+    /// using their aspect.
     /// </para>
     /// <para>
     /// Aspects are extracted by giving the name of a method to be called or a
@@ -490,7 +487,8 @@ namespace BrightIdeasSoftware
     /// Aspects can also be extracted by installing a delegate.
     /// </para>
     /// <para>
-    /// Sorting by column clicking and grouping by column are handled automatically.
+    /// An ObjectListView can show a "this list is empty" message when there is nothing to show in the list, 
+    /// so that the user knows the control is supposed to be empty.
     /// </para>
     /// <para>
     /// Right clicking on a column header should present a menu which can contain:
@@ -499,7 +497,17 @@ namespace BrightIdeasSoftware
     /// ShowFilterMenuOnRightClick and SelectColumnsOnRightClick respectively.
     /// </para>
     /// <para>
-    /// This list puts sort indicators in the column headers to show the column sorting direction.
+    /// The groups created by an ObjectListView can be configured to include other formatting
+    /// information, including a group icon, subtitle and task button. Using some undocumented
+    /// interfaces, these groups can even on virtual lists.
+    /// </para>
+    /// <para>
+    /// ObjectListView supports dragging rows to other places, including other application. 
+    /// Special support is provide for drops from other ObjectListViews in the same application. 
+    /// In many cases, an ObjectListView becomes a full drag source by setting <see cref="IsSimpleDragSource"/> to 
+    /// true. Similarly, to accept drops, it is usually enough to set <see cref="IsSimpleDropSink"/> to true, 
+    /// and then handle the <see cref="CanDrop"/>  and <see cref="Dropped"/>  events (or the <see cref="ModelCanDrop"/>  and 
+    /// <see cref="ModelDropped"/> events, if you only want to handle drops from other ObjectListViews in your application).
     /// </para>
     /// <para>
     /// For these classes to build correctly, the project must have references to these assemblies:
@@ -601,6 +609,31 @@ namespace BrightIdeasSoftware
         }
         static private System.Drawing.Text.TextRenderingHint textRendereringHint =
             System.Drawing.Text.TextRenderingHint.SystemDefault;
+
+        /// <summary>
+        /// Convert the given enumerable into an ArrayList as efficiently as possible
+        /// </summary>
+        /// <param name="collection">The source collection</param>
+        /// <returns>An ArrayList with the same contents as the given collection.</returns>
+        /// <remarks>This may return the original collection, if that collection is already
+        /// an ArrayList.</remarks>
+        public static ArrayList EnumerableToArray(IEnumerable collection) {
+            if (collection == null)
+                return new ArrayList();
+
+            ArrayList array = collection as ArrayList;
+            if (array != null)
+                return array;
+
+            ICollection iCollection = collection as ICollection;
+            if (iCollection != null)
+                return new ArrayList(iCollection);
+
+            ArrayList newObjects = new ArrayList();
+            foreach (object x in collection)
+                newObjects.Add(x);
+            return newObjects;
+        }
 
         #endregion
 
@@ -2102,7 +2135,7 @@ namespace BrightIdeasSoftware
             get { return selectColumnsOnRightClickBehaviour; }
             set { selectColumnsOnRightClickBehaviour = value; }
         }
-        private ColumnSelectBehaviour selectColumnsOnRightClickBehaviour = ColumnSelectBehaviour.Submenu;
+        private ColumnSelectBehaviour selectColumnsOnRightClickBehaviour = ColumnSelectBehaviour.InlineMenu;
 
         /// <summary>
         /// When the column select menu is open, should it stay open after an item is selected?
@@ -3185,6 +3218,8 @@ namespace BrightIdeasSoftware
                 column, order,
                 this.SecondarySortColumn ?? this.GetColumn(0),
                 this.SecondarySortOrder == SortOrder.None ? order : this.SecondarySortOrder);
+            if (column != null)
+                args.Canceled = !column.Sortable;
             return args;
         }
 
@@ -3215,6 +3250,8 @@ namespace BrightIdeasSoftware
 
             // Trigger an event to let the world create groups if they want
             CreateGroupsEventArgs args = new CreateGroupsEventArgs(parms);
+            if (parms.GroupByColumn != null)
+                args.Canceled = !parms.GroupByColumn.Groupable;
             this.OnBeforeCreatingGroups(args);
             if (args.Canceled)
                 return;
@@ -5754,7 +5791,6 @@ namespace BrightIdeasSoftware
         /// <param name="columnIndex"></param>
         /// <returns>Return the menu to which the items were added</returns>
         public virtual ToolStripDropDown MakeColumnCommandMenu(ToolStripDropDown strip, int columnIndex) {
-            //TODO: Embed some resources so we can put images against these commands
             OLVColumn column = this.GetColumn(columnIndex);
             if (column == null)
                 return strip;
@@ -5763,20 +5799,20 @@ namespace BrightIdeasSoftware
                 strip.Items.Add(new ToolStripSeparator());
 
             string label = String.Format(this.MenuLabelSortAscending, column.Text);
-            if (!String.IsNullOrEmpty(label)) {
+            if (column.Sortable && !String.IsNullOrEmpty(label)) {
                 strip.Items.Add(label, ObjectListView.SortAscendingImage, (EventHandler)delegate(object sender, EventArgs args) {
                     this.Sort(column, SortOrder.Ascending);
                 });
             }
             label = String.Format(this.MenuLabelSortDescending, column.Text);
-            if (!String.IsNullOrEmpty(label)) {
+            if (column.Sortable && !String.IsNullOrEmpty(label)) {
                 strip.Items.Add(label, ObjectListView.SortDescendingImage, (EventHandler)delegate(object sender, EventArgs args) {
                     this.Sort(column, SortOrder.Descending);
                 });
             }
             if (this.CanShowGroups) {
                 label = String.Format(this.MenuLabelGroupBy, column.Text);
-                if (!String.IsNullOrEmpty(label)) {
+                if (column.Groupable && !String.IsNullOrEmpty(label)) {
                     strip.Items.Add(label, null, (EventHandler)delegate(object sender, EventArgs args) {
                         this.ShowGroups = true;
                         this.PrimarySortColumn = column;
@@ -5797,7 +5833,7 @@ namespace BrightIdeasSoftware
                     }
                 } else {
                     label = String.Format(this.MenuLabelLockGroupingOn, column.Text);
-                    if (!String.IsNullOrEmpty(label)) {
+                    if (column.Groupable && !String.IsNullOrEmpty(label)) {
                         strip.Items.Add(label, null, (EventHandler)delegate(object sender, EventArgs args) {
                             this.ShowGroups = true;
                             this.AlwaysGroupByColumn = column;
@@ -5815,7 +5851,7 @@ namespace BrightIdeasSoftware
                 }
             } else {
                 label = String.Format(this.MenuLabelUnsort, column.Text);
-                if (!String.IsNullOrEmpty(label) && this.PrimarySortOrder != SortOrder.None) {
+                if (column.Sortable && !String.IsNullOrEmpty(label) && this.PrimarySortOrder != SortOrder.None) {
                     strip.Items.Add(label, null, (EventHandler)delegate(object sender, EventArgs args) {
                         this.Unsort();
                     });
@@ -5882,7 +5918,7 @@ namespace BrightIdeasSoftware
 
                 // The 'Index' property returns -1 when the column is not visible, so if the
                 // column isn't visible we have to enable the item. Also the first column can't be turned off
-                mi.Enabled = !col.IsVisible || (col.Index > 0);
+                mi.Enabled = !col.IsVisible || col.CanBeHidden;
                 items.Add(mi);
             }
         }
@@ -6059,6 +6095,15 @@ namespace BrightIdeasSoftware
         /// <param name="modelObject">The model object to be checked</param>
         public virtual void CheckObject(object modelObject) {
             this.SetObjectCheckedness(modelObject, CheckState.Checked);
+        }
+
+        /// <summary>
+        /// Mark the given objects as checked in the list
+        /// </summary>
+        /// <param name="modelObject">The model object to be checked</param>
+        public virtual void CheckObjects(IEnumerable modelObjects) {
+            foreach (object model in modelObjects)
+                this.CheckObject(modelObject);
         }
 
         /// <summary>
@@ -6257,6 +6302,16 @@ namespace BrightIdeasSoftware
         /// <param name="modelObject">The model object to be unchecked</param>
         public virtual void UncheckObject(object modelObject) {
             this.SetObjectCheckedness(modelObject, CheckState.Unchecked);
+        }
+
+
+        /// <summary>
+        /// Mark the given objects as unchecked in the list
+        /// </summary>
+        /// <param name="modelObject">The model object to be checked</param>
+        public virtual void UncheckObjects(IEnumerable modelObjects) {
+            foreach (object model in modelObjects)
+                this.UncheckObject(modelObject);
         }
 
         /// <summary>
