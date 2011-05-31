@@ -53,6 +53,7 @@
     <Compile Include="DragDrop\OLVDataObject.cs" />
     <Compile Include="Filtering\ClustersFromGroupsStrategy.cs" />
     <Compile Include="Filtering\DateTimeClusteringStrategy.cs" />
+    <Compile Include="Filtering\TextMatchFilter.cs" />
     <Compile Include="Implementation\Delegates.cs" />
     <Compile Include="Implementation\Enums.cs">
       <SubType>Component</SubType>
