@@ -116,9 +116,7 @@ namespace BrightIdeasSoftware.Tests
         public virtual void Test_TextFilter_Prefix() {
             this.olv.SetObjects(PersonDb.All);
             this.olv.UseFiltering = true;
-            this.olv.ModelFilter = new TextMatchFilter(this.olv,
-                PersonDb.LastAlphabeticalName.ToLowerInvariant().Substring(0, 4),
-                TextMatchFilter.MatchKind.StringStart);
+            this.olv.ModelFilter = TextMatchFilter.Prefix(this.olv, PersonDb.LastAlphabeticalName.ToLowerInvariant().Substring(0, 4));
             Assert.AreEqual(1, this.olv.GetItemCount());
         }
 
@@ -126,9 +124,9 @@ namespace BrightIdeasSoftware.Tests
         public virtual void Test_TextFilter_Prefix_CaseSensitive() {
             this.olv.SetObjects(PersonDb.All);
             this.olv.UseFiltering = true;
-            this.olv.ModelFilter = new TextMatchFilter(this.olv,
-                PersonDb.LastAlphabeticalName.ToLowerInvariant().Substring(0, 4),
-                TextMatchFilter.MatchKind.StringStart, StringComparison.InvariantCulture);
+            TextMatchFilter filter = TextMatchFilter.Prefix(this.olv, PersonDb.LastAlphabeticalName.ToLowerInvariant().Substring(0, 4));
+            filter.StringComparison = StringComparison.InvariantCulture;
+            this.olv.ModelFilter = filter;
             Assert.AreEqual(1, this.olv.GetItemCount());
         }
 
@@ -136,9 +134,7 @@ namespace BrightIdeasSoftware.Tests
         public virtual void Test_TextFilter_Prefix_NoMatch() {
             this.olv.SetObjects(PersonDb.All);
             this.olv.UseFiltering = true;
-            this.olv.ModelFilter = new TextMatchFilter(this.olv,
-                PersonDb.LastAlphabeticalName.ToLowerInvariant().Substring(1, 4),
-                TextMatchFilter.MatchKind.StringStart);
+            this.olv.ModelFilter = TextMatchFilter.Prefix(this.olv, PersonDb.LastAlphabeticalName.ToLowerInvariant().Substring(1, 4));
             Assert.AreEqual(0, this.olv.GetItemCount());
         }
 
@@ -154,7 +150,7 @@ namespace BrightIdeasSoftware.Tests
         public virtual void Test_TextFilter_Regex() {
             this.olv.SetObjects(PersonDb.All);
             this.olv.UseFiltering = true;
-            this.olv.ModelFilter = new TextMatchFilter(this.olv, "[z]+", TextMatchFilter.MatchKind.Regex);
+            this.olv.ModelFilter = TextMatchFilter.Regex(this.olv, "[z]+");
             Assert.AreEqual(1, this.olv.GetItemCount());
         }
 
@@ -162,7 +158,10 @@ namespace BrightIdeasSoftware.Tests
         public virtual void Test_TextFilter_Regex_CaseInsensitive() {
             this.olv.SetObjects(PersonDb.All);
             this.olv.UseFiltering = true;
-            this.olv.ModelFilter = new TextMatchFilter(this.olv, "Z+", TextMatchFilter.MatchKind.Regex, StringComparison.CurrentCultureIgnoreCase);
+            TextMatchFilter filter = TextMatchFilter.Regex(this.olv, "Z+");
+            filter.StringComparison = StringComparison.CurrentCultureIgnoreCase;
+            this.olv.ModelFilter = filter;
+
             Assert.AreEqual(1, this.olv.GetItemCount());
         }
 
@@ -170,7 +169,9 @@ namespace BrightIdeasSoftware.Tests
         public virtual void Test_TextFilter_Regex_CaseSensitive() {
             this.olv.SetObjects(PersonDb.All);
             this.olv.UseFiltering = true;
-            this.olv.ModelFilter = new TextMatchFilter(this.olv, "Z+", TextMatchFilter.MatchKind.Regex, StringComparison.CurrentCulture);
+            TextMatchFilter filter = TextMatchFilter.Regex(this.olv, "Z+");
+            filter.StringComparison = StringComparison.CurrentCulture;
+            this.olv.ModelFilter = filter;
             Assert.AreEqual(0, this.olv.GetItemCount());
         }
 
@@ -178,7 +179,7 @@ namespace BrightIdeasSoftware.Tests
         public virtual void Test_TextFilter_Regex_Invalid() {
             this.olv.SetObjects(PersonDb.All);
             this.olv.UseFiltering = true;
-            this.olv.ModelFilter = new TextMatchFilter(this.olv, @"[\*", TextMatchFilter.MatchKind.Regex);
+            this.olv.ModelFilter = TextMatchFilter.Regex(this.olv, @"[\*");
             Assert.AreEqual(PersonDb.All.Count, this.olv.GetItemCount());
         }
 
@@ -186,7 +187,9 @@ namespace BrightIdeasSoftware.Tests
         public virtual void Test_TextFilter_Columns() {
             this.olv.SetObjects(PersonDb.All);
             this.olv.UseFiltering = true;
-            this.olv.ModelFilter = new TextMatchFilter(this.olv, "occup", new OLVColumn[] { this.olv.GetColumn(1), this.olv.GetColumn(2) });
+            TextMatchFilter filter = TextMatchFilter.Contains(this.olv, "occup");
+            filter.Columns = new OLVColumn[] { this.olv.GetColumn(1), this.olv.GetColumn(2) };
+            this.olv.ModelFilter = filter;
             Assert.AreEqual(PersonDb.All.Count, this.olv.GetItemCount());
         }
 
@@ -194,7 +197,9 @@ namespace BrightIdeasSoftware.Tests
         public virtual void Test_TextFilter_Columns_NoMatch() {
             this.olv.SetObjects(PersonDb.All);
             this.olv.UseFiltering = true;
-            this.olv.ModelFilter = new TextMatchFilter(this.olv, "occup", new OLVColumn[] { this.olv.GetColumn(0), this.olv.GetColumn(2) });
+            TextMatchFilter filter = TextMatchFilter.Contains(this.olv, "occup");
+            filter.Columns = new OLVColumn[] { this.olv.GetColumn(0), this.olv.GetColumn(2) };
+            this.olv.ModelFilter = filter;
             Assert.AreEqual(0, this.olv.GetItemCount());
         }
 
@@ -210,6 +215,19 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
+        public virtual void Test_TextFilter_FindAll_Text_Multiple() {
+            TextMatchFilter filter = TextMatchFilter.Contains(this.olv, "abc", "DE");
+            List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("x-abcd-ABCDE"));
+            Assert.AreEqual(3, ranges.Count);
+            Assert.AreEqual(2, ranges[0].First);
+            Assert.AreEqual(3, ranges[0].Length);
+            Assert.AreEqual(7, ranges[1].First);
+            Assert.AreEqual(3, ranges[1].Length);
+            Assert.AreEqual(10, ranges[2].First);
+            Assert.AreEqual(2, ranges[2].Length);
+        }
+
+        [Test]
         public virtual void Test_TextFilter_FindAll_Text_NoMatch() {
             TextMatchFilter filter = new TextMatchFilter(this.olv, "xyz");
             List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("x-abcd-ABCD"));
@@ -217,8 +235,24 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
+        public virtual void Test_TextFilter_FindAll_Text_NoMatch_Multiple() {
+            TextMatchFilter filter = TextMatchFilter.Contains(this.olv, "xyz", "jpp");
+            List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("x-abcd-ABCD"));
+            Assert.AreEqual(0, ranges.Count);
+        }
+
+        [Test]
         public virtual void Test_TextFilter_FindAll_StringStart() {
-            TextMatchFilter filter = new TextMatchFilter(this.olv, "abc", TextMatchFilter.MatchKind.StringStart);
+            TextMatchFilter filter = TextMatchFilter.Prefix(this.olv, "abc");
+            List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("abcd-ABCD"));
+            Assert.AreEqual(1, ranges.Count);
+            Assert.AreEqual(0, ranges[0].First);
+            Assert.AreEqual(3, ranges[0].Length);
+        }
+
+        [Test]
+        public virtual void Test_TextFilter_FindAll_StringStart_Multiple() {
+            TextMatchFilter filter = TextMatchFilter.Prefix(this.olv, "xyz", "abc");
             List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("abcd-ABCD"));
             Assert.AreEqual(1, ranges.Count);
             Assert.AreEqual(0, ranges[0].First);
@@ -227,14 +261,14 @@ namespace BrightIdeasSoftware.Tests
 
         [Test]
         public virtual void Test_TextFilter_FindAll_StringStart_NoMatch() {
-            TextMatchFilter filter = new TextMatchFilter(this.olv, "abc", TextMatchFilter.MatchKind.StringStart);
+            TextMatchFilter filter = TextMatchFilter.Prefix(this.olv, "abc");
             List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("x-abcd-ABCD"));
             Assert.AreEqual(0, ranges.Count);
         }
 
         [Test]
         public virtual void Test_TextFilter_FindAll_Regex() {
-            TextMatchFilter filter = new TextMatchFilter(this.olv, "[abcd]+", TextMatchFilter.MatchKind.Regex);
+            TextMatchFilter filter = TextMatchFilter.Regex(this.olv, "[abcd]+");
             List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("nada-abcd-ab-ABCD"));
             Assert.AreEqual(4, ranges.Count);
             Assert.AreEqual(1, ranges[0].First);
@@ -248,8 +282,19 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
+        public virtual void Test_TextFilter_FindAll_Regex_Multiple() {
+            TextMatchFilter filter = TextMatchFilter.Regex(this.olv, "x.*z", "a.*c");
+            List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("rst-ABC-rst-xyz"));
+            Assert.AreEqual(2, ranges.Count);
+            Assert.AreEqual(12, ranges[0].First);
+            Assert.AreEqual(3, ranges[0].Length);
+            Assert.AreEqual(4, ranges[1].First);
+            Assert.AreEqual(3, ranges[1].Length);
+        }
+
+        [Test]
         public virtual void Test_TextFilter_FindAll_Regex_NoMatch() {
-            TextMatchFilter filter = new TextMatchFilter(this.olv, "[yz]+", TextMatchFilter.MatchKind.Regex);
+            TextMatchFilter filter = TextMatchFilter.Regex(this.olv, "[yz]+");
             List<CharacterRange> ranges = new List<CharacterRange>(filter.FindAllMatchedRanges("x-abcd-ABCD"));
             Assert.AreEqual(0, ranges.Count);
         }
