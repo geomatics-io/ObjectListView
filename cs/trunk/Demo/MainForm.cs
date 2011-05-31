@@ -2228,19 +2228,7 @@ namespace ObjectListViewDemo {
         }
 
         private void textBoxFilterFast_TextChanged(object sender, EventArgs e) {
-            TextMatchFilter.MatchKind matchKind = TextMatchFilter.MatchKind.Text;
-            switch (comboBox16.SelectedIndex) {
-                case 0:
-                    matchKind = TextMatchFilter.MatchKind.Text;
-                    break;
-                case 1:
-                    matchKind = TextMatchFilter.MatchKind.StringStart;
-                    break;
-                case 2:
-                    matchKind = TextMatchFilter.MatchKind.Regex;
-                    break;
-            }
-            this.TimedFilter(this.olvFast, textBoxFilterFast.Text, matchKind);
+            this.TimedFilter(this.olvFast, textBoxFilterFast.Text, comboBox16.SelectedIndex);
         }
 
         private void textBoxFilterData_TextChanged(object sender, EventArgs e) {
@@ -2252,14 +2240,25 @@ namespace ObjectListViewDemo {
         }
 
         void TimedFilter(ObjectListView olv, string txt) {
-            this.TimedFilter(olv, txt, TextMatchFilter.MatchKind.Text);
+            this.TimedFilter(olv, txt, 0);
         }
 
-        void TimedFilter(ObjectListView olv, string txt, TextMatchFilter.MatchKind matchKind) {
+        void TimedFilter(ObjectListView olv, string txt, int matchKind) {
             TextMatchFilter filter = null;
-            if (!String.IsNullOrEmpty(txt))
-                filter = new TextMatchFilter(olv, txt, matchKind);
-
+            if (!String.IsNullOrEmpty(txt)) {
+                switch (matchKind) {
+                    case 0:
+                    default:
+                        filter = TextMatchFilter.Contains(olv, txt);
+                        break;
+                    case 1:
+                        filter = TextMatchFilter.Prefix(olv, txt);
+                        break;
+                    case 2:
+                        filter = TextMatchFilter.Regex(olv, txt);
+                        break;
+                }
+            }
             // Setup a default renderer to draw the filter matches
             if (filter == null)
                 olv.DefaultRenderer = null;
