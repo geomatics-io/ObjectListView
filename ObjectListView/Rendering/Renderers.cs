@@ -1159,7 +1159,7 @@ namespace BrightIdeasSoftware
                         il.Draw(g, r2.Location, selectorAsInt);
 
                         // Use this call instead of the above if you want to images to appear blended when selected
-                        //NativeMethods.DrawImageList(g, il, selectorAsInt, r.X, r.Y, this.IsItemSelected);
+                        //NativeMethods.DrawImageList(g, il, selectorAsInt, r2.X, r2.Y, this.IsItemSelected);
                         return il.ImageSize.Width;
                     }
                 }
@@ -1468,7 +1468,7 @@ namespace BrightIdeasSoftware
         /// <param name="r"></param>
         /// <param name="txt"></param>
         protected override void DrawTextGdi(Graphics g, Rectangle r, string txt) {
-            if (this.Filter != null && !String.IsNullOrEmpty(this.Filter.Text))
+            if (this.ShouldDrawHighlighting)
                 this.DrawGdiTextHighlighting(g, r, txt);
 
             base.DrawTextGdi(g, r, txt);
@@ -1541,7 +1541,7 @@ namespace BrightIdeasSoftware
         /// <param name="r"></param>
         /// <param name="txt"></param>
         protected override void DrawTextGdiPlus(Graphics g, Rectangle r, string txt) {
-            if (this.Filter != null && !String.IsNullOrEmpty(this.Filter.Text))
+            if (this.ShouldDrawHighlighting)
                 this.DrawGdiPlusTextHighlighting(g, r, txt);
 
             base.DrawTextGdiPlus(g, r, txt);
@@ -1576,6 +1576,14 @@ namespace BrightIdeasSoftware
 
         #region Utilities
 
+        /// <summary>
+        /// Gets whether the renderer should actually draw highlighting
+        /// </summary>
+        protected bool ShouldDrawHighlighting {
+            get {
+                return this.Column.Searchable && this.Filter != null && this.Filter.HasComponents;
+            }
+        }
 
         /// <summary>
         /// Return a GraphicPath that is a round cornered rectangle
@@ -1783,8 +1791,19 @@ namespace BrightIdeasSoftware
         /// <param name="r"></param>
         public override void Render(Graphics g, Rectangle r) {
             this.DrawBackground(g, r);
-            r = this.CalculateCheckBoxBounds(g, r);
-            CheckBoxRenderer.DrawCheckBox(g, r.Location, this.GetCheckBoxState(this.Column.GetCheckState(this.RowObject)));
+            CheckState state = this.Column.GetCheckState(this.RowObject);
+            if (this.IsPrinting) {
+                // Renderers don't work onto printer DCs, so we have to draw the image ourselves
+                string key = ObjectListView.CHECKED_KEY;
+                if (state == CheckState.Unchecked)
+                    key = ObjectListView.UNCHECKED_KEY;
+                if (state == CheckState.Indeterminate)
+                    key = ObjectListView.INDETERMINATE_KEY;
+                this.DrawAlignedImage(g, r, this.ListView.SmallImageList.Images[key]);
+            } else {
+                r = this.CalculateCheckBoxBounds(g, r);
+                CheckBoxRenderer.DrawCheckBox(g, r.Location, this.GetCheckBoxState(state));
+            }
         }
 
         /// <summary>
