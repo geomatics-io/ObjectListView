@@ -86,6 +86,8 @@ namespace BrightIdeasSoftware
     /// </para>
     /// <para>Due to the limits of the underlying Windows control, virtual lists do not trigger ItemCheck/ItemChecked events. 
     /// Use a CheckStatePutter instead.</para>
+    /// <para>To enable grouping, you must provide an implmentation of IVirtualGroups interface, via the GroupingStrategy property.</para>
+    /// <para>Similarly, to enable filtering on the list, your VirtualListDataSource must also implement the IFilterableDataSource interface.</para>
     /// </remarks>
     public class VirtualObjectListView : ObjectListView
     {
@@ -214,26 +216,16 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Get/set the data source that is behind this virtual list
+        /// Gets the collection of objects that survive any filtering that may be in place.
         /// </summary>
-        /// <remarks>Setting this will cause the list to redraw.</remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual IVirtualListDataSource VirtualListDataSource {
+        public override IEnumerable FilteredObjects {
             get {
-                return this.virtualListDataSource;
-            }
-            set {
-                this.virtualListDataSource = value;
-                this.CustomSorter = delegate(OLVColumn column, SortOrder sortOrder) {
-                    this.ClearCachedInfo();
-                    this.virtualListDataSource.Sort(column, sortOrder);
-                };
-                this.UpdateVirtualListSize();
-                this.Invalidate();
+                for (int i = 0; i < this.GetItemCount(); i++)
+                    yield return this.GetModelObject(i);
             }
         }
-        private IVirtualListDataSource virtualListDataSource;
 
         /// <summary>
         /// Gets or sets the strategy that will be used to create groups
@@ -248,7 +240,6 @@ namespace BrightIdeasSoftware
             set { this.groupingStrategy = value; }
         }
         private IVirtualGroups groupingStrategy;
-
 
         /// <summary>
         /// Gets whether or not the current list is filtering its contents
@@ -295,40 +286,6 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Gets the collection of objects that survive any filtering that may be in place.
-        /// </summary>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public override IEnumerable FilteredObjects {
-            get {
-                for (int i = 0; i < this.GetItemCount(); i++)
-                    yield return this.GetModelObject(i);
-            }
-        }
-
-        /// <summary>
-        /// Change the state of the control to reflect changes in filtering
-        /// </summary>
-        protected override void UpdateFiltering() {
-            IFilterableDataSource filterable = this.VirtualListDataSource as IFilterableDataSource;
-            if (filterable == null)
-                return;
-
-            this.BeginUpdate();
-            try {
-                int originalSize = this.VirtualListSize;
-                filterable.ApplyFilters(this.ModelFilter, this.ListFilter);
-                this.UpdateVirtualListSize();
-
-                // If the filtering actually did something, rebuild the groups if they are being shown
-                if (originalSize != this.VirtualListSize && this.ShowGroups)
-                    this.BuildGroups();
-            } finally {
-                this.EndUpdate();
-            }
-        }
-
-        /// <summary>
         /// This delegate is used to fetch a rowObject, given it's index within the list
         /// </summary>
         /// <remarks>Only use this property if you are not using a VirtualListDataSource.</remarks>
@@ -363,65 +320,28 @@ namespace BrightIdeasSoftware
         }
         private bool showGroups;
 
-        /// <summary>
-        /// Do the plumbing to enable groups on a virtual list
-        /// </summary>
-        protected void EnableVirtualGroups() {
-
-            // We need to implement the IOwnerDataCallback interface
-            if (this.ownerDataCallbackImpl == null)
-                this.ownerDataCallbackImpl = new OwnerDataCallbackImpl(this);
-
-            const int LVM_SETOWNERDATACALLBACK = 0x10BB;
-            IntPtr ptr = Marshal.GetComInterfaceForObject(ownerDataCallbackImpl, typeof(IOwnerDataCallback));
-            IntPtr x = NativeMethods.SendMessage(this.Handle, LVM_SETOWNERDATACALLBACK, ptr, 0);
-            //System.Diagnostics.Debug.WriteLine(x);
-            Marshal.Release(ptr);
-
-            const int LVM_ENABLEGROUPVIEW = 0x1000 + 157;
-            x = NativeMethods.SendMessage(this.Handle, LVM_ENABLEGROUPVIEW, 1, 0);
-            //System.Diagnostics.Debug.WriteLine(x);
-        }
-        private OwnerDataCallbackImpl ownerDataCallbackImpl;
 
         /// <summary>
-        /// Do the plumbing to disable groups on a virtual list
+        /// Get/set the data source that is behind this virtual list
         /// </summary>
-        protected void DisableVirtualGroups() {
-            IntPtr x;
-
-            int err = NativeMethods.ClearGroups(this);
-            //System.Diagnostics.Debug.WriteLine(err);
-
-            const int LVM_ENABLEGROUPVIEW = 0x1000 + 157;
-            x = NativeMethods.SendMessage(this.Handle, LVM_ENABLEGROUPVIEW, 0, 0);
-            //System.Diagnostics.Debug.WriteLine(x);
-
-            const int LVM_SETOWNERDATACALLBACK = 0x10BB;
-            x = NativeMethods.SendMessage(this.Handle, LVM_SETOWNERDATACALLBACK, 0, 0);
-            //System.Diagnostics.Debug.WriteLine(x);
-        }
-
-        /// <summary>
-        /// Do the work of creating groups for this control
-        /// </summary>
-        /// <param name="groups"></param>
-        protected override void CreateGroups(IList<OLVGroup> groups) {
-
-            // A virtual list we cannot touch the Groups property since it often throws exceptions
-            // when used with a virtual list
-
-            NativeMethods.ClearGroups(this);
-
-            this.EnableVirtualGroups();
-
-            foreach (OLVGroup group in groups) {
-                System.Diagnostics.Debug.Assert(group.Items.Count == 0, "Groups in virtual lists cannot set Items. Use VirtualItemCount instead.");
-                System.Diagnostics.Debug.Assert(group.VirtualItemCount > 0, "VirtualItemCount must be greater than 0.");
-
-                group.InsertGroupNewStyle(this);
+        /// <remarks>Setting this will cause the list to redraw.</remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual IVirtualListDataSource VirtualListDataSource {
+            get {
+                return this.virtualListDataSource;
+            }
+            set {
+                this.virtualListDataSource = value;
+                this.CustomSorter = delegate(OLVColumn column, SortOrder sortOrder) {
+                    this.ClearCachedInfo();
+                    this.virtualListDataSource.Sort(column, sortOrder);
+                };
+                this.UpdateVirtualListSize();
+                this.Invalidate();
             }
         }
+        private IVirtualListDataSource virtualListDataSource;
 
         #endregion
 
@@ -685,6 +605,66 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Do the work of creating groups for this control
+        /// </summary>
+        /// <param name="groups"></param>
+        protected override void CreateGroups(IList<OLVGroup> groups) {
+
+            // A virtual list we cannot touch the Groups property since it often throws exceptions
+            // when used with a virtual list
+
+            NativeMethods.ClearGroups(this);
+
+            this.EnableVirtualGroups();
+
+            foreach (OLVGroup group in groups) {
+                System.Diagnostics.Debug.Assert(group.Items.Count == 0, "Groups in virtual lists cannot set Items. Use VirtualItemCount instead.");
+                System.Diagnostics.Debug.Assert(group.VirtualItemCount > 0, "VirtualItemCount must be greater than 0.");
+
+                group.InsertGroupNewStyle(this);
+            }
+        }
+
+        /// <summary>
+        /// Do the plumbing to disable groups on a virtual list
+        /// </summary>
+        protected void DisableVirtualGroups() {
+            IntPtr x;
+
+            int err = NativeMethods.ClearGroups(this);
+            //System.Diagnostics.Debug.WriteLine(err);
+
+            const int LVM_ENABLEGROUPVIEW = 0x1000 + 157;
+            x = NativeMethods.SendMessage(this.Handle, LVM_ENABLEGROUPVIEW, 0, 0);
+            //System.Diagnostics.Debug.WriteLine(x);
+
+            const int LVM_SETOWNERDATACALLBACK = 0x10BB;
+            x = NativeMethods.SendMessage(this.Handle, LVM_SETOWNERDATACALLBACK, 0, 0);
+            //System.Diagnostics.Debug.WriteLine(x);
+        }
+
+        /// <summary>
+        /// Do the plumbing to enable groups on a virtual list
+        /// </summary>
+        protected void EnableVirtualGroups() {
+
+            // We need to implement the IOwnerDataCallback interface
+            if (this.ownerDataCallbackImpl == null)
+                this.ownerDataCallbackImpl = new OwnerDataCallbackImpl(this);
+
+            const int LVM_SETOWNERDATACALLBACK = 0x10BB;
+            IntPtr ptr = Marshal.GetComInterfaceForObject(ownerDataCallbackImpl, typeof(IOwnerDataCallback));
+            IntPtr x = NativeMethods.SendMessage(this.Handle, LVM_SETOWNERDATACALLBACK, ptr, 0);
+            //System.Diagnostics.Debug.WriteLine(x);
+            Marshal.Release(ptr);
+
+            const int LVM_ENABLEGROUPVIEW = 0x1000 + 157;
+            x = NativeMethods.SendMessage(this.Handle, LVM_ENABLEGROUPVIEW, 1, 0);
+            //System.Diagnostics.Debug.WriteLine(x);
+        }
+        private OwnerDataCallbackImpl ownerDataCallbackImpl;
+
+        /// <summary>
         /// Get the checkedness of an object from the model. Returning null means the
         /// model does know and the value from the control will be used.
         /// </summary>
@@ -698,35 +678,6 @@ namespace BrightIdeasSoftware
             if (modelObject != null)
                 this.checkStateMap.TryGetValue(modelObject, out state);
             return state;
-        }
-        
-        /// <summary>
-        /// Make a list of groups that should be shown according to the given parameters
-        /// </summary>
-        /// <param name="parms"></param>
-        /// <returns></returns>
-        protected override IList<OLVGroup> MakeGroups(GroupingParameters parms) {
-            if (this.GroupingStrategy == null)
-                return new List<OLVGroup>();
-            else
-                return this.GroupingStrategy.GetGroups(parms);
-        }
-
-        /// <summary>
-        /// Create a OLVListItem for given row index
-        /// </summary>
-        /// <param name="itemIndex">The index of the row that is needed</param>
-        /// <returns>An OLVListItem</returns>
-        public virtual OLVListItem MakeListViewItem(int itemIndex) {
-            OLVListItem olvi = new OLVListItem(this.GetModelObject(itemIndex));
-            this.FillInValues(olvi, olvi.RowObject);
-
-            this.PostProcessOneRow(itemIndex, this.GetItemIndexInDisplayOrder(itemIndex), olvi);
-
-            if (this.HotRowIndex == itemIndex)
-                this.UpdateHotRow(olvi);
-
-            return olvi;
         }
 
         /// <summary>
@@ -825,6 +776,35 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Make a list of groups that should be shown according to the given parameters
+        /// </summary>
+        /// <param name="parms"></param>
+        /// <returns></returns>
+        protected override IList<OLVGroup> MakeGroups(GroupingParameters parms) {
+            if (this.GroupingStrategy == null)
+                return new List<OLVGroup>();
+            else
+                return this.GroupingStrategy.GetGroups(parms);
+        }
+
+        /// <summary>
+        /// Create a OLVListItem for given row index
+        /// </summary>
+        /// <param name="itemIndex">The index of the row that is needed</param>
+        /// <returns>An OLVListItem</returns>
+        public virtual OLVListItem MakeListViewItem(int itemIndex) {
+            OLVListItem olvi = new OLVListItem(this.GetModelObject(itemIndex));
+            this.FillInValues(olvi, olvi.RowObject);
+
+            this.PostProcessOneRow(itemIndex, this.GetItemIndexInDisplayOrder(itemIndex), olvi);
+
+            if (this.HotRowIndex == itemIndex)
+                this.UpdateHotRow(olvi);
+
+            return olvi;
+        }
+
+        /// <summary>
         /// On virtual lists, this cannot work.
         /// </summary>
         protected override void PostProcessRows() {
@@ -907,6 +887,29 @@ namespace BrightIdeasSoftware
         /// </para>
         /// </remarks>
         protected override void TakeOwnershipOfObjects() {
+        }
+
+        /// <summary>
+        /// Change the state of the control to reflect changes in filtering
+        /// </summary>
+        protected override void UpdateFiltering() {
+            IFilterableDataSource filterable = this.VirtualListDataSource as IFilterableDataSource;
+            if (filterable == null)
+                return;
+
+            this.BeginUpdate();
+            try {
+                int originalSize = this.VirtualListSize;
+                filterable.ApplyFilters(this.ModelFilter, this.ListFilter);
+                this.UpdateVirtualListSize();
+
+                // If the filtering actually did something, rebuild the groups if they are being shown
+                if (originalSize != this.VirtualListSize && this.ShowGroups)
+                    this.BuildGroups();
+            }
+            finally {
+                this.EndUpdate();
+            }
         }
 
         /// <summary>
