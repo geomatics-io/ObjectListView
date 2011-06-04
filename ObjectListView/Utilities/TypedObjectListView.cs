@@ -134,8 +134,8 @@ namespace BrightIdeasSoftware
         /// If zero rows are selected, or more than one row, null is returned.
         /// </summary>
         public virtual T SelectedObject {
-            get { return (T)this.olv.GetSelectedObject(); }
-            set { this.olv.SelectObject(value, true); }
+            get { return (T)this.olv.SelectedObject; }
+            set { this.olv.SelectedObject = value; }
         }
 
         /// <summary>
@@ -149,7 +149,7 @@ namespace BrightIdeasSoftware
 
                 return objects;
             }
-            set { this.olv.SelectObjects((IList)value); }
+            set { this.olv.SelectedObjects = (IList)value; }
         }
 
         //--------------------------------------------------------------------------------------
