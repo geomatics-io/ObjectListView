@@ -68,7 +68,7 @@ OK, here's the bullet point feature list:
 * Supports :ref:`transluscent hot item and selection <recipe-vistascheme>` like Vista even on XP.
 * Supports :ref:`filtering <recipe-filtering>`, including the very common :ref:`iTunes-like text filtering <recipe-text-filtering>`.
 * Supports :ref:`animations <animations-label>` on cells, row, and the entire list.
-* Supports column selection through right-click on header.
+* Supports :ref:`column selection <recipe-column-selection>` through right-click on header.
 * Supports :ref:`Excel-like column filtering <column-filtering-label>`.
 * The `DataListView` version supports data binding.
 * The `FastDataListView` version supports data binding on large lists (100,000 plus rows).
@@ -115,6 +115,8 @@ Technical details
 
 I've started keeping a :ref:`technical blog <blog>` documenting some of the efforts that were required to
 solve some of the problem encountered within the ObjectListView.
+
+* How can I make a :ref:`rearrangeable TreeListView <blog-rearrangingtreelistview>`?
 
 * Surely :ref:`a little bug <blog-subitemboundsbug>` can't cause too much trouble?
 
@@ -247,12 +249,13 @@ When thinking about using some new code, it's always interesting to hear what ot
    -- `vcleak <http://www.codeproject.com/script/Forums/View.aspx?fid=350107&msg=1716837>`_
 
 
-
-
 Future directions
 -----------------
 
-v2.5.1 will bug fix and tweak v2.5.
+v2.5.1 will bug fix and tweak v2.5. It will also move towards using `IEnumerable` whenever possible.
+`SelectedObjects`, `CheckedObjects`, `AddObjects()`, `InsertObjects()`
+`RefreshObjects()`, `RemoveObjects()`, and `CopyObjectsToClipboard()` will all be changed to use 
+`IEnumerable`. This is with a view to using LINQ in future versions.
 
 v3.0 will be a big change. Until now, each version has strove to maintain strict backwards compatibility. v3.0 will not have this as a strict goal. It will be backwards compatible where possible, but will drop properties, events and methods where they do not fit within the new scheme. In particular, features that were a moment of design weakness (I'm looking at you *AlwaysGroupByColumn* and your friends) will disappear.
 

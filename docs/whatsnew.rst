@@ -29,14 +29,20 @@ New features
 Breaking changes
 ^^^^^^^^^^^^^^^^
 
-* [Large]: On `VirtualObjectListView`, `DataSource` was renamed to `VirtualListDataSource`. This was necessary to allow FastDataListView which is both a DataListView AND a VirtualListView -- which both used a 'DataSource' property :(
+* [Medium]: On `VirtualObjectListView`, `DataSource` was renamed to `VirtualListDataSource`. This was necessary to allow FastDataListView which is both a DataListView AND a VirtualListView -- which both used a 'DataSource' property :(
 
-* [Small] `GetNextItem()` and `GetPreviousItem()` now accept and return `OLVListView` rather than `ListViewItems`.
+* [Small]: `GetNextItem()` and `GetPreviousItem()` now accept and return `OLVListView` rather than `ListViewItems`.
 
-* [Small] Renderer for tree column must now be a subclass of `TreeRenderer`, not just a general `IRenderer`
+* [Small]: Renderer for tree column must now be a subclass of `TreeRenderer`, not just a general `IRenderer`
+
+* [Small]: `SelectObject()` and `SelectObjects()` no longer deselect all other rows.
+  This gives an much easier way to add objects to the selection. The properties `SelectedObject`
+  and `SelectedObjects` *do* still deselect all other rows.
 
 Minor features
 ^^^^^^^^^^^^^^
+
+* `TextMatchFilter` was seriously reworked. One text filter can now match on multiple strings. `TextMatchFilter` has new factory methods (which make `TextMatchFilter.MatchKind` redundant).
 
 * Revived support for VS 2005 after being provided with a new copy of VS 2005 Express.
 
@@ -70,8 +76,6 @@ Minor features
 * Added long, :ref:`tutorial-like walk-through <blog-rearrangingtreelistview>` of how to make a `TreeListView` rearrangeable.
 
 * Reorganized files into folders
-
-* `TextMatchFilter` was seriously reworked. One text filter can now match on multiple strings. `TextMatchFilter` has new factory methods (which make `TextMatchFilter.MatchKind` redundant).
 
 
 Bug fixes (not a complete list)

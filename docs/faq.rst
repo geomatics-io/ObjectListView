@@ -25,7 +25,9 @@ it that cannot have rows of different heights. There is no way to make one row b
 than other rows. It's just not possible.
 
 If being able to have rows of different heights is essential to you,
-ObjectListView is not your solution. You may wantq
+ObjectListView is not your solution. 
+
+You may want
 to consider Matthew Hall's excellent XPTable_ and its `update project`_, as well as
 Lee Paul Alexander's fantastic `Outlook-style list`__.
 
@@ -34,6 +36,16 @@ Lee Paul Alexander's fantastic `Outlook-style list`__.
 .. _update project: http://www.codeproject.com/KB/list/XPTableListViewUpdate.aspx
 
 .. __: http://www.codeproject.com/KB/list/outlooklistcontrol.aspx
+
+Can an ObjectListView fix columns or rows so they don't scroll?
+---------------------------------------------------------------
+
+No.
+
+The underlying ListView control doesn't allow anything like that.
+
+Again, if that ability is essential, you will want to consider one
+of the above projects.
 
 
 How do I hide a column?
@@ -48,11 +60,36 @@ You hide a column by setting `IsVisible` to `false` on the column and then calli
 You cannot hide the primary column (i.e. column 0). If you want to hide the primary column,
 make it not the primary column, but give it `DisplayIndex = 0`.
 
+How do I add or remove a column programmatically?
+-------------------------------------------------
+
+Add (or remove) the column to the `AllColumns` collection and then call `RebuildColumns()`::
+
+    OLVColumn aNewColumn = new OLVColumn();
+    // ... configure it and finally ...
+    this.olv1.AllColumns.Add(aNewColumn);
+    this.olv1.RebuildColumns();
+
+If you add the new column directly to the `Columns` collection, it will vanish
+when the user switches to `Tile` view. It also won't appear in the list of columns
+available when hiding or showing columns.
+
+
+Why aren't the checkboxes responding to clicks ?!
+-------------------------------------------------
+
+This normally happens when the programmer tries to modify a checkbox 
+using .NET's normal mechanisms. In order to support virtual lists,
+`ObjectListView` cannot use those mechanisms -- you have to do things
+the `ObjectListView` way.
+
+See :ref:`recipe-checkbox`, especially :ref:`using-checkboxes-programmatically`.
+
 
 Can I use ObjectListView in a commercial application?
 -----------------------------------------------------
 
-The code on SourceForge is released under GPLv3. The GPL is a viral license,
+The ObjectListView code is released under GPLv3. The GPL is a viral license,
 meaning that if you use some GPL-covered code in your application, your
 application must also be covered by GPL. This is generally not what commercial
 developers want. (I am not a lawyer. This is not legal advice. It could be
@@ -78,25 +115,18 @@ update just one object, or you can call `BuildList()` to rebuild everything at o
 `DataListView` is the exception to this rule. Any change you make to your `DataSource` should be
 immediately reflected in the `DataListView`.
 
+Why does VS 2010 complain that `BrightIdeasSoftware.ObjectListView` can't be found?
+-----------------------------------------------------------------------------------
 
-Don't you have some class diagrams for all this stuff?
-------------------------------------------------------
+  *I've made a new project in Visual Studio 2010 and added the ObjectListView project to my solution.
+  But when I build the solution, it complains that `BrightIdeasSoftware.ObjectListView` can't be found.
+  What's going on here?*
+  
+The default framework for new projects in Visual Studio 2010 is a "Client Profile". That profile
+does not contain support for design time components. `ObjectListView` currently uses design time
+components to work within the IDE.
 
-     *There seems to be an awful lot going on here. Don't you have some class
-     diagram so I can see how things fit together?*
-
-Some people love class diagrams. Other regard them as just one more piece of out
-of date documentation. As of v2.1, these diagrams are accurate.
-
-The basic classes are show here:
-
-.. image:: images/ClassDiagram.png
-
-More details about the relationship between virtual listviews and their data sources
-can be seen in this diagram:
-
-.. image:: images/ClassDiagram-VirtualList.png
-
+To fix this problem, change the target framework of your solution to a "Full" version.
 
 Why doesn't it do *some-feature-I-really-want*?
 -----------------------------------------------
@@ -120,7 +150,7 @@ the control has a small image list, even an empty one, the text of the first col
 be indented.
 
 So, if you really want to get rid of this indent, make an ObjectListView which doesn't have
-a `SmalImageList`. Be aware that some feature *require* a small image list and will create
+a `SmalImageList`. Be aware that some features *require* a small image list and will create
 one if necessary. These features are:
 
    * sort indicators on column header on pre-XP systems
@@ -169,3 +199,23 @@ As of September 2009, not any more.
 
 It would be possible to make it work with
 Mono again. Please let me know if you are interested.
+
+
+Don't you have some class diagrams for all this stuff?
+------------------------------------------------------
+
+     *There seems to be an awful lot going on here. Don't you have some class
+     diagram so I can see how things fit together?*
+
+Some people love class diagrams. Other regard them as just one more piece of out
+of date documentation. As of v2.1, these diagrams are accurate.
+
+The basic classes are show here:
+
+.. image:: images/ClassDiagram.png
+
+More details about the relationship between virtual listviews and their data sources
+can be seen in this diagram:
+
+.. image:: images/ClassDiagram-VirtualList.png
+
