@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2011-05-31   JPP  - Setting CheckedObjects is more efficient on large collections
  * 2011-04-05   JPP  - CheckedObjects now only returns objects that are currently in the list.
  *                     ClearObjects() now resets all check state info.
  * 2011-03-31   JPP  - Filtering on grouped virtual lists no longer behaves strangely.
@@ -198,19 +199,23 @@ namespace BrightIdeasSoftware
                 if (!this.CheckBoxes)
                     return;
 
-                if (value == null)
-                    value = new ArrayList();
+                // Set up an efficient way of testing for the presence of a particular model
+                Hashtable table = new Hashtable(this.GetItemCount());
+                if (value != null) {
+                    foreach (object x in value)
+                        table[x] = true;
+                }
 
+                // Uncheck anything that is no longer checked
                 Object[] keys = new Object[this.checkStateMap.Count];
                 this.checkStateMap.Keys.CopyTo(keys, 0);
                 foreach (Object key in keys) {
-                    if (value.Contains(key))
-                        this.SetObjectCheckedness(key, CheckState.Checked);
-                    else
+                    if (!table.Contains(key))
                         this.SetObjectCheckedness(key, CheckState.Unchecked);
                 }
 
-                foreach (Object x in value)
+                // Check all the new checked objects
+                foreach (Object x in table.Keys)
                     this.SetObjectCheckedness(x, CheckState.Checked);
             }
         }
