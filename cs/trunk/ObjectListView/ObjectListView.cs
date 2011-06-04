@@ -5,6 +5,11 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2011-05-31  JPP  - SelectObject() and SelectObjects() no longer deselect all other rows.
+                      Set the SelectedObject or SelectedObjects property to do that.
+ *                  - Added CheckedObjectsEnumerable
+ *                  - Made setting CheckedObjects more efficient on large collections
+ *                  - Deprecated GetSelectedObject() and GetSelectedObjects()
  * 2011-04-25  JPP  - Added SubItemChecking event
  *                  - Fixed bug in handling of NewValue on CellEditFinishing event
  * 2011-04-12  JPP  - Added UseFilterIndicator 
@@ -16,7 +21,7 @@
  *                    like Vista/Win7.
  *                  - Alternate colours are now only applied in Details view (as they always should have been)
  *                  - Alternate colours are now correctly recalculated after removing objects
- * 2011-03-29  JPP  - Added SelectColumnOnRightClickBehaviour to allow the selecting of columns mechanism 
+ * 2011-03-29  JPP  - Added SelectColumnsOnRightClickBehaviour to allow the selecting of columns mechanism 
  *                    to be changed. Can now be InlineMenu (the default), SubMenu, or ModelDialog.
  *                  - ColumnSelectionForm was moved from the demo into the ObjectListView project itself.
  *                  - Ctrl-C copying is now able to use the DragSource to create the data transfer object.
@@ -615,8 +620,13 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="collection">The source collection</param>
         /// <returns>An ArrayList with the same contents as the given collection.</returns>
-        /// <remarks>This may return the original collection, if that collection is already
-        /// an ArrayList.</remarks>
+        /// <remarks>
+        /// <para>
+        /// This may return the original collection, if that collection is already
+        /// an ArrayList.
+        /// </para>
+        /// <para>When we move to .NET 3.5, we can use LINQ and not need this method.</para>
+        /// </remarks>
         public static ArrayList EnumerableToArray(IEnumerable collection) {
             if (collection == null)
                 return new ArrayList();
@@ -624,6 +634,10 @@ namespace BrightIdeasSoftware
             ArrayList array = collection as ArrayList;
             if (array != null)
                 return array;
+
+            IList iList = collection as IList;
+            if (iList != null)
+                return ArrayList.Adapter(iList);
 
             ICollection iCollection = collection as ICollection;
             if (iCollection != null)
@@ -633,6 +647,38 @@ namespace BrightIdeasSoftware
             foreach (object x in collection)
                 newObjects.Add(x);
             return newObjects;
+        }
+
+        /// <summary>
+        /// Decide if the given enumerable is empty
+        /// </summary>
+        /// <param name="collection">The source collection</param>
+        /// <returns>True if the given enumerable is empty</returns>
+        /// <remarks>
+        /// <para>When we move to .NET 3.5, we can use LINQ and not need this method.</para>
+        /// </remarks>
+        public static bool IsEnumerableEmpty(IEnumerable collection) {
+            if (collection == null)
+                return true;
+
+            IEnumerator enumerator = collection.GetEnumerator();
+            return !enumerator.MoveNext();
+        }
+
+        /// <summary>
+        /// Count the number of elements in the given enumerable
+        /// </summary>
+        /// <param name="collection">The source collection</param>
+        /// <returns>the number of elements in the given enumerable</returns>
+        /// <remarks>
+        /// <para>When we move to .NET 3.5, we can use LINQ and not need this method.</para>
+        /// </remarks>
+        public static int EnumerableCount(IEnumerable collection) {
+            if (collection == null)
+                return 0;
+
+            // This could be more efficient
+            return ObjectListView.EnumerableToArray(collection).Count;
         }
 
         #endregion
@@ -881,7 +927,7 @@ namespace BrightIdeasSoftware
         /// <para>
         /// The performance of the get method is O(n), where n is the number of items
         /// in the control. The performance of the set method is
-        /// O(n*m) where m is the number of objects being checked. Be careful on long lists.
+        /// O(n + m) where m is the number of objects being checked. Be careful on long lists.
         /// </para>
         /// </remarks>
         [Browsable(false),
@@ -902,15 +948,36 @@ namespace BrightIdeasSoftware
                 if (!this.CheckBoxes)
                     return;
 
-                if (value == null)
-                    value = new ArrayList();
+                // Set up an efficient way of testing for the presence of a particular model
+                Hashtable table = new Hashtable(this.GetItemCount());
+                if (value != null) {
+                    foreach (object x in value)
+                        table[x] = true;
+                }
 
                 foreach (Object x in this.Objects) {
-                    if (value.Contains(x))
-                        this.SetObjectCheckedness(x, CheckState.Checked);
-                    else
-                        this.SetObjectCheckedness(x, CheckState.Unchecked);
+                    this.SetObjectCheckedness(x, table.ContainsKey(x) ? CheckState.Checked : CheckState.Unchecked);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the checked objects from an enumerable.
+        /// </summary>
+        /// <remarks>
+        /// Useful for checking all objects in the list.
+        /// </remarks>
+        /// <example>
+        /// this.olv1.CheckedObjectsEnumerable = this.olv1.Objects;
+        /// </example>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual IEnumerable CheckedObjectsEnumerable {
+            get {
+                return this.CheckedObjects;
+            }
+            set {
+                this.CheckedObjects = ObjectListView.EnumerableToArray(value);
             }
         }
 
@@ -2254,14 +2321,29 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Get the model object from the currently selected row. If no row is selected, or more than one is selected, return null.
-        /// Select the row that is displaying the given model object. All other rows are deselected.
+        /// Gets the model object from the currently selected row, if there is only one row selected. 
+        /// If no row is selected, or more than one is selected, returns null.
+        /// When setting, this will select the row that is displaying the given model object and focus on it. 
+        /// All other rows are deselected.
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual Object SelectedObject {
-            get { return this.GetSelectedObject(); }
-            set { this.SelectObject(value); }
+            get {
+                if (this.SelectedIndices.Count == 1)
+                    return this.GetModelObject(this.SelectedIndices[0]);
+                else
+                    return null;
+            }
+            set {
+                // If the given model is already selected, don't do anything else (prevents an flicker)
+                object selectedObject = this.SelectedObject;
+                if (selectedObject != null && selectedObject.Equals(value))
+                    return;
+
+                this.SelectedIndices.Clear();
+                this.SelectObject(value, true); 
+            }
         }
 
         /// <summary>
@@ -2271,8 +2353,16 @@ namespace BrightIdeasSoftware
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual IList SelectedObjects {
-            get { return this.GetSelectedObjects(); }
-            set { this.SelectObjects(value); }
+            get {
+                ArrayList objects = new ArrayList();
+                foreach (int index in this.SelectedIndices)
+                  objects.Add(this.GetModelObject(index));
+                return objects;
+            }
+            set {
+                this.SelectedIndices.Clear();
+                this.SelectObjects(value); 
+            }
         }
 
         /// <summary>
@@ -3773,7 +3863,7 @@ namespace BrightIdeasSoftware
                 modelObjects = args.ObjectsToAdd;
 
                 this.TakeOwnershipOfObjects();
-                ArrayList ourObjects = (ArrayList)this.Objects;
+                ArrayList ourObjects = ObjectListView.EnumerableToArray(this.Objects);
 
                 // If we are filtering the list, there is no way to efficiently
                 // insert the objects, so just put them into our collection and rebuild.
@@ -3865,7 +3955,7 @@ namespace BrightIdeasSoftware
             // We are going to remove all the given objects from our list
             // and then insert them at the given location
             this.TakeOwnershipOfObjects();
-            ArrayList ourObjects = (ArrayList)this.Objects;
+            ArrayList ourObjects = ObjectListView.EnumerableToArray(this.Objects);
 
             List<int> indicesToRemove = new List<int>();
             foreach (object modelObject in modelObjects) {
@@ -6100,10 +6190,10 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Mark the given objects as checked in the list
         /// </summary>
-        /// <param name="modelObject">The model object to be checked</param>
+        /// <param name="modelObjects">The model object to be checked</param>
         public virtual void CheckObjects(IEnumerable modelObjects) {
             foreach (object model in modelObjects)
-                this.CheckObject(modelObject);
+                this.CheckObject(model);
         }
 
         /// <summary>
@@ -6308,10 +6398,10 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Mark the given objects as unchecked in the list
         /// </summary>
-        /// <param name="modelObject">The model object to be checked</param>
+        /// <param name="modelObjects">The model object to be checked</param>
         public virtual void UncheckObjects(IEnumerable modelObjects) {
             foreach (object model in modelObjects)
-                this.UncheckObject(modelObject);
+                this.UncheckObject(model);
         }
 
         /// <summary>
@@ -6464,23 +6554,18 @@ namespace BrightIdeasSoftware
         /// Return the model object of the row that is selected or null if there is no selection or more than one selection
         /// </summary>
         /// <returns>Model object or null</returns>
+        [Obsolete("Use SelectedObject property instead of this method")]
         public virtual object GetSelectedObject() {
-            if (this.SelectedIndices.Count == 1)
-                return this.GetModelObject(this.SelectedIndices[0]);
-            else
-                return null;
+            return this.SelectedObject;
         }
 
         /// <summary>
         /// Return the model objects of the rows that are selected or an empty collection if there is no selection
         /// </summary>
         /// <returns>ArrayList</returns>
+        [Obsolete("Use SelectedObjects property instead of this method")]
         public virtual ArrayList GetSelectedObjects() {
-            ArrayList objects = new ArrayList(this.SelectedIndices.Count);
-            foreach (int index in this.SelectedIndices)
-                objects.Add(this.GetModelObject(index));
-
-            return objects;
+            return ObjectListView.EnumerableToArray(this.SelectedObjects);
         }
 
         /// <summary>
@@ -6500,7 +6585,7 @@ namespace BrightIdeasSoftware
         /// <remarks>Use CheckedObjects property instead of this method</remarks>
         [Obsolete("Use CheckedObjects property instead of this method")]
         public virtual ArrayList GetCheckedObjects() {
-            return (ArrayList)this.CheckedObjects;
+            return ObjectListView.EnumerableToArray(this.CheckedObjects);
         }
 
         /// <summary>
@@ -6597,25 +6682,21 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Select the row that is displaying the given model object. All other rows are deselected.
+        /// Select the row that is displaying the given model object, in addition to any current selection.
         /// </summary>
-        /// <param name="modelObject">The object to be selected or null to deselect all</param>
+        /// <param name="modelObject">The object to be selected</param>
+        /// <remarks>Use the <see cref="SelectedObject"/> property to deselect all other rows</remarks>
         public virtual void SelectObject(object modelObject) {
             this.SelectObject(modelObject, false);
         }
 
         /// <summary>
-        /// Select the row that is displaying the given model object. All other rows are deselected.
+        /// Select the row that is displaying the given model object, in addition to any current selection.
         /// </summary>
-        /// <param name="modelObject">The object to be selected or null to deselect all</param>
+        /// <param name="modelObject">The object to be selected</param>
         /// <param name="setFocus">Should the object be focused as well?</param>
+        /// <remarks>Use the <see cref="SelectedObject"/> property to deselect all other rows</remarks>
         public virtual void SelectObject(object modelObject, bool setFocus) {
-            // If the given model is already selected, don't do anything else (prevents an flicker)
-            if (this.SelectedItems.Count == 1 && ((OLVListItem)this.SelectedItems[0]).RowObject.Equals(modelObject))
-                return;
-
-            this.SelectedItems.Clear();
-
             OLVListItem olvi = this.ModelToItem(modelObject);
             if (olvi != null) {
                 olvi.Selected = true;
@@ -6629,7 +6710,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="modelObjects">A collection of model objects</param>
         public virtual void SelectObjects(IList modelObjects) {
-            this.SelectedItems.Clear();
+            this.SelectedIndices.Clear();
 
             if (modelObjects == null)
                 return;
