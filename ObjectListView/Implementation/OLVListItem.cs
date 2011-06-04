@@ -77,6 +77,29 @@ namespace BrightIdeasSoftware {
         }
 
         /// <summary>
+        /// Gets or sets the checkedness of this item.
+        /// </summary>
+        /// <remarks>
+        /// Virtual lists don't handle checkboxes well, so we have to intercept attempts to change them
+        /// through the items, and change them into something that will work.
+        /// Unfortuneately, this won't work if this property is set through the base class, since
+        /// the property is not declared as virtual.
+        /// </remarks>
+        new public bool Checked {
+            get {
+                return base.Checked;
+            }
+            set {
+                if (this.Checked != value) {
+                    if (value)
+                        ((ObjectListView)this.ListView).CheckObject(this.RowObject);
+                    else
+                        ((ObjectListView)this.ListView).UncheckObject(this.RowObject);
+                }
+            }
+        }
+
+        /// <summary>
         /// Enable tri-state checkbox.
         /// </summary>
         /// <remarks>.NET's Checked property was not built to handle tri-state checkboxes,
