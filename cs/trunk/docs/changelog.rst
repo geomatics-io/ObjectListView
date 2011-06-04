@@ -37,6 +37,9 @@ Version Index
 Future versions - 31 December 2020
 ----------------------------------
 
+2011-06-04 23:29 (#1166) - ObjectListView/ObjectListView.cs
+  - Fixed bug where group image list was being lost
+
 2011-06-04 22:59 (#1165) - docs/Help/ObjectListView-Documentation.chm
   - v2.5.0
 
