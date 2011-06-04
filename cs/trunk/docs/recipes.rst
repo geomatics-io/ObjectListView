@@ -396,19 +396,22 @@ The `ListViewReporter` code in ObjectListView project is up-to-date.
 10. How do I use checkboxes in my ObjectListView?
 -------------------------------------------------
 
+NOTE: Please read `Using checkboxes programmatically`_ 
+
 To uses checkboxes with an ObjectListView, you must set the `CheckBoxes`
 property to  *true*. If you want the user to be able to give check boxes the
 *Indeterminate* value, you should set the `TriStateCheckBoxes` property to
 *true*.
+
+Setup
+^^^^^
 
 To make the checkboxes work, you can:
 
 1. Do nothing else
 
 With just `CheckBoxes` set to  *true*, the check boxes act as a more durable
-form of selection. You can find the objects that are checked via the
-`CheckObjects` property, and you can change which rows are checked by setting
-the same property.
+form of selection. 
 
 2. Use CheckedAspectName
 
@@ -450,6 +453,68 @@ Note that the `CheckStatePutter` returns the value that will actually be used.
 This doesn't have to be the same as the value that was given. So your delegate
 can refuse to accept the checking of a particular model if it wants.
 
+.. _using-checkboxes-programmatically:
+
+Using checkboxes programmatically
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Normal .Net `ListViews` support checkboxes -- but not on virtual lists.
+If you try to use `CheckIndicies` or `CheckedItems` on a virtual list,
+.NET will throw an exception.
+
+`ObjectListView` supports checkboxes on both virtual and non-virtual lists,
+but to do so, it has to use its own mechanism. To programmatically
+change checkboxes on an
+`ObjectListView`, you *must* use that mechanism -- trying to use the native
+.NET mechanism will only give you grief.
+
+`ObjectListView` still triggers
+the same `ItemCheck` and `ItemChecked` events know when a check box has changed value. 
+You can still read the `Checked` property of a `ListViewItem` to know if that item is checked.
+However to modify a value
+programmatically, you cannot use .NET's normal mechanisms.
+
+To find all model objects that are checked, you use the
+`CheckedObjects` property. Similarly, you can change which rows are checked by setting
+the same property. 
+
+You can check all objects like this::
+
+    this.olv1.CheckedObjectsEnumerable = this.olv1.Objects;
+	
+and unchecked all rows like this::
+
+    this.olv1.CheckedObjects = null;
+
+	
+Changing `Checked` property programmatically
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you *programmatically* set the `Checked` property on a list view item, you *must* do so through
+the `OLVListItem.Checked` property, NOT through the base class property, `ListViewItem.Checked`.
+If you programmatically set `ListViewItem.Checked`, `ObjectListView` will never know that you have
+set that value, and strange things will happen (specifically, the checkbox on that row will
+stop responding to clicks).
+
+So, this code -- which tries to toggle the checkedness of the 
+selected rows -- will cause problems for your `ObjectListView`::
+
+    private void objectListView1_ItemActivate(object sender, EventArgs e) {
+	    foreach (ListViewItem lvi in objectListView1.SelectedItems)
+			lvi.Checked = !lvi.Checked;
+    }
+	
+This will work -- once! After that, it will not work again. Worse, the check boxes will
+stop responding to user clicks. To work
+properly, you treat the items as `OLVListItem`::
+
+    private void objectListView1_ItemActivate(object sender, EventArgs e) {
+	    foreach (OLVListItem olvi in objectListView1.SelectedItems)
+			olvi.Checked = !olvi.Checked;
+    }
+	
+This will work as expected.
+
 
 Sub-item checkboxes
 ^^^^^^^^^^^^^^^^^^^
@@ -480,10 +545,9 @@ settings on the `ObjectListView` itself.
 CheckBoxes and virtual lists
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The .NET `ListView` cannot have `CheckBoxes` cannot on virtual lists. But, as of
-v1.13 (July 2008), `VirtualObjectListView` (and thus
-`FastObjectListView` and `TreeListView`) can support checkboxes. So now all
-flavours of `ObjectListView` support checkboxes equally.
+The .NET `ListView` cannot have `CheckBoxes` on virtual lists. However,
+`VirtualObjectListView` (and thus `FastObjectListView` and `TreeListView`) 
+can support checkboxes. So now all flavours of `ObjectListView` support checkboxes equally.
 
 The only caveat for using check boxes on virtual lists is that, when a
 `CheckStateGetter` is installed, the control has to iterate the entire list when
@@ -1650,3 +1714,43 @@ the `DateTimeClusteringStrategy` can probably be configured to do exactly what y
 To hide the 'Filter' menu item for all columns, set `ShowFilterMenuOnRightClick` to *false*.
 
 To hide the 'Filter' menu item for a particular column, set `UsesFiltering` to *false* on that column.
+
+.. _recipe-column-selection:
+
+42. How can I change the way the user can choose the columns in an ObjectListView?
+----------------------------------------------------------------------------------
+
+In general, the user is able to select which columns they wish to see in an `ObjectListView`.
+The user interface mechanism for this is that when the user right clicks on any header,
+they will presented with a menu that lets them choose which columns they wish to see.
+
+The exact behaviour of the column selection mechanism is governed
+by the `SelectColumnsOnRightClickBehaviour` property.
+
+To prevent the user from changes the visible columns, set this property to `ColumnSelectBehaviour.None`. 
+
+To present the column selection menu as a submenu off the header right click menu,
+set this property to `ColumnSelectBehaviour.Submenu`.
+
+.. image:: images/column-selection-submenu.png
+
+To present the column selection menu as the bottom items in the header right click menu,
+set this property to `ColumnSelectBehaviour.Inline`. This is the default. 
+If `SelectColumnsMenuStaysOpen` is *true* (which is the default), 
+the menu will remain open after the user
+clicks on column, letting them hide or show multiple columns without having to show
+the right click menu again.
+
+.. image:: images/column-selection-inline.png
+
+To present the user with a dialog that lets them choose the columns (as well as rearrange
+the order of the columns), set this property to `ColumnSelectBehaviour.ModelDialog`.
+
+.. image:: images/column-selection-modaldialog.png
+
+If there are some columns that you do not want the user to be able to hide, set
+`OLVColumn.Hideable` to *false*. This will prevent the user from hiding that column.
+
+Note: Column 0 can never be hidden. This is a limit of the underlying Windows control. 
+If you wish to make your first column hideable, move it to anywhere else in the column list,
+and then set its `DisplayIndex` to 0, so that it appears first.
