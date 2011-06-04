@@ -893,7 +893,7 @@ namespace ObjectListViewDemo {
 
         void HandleSelectionChanged(ObjectListView listView) {
             string msg;
-            Person p = (Person)listView.GetSelectedObject();
+            Person p = (Person)listView.SelectedObject;
             if (p == null)
                 msg = listView.SelectedIndices.Count.ToString();
             else
@@ -1049,7 +1049,7 @@ namespace ObjectListViewDemo {
 
         void ListViewDataSetSelectedIndexChanged(object sender, System.EventArgs e) {
             ObjectListView listView = (ObjectListView)sender;
-            DataRowView row = (DataRowView)listView.GetSelectedObject();
+            DataRowView row = (DataRowView)listView.SelectedObject;
             string msg;
             if (row == null)
                 msg = listView.SelectedIndices.Count.ToString();
@@ -1748,7 +1748,7 @@ namespace ObjectListViewDemo {
         }
 
         private void olvFastList_ItemChecked(object sender, ItemCheckedEventArgs e) {
-            //System.Diagnostics.Debug.WriteLine("fast checked");
+            System.Diagnostics.Debug.WriteLine("fast checked");
         }
 
         private void listViewSimple_ItemCheck(object sender, ItemCheckEventArgs e) {
@@ -1756,7 +1756,7 @@ namespace ObjectListViewDemo {
         }
 
         private void olvFastList_ItemCheck(object sender, ItemCheckEventArgs e) {
-            //System.Diagnostics.Debug.WriteLine("fast check");
+            System.Diagnostics.Debug.WriteLine("fast check");
         }
 
         private void checkBox19_CheckedChanged(object sender, EventArgs e) {
@@ -1893,7 +1893,7 @@ namespace ObjectListViewDemo {
 
         private void treeListView_ModelDropped(object sender, ModelDropEventArgs e) {
             String msg = String.Format("{2} items were dropped on '{1}' as a {0} operation.",
-                e.Effect, ((DirectoryInfo)e.TargetModel).Name, e.SourceModels.Count);
+                e.Effect, ((DirectoryInfo)e.TargetModel).Name, ObjectListView.EnumerableCount(e.SourceModels));
             MessageBox.Show(msg, "OLV Demo", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -2338,6 +2338,12 @@ namespace ObjectListViewDemo {
             this.olvFast.CheckBoxes = ((CheckBox)sender).Checked;
         }
 
+        private void button32_Click(object sender, EventArgs e) {
+            System.Diagnostics.Debug.WriteLine("-");
+            System.Diagnostics.Debug.WriteLine(this.olvVirtual.CheckedObject);
+            foreach (object x in this.olvVirtual.CheckedObjects)
+                System.Diagnostics.Debug.WriteLine(x);
+        }
     }
 
     /// <summary>
