@@ -9,6 +9,7 @@ Change Log
 
 Version Index
 -------------
+* `Future versions - 31 December 2020`_
 * `v2.5 - 03 June 2011`_
 * `v2.4.1 - 15 September 2010`_
 * `v2.4 - 17 April 2010`_
@@ -33,8 +34,81 @@ Version Index
 * `Previous versions - 04 April 2007`_
 
 
+Future versions - 31 December 2020
+----------------------------------
+
+2011-06-04 22:59 (#1165) - docs/Help/ObjectListView-Documentation.chm
+  - v2.5.0
+
+2011-06-04 16:54 (#1164) - Demo/MainForm.cs
+  - Use SelectedObject/s instead of GetSelectedObject/s()
+
+2011-06-04 16:52 (#1163) - docs/whatsnew.rst, docs/faq.rst, docs/index.rst, docs/images/column-selection-modaldialog.png, docs/images/column-selection-inline.png, docs/images/column-selection-submenu.png
+  - Added new FAQs
+  - Last update before v2.5 release (hopefully)
+
+2011-06-04 16:51 (#1162) - docs/recipes.rst
+  - Added section about column selection
+  - Improved docs about check boxes
+
+2011-06-04 16:50 (#1161) - ObjectListView/VirtualObjectListView.cs
+  - Setting CheckedObjects is more efficient on large collections
+
+2011-06-04 16:46 (#1159) - ObjectListView/ObjectListView.cs
+  - SelectObject() and SelectObjects() no longer deselect all other rows. Set the SelectedObject or SelectedObjects property to do that.
+  - Added CheckedObjectsEnumerable
+  - Made setting CheckedObjects more efficient on large collections
+  - Deprecated GetSelectedObject() and GetSelectedObjects()
+
+2011-06-04 16:41 (#1158) - ObjectListView/Utilities/TypedObjectListView.cs
+  - Use SelectedObjects when possible
+
+2011-06-04 16:41 (#1157) - ObjectListView/Utilities/ColumnSelectionForm.cs
+  - Correctly enable controls when first opened
+
+2011-06-04 16:39 (#1156) - ObjectListView/Implementation/OLVListItem.cs
+  - Added Checked property
+
+2011-06-04 16:39 (#1155) - ObjectListView/Implementation/DataSourceAdapter.cs
+  - Removed unwanted Stopwatch
+
+
+
 v2.5 - 03 June 2011
 -------------------
+
+2011-05-31 22:47 (#1153) - Demo/MainForm.cs
+  - Changed to use new TextMatchFilter factory methods
+
+2011-05-31 22:47 (#1152) - docs/features.rst, docs/whatsnew.rst, docs/images/excel-filtering.png, docs/olv-sandcastle.shfbproj, docs/.templates/layout.html, docs/conf.py, docs/changelog.rst, docs/index.rst, docs/recipes.rst
+  - v2.5 docs almost done
+
+2011-05-31 22:46 (#1151) - ObjectListView/ObjectListView.cs
+  - Added CheckObjects() and UncheckObjects()
+
+2011-05-31 22:03 (#1150) - ObjectListView/Filtering/TextMatchFilter.cs, ObjectListView/Filtering/Filters.cs
+  - Moved TextMatchFilter to its own file
+  - Use ObjectListView.EnumerableToArray
+
+2011-05-31 20:39 (#1149) - ObjectListView/Rendering/Renderers.cs
+  - Changed text match highlighting slightly
+
+2011-05-31 20:38 (#1148) - ObjectListView/ObjectListView.cs
+  - Added ObjectListView.EnumerableToArray
+  - Updated docs
+
+2011-05-31 20:38 (#1147) - ObjectListView/FastObjectListView.cs
+  - Use ObjectListView.EnumerableToArray
+  - Updated docs
+
+2011-05-31 20:37 (#1146) - ObjectListView/OLVColumn.cs
+  - Added Searchable property
+
+2011-05-31 20:36 (#1145) - ObjectListView/ObjectListView2005.csproj, ObjectListView/ObjectListView2008.csproj, ObjectListView/ObjectListView2010.csproj
+  - Added TextMatchFilter.cs
+
+2011-05-31 20:36 (#1144) - Tests/TestFilters.cs
+  - Test new text filters
 
 2011-05-27 18:14 (#1143) - ObjectListView/OLVColumn.cs
   - Added Sortable, Hideable, Groupable, ShowTextInHeader properties
