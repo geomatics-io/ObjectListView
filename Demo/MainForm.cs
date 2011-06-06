@@ -1748,7 +1748,7 @@ namespace ObjectListViewDemo {
         }
 
         private void olvFastList_ItemChecked(object sender, ItemCheckedEventArgs e) {
-            System.Diagnostics.Debug.WriteLine("fast checked");
+            //System.Diagnostics.Debug.WriteLine("fast checked");
         }
 
         private void listViewSimple_ItemCheck(object sender, ItemCheckEventArgs e) {
@@ -1756,7 +1756,7 @@ namespace ObjectListViewDemo {
         }
 
         private void olvFastList_ItemCheck(object sender, ItemCheckEventArgs e) {
-            System.Diagnostics.Debug.WriteLine("fast check");
+            //System.Diagnostics.Debug.WriteLine("fast check");
         }
 
         private void checkBox19_CheckedChanged(object sender, EventArgs e) {
@@ -1893,7 +1893,7 @@ namespace ObjectListViewDemo {
 
         private void treeListView_ModelDropped(object sender, ModelDropEventArgs e) {
             String msg = String.Format("{2} items were dropped on '{1}' as a {0} operation.",
-                e.Effect, ((DirectoryInfo)e.TargetModel).Name, ObjectListView.EnumerableCount(e.SourceModels));
+                e.Effect, ((DirectoryInfo)e.TargetModel).Name, e.SourceModels.Count);
             MessageBox.Show(msg, "OLV Demo", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
