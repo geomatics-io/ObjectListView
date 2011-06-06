@@ -9,8 +9,7 @@ Change Log
 
 Version Index
 -------------
-* `Future versions - 31 December 2020`_
-* `v2.5 - 03 June 2011`_
+* `v2.5 - 06 June 2011`_
 * `v2.4.1 - 15 September 2010`_
 * `v2.4 - 17 April 2010`_
 * `v2.3 - 14 October 2009`_
@@ -34,8 +33,11 @@ Version Index
 * `Previous versions - 04 April 2007`_
 
 
-Future versions - 31 December 2020
-----------------------------------
+v2.5 - 06 June 2011
+-------------------
+
+2011-06-06 20:39 (#1170) - ObjectListView/ObjectListView.cs, ObjectListView/FastObjectListView.cs, ObjectListView/Filtering/Filters.cs
+  - Correctly take control of objects before modifying the Objects collection
 
 2011-06-04 23:29 (#1166) - ObjectListView/ObjectListView.cs
   - Fixed bug where group image list was being lost
@@ -74,11 +76,6 @@ Future versions - 31 December 2020
 
 2011-06-04 16:39 (#1155) - ObjectListView/Implementation/DataSourceAdapter.cs
   - Removed unwanted Stopwatch
-
-
-
-v2.5 - 03 June 2011
--------------------
 
 2011-05-31 22:47 (#1153) - Demo/MainForm.cs
   - Changed to use new TextMatchFilter factory methods
