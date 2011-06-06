@@ -619,25 +619,25 @@ namespace BrightIdeasSoftware
         /// Convert the given enumerable into an ArrayList as efficiently as possible
         /// </summary>
         /// <param name="collection">The source collection</param>
+        /// <param name="alwaysCreate">If true, this method will always create a new
+        /// collection.</param>
         /// <returns>An ArrayList with the same contents as the given collection.</returns>
         /// <remarks>
-        /// <para>
-        /// This may return the original collection, if that collection is already
-        /// an ArrayList.
-        /// </para>
         /// <para>When we move to .NET 3.5, we can use LINQ and not need this method.</para>
         /// </remarks>
-        public static ArrayList EnumerableToArray(IEnumerable collection) {
+        public static ArrayList EnumerableToArray(IEnumerable collection, bool alwaysCreate) {
             if (collection == null)
                 return new ArrayList();
 
-            ArrayList array = collection as ArrayList;
-            if (array != null)
-                return array;
+            if (!alwaysCreate) {
+                ArrayList array = collection as ArrayList;
+                if (array != null)
+                    return array;
 
-            IList iList = collection as IList;
-            if (iList != null)
-                return ArrayList.Adapter(iList);
+                IList iList = collection as IList;
+                if (iList != null)
+                    return ArrayList.Adapter(iList);
+            }
 
             ICollection iCollection = collection as ICollection;
             if (iCollection != null)
@@ -649,37 +649,21 @@ namespace BrightIdeasSoftware
             return newObjects;
         }
 
-        /// <summary>
-        /// Decide if the given enumerable is empty
-        /// </summary>
-        /// <param name="collection">The source collection</param>
-        /// <returns>True if the given enumerable is empty</returns>
-        /// <remarks>
-        /// <para>When we move to .NET 3.5, we can use LINQ and not need this method.</para>
-        /// </remarks>
-        public static bool IsEnumerableEmpty(IEnumerable collection) {
-            if (collection == null)
-                return true;
+        ///// <summary>
+        ///// Decide if the given enumerable is empty
+        ///// </summary>
+        ///// <param name="collection">The source collection</param>
+        ///// <returns>True if the given enumerable is empty</returns>
+        ///// <remarks>
+        ///// <para>When we move to .NET 3.5, we can use LINQ and not need this method.</para>
+        ///// </remarks>
+        //public static bool IsEnumerableEmpty(IEnumerable collection) {
+        //    if (collection == null)
+        //        return true;
 
-            IEnumerator enumerator = collection.GetEnumerator();
-            return !enumerator.MoveNext();
-        }
-
-        /// <summary>
-        /// Count the number of elements in the given enumerable
-        /// </summary>
-        /// <param name="collection">The source collection</param>
-        /// <returns>the number of elements in the given enumerable</returns>
-        /// <remarks>
-        /// <para>When we move to .NET 3.5, we can use LINQ and not need this method.</para>
-        /// </remarks>
-        public static int EnumerableCount(IEnumerable collection) {
-            if (collection == null)
-                return 0;
-
-            // This could be more efficient
-            return ObjectListView.EnumerableToArray(collection).Count;
-        }
+        //    IEnumerator enumerator = collection.GetEnumerator();
+        //    return !enumerator.MoveNext();
+        //}
 
         #endregion
 
@@ -977,7 +961,7 @@ namespace BrightIdeasSoftware
                 return this.CheckedObjects;
             }
             set {
-                this.CheckedObjects = ObjectListView.EnumerableToArray(value);
+                this.CheckedObjects = ObjectListView.EnumerableToArray(value, true);
             }
         }
 
@@ -3869,7 +3853,7 @@ namespace BrightIdeasSoftware
                 modelObjects = args.ObjectsToAdd;
 
                 this.TakeOwnershipOfObjects();
-                ArrayList ourObjects = ObjectListView.EnumerableToArray(this.Objects);
+                ArrayList ourObjects = ObjectListView.EnumerableToArray(this.Objects, false);
 
                 // If we are filtering the list, there is no way to efficiently
                 // insert the objects, so just put them into our collection and rebuild.
@@ -3961,7 +3945,7 @@ namespace BrightIdeasSoftware
             // We are going to remove all the given objects from our list
             // and then insert them at the given location
             this.TakeOwnershipOfObjects();
-            ArrayList ourObjects = ObjectListView.EnumerableToArray(this.Objects);
+            ArrayList ourObjects = ObjectListView.EnumerableToArray(this.Objects, false);
 
             List<int> indicesToRemove = new List<int>();
             foreach (object modelObject in modelObjects) {
@@ -6571,7 +6555,7 @@ namespace BrightIdeasSoftware
         /// <returns>ArrayList</returns>
         [Obsolete("Use SelectedObjects property instead of this method")]
         public virtual ArrayList GetSelectedObjects() {
-            return ObjectListView.EnumerableToArray(this.SelectedObjects);
+            return ObjectListView.EnumerableToArray(this.SelectedObjects, false);
         }
 
         /// <summary>
@@ -6591,7 +6575,7 @@ namespace BrightIdeasSoftware
         /// <remarks>Use CheckedObjects property instead of this method</remarks>
         [Obsolete("Use CheckedObjects property instead of this method")]
         public virtual ArrayList GetCheckedObjects() {
-            return ObjectListView.EnumerableToArray(this.CheckedObjects);
+            return ObjectListView.EnumerableToArray(this.CheckedObjects, false);
         }
 
         /// <summary>
@@ -7345,16 +7329,7 @@ namespace BrightIdeasSoftware
 
             this.isOwnerOfObjects = true;
 
-            if (this.objects == null)
-                this.objects = new ArrayList();
-            else if (this.objects is ICollection)
-                this.objects = new ArrayList((ICollection)this.objects);
-            else {
-                ArrayList newObjects = new ArrayList();
-                foreach (object x in this.objects)
-                    newObjects.Add(x);
-                this.objects = newObjects;
-            }
+            this.objects = ObjectListView.EnumerableToArray(this.objects, true);
         }
 
         /// <summary>

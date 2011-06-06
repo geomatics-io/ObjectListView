@@ -233,7 +233,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="collection"></param>
         public override void SetObjects(IEnumerable collection) {
-            ArrayList newObjects = ObjectListView.EnumerableToArray(collection);
+            ArrayList newObjects = ObjectListView.EnumerableToArray(collection, true);
 
             this.fullObjectList = newObjects;
             this.FilterObjects();
@@ -289,7 +289,7 @@ namespace BrightIdeasSoftware
 
             // Apply the object filter if there is one
             if (this.modelFilter == null) {
-                this.filteredObjectList = ObjectListView.EnumerableToArray(objects);
+                this.filteredObjectList = ObjectListView.EnumerableToArray(objects, false);
             } else {
                 this.filteredObjectList = new ArrayList();
                 foreach (object model in objects) {
