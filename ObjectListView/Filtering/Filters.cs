@@ -381,7 +381,7 @@ namespace BrightIdeasSoftware
             if (this.Count <= 0)
                 return modelObjects;
 
-            ArrayList list = ObjectListView.EnumerableToArray(modelObjects);
+            ArrayList list = ObjectListView.EnumerableToArray(modelObjects, false);
 
             if (this.Count > list.Count)
                 return list;
