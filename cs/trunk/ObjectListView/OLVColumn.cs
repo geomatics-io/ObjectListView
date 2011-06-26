@@ -32,6 +32,7 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Collections;
+using System.Diagnostics;
 
 namespace BrightIdeasSoftware {
 
@@ -53,6 +54,9 @@ namespace BrightIdeasSoftware {
     /// </remarks>
     [Browsable(false)]
     public partial class OLVColumn : ColumnHeader {
+
+        #region Life and death
+
         /// <summary>
         /// Create an OLVColumn
         /// </summary>
@@ -69,6 +73,8 @@ namespace BrightIdeasSoftware {
             this.Text = title;
             this.AspectName = aspect;
         }
+
+        #endregion 
 
         #region Public Properties
 
