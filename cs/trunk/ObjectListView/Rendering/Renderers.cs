@@ -1138,9 +1138,11 @@ namespace BrightIdeasSoftware
             if (il != null) {
                 int selectorAsInt = -1;
 
-                if (imageSelector is Int32)
+                if (imageSelector is Int32) {
                     selectorAsInt = (Int32)imageSelector;
-                else {
+                    if (selectorAsInt >= il.Images.Count)
+                        selectorAsInt = -1;
+                } else {
                     String selectorAsString = imageSelector as String;
                     if (selectorAsString != null)
                         selectorAsInt = il.Images.IndexOfKey(selectorAsString);
