@@ -40,7 +40,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Reflection;
 
 namespace BrightIdeasSoftware
@@ -299,7 +298,7 @@ namespace BrightIdeasSoftware
         public string AspectName {
             get { return aspectName; }
         }
-        private string aspectName;
+        private readonly string aspectName;
 
         #endregion
 
@@ -410,9 +409,12 @@ namespace BrightIdeasSoftware
                 // See if we can find an string indexer property while we are here.
                 // We also need to allow for old style <object> keyed collections.
                 if (indexerPropertyInfo == null && pinfo.Name == "Item") {
-                    Type parameterType = pinfo.GetGetMethod().GetParameters()[0].ParameterType;
-                    if (parameterType == typeof(string) || parameterType == typeof(object))
-                        indexerPropertyInfo = pinfo;
+                    var par = pinfo.GetGetMethod().GetParameters();
+                    if (par.Length > 0) {
+                         Type parameterType = par[0].ParameterType;
+                         if (parameterType == typeof(string) || parameterType == typeof(object))
+                              indexerPropertyInfo = pinfo;
+                    }
                 }
             }
 
@@ -466,7 +468,7 @@ namespace BrightIdeasSoftware
         public SimpleMunger Munger {
             get { return munger; }
         }
-        private SimpleMunger munger;
+        private readonly SimpleMunger munger;
 
         /// <summary>
         /// Gets the target that threw the exception
@@ -474,7 +476,7 @@ namespace BrightIdeasSoftware
         public object Target {
             get { return target; }
         }
-        private object target;
+        private readonly object target;
     }
 
     /*
