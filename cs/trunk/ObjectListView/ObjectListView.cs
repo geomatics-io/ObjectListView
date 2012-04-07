@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2012-02-05  JPP  - Fixed bug when selecting a separator on a drop down menu
  * 2011-06-24  JPP  - Added CanUseApplicationIdle property to cover cases where Application.Idle events
  *                    are not triggered. For example, when used within VS (and probably Office) extensions
  *                    Application.Idle is never triggered. Set CanUseApplicationIdle to false to handle 
@@ -479,7 +480,6 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 using System.Runtime.Serialization.Formatters;
-using System.Diagnostics;
 using System.Threading;
 
 namespace BrightIdeasSoftware
@@ -785,11 +785,7 @@ namespace BrightIdeasSoftware
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public CellEditKeyEngine CellEditKeyEngine {
-            get {
-                if (this.cellEditKeyEngine == null)
-                    this.cellEditKeyEngine = new CellEditKeyEngine();
-                return this.cellEditKeyEngine;
-            }
+            get { return this.cellEditKeyEngine ?? (this.cellEditKeyEngine = new CellEditKeyEngine()); }
             set { this.cellEditKeyEngine = value; }
         }
         private CellEditKeyEngine cellEditKeyEngine;
@@ -892,10 +888,7 @@ namespace BrightIdeasSoftware
         public virtual Object CheckedObject {
             get {
                 IList checkedObjects = this.CheckedObjects;
-                if (checkedObjects.Count == 1)
-                    return checkedObjects[0];
-                else
-                    return null;
+                return checkedObjects.Count == 1 ? checkedObjects[0] : null;
             }
             set {
                 this.CheckedObjects = new ArrayList(new Object[] { value });
@@ -928,15 +921,15 @@ namespace BrightIdeasSoftware
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual IList CheckedObjects {
             get {
-                ArrayList objects = new ArrayList();
+                ArrayList list = new ArrayList();
                 if (this.CheckBoxes) {
                     for (int i = 0; i < this.GetItemCount(); i++) {
                         OLVListItem olvi = this.GetItem(i);
                         if (olvi.CheckState == CheckState.Checked)
-                            objects.Add(olvi.RowObject);
+                            list.Add(olvi.RowObject);
                     }
                 }
-                return objects;
+                return list;
             }
             set {
                 if (!this.CheckBoxes)
@@ -1074,7 +1067,7 @@ namespace BrightIdeasSoftware
         protected IList<IDecoration> Decorations {
             get { return this.decorations; }
         }
-        private List<IDecoration> decorations = new List<IDecoration>();
+        private readonly List<IDecoration> decorations = new List<IDecoration>();
 
         /// <summary>
         /// When owner drawing, this renderer will draw columns that do not have specific renderer
@@ -1123,10 +1116,10 @@ namespace BrightIdeasSoftware
                 // Stop listening for events on the old sink
                 SimpleDropSink oldSink = this.dropSink as SimpleDropSink;
                 if (oldSink != null) {
-                    oldSink.CanDrop -= new EventHandler<OlvDropEventArgs>(dropSink_CanDrop);
-                    oldSink.Dropped -= new EventHandler<OlvDropEventArgs>(dropSink_Dropped);
-                    oldSink.ModelCanDrop -= new EventHandler<ModelDropEventArgs>(dropSink_ModelCanDrop);
-                    oldSink.ModelDropped -= new EventHandler<ModelDropEventArgs>(dropSink_ModelDropped);
+                    oldSink.CanDrop -= new EventHandler<OlvDropEventArgs>(this.DropSinkCanDrop);
+                    oldSink.Dropped -= new EventHandler<OlvDropEventArgs>(this.DropSinkDropped);
+                    oldSink.ModelCanDrop -= new EventHandler<ModelDropEventArgs>(this.DropSinkModelCanDrop);
+                    oldSink.ModelDropped -= new EventHandler<ModelDropEventArgs>(this.DropSinkModelDropped);
                 }
 
                 this.dropSink = value;
@@ -1137,20 +1130,20 @@ namespace BrightIdeasSoftware
                 // Start listening for events on the new sink
                 SimpleDropSink newSink = value as SimpleDropSink;
                 if (newSink != null) {
-                    newSink.CanDrop += new EventHandler<OlvDropEventArgs>(dropSink_CanDrop);
-                    newSink.Dropped += new EventHandler<OlvDropEventArgs>(dropSink_Dropped);
-                    newSink.ModelCanDrop += new EventHandler<ModelDropEventArgs>(dropSink_ModelCanDrop);
-                    newSink.ModelDropped += new EventHandler<ModelDropEventArgs>(dropSink_ModelDropped);
+                    newSink.CanDrop += new EventHandler<OlvDropEventArgs>(this.DropSinkCanDrop);
+                    newSink.Dropped += new EventHandler<OlvDropEventArgs>(this.DropSinkDropped);
+                    newSink.ModelCanDrop += new EventHandler<ModelDropEventArgs>(this.DropSinkModelCanDrop);
+                    newSink.ModelDropped += new EventHandler<ModelDropEventArgs>(this.DropSinkModelDropped);
                 }
             }
         }
         private IDropSink dropSink;
 
         // Forward events from the drop sink to the control itself
-        void dropSink_CanDrop(object sender, OlvDropEventArgs e) { this.OnCanDrop(e); }
-        void dropSink_Dropped(object sender, OlvDropEventArgs e) { this.OnDropped(e); }
-        void dropSink_ModelCanDrop(object sender, ModelDropEventArgs e) { this.OnModelCanDrop(e); }
-        void dropSink_ModelDropped(object sender, ModelDropEventArgs e) { this.OnModelDropped(e); }
+        void DropSinkCanDrop(object sender, OlvDropEventArgs e) { this.OnCanDrop(e); }
+        void DropSinkDropped(object sender, OlvDropEventArgs e) { this.OnDropped(e); }
+        void DropSinkModelCanDrop(object sender, ModelDropEventArgs e) { this.OnModelCanDrop(e); }
+        void DropSinkModelDropped(object sender, ModelDropEventArgs e) { this.OnModelDropped(e); }
 
         /// <summary>
         /// This registry decides what control should be used to edit what cells, based
@@ -1158,7 +1151,9 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <see cref="EditorRegistry"/>
         /// <remarks>All instances of ObjectListView share the same editor registry.</remarks>
+// ReSharper disable FieldCanBeMadeReadOnly.Global
         static public EditorRegistry EditorRegistry = new EditorRegistry();
+// ReSharper restore FieldCanBeMadeReadOnly.Global
 
         /// <summary>
         /// Gets or sets the text that should be shown when there are no items in this list view.
@@ -1172,10 +1167,7 @@ namespace BrightIdeasSoftware
         public virtual String EmptyListMsg {
             get {
                 TextOverlay overlay = this.EmptyListMsgOverlay as TextOverlay;
-                if (overlay == null)
-                    return null;
-                else
-                    return overlay.Text;
+                return overlay == null ? null : overlay.Text;
             }
             set {
                 TextOverlay overlay = this.EmptyListMsgOverlay as TextOverlay;
@@ -1197,10 +1189,7 @@ namespace BrightIdeasSoftware
         public virtual Font EmptyListMsgFont {
             get {
                 TextOverlay overlay = this.EmptyListMsgOverlay as TextOverlay;
-                if (overlay == null)
-                    return null;
-                else
-                    return overlay.Font;
+                return overlay == null ? null : overlay.Font;
             }
             set {
                 TextOverlay overlay = this.EmptyListMsgOverlay as TextOverlay;
@@ -1254,8 +1243,8 @@ namespace BrightIdeasSoftware
             get {
                 if (this.IsFiltering)
                     return this.FilterObjects(this.Objects, this.ModelFilter, this.ListFilter);
-                else
-                    return this.Objects;
+                
+                return this.Objects;
             }
         }
 
@@ -1315,7 +1304,7 @@ namespace BrightIdeasSoftware
             set {
                 this.groupImageList = value;
                 if (this.Created) {
-                    int x = NativeMethods.SetGroupImageList(this, value);
+                    NativeMethods.SetGroupImageList(this, value);
                 }
             }
         }
@@ -1349,10 +1338,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public virtual string GroupWithItemCountFormatOrDefault {
             get {
-                if (String.IsNullOrEmpty(this.GroupWithItemCountFormat))
-                    return "{0} [{1} items]";
-                else
-                    return this.GroupWithItemCountFormat;
+                return String.IsNullOrEmpty(this.GroupWithItemCountFormat) ? "{0} [{1} items]" : this.GroupWithItemCountFormat;
             }
         }
 
@@ -1383,10 +1369,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public virtual string GroupWithItemCountSingularFormatOrDefault {
             get {
-                if (String.IsNullOrEmpty(this.GroupWithItemCountSingularFormat))
-                    return "{0} [{1} item]";
-                else
-                    return this.GroupWithItemCountSingularFormat;
+                return String.IsNullOrEmpty(this.GroupWithItemCountSingularFormat) ? "{0} [{1} item]" : this.GroupWithItemCountSingularFormat;
             }
         }
 
@@ -1431,11 +1414,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false)]
         public HeaderControl HeaderControl {
-            get {
-                if (this.headerControl == null)
-                    this.headerControl = new HeaderControl(this);
-                return this.headerControl;
-            }
+            get { return this.headerControl ?? (this.headerControl = new HeaderControl(this)); }
         }
         private HeaderControl headerControl;
 
@@ -1647,10 +1626,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public virtual Color HighlightBackgroundColorOrDefault {
             get {
-                if (this.HighlightBackgroundColor.IsEmpty)
-                    return SystemColors.Highlight;
-                else
-                    return this.HighlightBackgroundColor;
+                return this.HighlightBackgroundColor.IsEmpty ? SystemColors.Highlight : this.HighlightBackgroundColor;
             }
         }
 
@@ -1675,10 +1651,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public virtual Color HighlightForegroundColorOrDefault {
             get {
-                if (this.HighlightForegroundColor.IsEmpty)
-                    return SystemColors.HighlightText;
-                else
-                    return this.HighlightForegroundColor;
+                return this.HighlightForegroundColor.IsEmpty ? SystemColors.HighlightText : this.HighlightForegroundColor;
             }
         }
 
@@ -1769,10 +1742,7 @@ namespace BrightIdeasSoftware
         public virtual bool IsSimpleDropSink {
             get { return this.DropSink != null; }
             set {
-                if (value)
-                    this.DropSink = new SimpleDropSink();
-                else
-                    this.DropSink = null;
+                this.DropSink = value ? new SimpleDropSink() : null;
             }
         }
 
@@ -1786,10 +1756,7 @@ namespace BrightIdeasSoftware
         public virtual bool IsSimpleDragSource {
             get { return this.DragSource != null; }
             set {
-                if (value)
-                    this.DragSource = new SimpleDragSource();
-                else
-                    this.DragSource = null;
+                this.DragSource = value ? new SimpleDragSource() : null;
             }
         }
 
@@ -2021,7 +1988,7 @@ namespace BrightIdeasSoftware
         protected IList<IOverlay> Overlays {
             get { return this.overlays; }
         }
-        private List<IOverlay> overlays = new List<IOverlay>();
+        private readonly List<IOverlay> overlays = new List<IOverlay>();
 
         /// <summary>
         /// Which column did we last sort by
@@ -2112,8 +2079,8 @@ namespace BrightIdeasSoftware
                     case View.LargeIcon:
                         if (this.LargeImageList == null)
                             return this.Font.Height;
-                        else
-                            return Math.Max(this.LargeImageList.ImageSize.Height, this.Font.Height);
+                        
+                        return Math.Max(this.LargeImageList.ImageSize.Height, this.Font.Height);
 
                     default:
                         // This should never happen
@@ -2242,7 +2209,7 @@ namespace BrightIdeasSoftware
             }
         }
         private OLVColumn selectedColumn;
-        private TintedColumnDecoration selectedColumnDecoration = new TintedColumnDecoration();
+        private readonly TintedColumnDecoration selectedColumnDecoration = new TintedColumnDecoration();
 
         /// <summary>
         /// Gets or sets the decoration that will be drawn on all selected rows
@@ -2268,10 +2235,7 @@ namespace BrightIdeasSoftware
         public virtual Color SelectedColumnTint {
             get { return selectedColumnTint; }
             set {
-                if (value.A == 255)
-                    this.selectedColumnTint = Color.FromArgb(15, value);
-                else
-                    this.selectedColumnTint = value;
+                this.selectedColumnTint = value.A == 255 ? Color.FromArgb(15, value) : value;
                 this.selectedColumnDecoration.Tint = this.selectedColumnTint;
             }
         }
@@ -2284,12 +2248,7 @@ namespace BrightIdeasSoftware
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual int SelectedIndex {
-            get {
-                if (this.SelectedIndices.Count == 1)
-                    return this.SelectedIndices[0];
-                else
-                    return -1;
-            }
+            get { return this.SelectedIndices.Count == 1 ? this.SelectedIndices[0] : -1; }
             set {
                 this.SelectedIndices.Clear();
                 if (value >= 0 && value < this.Items.Count)
@@ -2304,10 +2263,7 @@ namespace BrightIdeasSoftware
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual OLVListItem SelectedItem {
             get {
-                if (this.SelectedIndices.Count == 1)
-                    return this.GetItem(this.SelectedIndices[0]);
-                else
-                    return null;
+                return this.SelectedIndices.Count == 1 ? this.GetItem(this.SelectedIndices[0]) : null;
             }
             set {
                 this.SelectedIndices.Clear();
@@ -2326,10 +2282,7 @@ namespace BrightIdeasSoftware
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual Object SelectedObject {
             get {
-                if (this.SelectedIndices.Count == 1)
-                    return this.GetModelObject(this.SelectedIndices[0]);
-                else
-                    return null;
+                return this.SelectedIndices.Count == 1 ? this.GetModelObject(this.SelectedIndices[0]) : null;
             }
             set {
                 // If the given model is already selected, don't do anything else (prevents an flicker)
@@ -2350,10 +2303,10 @@ namespace BrightIdeasSoftware
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual IList SelectedObjects {
             get {
-                ArrayList objects = new ArrayList();
+                ArrayList list = new ArrayList();
                 foreach (int index in this.SelectedIndices)
-                  objects.Add(this.GetModelObject(index));
-                return objects;
+                  list.Add(this.GetModelObject(index));
+                return list;
             }
             set {
                 this.SelectedIndices.Clear();
@@ -2531,10 +2484,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public virtual Size SmallImageSize {
             get {
-                if (this.SmallImageList == null)
-                    return new Size(16, 16);
-                else
-                    return this.SmallImageList.ImageSize;
+                return this.SmallImageList == null ? new Size(16, 16) : this.SmallImageList.ImageSize;
             }
         }
 
@@ -2623,8 +2573,8 @@ namespace BrightIdeasSoftware
             get {
                 if (this.View == View.Details && this.TopItem != null)
                     return this.TopItem.Index;
-                else
-                    return -1;
+                
+                return -1;
             }
             set {
                 int newTopIndex = Math.Min(value, this.GetItemCount() - 1);
@@ -2694,10 +2644,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public virtual Color UnfocusedHighlightBackgroundColorOrDefault {
             get {
-                if (this.UnfocusedHighlightBackgroundColor.IsEmpty)
-                    return SystemColors.Control;
-                else
-                    return this.UnfocusedHighlightBackgroundColor;
+                return this.UnfocusedHighlightBackgroundColor.IsEmpty ? SystemColors.Control : this.UnfocusedHighlightBackgroundColor;
             }
         }
 
@@ -2722,10 +2669,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public virtual Color UnfocusedHighlightForegroundColorOrDefault {
             get {
-                if (this.UnfocusedHighlightForegroundColor.IsEmpty)
-                    return SystemColors.ControlText;
-                else
-                    return this.UnfocusedHighlightForegroundColor;
+                return this.UnfocusedHighlightForegroundColor.IsEmpty ? SystemColors.ControlText : this.UnfocusedHighlightForegroundColor;
             }
         }
 
@@ -3113,15 +3057,8 @@ namespace BrightIdeasSoftware
                     this.CheckStateGetter = delegate(Object modelObject) {
                         bool? result = this.checkedAspectMunger.GetValue(modelObject) as bool?;
                         if (result.HasValue)
-                            if (result.Value)
-                                return CheckState.Checked;
-                            else
-                                return CheckState.Unchecked;
-                        else
-                            if (this.TriStateCheckBoxes)
-                                return CheckState.Indeterminate;
-                            else
-                                return CheckState.Unchecked;
+                            return result.Value ? CheckState.Checked : CheckState.Unchecked;
+                        return this.TriStateCheckBoxes ? CheckState.Indeterminate : CheckState.Unchecked;
                     };
                     this.CheckStatePutter = delegate(Object modelObject, CheckState newValue) {
                         if (this.TriStateCheckBoxes && newValue == CheckState.Indeterminate)
@@ -3348,7 +3285,9 @@ namespace BrightIdeasSoftware
             // Getting the Count forces any internal cache of the ListView to be flushed. Without
             // this, iterating over the Items will not work correctly if the ListView handle
             // has not yet been created.
+#pragma warning disable 168
             int dummy = this.Items.Count;
+#pragma warning restore 168
 
             // Collect all the information that governs the creation of groups
             GroupingParameters parms = this.CollectGroupingParameters(groupByColumn, groupByOrder,
@@ -3415,9 +3354,9 @@ namespace BrightIdeasSoftware
             }
 
             // Sort the items within each group (unless specifically turned off)
-            OLVColumn primarySortColumn = parms.SortItemsByPrimaryColumn ? parms.ListView.GetColumn(0) : parms.PrimarySort;
-            if (primarySortColumn != null && parms.PrimarySortOrder != SortOrder.None) {
-                ColumnComparer itemSorter = new ColumnComparer(primarySortColumn, parms.PrimarySortOrder,
+            OLVColumn sortColumn = parms.SortItemsByPrimaryColumn ? parms.ListView.GetColumn(0) : parms.PrimarySort;
+            if (sortColumn != null && parms.PrimarySortOrder != SortOrder.None) {
+                ColumnComparer itemSorter = new ColumnComparer(sortColumn, parms.PrimarySortOrder,
                     parms.SecondarySort, parms.SecondarySortOrder);
                 foreach (object key in map.Keys) {
                     map[key].Sort(parms.ItemComparer ?? itemSorter);
@@ -3509,7 +3448,7 @@ namespace BrightIdeasSoftware
                 if (objectsToDisplay != null) {
                     // Build a list of all our items and then display them. (Building
                     // a list and then doing one AddRange is about 10-15% faster than individual adds)
-                    List<OLVListItem> itemList = new List<OLVListItem>();
+                    List<ListViewItem> itemList = new List<ListViewItem>(); // use ListViewItem to avoid co-variant conversion
                     foreach (object rowObject in objectsToDisplay) {
                         OLVListItem lvi = new OLVListItem(rowObject);
                         this.FillInValues(lvi, rowObject);
@@ -3565,7 +3504,7 @@ namespace BrightIdeasSoftware
             //const int LVS_EX_TRANSPARENTBKGND = 0x00400000;
             const int LVS_EX_HEADERINALLVIEWS = 0x02000000;
 
-            const int styleMask = LVS_EX_SUBITEMIMAGES | LVS_EX_HEADERINALLVIEWS;
+            const int STYLE_MASK = LVS_EX_SUBITEMIMAGES | LVS_EX_HEADERINALLVIEWS;
             int style = 0;
 
             if (this.ShowImagesOnSubItems && !this.VirtualMode)
@@ -3574,7 +3513,7 @@ namespace BrightIdeasSoftware
             if (this.ShowHeaderInAllViews)
                 style ^= LVS_EX_HEADERINALLVIEWS;
 
-            NativeMethods.SetExtendedStyle(this, style, styleMask);
+            NativeMethods.SetExtendedStyle(this, style, STYLE_MASK);
         }
 
         /// <summary>
@@ -3738,15 +3677,14 @@ namespace BrightIdeasSoftware
                     }
                 }
                 return null;
-            } else {
-                if (this.GetItemCount() == 0)
-                    return null;
-                if (itemToFind == null)
-                    return this.GetItem(0);
-                if (itemToFind.Index == this.GetItemCount() - 1)
-                    return null;
-                return this.GetItem(itemToFind.Index + 1);
             }
+            if (this.GetItemCount() == 0)
+                return null;
+            if (itemToFind == null)
+                return this.GetItem(0);
+            if (itemToFind.Index == this.GetItemCount() - 1)
+                return null;
+            return this.GetItem(itemToFind.Index + 1);
         }
 
         /// <summary>
@@ -3827,23 +3765,19 @@ namespace BrightIdeasSoftware
                     foreach (OLVListItem lvi in group.Items) {
                         if (lvi == itemToFind)
                             return previousItem;
-                        else
-                            previousItem = lvi;
+                        
+                        previousItem = lvi;
                     }
                 }
-                if (itemToFind == null)
-                    return previousItem;
-                else
-                    return null;
-            } else {
-                if (this.GetItemCount() == 0)
-                    return null;
-                if (itemToFind == null)
-                    return this.GetItem(this.GetItemCount() - 1);
-                if (itemToFind.Index == 0)
-                    return null;
-                return this.GetItem(itemToFind.Index - 1);
+                return itemToFind == null ? previousItem : null;
             }
+            if (this.GetItemCount() == 0)
+                return null;
+            if (itemToFind == null)
+                return this.GetItem(this.GetItemCount() - 1);
+            if (itemToFind.Index == 0)
+                return null;
+            return this.GetItem(itemToFind.Index - 1);
         }
 
         /// <summary>
@@ -3923,10 +3857,7 @@ namespace BrightIdeasSoftware
         /// <returns>Is the row selected</returns>
         public bool IsSelected(object model) {
             OLVListItem item = this.ModelToItem(model);
-            if (item == null)
-                return false;
-            else
-                return item.Selected;
+            return item != null && item.Selected;
         }
 
         /// <summary>
@@ -4166,12 +4097,7 @@ namespace BrightIdeasSoftware
                 return;
 
             // Which renderer was responsible for drawing that point
-            IRenderer renderer = null;
-            if (this.View == View.Details) {
-                renderer = hti.Column.Renderer ?? this.DefaultRenderer;
-            } else {
-                renderer = this.ItemRenderer;
-            }
+            IRenderer renderer = this.View == View.Details ? (hti.Column.Renderer ?? this.DefaultRenderer) : this.ItemRenderer;
 
             // We can't decide who was responsible. Give up
             if (renderer == null)
@@ -4188,8 +4114,9 @@ namespace BrightIdeasSoftware
         public virtual void PauseAnimations(bool isPause) {
             for (int i = 0; i < this.Columns.Count; i++) {
                 OLVColumn col = this.GetColumn(i);
-                if (col.Renderer is ImageRenderer)
-                    ((ImageRenderer)col.Renderer).Paused = isPause;
+                ImageRenderer renderer = col.Renderer as ImageRenderer;
+                if (renderer != null) 
+                    renderer.Paused = isPause;
             }
         }
 
@@ -4243,7 +4170,9 @@ namespace BrightIdeasSoftware
                 ArrayList ourObjects = (ArrayList)this.Objects;
                 foreach (object modelObject in modelObjects) {
                     if (modelObject != null) {
+// ReSharper disable PossibleMultipleEnumeration
                         ourObjects.Remove(modelObject);
+// ReSharper restore PossibleMultipleEnumeration
                         int i = this.IndexOf(modelObject);
                         if (i >= 0)
                             this.Items.RemoveAt(i);
@@ -4438,7 +4367,7 @@ namespace BrightIdeasSoftware
                 }
                 // The number of columns has changed. We have no way to match old
                 // columns to the new ones, so we just give up.
-                if (olvState.NumberOfColumns != this.AllColumns.Count)
+                if (olvState == null || olvState.NumberOfColumns != this.AllColumns.Count)
                     return false;
                 if (olvState.SortColumn == -1) {
                     this.LastSortColumn = null;
@@ -4453,7 +4382,9 @@ namespace BrightIdeasSoftware
                     column.IsVisible = (bool)olvState.ColumnIsVisible[i];
                     column.LastDisplayIndex = (int)olvState.ColumnDisplayIndicies[i];
                 }
+// ReSharper disable RedundantCheckBeforeAssignment
                 if (olvState.IsShowingGroups != this.ShowGroups)
+// ReSharper restore RedundantCheckBeforeAssignment
                     this.ShowGroups = olvState.IsShowingGroups;
                 if (this.View == olvState.CurrentView)
                     this.RebuildColumns();
@@ -4470,15 +4401,19 @@ namespace BrightIdeasSoftware
         [Serializable]
         internal class ObjectListViewState
         {
+// ReSharper disable NotAccessedField.Global
             public int VersionNumber = 1;
+// ReSharper restore NotAccessedField.Global
             public int NumberOfColumns = 1;
             public View CurrentView;
             public int SortColumn = -1;
             public bool IsShowingGroups;
             public SortOrder LastSortOrder = SortOrder.None;
+// ReSharper disable FieldCanBeMadeReadOnly.Global
             public ArrayList ColumnIsVisible = new ArrayList();
             public ArrayList ColumnDisplayIndicies = new ArrayList();
             public ArrayList ColumnWidths = new ArrayList();
+// ReSharper restore FieldCanBeMadeReadOnly.Global
         }
 
         #endregion
@@ -4503,9 +4438,9 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void HandleApplicationIdle_ResizeColumns(object sender, EventArgs e) {
+        protected virtual void HandleApplicationIdleResizeColumns(object sender, EventArgs e) {
             // Remove the handler before triggering the event
-            Application.Idle -= new EventHandler(HandleApplicationIdle_ResizeColumns);
+            Application.Idle -= new EventHandler(this.HandleApplicationIdleResizeColumns);
             this.hasResizeColumnsHandler = false;
 
             this.ResizeFreeSpaceFillingColumns();
@@ -6127,7 +6062,7 @@ namespace BrightIdeasSoftware
             // get terribly confused if we resize the column widths during this event.
             if (!this.hasResizeColumnsHandler) {
                 this.hasResizeColumnsHandler = true;
-                this.RunWhenIdle(HandleApplicationIdle_ResizeColumns);
+                this.RunWhenIdle(this.HandleApplicationIdleResizeColumns);
             }
         }
 

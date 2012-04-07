@@ -5,6 +5,7 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * v2.5.0
  * 2011-04-20  JPP  - Added ExpandedObjects property and RebuildAll() method.
  * 2011-04-09  JPP  - Added Expanding, Collapsing, Expanded and Collapsed events.
  *                    The ..ing events are cancellable. These are only fired in response
