@@ -1101,6 +1101,7 @@ namespace ObjectListViewDemo
             this.olvComplex.GroupWithItemCountFormat = "{0} ({1} people)";
             this.olvComplex.GroupWithItemCountSingularFormat = "{0} ({1} person)";
             this.olvComplex.HeaderUsesThemes = false;
+            this.olvComplex.HeaderWordWrap = true;
             this.olvComplex.HideSelection = false;
             this.olvComplex.LargeImageList = this.imageList2;
             this.olvComplex.Location = new System.Drawing.Point(6, 57);
@@ -1151,6 +1152,7 @@ namespace ObjectListViewDemo
             // 
             this.personColumn.AspectName = "Name";
             this.personColumn.HeaderImageKey = "(none)";
+            this.personColumn.ImageAspectName = "";
             this.personColumn.Text = "Person";
             this.personColumn.ToolTipText = "Tooltip for Person column. This was configurated in the IDE. (Hold down Control t" +
                 "o see a different tooltip)";
@@ -1162,6 +1164,7 @@ namespace ObjectListViewDemo
             this.occupationColumn.AspectName = "Occupation";
             this.occupationColumn.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.occupationColumn.Hyperlink = true;
+            this.occupationColumn.ImageAspectName = "";
             this.occupationColumn.IsTileViewColumn = true;
             this.occupationColumn.Text = "Occupation";
             this.occupationColumn.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -1176,6 +1179,7 @@ namespace ObjectListViewDemo
             this.columnCookingSkill.Renderer = this.cookingSkillRenderer;
             this.columnCookingSkill.Text = "Cooking skill";
             this.columnCookingSkill.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.columnCookingSkill.ToolTipText = "Group on this column to see full group formatting possibilities";
             this.columnCookingSkill.Width = 75;
             // 
             // cookingSkillRenderer
@@ -1245,6 +1249,7 @@ namespace ObjectListViewDemo
             // 
             this.olvMarriedColumn.AspectName = "MaritalStatus";
             this.olvMarriedColumn.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.olvMarriedColumn.ImageAspectName = "";
             this.olvMarriedColumn.IsTileViewColumn = true;
             this.olvMarriedColumn.Text = "Married?";
             this.olvMarriedColumn.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -3299,6 +3304,7 @@ namespace ObjectListViewDemo
             this.olvGeeks.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
+            this.olvGeeks.CellEditActivation = BrightIdeasSoftware.ObjectListView.CellEditActivateMode.F2Only;
             this.olvGeeks.CheckedAspectName = "";
             this.olvGeeks.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.olvColumn43,
@@ -3432,6 +3438,7 @@ namespace ObjectListViewDemo
             this.olvFroods.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
+            this.olvFroods.CellEditActivation = BrightIdeasSoftware.ObjectListView.CellEditActivateMode.F2Only;
             this.olvFroods.CheckedAspectName = "";
             this.olvFroods.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.olvColumn52,

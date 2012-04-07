@@ -151,15 +151,14 @@ namespace ObjectListViewDemo {
             };
             this.personColumn.ImageGetter = delegate(object row) {
                 // People whose names start with a vowel get a star,
-                // otherwise the first half of the alphabet gets hearts
-                // and the second half gets music
-                string name = ((Person)row).Name;
+                // the last few letters get music and everyone else gets a person
+                string name = ((Person)row).Name.ToUpperInvariant();
                 if (name.Length > 0 && "AEIOU".Contains(name.Substring(0, 1)))
-                    return 0; // star
-                else if (name.CompareTo("N") < 0)
-                    return 1; // heart
+                    return "star";
+                else if (name.CompareTo("T") < 0)
+                    return 2; // person
                 else
-                    return 2; // music
+                    return "music"; 
             };
 
             // Cooking skill columns
@@ -201,8 +200,9 @@ namespace ObjectListViewDemo {
             };
             this.birthdayColumn.ImageGetter = delegate(object row) {
                 Person p = (Person)row;
-                if (p.BirthDate != null && (p.BirthDate.Year % 10) == 4)
-                    return 3;
+                // People born in leap years get an asterisk (yes, the leap year calculation is wrong).
+                if (p.BirthDate != null && (p.BirthDate.Year % 4) == 0)
+                    return "hidden";
                 else
                     return -1; // no image
             };
@@ -962,13 +962,12 @@ namespace ObjectListViewDemo {
             olvSimple.CopyObjectsToClipboard(olvSimple.CheckedObjects);
         }
 
-        private void button7_Click(object sender, EventArgs e) {
+        private void button7_Click(object sender, EventArgs e)
+        {
             if ((Control.ModifierKeys & Keys.Shift) == Keys.Shift) {
                 // Add a visible and invisible column at the same time
                 this.olvSimple.AllColumns.Add(new OLVColumn("New column: " + Environment.TickCount, null));
-                OLVColumn new1 = new OLVColumn("Second new: " + Environment.TickCount, null);
-                new1.IsVisible = false;
-                this.olvSimple.AllColumns.Add(new1);
+                this.olvSimple.AllColumns.Add(new OLVColumn("Second new: " + Environment.TickCount, null) { IsVisible = false });
                 this.olvSimple.RebuildColumns();
             } else {
                 Person person = new Person("Some One Else " + System.Environment.TickCount);
@@ -1669,7 +1668,8 @@ namespace ObjectListViewDemo {
                 parents.Add(parent ?? x);
             }
             // Now tell the Tree to update 
-            this.treeListView.RefreshObjects(parents);
+            //this.treeListView.RefreshObjects(parents);
+            this.treeListView.RebuildAll(true);
         }
 
         private void listViewComplex_MouseClick(object sender, MouseEventArgs e) {
@@ -2444,6 +2444,12 @@ namespace ObjectListViewDemo {
             this.Photo = other.Photo;
             this.Comments = other.Comments;
             this.MaritalStatus = other.MaritalStatus;
+        }
+
+        public Image ImageAspect {
+            get {
+                return Resource1.folder16;
+            }
         }
 
         // Allows tests for properties.
