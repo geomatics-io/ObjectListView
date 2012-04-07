@@ -409,7 +409,7 @@ namespace BrightIdeasSoftware
                 // See if we can find an string indexer property while we are here.
                 // We also need to allow for old style <object> keyed collections.
                 if (indexerPropertyInfo == null && pinfo.Name == "Item") {
-                    var par = pinfo.GetGetMethod().GetParameters();
+                    ParameterInfo[] par = pinfo.GetGetMethod().GetParameters();
                     if (par.Length > 0) {
                          Type parameterType = par[0].ParameterType;
                          if (parameterType == typeof(string) || parameterType == typeof(object))
