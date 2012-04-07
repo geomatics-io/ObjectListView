@@ -6034,7 +6034,9 @@ namespace BrightIdeasSoftware
 
         private void ColumnSelectMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
             this.contextMenuStaysOpen = false;
-            ToolStripMenuItem menuItemClicked = (ToolStripMenuItem)e.ClickedItem;
+            ToolStripMenuItem menuItemClicked = e.ClickedItem as ToolStripMenuItem;
+            if (menuItemClicked == null)
+                return;
             OLVColumn col = menuItemClicked.Tag as OLVColumn;
             if (col == null)
                 return;
@@ -6043,7 +6045,7 @@ namespace BrightIdeasSoftware
             this.contextMenuStaysOpen = this.SelectColumnsMenuStaysOpen;
             this.BeginInvoke(new MethodInvoker(this.RebuildColumns));
         }
-        internal bool contextMenuStaysOpen;
+        private bool contextMenuStaysOpen;
 
         private void ColumnSelectMenu_Closing(object sender, ToolStripDropDownClosingEventArgs e) {
             e.Cancel = this.contextMenuStaysOpen && e.CloseReason == ToolStripDropDownCloseReason.ItemClicked;
