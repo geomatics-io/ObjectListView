@@ -82,9 +82,6 @@ namespace BrightIdeasSoftware
     /// If you use the normal check box properties (CheckedItems or CheckedIndicies), they will throw an exception, since the
     /// list is in virtual mode, and .NET "knows" it can't handle checkboxes in virtual mode.
     /// </para>
-    /// <para>
-    /// The "CheckBoxes" property itself can be set once, but trying to unset it later will throw an exception.
-    /// </para>
     /// <para>Due to the limits of the underlying Windows control, virtual lists do not trigger ItemCheck/ItemChecked events. 
     /// Use a CheckStatePutter instead.</para>
     /// <para>To enable grouping, you must provide an implmentation of IVirtualGroups interface, via the GroupingStrategy property.</para>
@@ -107,6 +104,10 @@ namespace BrightIdeasSoftware
             //this.VirtualItemsSelectionRangeChanged += new ListViewVirtualItemsSelectionRangeChangedEventHandler(VirtualObjectListView_VirtualItemsSelectionRangeChanged);
 
             this.VirtualListDataSource = new VirtualListVersion1DataSource(this);
+
+            // Virtual lists have to manage their own check state, since the normal ListView control 
+            // doesn't even allow checkboxes on virtual lists
+            this.PersistentCheckBoxes = true;
         }
 
         #region Public Properties
@@ -174,22 +175,23 @@ namespace BrightIdeasSoftware
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public override IList CheckedObjects {
             get {
-                ArrayList objects = new ArrayList();
-
+                // If we aren't should checkboxes, then no objects can be checked
                 if (!this.CheckBoxes)
-                    return objects;
+                    return new ArrayList();
+
+                // If the data source has somehow vanished, we can't do anything
+                if (this.VirtualListDataSource == null)
+                    return new ArrayList();
 
                 // If a custom check state getter is install, we can't use our check state management
                 // We have to use the (slower) base version.
                 if (this.CheckStateGetter != null)
                     return base.CheckedObjects;
 
-                // If the data source has somehow vanished, we can't do anything
-                if (this.VirtualListDataSource == null)
-                    return objects;
-
                 // Collect items that are checked AND that still exist in the list.
-                foreach (KeyValuePair<Object, CheckState> kvp in this.checkStateMap) {
+                ArrayList objects = new ArrayList();
+                foreach (KeyValuePair<Object, CheckState> kvp in this.CheckStateMap)
+                {
                     if (kvp.Value == CheckState.Checked && this.VirtualListDataSource.GetObjectIndex(kvp.Key) >= 0)
                         objects.Add(kvp.Key);
                 }
@@ -207,8 +209,8 @@ namespace BrightIdeasSoftware
                 }
 
                 // Uncheck anything that is no longer checked
-                Object[] keys = new Object[this.checkStateMap.Count];
-                this.checkStateMap.Keys.CopyTo(keys, 0);
+                Object[] keys = new Object[this.CheckStateMap.Count];
+                this.CheckStateMap.Keys.CopyTo(keys, 0);
                 foreach (Object key in keys) {
                     if (!table.Contains(key))
                         this.SetObjectCheckedness(key, CheckState.Unchecked);
@@ -310,17 +312,12 @@ namespace BrightIdeasSoftware
         override public bool ShowGroups {
             get {
                 // Pre-Vista, virtual lists cannot show groups
-                if (ObjectListView.IsVistaOrLater)
-                    return showGroups;
-                else
-                    return false;
+                return ObjectListView.IsVistaOrLater && this.showGroups;
             }
             set {
                 this.showGroups = value;
-                if (this.Created) {
-                    if (!value)
-                        this.DisableVirtualGroups();
-                }
+                if (this.Created && !value) 
+                    this.DisableVirtualGroups();
             }
         }
         private bool showGroups;
@@ -439,7 +436,7 @@ namespace BrightIdeasSoftware
             if (this.InvokeRequired)
                 this.Invoke(new MethodInvoker(this.ClearObjects));
             else {
-                this.checkStateMap.Clear();
+                this.CheckStateMap.Clear();
                 this.SetObjects(new ArrayList());
             }
         }
@@ -613,7 +610,7 @@ namespace BrightIdeasSoftware
         /// Do the work of creating groups for this control
         /// </summary>
         /// <param name="groups"></param>
-        protected override void CreateGroups(IList<OLVGroup> groups) {
+        protected override void CreateGroups(IEnumerable<OLVGroup> groups) {
 
             // A virtual list we cannot touch the Groups property since it often throws exceptions
             // when used with a virtual list
@@ -681,7 +678,7 @@ namespace BrightIdeasSoftware
 
             CheckState state = CheckState.Unchecked;
             if (modelObject != null)
-                this.checkStateMap.TryGetValue(modelObject, out state);
+                this.CheckStateMap.TryGetValue(modelObject, out state);
             return state;
         }
 
@@ -825,7 +822,7 @@ namespace BrightIdeasSoftware
         /// the control.</returns>
         protected override CheckState PutCheckState(object modelObject, CheckState state) {
             state = base.PutCheckState(modelObject, state);
-            this.checkStateMap[modelObject] = state;
+            this.CheckStateMap[modelObject] = state;
             return state;
         }
 
@@ -1008,7 +1005,6 @@ namespace BrightIdeasSoftware
 
         #region Variable declaractions
 
-        private Dictionary<Object, CheckState> checkStateMap = new Dictionary<object, CheckState>();
         private OLVListItem lastRetrieveVirtualItem;
         private int lastRetrieveVirtualItemIndex = -1;
 

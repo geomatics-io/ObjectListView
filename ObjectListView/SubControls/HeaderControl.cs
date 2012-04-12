@@ -276,7 +276,7 @@ namespace BrightIdeasSoftware
             this.ToolTip = new ToolTipControl();
             this.ToolTip.Create(this.Handle);
             this.ToolTip.AddTool(this);
-            this.ToolTip.Showing += new EventHandler<ToolTipShowingEventArgs>(this.ListView.headerToolTip_Showing);
+            this.ToolTip.Showing += new EventHandler<ToolTipShowingEventArgs>(this.ListView.HeaderToolTipShowingCallback);
         }
 
         #endregion
@@ -503,7 +503,7 @@ namespace BrightIdeasSoftware
         /// <returns></returns>
         protected bool HandleDestroy(ref Message m) {
             if (this.ToolTip != null) {
-                this.ToolTip.Showing -= new EventHandler<ToolTipShowingEventArgs>(this.ListView.headerToolTip_Showing);
+                this.ToolTip.Showing -= new EventHandler<ToolTipShowingEventArgs>(this.ListView.HeaderToolTipShowingCallback);
             }
             return false;
         }

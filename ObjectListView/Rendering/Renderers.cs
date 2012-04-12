@@ -1816,12 +1816,8 @@ namespace BrightIdeasSoftware
         protected virtual CheckBoxState GetCheckBoxState(CheckState checkState) {
 
             // Should the checkbox be drawn as disabled?
-            bool isDisabled =
-                this.ListView.RenderNonEditableCheckboxesAsDisabled &&
-                (this.ListView.CellEditActivation == ObjectListView.CellEditActivateMode.None ||
-                !this.Column.IsEditable);
-
-            if (isDisabled) {
+            if (this.IsCheckBoxDisabled)
+            {
                 switch (checkState) {
                     case CheckState.Checked: return CheckBoxState.CheckedDisabled;
                     case CheckState.Unchecked: return CheckBoxState.UncheckedDisabled;
@@ -1852,6 +1848,17 @@ namespace BrightIdeasSoftware
                 default: return CheckBoxState.MixedNormal;
             }
 
+        }
+
+        /// <summary>
+        /// Should this checkbox be drawn as disabled?
+        /// </summary>
+        protected virtual bool IsCheckBoxDisabled {
+            get {
+                return this.ListView.RenderNonEditableCheckboxesAsDisabled &&
+                       (this.ListView.CellEditActivation == ObjectListView.CellEditActivateMode.None ||
+                        !this.Column.IsEditable);
+            }
         }
 
         /// <summary>
