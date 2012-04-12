@@ -2276,7 +2276,7 @@ namespace ObjectListViewDemo {
 
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
-            olv.ModelFilter = filter;
+            olv.AdditionalFilter = filter;
             stopWatch.Stop();
 
             IList objects = olv.Objects as IList;
@@ -2343,6 +2343,11 @@ namespace ObjectListViewDemo {
             System.Diagnostics.Debug.WriteLine(this.olvVirtual.CheckedObject);
             foreach (object x in this.olvVirtual.CheckedObjects)
                 System.Diagnostics.Debug.WriteLine(x);
+        }
+
+        private void olvComplex_ItemChecked(object sender, ItemCheckedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("here");
         }
     }
 
