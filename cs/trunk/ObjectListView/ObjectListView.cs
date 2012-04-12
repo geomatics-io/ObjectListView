@@ -5,6 +5,10 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2012-04-10  JPP  - Added PersistentCheckBoxes property to allow primary checkboxes to remember their values
+ *                    across list rebuilds.
+ * 2012-04-05  JPP  - Reverted some code to .NET 2.0 standard.
+ *                  - Tweaked some code
  * 2012-02-05  JPP  - Fixed bug when selecting a separator on a drop down menu
  * 2011-06-24  JPP  - Added CanUseApplicationIdle property to cover cases where Application.Idle events
  *                    are not triggered. For example, when used within VS (and probably Office) extensions
@@ -473,6 +477,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -678,6 +683,24 @@ namespace BrightIdeasSoftware
         #endregion
 
         #region Public properties
+
+        /// <summary>
+        /// Gets or sets an model filter that is combined with any column filtering that user specifies.
+        /// </summary>
+        /// <remarks>This is different from the ModelFilter property, since setting that will replace
+        /// any column filtering, whereas setting this will combine this filter with the column filtering</remarks>
+        public virtual IModelFilter AdditionalFilter
+        {
+            get { return this.additionalFilter; }
+            set
+            {
+                if (this.additionalFilter == value)
+                    return;
+                this.additionalFilter = value;
+                this.UpdateColumnFiltering();
+            }
+        }
+        private IModelFilter additionalFilter;
 
         /// <summary>
         /// Get or set all the columns that this control knows about.
@@ -1826,7 +1849,12 @@ namespace BrightIdeasSoftware
         /// Gets or  sets the filter that is applied to each model objects in the list
         /// </summary>
         /// <remarks>
+        /// <para>You may want to consider using <see cref="AdditionalFilter"/> instead of this property,
+        /// since AdditionalFilter combines with column filtering at runtime. Setting this property simply
+        /// replaces any column filter the user may have given.</para>
+        /// <para>
         /// The list is updated immediately to reflect this filter. 
+        /// </para>
         /// </remarks>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -1989,6 +2017,43 @@ namespace BrightIdeasSoftware
             get { return this.overlays; }
         }
         private readonly List<IOverlay> overlays = new List<IOverlay>();
+
+        /// <summary>
+        /// Gets or sets whether or not primary checkboxes will persistent their values across list rebuild
+        /// and filtering operations.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If you use CheckStateGetter/Putter, the checkedness of a row will already be persisted
+        /// by those methods. This property is only useful when you don't explicitly set CheckStateGetter/Putter.
+        /// </para>
+        /// <para>This defaults to true for virtual lists (Fast, Tree). If you set it to false on virtual lists,
+        /// you have to install CheckStateGetter/Putters.</para>
+        /// </remarks>
+        [Category("ObjectListView"),
+         Description("Will primary checkboxes persistent their values across list rebuilds"),
+         DefaultValue(false)]
+        public virtual bool PersistentCheckBoxes {
+            get { return persistentCheckBoxes; }
+            set {
+                if (persistentCheckBoxes == value)
+                    return;
+                persistentCheckBoxes = value;
+                this.ClearPersistentCheckState();
+            }
+        }
+        private bool persistentCheckBoxes;
+
+        /// <summary>
+        /// Gets or sets a dictionary that remembers the check state of model objects
+        /// </summary>
+        /// <remarks>This is used when PersistentCheckBoxes is true and for virtual lists.</remarks>
+        protected Dictionary<Object, CheckState> CheckStateMap {
+            get { return checkStateMap ?? (checkStateMap = new Dictionary<object, CheckState>()); }
+            set { checkStateMap = value; }
+        }
+        private Dictionary<Object, CheckState> checkStateMap;
+
 
         /// <summary>
         /// Which column did we last sort by
@@ -2546,6 +2611,8 @@ namespace BrightIdeasSoftware
         public virtual bool TriStateCheckBoxes {
             get { return triStateCheckBoxes; }
             set {
+                if (triStateCheckBoxes == value)
+                    return;
                 triStateCheckBoxes = value;
                 if (value && !this.CheckBoxes)
                     this.CheckBoxes = true;
@@ -3395,7 +3462,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Build/rebuild all the list view items in the list
+        /// Build/rebuild all the list view items in the list, preserving as much state as is possible
         /// </summary>
         public virtual void BuildList() {
             if (this.InvokeRequired)
@@ -4533,7 +4600,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        internal void headerToolTip_Showing(object sender, ToolTipShowingEventArgs e) {
+        internal void HeaderToolTipShowingCallback(object sender, ToolTipShowingEventArgs e) {
             this.HandleHeaderToolTipShowing(sender, e);
         }
 
@@ -4685,7 +4752,7 @@ namespace BrightIdeasSoftware
             if (System.Environment.TickCount < (this.timeLastCharEvent + MILLISECONDS_BETWEEN_KEYPRESSES))
                 this.lastSearchString += character;
             else
-                this.lastSearchString = character.ToString();
+                this.lastSearchString = character.ToString(CultureInfo.InvariantCulture);
 
             // If this control is showing checkboxes, we want to ignore single space presses,
             // since they are used to toggle the selected checkboxes.
@@ -4765,7 +4832,7 @@ namespace BrightIdeasSoftware
 
             // If the context menu command was generated by the keyboard, LParam will be -1.
             // We don't want to process these.
-            if (m.LParam == MINUS_ONE)
+            if (m.LParam == this.minusOne)
                 return false;
 
             // If the context menu came from somewhere other than the header control,
@@ -4780,7 +4847,7 @@ namespace BrightIdeasSoftware
             int columnIndex = this.HeaderControl.ColumnIndexUnderCursor;
             return this.HandleHeaderRightClick(columnIndex);
         }
-        readonly IntPtr MINUS_ONE = new IntPtr(-1);
+        readonly IntPtr minusOne = new IntPtr(-1);
 
         /// <summary>
         /// Handle the Custom draw series of notifications
@@ -4993,15 +5060,14 @@ namespace BrightIdeasSoftware
             // and reconfigure its tooltip
             if (this.cellToolTip == null)
                 return false;
-            else {
-                this.cellToolTip.PushSettings();
-                base.WndProc(ref m);
-                this.BeginInvoke((MethodInvoker)delegate {
-                    this.UpdateCellToolTipHandle();
-                    this.cellToolTip.PopSettings();
-                });
-                return true;
-            }
+
+            this.cellToolTip.PushSettings();
+            base.WndProc(ref m);
+            this.BeginInvoke((MethodInvoker)delegate {
+                                                this.UpdateCellToolTipHandle();
+                                                this.cellToolTip.PopSettings();
+                                            });
+            return true;
         }
 
         /// <summary>
@@ -5929,14 +5995,14 @@ namespace BrightIdeasSoftware
 
             if (this.SelectColumnsOnRightClickBehaviour == ColumnSelectBehaviour.Submenu) {
                 ToolStripMenuItem menu = new ToolStripMenuItem(this.MenuLabelColumns);
-                menu.DropDownItemClicked += new ToolStripItemClickedEventHandler(ColumnSelectMenu_ItemClicked);
+                menu.DropDownItemClicked += new ToolStripItemClickedEventHandler(this.ColumnSelectMenuItemClicked);
                 strip.Items.Add(menu);
                 this.AddItemsToColumnSelectMenu(menu.DropDownItems);
             }
 
             if (this.SelectColumnsOnRightClickBehaviour == ColumnSelectBehaviour.InlineMenu) {
-                strip.ItemClicked += new ToolStripItemClickedEventHandler(ColumnSelectMenu_ItemClicked);
-                strip.Closing += new ToolStripDropDownClosingEventHandler(ColumnSelectMenu_Closing);
+                strip.ItemClicked += new ToolStripItemClickedEventHandler(this.ColumnSelectMenuItemClicked);
+                strip.Closing += new ToolStripDropDownClosingEventHandler(this.ColumnSelectMenuClosing);
                 this.AddItemsToColumnSelectMenu(strip.Items);
             }
 
@@ -5967,7 +6033,7 @@ namespace BrightIdeasSoftware
             }
         }
 
-        private void ColumnSelectMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
+        private void ColumnSelectMenuItemClicked(object sender, ToolStripItemClickedEventArgs e) {
             this.contextMenuStaysOpen = false;
             ToolStripMenuItem menuItemClicked = e.ClickedItem as ToolStripMenuItem;
             if (menuItemClicked == null)
@@ -5982,7 +6048,7 @@ namespace BrightIdeasSoftware
         }
         private bool contextMenuStaysOpen;
 
-        private void ColumnSelectMenu_Closing(object sender, ToolStripDropDownClosingEventArgs e) {
+        private void ColumnSelectMenuClosing(object sender, ToolStripDropDownClosingEventArgs e) {
             e.Cancel = this.contextMenuStaysOpen && e.CloseReason == ToolStripDropDownCloseReason.ItemClicked;
             this.contextMenuStaysOpen = false;
         }
@@ -6193,10 +6259,7 @@ namespace BrightIdeasSoftware
         /// <remarks>If the given object is not in the list, this method returns false.</remarks>
         public virtual bool IsChecked(object modelObject) {
             OLVListItem olvi = this.ModelToItem(modelObject);
-            if (olvi == null)
-                return false;
-            else
-                return olvi.CheckState == CheckState.Checked;
+            return olvi != null && olvi.CheckState == CheckState.Checked;
         }
 
         /// <summary>
@@ -6207,10 +6270,7 @@ namespace BrightIdeasSoftware
         /// <remarks>If the given object is not in the list, this method returns false.</remarks>
         public virtual bool IsCheckedIndeterminate(object modelObject) {
             OLVListItem olvi = this.ModelToItem(modelObject);
-            if (olvi == null)
-                return false;
-            else
-                return (olvi.CheckState == CheckState.Indeterminate);
+            return olvi != null && olvi.CheckState == CheckState.Indeterminate;
         }
 
         /// <summary>
@@ -6219,10 +6279,9 @@ namespace BrightIdeasSoftware
         /// <param name="rowObject"></param>
         /// <param name="column"></param>
         public virtual bool IsSubItemChecked(object rowObject, OLVColumn column) {
-            if (column != null && rowObject != null && column.CheckBoxes)
-                return (column.GetCheckState(rowObject) == CheckState.Checked);
-            else
+            if (column == null || rowObject == null || !column.CheckBoxes) 
                 return false;
+            return (column.GetCheckState(rowObject) == CheckState.Checked);
         }
 
         /// <summary>
@@ -6232,10 +6291,9 @@ namespace BrightIdeasSoftware
         /// <param name="modelObject"></param>
         /// <returns></returns>
         protected virtual CheckState? GetCheckState(Object modelObject) {
-            if (this.CheckStateGetter == null)
-                return null;
-            else
+            if (this.CheckStateGetter != null) 
                 return this.CheckStateGetter(modelObject);
+            return this.PersistentCheckBoxes ? this.GetPersistentCheckState(modelObject) : (CheckState?)null;
         }
 
         /// <summary>
@@ -6247,10 +6305,9 @@ namespace BrightIdeasSoftware
         /// <returns>The check state that was recorded and that should be used to update
         /// the control.</returns>
         protected virtual CheckState PutCheckState(Object modelObject, CheckState state) {
-            if (this.CheckStatePutter == null)
-                return state;
-            else
+            if (this.CheckStatePutter != null) 
                 return this.CheckStatePutter(modelObject, state);
+            return this.PersistentCheckBoxes ? this.SetPersistentCheckState(modelObject, state) : state;
         }
 
         /// <summary>
@@ -6302,10 +6359,7 @@ namespace BrightIdeasSoftware
             CheckState newState = CheckState.Checked;
 
             if (olvi.CheckState == CheckState.Checked) {
-                if (this.TriStateCheckBoxes)
-                    newState = CheckState.Indeterminate;
-                else
-                    newState = CheckState.Unchecked;
+                newState = this.TriStateCheckBoxes ? CheckState.Indeterminate : CheckState.Unchecked;
             } else {
                 if (olvi.CheckState == CheckState.Indeterminate && this.TriStateCheckBoxes)
                     newState = CheckState.Unchecked;
@@ -6445,10 +6499,10 @@ namespace BrightIdeasSoftware
         /// <param name="index">Index of the item to be returned</param>
         /// <returns>An OLVListItem</returns>
         public virtual OLVListItem GetItem(int index) {
-            if (index >= 0 && index < this.GetItemCount())
-                return (OLVListItem)this.Items[index];
-            else
+            if (index < 0 || index >= this.GetItemCount()) 
                 return null;
+            
+            return (OLVListItem)this.Items[index];
         }
 
         /// <summary>
@@ -6458,10 +6512,7 @@ namespace BrightIdeasSoftware
         /// <returns>A model object</returns>
         public virtual object GetModelObject(int index) {
             OLVListItem item = this.GetItem(index);
-            if (item == null)
-                return null;
-            else
-                return item.RowObject;
+            return item == null ? null : item.RowObject;
         }
 
         /// <summary>
@@ -6469,17 +6520,17 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="x">X co-ord</param>
         /// <param name="y">Y co-ord</param>
-        /// <param name="selectedColumn">The column under the given point</param>
+        /// <param name="hitColumn">The column under the given point</param>
         /// <returns>The item under the given point. Can be null.</returns>
-        public virtual OLVListItem GetItemAt(int x, int y, out OLVColumn selectedColumn) {
-            selectedColumn = null;
+        public virtual OLVListItem GetItemAt(int x, int y, out OLVColumn hitColumn) {
+            hitColumn = null;
             ListViewHitTestInfo info = this.HitTest(x, y);
             if (info.Item == null)
                 return null;
 
             if (info.SubItem != null) {
                 int subItemIndex = info.Item.SubItems.IndexOf(info.SubItem);
-                selectedColumn = this.GetColumn(subItemIndex);
+                hitColumn = this.GetColumn(subItemIndex);
             }
 
             return (OLVListItem)info.Item;
@@ -6493,10 +6544,7 @@ namespace BrightIdeasSoftware
         /// <returns>An OLVListSubItem</returns>
         public virtual OLVListSubItem GetSubItem(int index, int columnIndex) {
             OLVListItem olvi = this.GetItem(index);
-            if (olvi == null)
-                return null;
-            else
-                return olvi.GetSubItem(columnIndex);
+            return olvi == null ? null : olvi.GetSubItem(columnIndex);
         }
 
         #endregion
@@ -6861,10 +6909,7 @@ namespace BrightIdeasSoftware
                 if (this.SmallImageList == null || !this.SmallImageList.Images.ContainsKey(SORT_INDICATOR_UP_KEY))
                     MakeSortIndicatorImages();
 
-                if (sortOrder == SortOrder.Ascending)
-                    imageIndex = this.SmallImageList.Images.IndexOfKey(SORT_INDICATOR_UP_KEY);
-                else if (sortOrder == SortOrder.Descending)
-                    imageIndex = this.SmallImageList.Images.IndexOfKey(SORT_INDICATOR_DOWN_KEY);
+                imageIndex = this.SmallImageList.Images.IndexOfKey(sortOrder == SortOrder.Ascending ? SORT_INDICATOR_UP_KEY : SORT_INDICATOR_DOWN_KEY);
             }
 
             // Set the image for each column
@@ -6951,7 +6996,7 @@ namespace BrightIdeasSoftware
         /// Do the actual work of creating the given list of groups
         /// </summary>
         /// <param name="groups"></param>
-        protected virtual void CreateGroups(IList<OLVGroup> groups) {
+        protected virtual void CreateGroups(IEnumerable<OLVGroup> groups) {
             this.Groups.Clear();
             // The group must be added before it is given items, otherwise an exception is thrown (is this documented?)
             foreach (OLVGroup group in groups) {
@@ -7041,7 +7086,7 @@ namespace BrightIdeasSoftware
             if (this.CheckBoxes) {
                 CheckState? state = this.GetCheckState(lvi.RowObject);
                 if (state.HasValue)
-                    lvi.CheckState = (CheckState)state;
+                    lvi.CheckState = state.Value;
             }
 
             // Give the RowFormatter a chance to mess with the item
@@ -7083,10 +7128,7 @@ namespace BrightIdeasSoftware
                 OLVColumn column = this.GetColumn(i);
                 subItem.BackColor = itemBackColor;
                 if (column.Hyperlink && !String.IsNullOrEmpty(subItem.Url)) {
-                    if (this.IsUrlVisited(subItem.Url))
-                        this.ApplyCellStyle(olvi, i, this.HyperlinkStyle.Visited);
-                    else
-                        this.ApplyCellStyle(olvi, i, this.HyperlinkStyle.Normal);
+                    this.ApplyCellStyle(olvi, i, this.IsUrlVisited(subItem.Url) ? this.HyperlinkStyle.Visited : this.HyperlinkStyle.Normal);
                 }
             }
         }
@@ -7182,7 +7224,9 @@ namespace BrightIdeasSoftware
         protected virtual void PostProcessRows() {
             // If this method is called during a BeginUpdate/EndUpdate pair, changes to the
             // Items collection are cached. Getting the Count flushes that cache.
+#pragma warning disable 168
             int count = this.Items.Count;
+#pragma warning restore 168
 
             int i = 0;
             if (this.ShowGroups) {
@@ -7205,11 +7249,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected virtual void PostProcessOneRow(int rowIndex, int displayIndex, OLVListItem olvi) {
             if (this.UseAlternatingBackColors && this.View == View.Details) {
-                if (displayIndex % 2 == 1) {
-                    olvi.BackColor = this.AlternateRowBackColorOrDefault;
-                } else {
-                    olvi.BackColor = this.BackColor;
-                }
+                olvi.BackColor = displayIndex % 2 == 1 ? this.AlternateRowBackColorOrDefault : this.BackColor;
             }
             if (this.ShowImagesOnSubItems && !this.VirtualMode) {
                 this.SetSubItemImages(rowIndex, olvi);
@@ -7996,8 +8036,8 @@ namespace BrightIdeasSoftware
                 r = this.GetItemRect(item.Index, ItemBoundsPortion.Label);
             if (this.OwnerDraw)
                 return CalculateCellEditorBoundsOwnerDrawn(item, subItemIndex, r);
-            else
-                return CalculateCellEditorBoundsStandard(item, subItemIndex, r);
+            
+            return CalculateCellEditorBoundsStandard(item, subItemIndex, r);
         }
 
         /// <summary>
@@ -9018,14 +9058,67 @@ namespace BrightIdeasSoftware
         /// defined in each column
         /// </summary>
         public virtual void UpdateColumnFiltering() {
-            this.ModelFilter = this.CreateColumnFilter();
+            List<IModelFilter> filters = new List<IModelFilter>();
+            IModelFilter columnFilter = this.CreateColumnFilter();
+            if (columnFilter != null)
+                filters.Add(columnFilter);
+            if (this.AdditionalFilter != null)
+                filters.Add(this.AdditionalFilter);
+            this.ModelFilter = filters.Count == 0 ? null : new CompositeAllFilter(filters);
         }
+        /*if (this.AdditionalFilter == null)
+                this.ModelFilter = this.CreateColumnFilter();
+            else {
+                IModelFilter columnFilter = this.CreateColumnFilter();
+                if (columnFilter == null)
+                    this.ModelFilter = this.AdditionalFilter;
+                else
+                    this.ModelFilter = new CompositeAllFilter(this.AdditionalFilter;
+            }*/
+       // }
 
         /// <summary>
         /// When some setting related to filtering changes, this method is called.
         /// </summary>
         protected virtual void UpdateFiltering() {
             this.BuildList(true);
+        }
+
+        #endregion
+
+        #region Persistent check state
+
+        /// <summary>
+        /// Gets the checkedness of the given model.
+        /// </summary>
+        /// <param name="model">The model</param>
+        /// <returns>The checkedness of the model. Defaults to unchecked.</returns>
+        protected virtual CheckState GetPersistentCheckState(object model) {
+            CheckState state = CheckState.Unchecked;
+            if (model != null)
+                this.CheckStateMap.TryGetValue(model, out state);
+            return state;
+        }
+
+        /// <summary>
+        /// Remember the check state of the given model object
+        /// </summary>
+        /// <param name="model">The model to be remembered</param>
+        /// <param name="state">The model's checkedness</param>
+        /// <returns>The state given to the method</returns>
+        protected virtual CheckState SetPersistentCheckState(object model, CheckState state) {
+            if (model == null)
+                return CheckState.Unchecked;
+
+            this.CheckStateMap[model] = state;
+            return state;
+        }
+
+        /// <summary>
+        /// Forget any persistent checkbox state
+        /// </summary>
+        protected virtual void ClearPersistentCheckState() {
+            this.CheckStateMap = null;
         }
 
         #endregion

@@ -130,8 +130,11 @@ namespace BrightIdeasSoftware
         /// Create a composite filter from the given list of filters
         /// </summary>
         /// <param name="filters">A list of filters</param>
-        public CompositeFilter(IList<IModelFilter> filters) {
-            Filters = filters;
+        public CompositeFilter(IEnumerable<IModelFilter> filters) {
+            foreach (IModelFilter filter in filters) {
+                if (filter != null)
+                    Filters.Add(filter);
+            }
         }
 
         /// <summary>
