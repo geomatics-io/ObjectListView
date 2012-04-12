@@ -42,7 +42,7 @@ DataListView - Strawberry Smoothie
     :class: left-padded
 
 *Everything is just smooth and easy*
- 
+
 A `DataListView` is for the ultra-slothful: those who literally do not want to even write one line of code.
 
 A `DataListView` can be given a `DataSource` from within the IDE, and it will
@@ -65,7 +65,7 @@ ease of `DataListView`. On my mid-range laptop, a `FastDataListView` can easily 
 
 A `FastDataListView` virtualizes the display of the data set -- it does not change the process of
 loading data into the dataset. If your dataset is a SQL statement that fetches one million rows
-from a remote database, your program will still have to load all one millions rows. Once loaded, however, 
+from a remote database, your program will still have to load all one millions rows. Once loaded, however,
 `FastDataListView` will show them almost instantly.
 
 VirtualObjectListView - Expresso
@@ -313,7 +313,7 @@ Another improvement over `RowFormatters` is that these events play well
 with `UseAlternateBackColors`. Any formatting you do in these events takes
 precedence over the alternate backcolors.
 
-To improve performance, `FormatCell` events are only fired when a handler 
+To improve performance, `FormatCell` events are only fired when a handler
 of the `FormatRow`
 event sets `UseCellFormatEvents` to *true*. If you want to have a `FormatCell`
 event fired for every cell, you can set `UseCellFormatEvents` on the
@@ -396,7 +396,7 @@ The `ListViewReporter` code in ObjectListView project is up-to-date.
 10. How do I use checkboxes in my ObjectListView?
 -------------------------------------------------
 
-NOTE: Please read `Using checkboxes programmatically`_ 
+NOTE: Please read `Using checkboxes programmatically`_
 
 To uses checkboxes with an ObjectListView, you must set the `CheckBoxes`
 property to  *true*. If you want the user to be able to give check boxes the
@@ -411,7 +411,7 @@ To make the checkboxes work, you can:
 1. Do nothing else
 
 With just `CheckBoxes` set to  *true*, the check boxes act as a more durable
-form of selection. 
+form of selection.
 
 2. Use CheckedAspectName
 
@@ -469,24 +469,24 @@ change checkboxes on an
 .NET mechanism will only give you grief.
 
 `ObjectListView` still triggers
-the same `ItemCheck` and `ItemChecked` events know when a check box has changed value. 
+the same `ItemCheck` and `ItemChecked` events know when a check box has changed value.
 You can still read the `Checked` property of a `ListViewItem` to know if that item is checked.
 However to modify a value
 programmatically, you cannot use .NET's normal mechanisms.
 
 To find all model objects that are checked, you use the
 `CheckedObjects` property. Similarly, you can change which rows are checked by setting
-the same property. 
+the same property.
 
 You can check all objects like this::
 
     this.olv1.CheckedObjectsEnumerable = this.olv1.Objects;
-	
+
 and unchecked all rows like this::
 
     this.olv1.CheckedObjects = null;
 
-	
+
 Changing `Checked` property programmatically
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -496,14 +496,14 @@ If you programmatically set `ListViewItem.Checked`, `ObjectListView` will never 
 set that value, and strange things will happen (specifically, the checkbox on that row will
 stop responding to clicks).
 
-So, this code -- which tries to toggle the checkedness of the 
+So, this code -- which tries to toggle the checkedness of the
 selected rows -- will cause problems for your `ObjectListView`::
 
     private void objectListView1_ItemActivate(object sender, EventArgs e) {
 	    foreach (ListViewItem lvi in objectListView1.SelectedItems)
 			lvi.Checked = !lvi.Checked;
     }
-	
+
 This will work -- once! After that, it will not work again. Worse, the check boxes will
 stop responding to user clicks. To work
 properly, you treat the items as `OLVListItem`::
@@ -512,7 +512,7 @@ properly, you treat the items as `OLVListItem`::
 	    foreach (OLVListItem olvi in objectListView1.SelectedItems)
 			olvi.Checked = !olvi.Checked;
     }
-	
+
 This will work as expected.
 
 
@@ -546,7 +546,7 @@ CheckBoxes and virtual lists
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The .NET `ListView` cannot have `CheckBoxes` on virtual lists. However,
-`VirtualObjectListView` (and thus `FastObjectListView` and `TreeListView`) 
+`VirtualObjectListView` (and thus `FastObjectListView` and `TreeListView`)
 can support checkboxes. So now all flavours of `ObjectListView` support checkboxes equally.
 
 The only caveat for using check boxes on virtual lists is that, when a
@@ -563,7 +563,7 @@ the list has 10,000,000 objects, your program is going to hang.
 
 Virtual lists persist the "checkedness" of individual objects across calls to
 `SetObjects()` (and other list modifying operations). To make the list forget
-the "checkedness" of all objects, call `ClearObjects()`. 
+the "checkedness" of all objects, call `ClearObjects()`.
 
 .. _recipe-tileview:
 
@@ -1071,7 +1071,7 @@ Like overlays, decorations are purely cosmetic. They do not respond to any user 
 21. How can I use drag and drop in an ObjectListView?
 -----------------------------------------------------
 
-This needs its own page to explain properly. :ref:`dragdrop-label`. 
+This needs its own page to explain properly. :ref:`dragdrop-label`.
 
 To see a detailed walk-through, have a look at :ref:`this blog <blog-rearrangingtreelistview>`.
 
@@ -1176,29 +1176,29 @@ on the list background.
 25. How do I change the font or color of the column headers?
 ------------------------------------------------------------
 
-Set `ObjectListView.HeaderUsesThemes` to *false* and then create 
+Set `ObjectListView.HeaderUsesThemes` to *false* and then create
 a `HeaderFormatStyle` object (either in code or within the IDE), give it
-the characteristics you want, and then assign that style to either 
-`ObjectListView.HeaderFormatStyle` (to format all column headers) or 
+the characteristics you want, and then assign that style to either
+`ObjectListView.HeaderFormatStyle` (to format all column headers) or
 `OLVColumn.HeaderFormatStyle` (to format just one column header).
 
 Each `HeaderFormatStyle` has a setting for each state of the header:
 
-* `Normal` controls how the header appears when nothing else is happening to it. 
+* `Normal` controls how the header appears when nothing else is happening to it.
 
-* `Hot` controls how the header appears when the mouse is over the header. 
+* `Hot` controls how the header appears when the mouse is over the header.
   This should be a slight, but still noticable, shift from the normal state.
 
-* `Pressed` controls how the header appears when the user has pressed the 
-  mouse button on the header, but not yet released the button. 
-  This should be a clear visual change from both the normal and hot states. 
+* `Pressed` controls how the header appears when the user has pressed the
+  mouse button on the header, but not yet released the button.
+  This should be a clear visual change from both the normal and hot states.
 
-For each state, the header format allows the font, font color, background color 
-and frame to be specified. If you combine these attributes badly, you can 
+For each state, the header format allows the font, font color, background color
+and frame to be specified. If you combine these attributes badly, you can
 produce some truly dreadful designs, but when well used, the effect can be pleasant.
 
     *"I've setup the HeaderFormat like you say, but the stupid thing does nothing"*
-	
+
 Make sure `HeaderUsesThemes` is *false*. If this is *true*, `ObjectListView` will
 use the OS's theme to draw the header, ignoring the `HeaderFormatStyle` completely.
 
@@ -1207,9 +1207,9 @@ word wrap the text within the header.
 
 .. image:: images/header-formatting.png
 
-[v2.3 and earlier] 
+[v2.3 and earlier]
 
-In previous versions, you could set the `HeaderFont` or `HeaderForeColor` 
+In previous versions, you could set the `HeaderFont` or `HeaderForeColor`
 properties on the `ObjectListView` to
 change the font and color for all columns. You can also set the `HeaderFont` or
 `HeaderForeColor` properties on one `OLVColumn` to change just that column.
@@ -1476,16 +1476,16 @@ there is no guarantee that it will continue working in later versions of Windows
 ----------------------------------------------------
 
 This needs a :ref:`whole page to itself <filtering-label>`.
-  
+
 In brief, you must set `UseFiltering` to *true*, and then set either the `ModelFilter` property
-or the `ListFilter` property to an appropriate filter. 
+or the `ListFilter` property to an appropriate filter.
 
 ObjectListView provides a number
 of pre-built filter, including a text based filter (see :ref:`recipe-text-filtering`).
 The base `ModelFilter` class can be given a delegate and used directly::
 
-   this.olv1.ModelFilter = new ModelFilter(delegate(object x) { 
-       return ((PhoneCall)x).IsEmergency; 
+   this.olv1.ModelFilter = new ModelFilter(delegate(object x) {
+       return ((PhoneCall)x).IsEmergency;
    });
 
 .. _recipe-text-filtering:
@@ -1494,13 +1494,13 @@ The base `ModelFilter` class can be given a delegate and used directly::
 ------------------------------------------------------------------
 
     *I want to do a text filter like iTunes' search box, where only songs that contain the typed string are shown. Is there an easy way to do that?*
-	
+
 Funnily enough, there is! It's called `TextMatchFilter.` You use it thus::
 
     this.olv1.ModelFilter = TextMatchFilter.Contains(this.olv1, "search");
-	
+
 After executing this line, the `olv1` will only show rows where the text "search"
-occurs in at least one cell of that row. 
+occurs in at least one cell of that row.
 
 This searching uses each cell's string representation. This can lead to some odd, but still
 accurate results, when owner drawn is *true*. For example, subitem check boxes are drawn
@@ -1556,7 +1556,7 @@ This needs a whole page to itself: :ref:`animations-label`
     of the columns in the list so they can be restored when
     the user reruns the app. Is there a way to do that?*
 
-Use the `SaveState()` and `RestoreState()` methods. 
+Use the `SaveState()` and `RestoreState()` methods.
 
 `SaveState()`
 returns a byte array which contains the state of the `ObjectListView`.
@@ -1601,9 +1601,9 @@ process so any value you set on them in the IDE *will not* be persisted.
 
 37. Can I make a header take up even less space? Can it be drawn vertical?
 --------------------------------------------------------------------------
- 
+
 For checkbox column, or image only columns, the header text can take up
-much more space than the data it is labelling. In such cases, you can make 
+much more space than the data it is labelling. In such cases, you can make
 the columns header be drawn vertically, by setting `OLVColumn.IsHeaderVertical`
 property to *true*.
 
@@ -1628,7 +1628,7 @@ easily see what the header is trying to say.
 
    *My users sometimes get confused about whether they are editing a cell,
    and if so, which one. Is there any way to make these things more obvious?*
-   
+
 You could install a `EditingCellBorderDecoration` on your `ObjectListView`.
 Then, when the user is editing a cell, they will see something like this:
 
@@ -1637,7 +1637,7 @@ Then, when the user is editing a cell, they will see something like this:
 To install this decoration, you do this::
 
   this.olv.AddDecoration(new EditingCellBorderDecoration { UseLightbox = true });
-  
+
 The `EditingCellBorderDecoration` has the usual swathe of properties controlling
 exactly how it looks.
 
@@ -1650,13 +1650,13 @@ OK, OK. This isn't actually a very useful class, but it does look cool :)
 
    *Your way of ordering groups and the rows within the groups is stupid.
    I want to be able to do it myself.*
-   
+
 O-K... Listen for the `BeforeCreatingGroups` event. In the parameter block
 for that event, set `GroupComparer` to control how groups are sorted, and
 `ItemComparer` to control how items within a group are sorted.
 
 If you don't want the items within the group to be sorted at all, set
-`PrimarySortOrder` to `SortOrder.None`. 
+`PrimarySortOrder` to `SortOrder.None`.
 
 There is no way to NOT sort the groups. They have to be ordered in some
 fashion.
@@ -1668,24 +1668,24 @@ fashion.
    hitting [Tab]. So, when the user hits [Tab] when editing the last cell, I don't
    want it to wrap back to the first cell -- I want it to change rows.
    How can do I that?*
-   
+
 There must be a thousand variations on this question, but the two most common are:
 
   1. how to make `[Tab]` change rows when editing the last cell.
-  
+
   2. how to make `[Enter]` change rows, not just commit the change.
 
-To address these two most common case, ObjectListView now has `CellEditTabChangesRows` 
-and `CellEditEnterChangesRows` properies. 
+To address these two most common case, ObjectListView now has `CellEditTabChangesRows`
+and `CellEditEnterChangesRows` properies.
 
   * `CellEditTabChangesRows` makes ObjectListView
     change the row being edited when the user presses `[Tab]` while editing the last
-    editable cell on a row. 
-    
-  * `CellEditEnterChangesRows` makes ObjectListView 
+    editable cell on a row.
+
+  * `CellEditEnterChangesRows` makes ObjectListView
     try to edit the cell below the cell being edited when the user press `[Enter]`.
 
-These behaviours are achieved by modifying the `CellEditKeyEngine` settings. 
+These behaviours are achieved by modifying the `CellEditKeyEngine` settings.
 This engine allows you to completely
 customise the behaviour of keys during a cell edit operation.
 
@@ -1698,9 +1698,9 @@ NOTE: The interface to `CellEditKeyEngine` will almost certainly change in the n
 41. How do I change the way the "Filtering" menu works?
 -------------------------------------------------------
 
-  *I really like the 'Filter' menu, but I want to change the values that are 
+  *I really like the 'Filter' menu, but I want to change the values that are
   shown in the check list. How do I do that?*
-  
+
 This is complex enough to needs its own page (:ref:`column-filtering-label`), but briefly:
 
 The values in the check list are controlled by the `ClusteringStrategy` that is installed on a column.
@@ -1708,8 +1708,8 @@ By default, the clustering strategy copies the grouping behaviour of that column
 this, you must set `ClusteringStrategy` to a strategy that does what you want.
 
 To create your own strategy, you must implement `IClusteringStrategy` or subclass
-the safe base clas `ClusteringStrategy`. If you are showing dates or times in a column, 
-the `DateTimeClusteringStrategy` can probably be configured to do exactly what you want. 
+the safe base clas `ClusteringStrategy`. If you are showing dates or times in a column,
+the `DateTimeClusteringStrategy` can probably be configured to do exactly what you want.
 
 To hide the 'Filter' menu item for all columns, set `ShowFilterMenuOnRightClick` to *false*.
 
@@ -1727,7 +1727,7 @@ they will presented with a menu that lets them choose which columns they wish to
 The exact behaviour of the column selection mechanism is governed
 by the `SelectColumnsOnRightClickBehaviour` property.
 
-To prevent the user from changes the visible columns, set this property to `ColumnSelectBehaviour.None`. 
+To prevent the user from changes the visible columns, set this property to `ColumnSelectBehaviour.None`.
 
 To present the column selection menu as a submenu off the header right click menu,
 set this property to `ColumnSelectBehaviour.Submenu`.
@@ -1735,8 +1735,8 @@ set this property to `ColumnSelectBehaviour.Submenu`.
 .. image:: images/column-selection-submenu.png
 
 To present the column selection menu as the bottom items in the header right click menu,
-set this property to `ColumnSelectBehaviour.Inline`. This is the default. 
-If `SelectColumnsMenuStaysOpen` is *true* (which is the default), 
+set this property to `ColumnSelectBehaviour.Inline`. This is the default.
+If `SelectColumnsMenuStaysOpen` is *true* (which is the default),
 the menu will remain open after the user
 clicks on column, letting them hide or show multiple columns without having to show
 the right click menu again.
@@ -1751,6 +1751,32 @@ the order of the columns), set this property to `ColumnSelectBehaviour.ModelDial
 If there are some columns that you do not want the user to be able to hide, set
 `OLVColumn.Hideable` to *false*. This will prevent the user from hiding that column.
 
-Note: Column 0 can never be hidden. This is a limit of the underlying Windows control. 
+Note: Column 0 can never be hidden. This is a limit of the underlying Windows control.
 If you wish to make your first column hideable, move it to anywhere else in the column list,
 and then set its `DisplayIndex` to 0, so that it appears first.
+
+
+.. _recipe-persistent-checkboxes:
+
+43. How can I make checkboxes keep their values when filtering an ObjectListView?
+---------------------------------------------------------------------------------
+
+Set `PersistentCheckboxes` to *true*.
+
+By default, the "checkedness" of a row is maintained by the underlying ListView control.
+However, when the contents of the control are rebuild -- either by calling `BuildList()`
+or by applying or removing a filter --
+this "checkedness" is lost since all the underlying `ListViewItems` are destroyed and recreated.
+
+When `PersistentCheckboxes` is *true*, the `ObjectListView` will remember the check state of
+each row, and ensure that it is correctly maintained whenever the list is rebuilt or filtered.
+
+This is *true* by default on all virtual lists (`FastObjectListView` and `TreeListView`). It
+should probably be *true* for all normal `ObjectListViews` too, but to maintain previous behaviour,
+it is *false* by default.
+
+If an `ObjectListView` has `CheckStateGetter` and `CheckStatePutters` installed, the `PersistentCheckboxes`
+property does nothing, since the getter and putter must already persist the checkbox state.
+
+
+
