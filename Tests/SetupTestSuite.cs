@@ -9,6 +9,7 @@
  */
 
 using System;
+using System.Drawing;
 using NUnit.Framework;
 
 namespace BrightIdeasSoftware.Tests
@@ -20,6 +21,7 @@ namespace BrightIdeasSoftware.Tests
         public void RunBeforeAnyTests()
         {
             MyGlobals.mainForm = new MainForm();
+            MyGlobals.mainForm.Size = new Size();
             MyGlobals.mainForm.Show();
         }
         public static MainForm mainForm;

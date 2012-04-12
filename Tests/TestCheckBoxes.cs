@@ -30,7 +30,16 @@ namespace BrightIdeasSoftware.Tests
         public void TearDownEachTest() {
             this.olv.CheckStateGetter = null;
             this.olv.CheckStatePutter = null;
+            this.olv.UseFiltering = false;
+            this.olv.ModelFilter = null;
         }
+
+        [TestFixtureSetUp]
+        public void Init()
+        {
+            this.olv = MyGlobals.mainForm.objectListView1;
+        }
+        protected ObjectListView olv;
 
         [Test]
         public void TestCheckObject() {
@@ -100,6 +109,7 @@ namespace BrightIdeasSoftware.Tests
                 }
             };
             this.olv.SetObjects(PersonDb.All);
+            Application.DoEvents();
 
             Assert.IsTrue(this.olv.IsChecked(PersonDb.All[0]));
             Assert.IsTrue(this.olv.ModelToItem(PersonDb.All[0]).CheckState == CheckState.Checked);
@@ -250,12 +260,9 @@ namespace BrightIdeasSoftware.Tests
             PersonDb.All[0].IsActive = true;
             PersonDb.All[1].IsActive = false;
 
-            OLVColumn column = this.olv.GetColumn(1);
-            string oldAspectName = column.AspectName;
-            column.AspectName = "IsActive";
-            column.CheckBoxes = true;
+            OLVColumn column = this.olv.GetColumn("IsActive");
+            Assert.IsNotNull(column);
 
-            this.olv.SetObjects(PersonDb.All);
             Assert.IsTrue(this.olv.IsSubItemChecked(PersonDb.All[0], column));
             Assert.IsFalse(this.olv.IsSubItemChecked(PersonDb.All[1], column));
 
@@ -264,15 +271,46 @@ namespace BrightIdeasSoftware.Tests
 
             Assert.IsFalse(this.olv.IsSubItemChecked(PersonDb.All[0], column));
             Assert.IsTrue(this.olv.IsSubItemChecked(PersonDb.All[1], column));
-
-            this.olv.GetColumn(1).AspectName = oldAspectName;
         }
 
-        [TestFixtureSetUp]
-        public void Init() {
-            this.olv = MyGlobals.mainForm.objectListView1;
+        [Test]
+        public void TestCheckBoxPersistent()
+        {
+            this.olv.PersistentCheckBoxes = true;
+            this.olv.CheckedObjects = PersonDb.All;
+            Assert.AreEqual(this.olv.CheckedObjects.Count, PersonDb.All.Count);
+
+            this.olv.BuildList();
+            Assert.AreEqual(this.olv.CheckedObjects.Count, PersonDb.All.Count);
+            this.olv.PersistentCheckBoxes = false;
         }
-        protected ObjectListView olv;
+
+        [Test]
+        public void TestCheckBoxFiltering()
+        {
+            // Make sure that persistent check boxes work when we have a filter
+
+            this.olv.PersistentCheckBoxes = true;
+            this.olv.CheckedObjects = PersonDb.All;
+            Assert.AreEqual(this.olv.CheckedObjects.Count, PersonDb.All.Count);
+
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv, PersonDb.FirstAlphabeticalName);
+            Assert.AreEqual(1, this.olv.CheckedObjects.Count);
+
+            this.olv.ModelFilter = null;
+            Assert.AreEqual(this.olv.CheckedObjects.Count, PersonDb.All.Count);
+            this.olv.PersistentCheckBoxes = false;
+        }
+
+        [Test]
+        public void TestSubItemCheckBoxFiltering()
+        {
+            // Make sure that check boxes work when we have a filter
+
+            PersonDb.All[0].IsActive = true;
+
+        }
     }
 
     [TestFixture]
