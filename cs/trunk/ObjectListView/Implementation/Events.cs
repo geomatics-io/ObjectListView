@@ -255,6 +255,13 @@ namespace BrightIdeasSoftware
         public event EventHandler<FormatRowEventArgs> FormatRow;
 
         /// <summary>
+        /// This event is triggered when a group changes state.
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("This event is triggered when a group changes state.")]
+        public event EventHandler<GroupStateChangedEventArgs> GroupStateChanged;
+
+        /// <summary>
         /// This event is triggered when a header needs a tool tip.
         /// </summary>
         [Category("ObjectListView"),
@@ -538,7 +545,18 @@ namespace BrightIdeasSoftware
         /// 
         /// </summary>
         /// <param name="args"></param>
-        protected virtual void OnHeaderToolTip(ToolTipShowingEventArgs args) {
+        protected virtual void OnGroupStateChanged(GroupStateChangedEventArgs args)
+        {
+            if (this.GroupStateChanged != null)
+                this.GroupStateChanged(this, args);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
+        protected virtual void OnHeaderToolTip(ToolTipShowingEventArgs args)
+        {
             if (this.HeaderToolTipShowing != null)
                 this.HeaderToolTipShowing(this, args);
         }
@@ -1935,7 +1953,7 @@ namespace BrightIdeasSoftware
         private bool canceled;
         
     }
-    
+
     /// <summary>
     /// This event argument block is used when the text of a group task is clicked
     /// </summary>
@@ -1945,17 +1963,128 @@ namespace BrightIdeasSoftware
         /// Create a GroupTaskClickedEventArgs
         /// </summary>
         /// <param name="group"></param>
-        public GroupTaskClickedEventArgs(OLVGroup group) {
+        public GroupTaskClickedEventArgs(OLVGroup group)
+        {
             this.group = group;
         }
 
         /// <summary>
         /// Gets which group was clicked
         /// </summary>
-        public OLVGroup Group {
+        public OLVGroup Group
+        {
             get { return this.group; }
         }
         private readonly OLVGroup group;
+    }
+
+    /// <summary>
+    /// This event argument block is used when the state of group changed (collapsed, selected)
+    /// </summary>
+    public class GroupStateChangedEventArgs : EventArgs {
+        /// <summary>
+        /// Create a GroupStateChangedEventArgs
+        /// </summary>
+        /// <param name="group"></param>
+        /// <param name="oldState"> </param>
+        /// <param name="newState"> </param>
+        public GroupStateChangedEventArgs(OLVGroup group, GroupState oldState, GroupState newState) {
+            this.group = group;
+            this.oldState = oldState;
+            this.newState = newState;
+        }
+
+        /// <summary>
+        /// Gets whether the group was collapsed by this event
+        /// </summary>
+        public bool Collapsed {
+            get {
+                return ((oldState & GroupState.LVGS_COLLAPSED) != GroupState.LVGS_COLLAPSED) &&
+                       ((newState & GroupState.LVGS_COLLAPSED) == GroupState.LVGS_COLLAPSED);
+            }
+        }
+
+        /// <summary>
+        /// Gets whether the group was focused by this event
+        /// </summary>
+        public bool Focused {
+            get {
+                return ((oldState & GroupState.LVGS_FOCUSED) != GroupState.LVGS_FOCUSED) &&
+                       ((newState & GroupState.LVGS_FOCUSED) == GroupState.LVGS_FOCUSED);
+            }
+        }
+
+        /// <summary>
+        /// Gets whether the group was selected by this event
+        /// </summary>
+        public bool Selected {
+            get {
+                return ((oldState & GroupState.LVGS_SELECTED) != GroupState.LVGS_SELECTED) &&
+                       ((newState & GroupState.LVGS_SELECTED) == GroupState.LVGS_SELECTED);
+            }
+        }
+
+        /// <summary>
+        /// Gets whether the group was uncollapsed by this event
+        /// </summary>
+        public bool Uncollapsed {
+            get {
+                return ((oldState & GroupState.LVGS_COLLAPSED) == GroupState.LVGS_COLLAPSED) &&
+                       ((newState & GroupState.LVGS_COLLAPSED) != GroupState.LVGS_COLLAPSED);
+            }
+        }
+
+        /// <summary>
+        /// Gets whether the group was unfocused by this event
+        /// </summary>
+        public bool Unfocused
+        {
+            get
+            {
+                return ((oldState & GroupState.LVGS_FOCUSED) == GroupState.LVGS_FOCUSED) &&
+                       ((newState & GroupState.LVGS_FOCUSED) != GroupState.LVGS_FOCUSED);
+            }
+        }
+
+        /// <summary>
+        /// Gets whether the group was unselected by this event
+        /// </summary>
+        public bool Unselected
+        {
+            get
+            {
+                return ((oldState & GroupState.LVGS_SELECTED) == GroupState.LVGS_SELECTED) &&
+                       ((newState & GroupState.LVGS_SELECTED) != GroupState.LVGS_SELECTED);
+            }
+        }
+
+        /// <summary>
+        /// Gets which group had its state changed
+        /// </summary>
+        public OLVGroup Group {
+            get { return this.group; }
+        }
+
+        private readonly OLVGroup group;
+
+        /// <summary>
+        /// Gets the previous state of the group
+        /// </summary>
+        public GroupState OldState {
+            get { return this.oldState; }
+        }
+
+        private readonly GroupState oldState;
+
+
+        /// <summary>
+        /// Gets the new state of the group
+        /// </summary>
+        public GroupState NewState {
+            get { return this.newState; }
+        }
+
+        private readonly GroupState newState;
     }
 
     /// <summary>
