@@ -5,6 +5,8 @@
  * Date: 4-March-2011 11:59 pm
  *
  * Change log:
+ * 2012-04-14  JPP  - Fixed rare bug with clustering an empty list (SF #3445118)
+ * v2.5
  * 2011-04-12  JPP  - Added some images to menu
  * 2011-03-04  JPP  - First version
  * 
@@ -127,7 +129,7 @@ namespace BrightIdeasSoftware {
             if (listView == null) throw new ArgumentNullException("listView");
             if (column == null) throw new ArgumentNullException("column");
 
-            if (!column.UseFiltering || column.ClusteringStrategy == null)
+            if (!column.UseFiltering || column.ClusteringStrategy == null || listView.Objects == null)
                 return strip;
 
             List<ICluster> clusters = this.Cluster(column.ClusteringStrategy, listView, column);
@@ -243,13 +245,12 @@ namespace BrightIdeasSoftware {
         /// <param name="e"></param>
         virtual protected void HandleItemChecked(object sender, ItemCheckEventArgs e) {
 
-            ToolStripCheckedListBox checkedList = (ToolStripCheckedListBox)sender;
-            OLVColumn column = (OLVColumn)checkedList.Tag;
-            ObjectListView listView = (ObjectListView)column.ListView;
-
-            // Sanity
-            if (checkedList == null || column == null || listView == null)
-                return;
+            ToolStripCheckedListBox checkedList = sender as ToolStripCheckedListBox;
+            if (checkedList == null) return;
+            OLVColumn column = checkedList.Tag as OLVColumn;
+            if (column == null) return;
+            ObjectListView listView = column.ListView as ObjectListView;
+            if (listView == null) return;
 
             // Deal with the "Select All" item if there is one
             int selectAllIndex = checkedList.Items.IndexOf(SELECT_ALL_LABEL);
