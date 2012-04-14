@@ -38,7 +38,7 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// Wrapper for all native method calls on ListView controls
     /// </summary>
-    internal class NativeMethods
+    internal static class NativeMethods
     {
         #region Constants
 
@@ -97,6 +97,7 @@ namespace BrightIdeasSoftware
         private const int LVBKIF_FLAG_TILEOFFSET = 0x100;
         private const int LVBKIF_TYPE_WATERMARK = 0x10000000;
         private const int LVBKIF_FLAG_ALPHABLEND = 0x20000000;
+
         private const int HDM_FIRST = 0x1200;
         private const int HDM_HITTEST = HDM_FIRST + 6;
         private const int HDM_GETITEMRECT = HDM_FIRST + 7;
@@ -147,9 +148,9 @@ namespace BrightIdeasSoftware
         const int SWP_NOACTIVATE = 16;
         public const int SWP_FRAMECHANGED = 32;
 
-        const int SWP_zOrderOnly = SWP_NOSIZE | SWP_NOMOVE | SWP_NOREDRAW | SWP_NOACTIVATE;
-        const int SWP_sizeOnly = SWP_NOMOVE | SWP_NOREDRAW | SWP_NOZORDER | SWP_NOACTIVATE;
-        const int SWP_updateFrame = SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_FRAMECHANGED;
+        const int SWP_ZORDERONLY = SWP_NOSIZE | SWP_NOMOVE | SWP_NOREDRAW | SWP_NOACTIVATE;
+        const int SWP_SIZEONLY = SWP_NOMOVE | SWP_NOREDRAW | SWP_NOZORDER | SWP_NOACTIVATE;
+        const int SWP_UPDATE_FRAME = SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_FRAMECHANGED;
 
         #endregion
 
@@ -420,6 +421,15 @@ namespace BrightIdeasSoftware
             public int iItem;
             public int iSubItem;
             public IntPtr lParam;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct NMLVGROUP
+        {
+            public NMHDR hdr;
+            public int iGroupId; // which group is changing
+            public uint uNewState; // LVGS_xxx flags
+            public uint uOldState;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -897,7 +907,7 @@ namespace BrightIdeasSoftware
         /// <param name="reference"></param>
         /// <returns></returns>
         public static bool ChangeZOrder(IWin32Window toBeMoved, IWin32Window reference) {
-            return NativeMethods.SetWindowPos(toBeMoved.Handle, reference.Handle, 0, 0, 0, 0, SWP_zOrderOnly);
+            return NativeMethods.SetWindowPos(toBeMoved.Handle, reference.Handle, 0, 0, 0, 0, SWP_ZORDERONLY);
         }
 
         /// <summary>
@@ -907,11 +917,11 @@ namespace BrightIdeasSoftware
         /// <returns></returns>
         public static bool MakeTopMost(IWin32Window toBeMoved) {
             IntPtr HWND_TOPMOST = (IntPtr)(-1);
-            return NativeMethods.SetWindowPos(toBeMoved.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_zOrderOnly);
+            return NativeMethods.SetWindowPos(toBeMoved.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_ZORDERONLY);
         }
 
         public static bool ChangeSize(IWin32Window toBeMoved, int width, int height) {
-            return NativeMethods.SetWindowPos(toBeMoved.Handle, IntPtr.Zero, 0, 0, width, height, SWP_sizeOnly);
+            return NativeMethods.SetWindowPos(toBeMoved.Handle, IntPtr.Zero, 0, 0, width, height, SWP_SIZEONLY);
         }
 
         /// <summary>

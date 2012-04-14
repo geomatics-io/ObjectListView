@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2012-04-14  JPP  - Added GroupStateChanged event. Useful for knowing when a group is collapsed/expanded.
  * 2012-04-10  JPP  - Added PersistentCheckBoxes property to allow primary checkboxes to remember their values
  *                    across list rebuilds.
  * 2012-04-05  JPP  - Reverted some code to .NET 2.0 standard.
@@ -1524,7 +1525,6 @@ namespace BrightIdeasSoftware
         /// Gets or sets the whether the text in the header will be word wrapped.
         /// </summary>
         /// <remarks>
-        /// <para>THIS FEATURE IS EXPERIMENTAL (August 2009)</para>
         /// <para>Line breaks will be applied between words. Words that are too long
         /// will still be ellipsed.</para>
         /// <para>
@@ -5156,6 +5156,50 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Handle the Group Info series of notifications
+        /// </summary>
+        /// <param name="m">The message</param>
+        /// <returns>True if the message has been handled</returns>
+        protected virtual bool HandleGroupInfo(ref Message m)
+        {
+            NativeMethods.NMLVGROUP nmlvgroup = (NativeMethods.NMLVGROUP)m.GetLParam(typeof(NativeMethods.NMLVGROUP));
+
+            //System.Diagnostics.Debug.WriteLine(String.Format("group: {0}, old state: {1}, new state: {2}",
+            //    nmlvgroup.iGroupId, OLVGroup.StateToString(nmlvgroup.uOldState), OLVGroup.StateToString(nmlvgroup.uNewState)));
+
+            // Ignore state changes that aren't related to selection, focus or collapsedness
+            const uint INTERESTING_STATES = (uint) (GroupState.LVGS_COLLAPSED | GroupState.LVGS_FOCUSED | GroupState.LVGS_SELECTED);
+            if ((nmlvgroup.uOldState & INTERESTING_STATES) == (nmlvgroup.uNewState & INTERESTING_STATES))
+                return false;
+
+            foreach (OLVGroup group in this.OLVGroups) {
+                if (group.GroupId == nmlvgroup.iGroupId) {
+                    GroupStateChangedEventArgs args = new GroupStateChangedEventArgs(group, (GroupState)nmlvgroup.uOldState, (GroupState)nmlvgroup.uNewState);
+                    this.OnGroupStateChanged(args);
+                    break;
+                }
+            }
+
+            return false;
+        }
+
+        private static string StateToString(uint state)
+        {
+            if (state == 0)
+                return Enum.GetName(typeof(GroupState), 0);
+
+            List<string> names = new List<string>();
+            foreach (int value in Enum.GetValues(typeof(GroupState)))
+            {
+                if (value != 0 && (state & value) == value)
+                {
+                    names.Add(Enum.GetName(typeof(GroupState), value));
+                }
+            }
+            return names.Count == 0 ? state.ToString("x") : String.Join("|", names.ToArray());
+        }
+
+        /// <summary>
         /// Handle a key down message
         /// </summary>
         /// <param name="m"></param>
@@ -5352,13 +5396,17 @@ namespace BrightIdeasSoftware
             const int NM_RDBLCLK = -6;
             const int NM_CUSTOMDRAW = -12;
             const int NM_RELEASEDCAPTURE = -16;
-            const int LVN_ITEMCHANGED = -101;
-            const int LVN_ITEMCHANGING = -100;
-            const int LVN_MARQUEEBEGIN = -156;
-            const int LVN_GETINFOTIP = -158;
-            const int LVN_BEGINSCROLL = -180;
-            const int LVN_ENDSCROLL = -181;
-            const int LVN_LINKCLICK = -184;
+            const int LVN_FIRST = -100;
+            const int LVN_ITEMCHANGED = LVN_FIRST - 1;
+            const int LVN_ITEMCHANGING = LVN_FIRST - 0;
+            const int LVN_HOTTRACK = LVN_FIRST - 21;
+            const int LVN_MARQUEEBEGIN = LVN_FIRST - 56;
+            const int LVN_GETINFOTIP = LVN_FIRST - 58;
+            const int LVN_GETDISPINFO = LVN_FIRST - 77;
+            const int LVN_BEGINSCROLL = LVN_FIRST - 80;
+            const int LVN_ENDSCROLL = LVN_FIRST - 81;
+            const int LVN_LINKCLICK = LVN_FIRST - 84;
+            const int LVN_GROUPINFO = LVN_FIRST - 88; // undocumented
             const int LVIF_STATE = 8;
 
             bool isMsgHandled = false;
@@ -5458,6 +5506,21 @@ namespace BrightIdeasSoftware
                             Marshal.StructureToPtr(nmlistviewPtr, m.LParam, false);
                         }
                     }
+                    break;
+
+                case LVN_HOTTRACK:
+                    break;
+
+                case LVN_GETDISPINFO:
+                    break;
+
+                case LVN_GROUPINFO:
+                    //System.Diagnostics.Debug.WriteLine("reflect notify: GROUP INFO");
+                    isMsgHandled = this.HandleGroupInfo(ref m);
+                    break;
+
+                default:
+                    //System.Diagnostics.Debug.WriteLine(String.Format("reflect notify: {0}", nmhdr.code));
                     break;
             }
 
@@ -5605,6 +5668,10 @@ namespace BrightIdeasSoftware
                     //System.Diagnostics.Debug.WriteLine("olv TTN_GETDISPINFO");
                     if (this.CellToolTip.Handle == nmheader.nhdr.hwndFrom)
                         isMsgHandled = this.CellToolTip.HandleGetDispInfo(ref m);
+                    break;
+
+                default:
+                    //System.Diagnostics.Debug.WriteLine(String.Format("notify: {0}", nmheader.nhdr.code));
                     break;
             }
 
