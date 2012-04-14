@@ -5,6 +5,10 @@
  * Date: 3-March-2011 10:53 pm
  *
  * Change log:
+ * 2012-04-14  JPP  - Fixed bug where, on a OLV with only a single editable column, tabbing
+ *                    to change rows would edit the cell above rather than the cell below
+ *                    the cell being edited.
+ * 2.5
  * 2011-03-03  JPP  - First version
  * 
  * Copyright (C) 2011 Phillip Piper
@@ -428,7 +432,7 @@ namespace BrightIdeasSoftware {
                 case CellEditAtEdgeBehaviour.ChangeRow:
                 case CellEditAtEdgeBehaviour.Wrap:
                     if (atEdgeBehaviour == CellEditAtEdgeBehaviour.ChangeRow)
-                        olvi = GetAdjacentItem(olvi, displayIndex == 0);
+                        olvi = GetAdjacentItem(olvi, isGoingLeft && displayIndex == 0);
                     if (isGoingLeft)
                         displayIndex = editableColumns.Count - 1;
                     else
