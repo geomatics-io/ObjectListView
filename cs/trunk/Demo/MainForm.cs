@@ -2349,6 +2349,19 @@ namespace ObjectListViewDemo {
         {
             System.Diagnostics.Debug.WriteLine("here");
         }
+
+        private void olvSimple_GroupStateChanged(object sender, GroupStateChangedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine(String.Format("Group '{0}' was {1}{2}{3}{4}{5}{6}",
+                e.Group.Header,
+                e.Selected ? "Selected" : "",
+                e.Focused ? "Focused" : "",
+                e.Collapsed ? "Collapsed" : "",
+                e.Unselected ? "Unselected" : "",
+                e.Unfocused ? "Unfocused" : "",
+                e.Uncollapsed ? "Uncollapsed" : ""));
+
+        }
     }
 
     /// <summary>
