@@ -409,6 +409,24 @@ namespace BrightIdeasSoftware
         private string name;
 
         /// <summary>
+        /// Gets or sets whether this group is focused
+        /// </summary>
+        public bool Focused
+        {
+            get { return this.GetOneState(GroupState.LVGS_FOCUSED); }
+            set { this.SetOneState(value, GroupState.LVGS_FOCUSED); }
+        }
+
+        /// <summary>
+        /// Gets or sets whether this group is selected
+        /// </summary>
+        public bool Selected
+        {
+            get { return this.GetOneState(GroupState.LVGS_SELECTED); }
+            set { this.SetOneState(value, GroupState.LVGS_SELECTED); }
+        }
+
+        /// <summary>
         /// Gets or sets the text that will show that this group is subsetted
         /// </summary>
         /// <remarks>
@@ -742,5 +760,6 @@ namespace BrightIdeasSoftware
             return NativeMethods.SetGroupMetrics(this.ListView, this.GroupId, metrics);
         }
         #endregion
+
     }
 }
