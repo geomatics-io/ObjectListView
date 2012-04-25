@@ -602,6 +602,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="args"></param>
         public override void Drop(DragEventArgs args) {
+            this.dropEventArgs.DragEventArgs = args;
             this.TriggerDroppedEvent(args);
             this.timer.Stop();
             this.Cleanup();
@@ -632,6 +633,7 @@ namespace BrightIdeasSoftware
             this.dropEventArgs = new ModelDropEventArgs();
             this.dropEventArgs.DropSink = this;
             this.dropEventArgs.ListView = this.ListView;
+            this.dropEventArgs.DragEventArgs = args;
             this.dropEventArgs.DataObject = args.Data;
             OLVDataObject olvData = args.Data as OLVDataObject;
             if (olvData != null) {
@@ -648,6 +650,7 @@ namespace BrightIdeasSoftware
         /// <param name="args"></param>
         public override void Over(DragEventArgs args) {
             //System.Diagnostics.Debug.WriteLine("Over");
+            this.dropEventArgs.DragEventArgs = args;
             this.KeyState = args.KeyState;
             Point pt = this.ListView.PointToClient(new Point(args.X, args.Y));
             args.Effect = this.CalculateDropAction(args, pt);
@@ -822,6 +825,7 @@ namespace BrightIdeasSoftware
         /// <param name="pt"></param>
         /// <returns></returns>
         public virtual DragDropEffects CalculateDropAction(DragEventArgs args, Point pt) {
+
             this.CalculateDropTarget(this.dropEventArgs, pt);
 
             this.dropEventArgs.MouseLocation = pt;
@@ -1208,9 +1212,20 @@ namespace BrightIdeasSoftware
         #region Data Properties
 
         /// <summary>
+        /// Get the original drag-drop event args
+        /// </summary>
+        public DragEventArgs DragEventArgs
+        {
+            get { return this.dragEventArgs; }
+            internal set { this.dragEventArgs = value; }
+        }
+        private DragEventArgs dragEventArgs;
+
+        /// <summary>
         /// Get the data object that is being dragged
         /// </summary>
-        public object DataObject {
+        public object DataObject
+        {
             get { return this.dataObject; }
             internal set { this.dataObject = value; }
         }

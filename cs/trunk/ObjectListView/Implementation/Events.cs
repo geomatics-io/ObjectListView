@@ -5,6 +5,8 @@
  * Date: 17/10/2008 9:15 PM
  *
  * Change log:
+ * 2012-04-17   JPP  - Added group state change and group expansion events
+ * v2.5
  * 2010-08-08   JPP  - CellEdit validation and finish events now have NewValue property.
  * v2.4
  * 2010-03-04   JPP  - Added filtering events
@@ -28,7 +30,7 @@
  * 2008-12-01   JPP  - Added secondary sort information to Before/AfterSorting events
  * 2008-10-17   JPP  - Separated from ObjectListView.cs
  * 
- * Copyright (C) 2006-2010 Phillip Piper
+ * Copyright (C) 2006-2012 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -253,6 +255,14 @@ namespace BrightIdeasSoftware
         [Category("ObjectListView"),
         Description("This event is triggered when a row needs to be formatted.")]
         public event EventHandler<FormatRowEventArgs> FormatRow;
+
+        /// <summary>
+        /// This event is triggered when a group is about to collapse or expand.
+        /// This can be cancelled to prevent the expansion.
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("This event is triggered when a group is about to collapse or expand.")]
+        public event EventHandler<GroupExpandingCollapsingEventArgs> GroupExpandingCollapsing;
 
         /// <summary>
         /// This event is triggered when a group changes state.
@@ -539,6 +549,16 @@ namespace BrightIdeasSoftware
         protected virtual void OnFreezing(FreezeEventArgs args) {
             if (this.Freezing != null)
                 this.Freezing(this, args);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
+        protected virtual void OnGroupExpandingCollapsing(GroupExpandingCollapsingEventArgs args)
+        {
+            if (this.GroupExpandingCollapsing != null)
+                this.GroupExpandingCollapsing(this, args);
         }
 
         /// <summary>
@@ -1796,6 +1816,16 @@ namespace BrightIdeasSoftware
         private HitTestLocation newHotCellHitLocation;
 
         /// <summary>
+        /// Gets an extended indication of the part of item/subitem/group that the mouse is currently over
+        /// </summary>
+        public virtual HitTestLocationEx HotCellHitLocationEx
+        {
+            get { return this.hotCellHitLocationEx; }
+            internal set { this.hotCellHitLocationEx = value; }
+        }
+        private HitTestLocationEx hotCellHitLocationEx;
+
+        /// <summary>
         /// Gets the index of the column that the mouse is over
         /// </summary>
         /// <remarks>In non-details view, this will always be 0.</remarks>
@@ -1815,6 +1845,16 @@ namespace BrightIdeasSoftware
         private int newHotRowIndex;
 
         /// <summary>
+        /// Gets the group that the mouse is over
+        /// </summary>
+        public OLVGroup HotGroup
+        {
+            get { return hotGroup; }
+            internal set { hotGroup = value; }
+        }
+        private OLVGroup hotGroup;
+
+        /// <summary>
         /// Gets the part of the cell that the mouse used to be over
         /// </summary>
         public HitTestLocation OldHotCellHitLocation {
@@ -1822,6 +1862,16 @@ namespace BrightIdeasSoftware
             internal set { oldHotCellHitLocation = value; }
         }
         private HitTestLocation oldHotCellHitLocation;
+
+        /// <summary>
+        /// Gets an extended indication of the part of item/subitem/group that the mouse used to be over
+        /// </summary>
+        public virtual HitTestLocationEx OldHotCellHitLocationEx
+        {
+            get { return this.oldHotCellHitLocationEx; }
+            internal set { this.oldHotCellHitLocationEx = value; }
+        }
+        private HitTestLocationEx oldHotCellHitLocationEx;
 
         /// <summary>
         /// Gets the index of the column that the mouse used to be over
@@ -1840,6 +1890,20 @@ namespace BrightIdeasSoftware
             internal set { oldHotRowIndex = value; }
         }
         private int oldHotRowIndex;
+
+        /// <summary>
+        /// Gets the group that the mouse used to be over
+        /// </summary>
+        public OLVGroup OldHotGroup
+        {
+            get { return oldHotGroup; }
+            internal set { oldHotGroup = value; }
+        }
+        private OLVGroup oldHotGroup;
+
+        public override string ToString() {
+            return string.Format("NewHotCellHitLocation: {0}, HotCellHitLocationEx: {1}, NewHotColumnIndex: {2}, NewHotRowIndex: {3}, HotGroup: {4}", this.newHotCellHitLocation, this.hotCellHitLocationEx, this.newHotColumnIndex, this.newHotRowIndex, this.hotGroup);
+        }
     }
     
     /// <summary>
@@ -1979,7 +2043,31 @@ namespace BrightIdeasSoftware
     }
 
     /// <summary>
-    /// This event argument block is used when the state of group changed (collapsed, selected)
+    /// This event argument block is used when a group is about to expand or collapse
+    /// </summary>
+    public class GroupExpandingCollapsingEventArgs : CancellableEventArgs
+    {
+        /// <summary>
+        /// Create a GroupExpandingCollapsingEventArgs
+        /// </summary>
+        /// <param name="group"></param>
+        public GroupExpandingCollapsingEventArgs(OLVGroup group)
+        {
+            this.group = group;
+        }
+
+        /// <summary>
+        /// Gets which group is expanding/collapsing
+        /// </summary>
+        public OLVGroup Group
+        {
+            get { return this.group; }
+        }
+        private readonly OLVGroup group;
+    }
+
+    /// <summary>
+    /// This event argument block is used when the state of group has changed (collapsed, selected)
     /// </summary>
     public class GroupStateChangedEventArgs : EventArgs {
         /// <summary>
