@@ -5,6 +5,8 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2012-04-24   JPP  - Fixed bug that occurred when adding/removing item while the view was grouped.
+ * v2.5
  * 2011-05-31   JPP  - Setting CheckedObjects is more efficient on large collections
  * 2011-04-05   JPP  - CheckedObjects now only returns objects that are currently in the list.
  *                     ClearObjects() now resets all check state info.
@@ -339,8 +341,7 @@ namespace BrightIdeasSoftware
                     this.ClearCachedInfo();
                     this.virtualListDataSource.Sort(column, sortOrder);
                 };
-                this.UpdateVirtualListSize();
-                this.Invalidate();
+                this.BuildList(false);
             }
         }
         private IVirtualListDataSource virtualListDataSource;
@@ -422,10 +423,14 @@ namespace BrightIdeasSoftware
             if (args.Canceled)
                 return;
 
-            this.ClearCachedInfo();
-            this.VirtualListDataSource.AddObjects(args.ObjectsToAdd);
-            this.Sort();
-            this.UpdateVirtualListSize();
+            try {
+                this.BeginUpdate();
+                this.VirtualListDataSource.AddObjects(args.ObjectsToAdd);
+                this.BuildList();
+            }
+            finally {
+                this.EndUpdate();
+            }
         }
 
         /// <summary>
@@ -455,11 +460,17 @@ namespace BrightIdeasSoftware
             if (this.VirtualListDataSource == null)
                 return;
 
-            this.ClearCachedInfo();
-            foreach (object modelObject in modelObjects) {
-                int index = this.VirtualListDataSource.GetObjectIndex(modelObject);
-                if (index >= 0)
-                    this.RedrawItems(index, index, true);
+            try {
+                this.BeginUpdate();
+                this.ClearCachedInfo();
+                foreach (object modelObject in modelObjects) {
+                    int index = this.VirtualListDataSource.GetObjectIndex(modelObject);
+                    if (index >= 0)
+                        this.RedrawItems(index, index, true);
+                }
+            }
+            finally {
+                this.EndUpdate();
             }
         }
 
@@ -494,9 +505,14 @@ namespace BrightIdeasSoftware
             if (args.Canceled)
                 return;
 
-            this.ClearCachedInfo();
-            this.VirtualListDataSource.RemoveObjects(args.ObjectsToRemove);
-            this.UpdateVirtualListSize();
+            try {
+                this.BeginUpdate();
+                this.VirtualListDataSource.RemoveObjects(args.ObjectsToRemove);
+                this.BuildList();
+            }
+            finally {
+                this.EndUpdate();
+            }
         }
 
         /// <summary>
@@ -562,17 +578,16 @@ namespace BrightIdeasSoftware
             if (this.VirtualListDataSource == null)
                 return;
 
+            // Give the world a chance to cancel or change the assigned collection
+            ItemsChangingEventArgs args = new ItemsChangingEventArgs(null, collection);
+            this.OnItemsChanging(args);
+            if (args.Canceled)
+                return;
+
             this.BeginUpdate();
             try {
-                // Give the world a chance to cancel or change the assigned collection
-                ItemsChangingEventArgs args = new ItemsChangingEventArgs(null, collection);
-                this.OnItemsChanging(args);
-                if (args.Canceled)
-                    return;
-
                 this.VirtualListDataSource.SetObjects(args.NewObjects);
-                this.UpdateVirtualListSize();
-                this.Sort();
+                this.BuildList();
             }
             finally {
                 this.EndUpdate();
@@ -612,8 +627,8 @@ namespace BrightIdeasSoftware
         /// <param name="groups"></param>
         protected override void CreateGroups(IEnumerable<OLVGroup> groups) {
 
-            // A virtual list we cannot touch the Groups property since it often throws exceptions
-            // when used with a virtual list
+            // In a virtual list, we cannot touch the Groups property.
+            // It was obviously not written for virtual list and often throws exceptions.
 
             NativeMethods.ClearGroups(this);
 
@@ -903,11 +918,11 @@ namespace BrightIdeasSoftware
             try {
                 int originalSize = this.VirtualListSize;
                 filterable.ApplyFilters(this.ModelFilter, this.ListFilter);
-                this.UpdateVirtualListSize();
+                this.BuildList();
 
-                // If the filtering actually did something, rebuild the groups if they are being shown
-                if (originalSize != this.VirtualListSize && this.ShowGroups)
-                    this.BuildGroups();
+                //// If the filtering actually did something, rebuild the groups if they are being shown
+                //if (originalSize != this.VirtualListSize && this.ShowGroups)
+                //    this.BuildGroups();
             }
             finally {
                 this.EndUpdate();
