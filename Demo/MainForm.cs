@@ -967,7 +967,9 @@ namespace ObjectListViewDemo {
             if ((Control.ModifierKeys & Keys.Shift) == Keys.Shift) {
                 // Add a visible and invisible column at the same time
                 this.olvSimple.AllColumns.Add(new OLVColumn("New column: " + Environment.TickCount, null));
-                this.olvSimple.AllColumns.Add(new OLVColumn("Second new: " + Environment.TickCount, null) { IsVisible = false });
+                OLVColumn col = new OLVColumn("Second new: " + Environment.TickCount, null);
+                col.IsVisible = false;
+                this.olvSimple.AllColumns.Add(col);
                 this.olvSimple.RebuildColumns();
             } else {
                 Person person = new Person("Some One Else " + System.Environment.TickCount);
@@ -2277,6 +2279,7 @@ namespace ObjectListViewDemo {
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
             olv.AdditionalFilter = filter;
+            olv.Invalidate();
             stopWatch.Stop();
 
             IList objects = olv.Objects as IList;
@@ -2350,7 +2353,7 @@ namespace ObjectListViewDemo {
             System.Diagnostics.Debug.WriteLine("here");
         }
 
-        private void olvSimple_GroupStateChanged(object sender, GroupStateChangedEventArgs e)
+        private void olv_GroupStateChanged(object sender, GroupStateChangedEventArgs e)
         {
             System.Diagnostics.Debug.WriteLine(String.Format("Group '{0}' was {1}{2}{3}{4}{5}{6}",
                 e.Group.Header,
@@ -2362,8 +2365,36 @@ namespace ObjectListViewDemo {
                 e.Uncollapsed ? "Uncollapsed" : ""));
 
         }
-    }
 
+        private void olv_HotItemChanged(object sender, HotItemChangedEventArgs e) {
+            ObjectListView olv = sender as ObjectListView;
+            if (sender == null) {
+                this.toolStripStatusLabel3.Text = "";
+                return;
+            }
+
+            switch (e.HotCellHitLocation) {
+                case HitTestLocation.Nothing:
+                    this.toolStripStatusLabel3.Text = "Over nothing";
+                    break;
+                case HitTestLocation.Group:
+                    this.toolStripStatusLabel3.Text = String.Format("Over group '{0}', {1}", e.HotGroup.Header, e.HotCellHitLocationEx);
+                    break;
+                case HitTestLocation.GroupExpander:
+                    this.toolStripStatusLabel3.Text = String.Format("Over group expander of '{0}'", e.HotGroup.Header);
+                    break;
+                default:
+                    this.toolStripStatusLabel3.Text = String.Format("Over {0} of ({1}, {2})", e.HotCellHitLocation, e.HotRowIndex, e.HotColumnIndex);
+                    break;
+            }
+        }
+
+        private void olvSimple_GroupExpandingCollapsing(object sender, GroupExpandingCollapsingEventArgs e) {
+            // TESTING ONLY - Don't allow expand/collapse unless Ctrl is held down
+            // e.Canceled = Control.ModifierKeys != Keys.Control;
+        }
+    }
+    
     /// <summary>
     /// This comparer sort groups alphabetically by their header, BUT ignoring the first letter
     /// </summary>
