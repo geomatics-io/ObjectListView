@@ -221,8 +221,8 @@ namespace BrightIdeasSoftware {
         public virtual OLVListSubItem GetSubItem(int index) {
             if (index >= 0 && index < this.SubItems.Count)
                 return (OLVListSubItem)this.SubItems[index];
-            else
-                return null;
+            
+            return null;
         }
 
 

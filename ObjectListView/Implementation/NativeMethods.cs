@@ -48,11 +48,12 @@ namespace BrightIdeasSoftware
         private const int LVM_GETGROUPINFO = LVM_FIRST + 149;
         private const int LVM_GETGROUPSTATE = LVM_FIRST + 92;
         private const int LVM_GETHEADER = LVM_FIRST + 31;
-        private const int LVM_GETTOOLTIPS = 0x1000 + 78;
+        private const int LVM_GETTOOLTIPS = LVM_FIRST + 78;
+        private const int LVM_HITTEST = LVM_FIRST + 18;
         private const int LVM_INSERTGROUP = LVM_FIRST + 145;
         private const int LVM_REMOVEALLGROUPS = LVM_FIRST + 160;
         private const int LVM_SCROLL = LVM_FIRST + 20;
-        private const int LVM_SETBKIMAGE = 0x108A;
+        private const int LVM_SETBKIMAGE = LVM_FIRST + 0x8A;
         private const int LVM_SETCOLUMN = LVM_FIRST + 96;
         private const int LVM_SETEXTENDEDLISTVIEWSTYLE = LVM_FIRST + 54;
         private const int LVM_SETGROUPINFO = LVM_FIRST + 147;
@@ -60,8 +61,9 @@ namespace BrightIdeasSoftware
         private const int LVM_SETIMAGELIST = LVM_FIRST + 3;
         private const int LVM_SETITEM = LVM_FIRST + 76;
         private const int LVM_SETITEMSTATE = LVM_FIRST + 43;
-        private const int LVM_SETTOOLTIPS = 0x1000 + 74;
         private const int LVM_SETSELECTEDCOLUMN = LVM_FIRST + 140;
+        private const int LVM_SETTOOLTIPS = LVM_FIRST + 74;
+        private const int LVM_SUBITEMHITTEST = LVM_FIRST + 57;
         
         private const int LVS_EX_SUBITEMIMAGES = 0x0002;
 
@@ -305,6 +307,7 @@ namespace BrightIdeasSoftware
             public int flags;
             public int iItem;
             public int iSubItem;
+            public int iGroup;
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
@@ -1021,8 +1024,8 @@ namespace BrightIdeasSoftware
             return (int)NativeMethods.SendMessage(olv.Handle, LVM_SETGROUPINFO, groupId, ref group);
         }
 
-        public static int SetGroupMetrics(ObjectListView olv, int groupId, LVGROUPMETRICS metrics) {
-            return (int)NativeMethods.SendMessage(olv.Handle, LVM_SETGROUPMETRICS, groupId, ref metrics);
+        public static int SetGroupMetrics(ObjectListView olv, LVGROUPMETRICS metrics) {
+            return (int)NativeMethods.SendMessage(olv.Handle, LVM_SETGROUPMETRICS, 0, ref metrics);
         }
 
         public static int ClearGroups(VirtualObjectListView virtualObjectListView) {
@@ -1035,6 +1038,11 @@ namespace BrightIdeasSoftware
             if (il != null)
                 handle = il.Handle;
             return (int)NativeMethods.SendMessage(olv.Handle, LVM_SETIMAGELIST, LVSIL_GROUPHEADER, handle);
+        }
+
+        public static int HitTest(ObjectListView olv, ref LVHITTESTINFO hittest)
+        {
+            return (int)NativeMethods.SendMessage(olv.Handle, olv.View == View.Details ? LVM_SUBITEMHITTEST : LVM_HITTEST, -1, ref hittest);
         }
     }
 }

@@ -15,7 +15,7 @@
  * - Implement subseting
  * - Implement footer items
  * 
- * Copyright (C) 2009 Phillip Piper
+ * Copyright (C) 2009-2012 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -332,10 +332,7 @@ namespace BrightIdeasSoftware
                 }
                 
                 int? groupId = OLVGroup.groupIdPropInfo.GetValue(this.ListViewGroup, null) as int?;
-                if (groupId.HasValue)
-                    return groupId.Value;
-                else
-                    return -1;
+                return groupId.HasValue ? groupId.Value : -1;
             }
         }
         private static PropertyInfo groupIdPropInfo;
@@ -594,7 +591,6 @@ namespace BrightIdeasSoftware
         public void InsertGroupNewStyle(ObjectListView olv) {
             this.ListView = olv;
             NativeMethods.InsertGroup(olv, this.AsNativeGroup(true));
-            this.SetGroupSpacing();
         }
 
         /// <summary>
@@ -619,7 +615,6 @@ namespace BrightIdeasSoftware
 
             // Add any extra information
             NativeMethods.SetGroupInfo(olv, this.GroupId, this.AsNativeGroup(false));
-            this.SetGroupSpacing();
         }
 
         /// <summary>
@@ -709,10 +704,10 @@ namespace BrightIdeasSoftware
             return group;
         }
 
-        private bool GetOneState(GroupState stateMask) {
+        private bool GetOneState(GroupState mask) {
             if (this.Created)
                 this.State = this.GetState();
-            return (this.State & stateMask) == stateMask;
+            return (this.State & mask) == mask;
         }
 
         /// <summary>
@@ -725,40 +720,27 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Get the current state of this group from the underlying control
         /// </summary>
-        protected int SetState(GroupState state, GroupState stateMask) {
+        protected int SetState(GroupState newState, GroupState mask) {
             NativeMethods.LVGROUP2 group = new NativeMethods.LVGROUP2();
             group.cbSize = ((uint)Marshal.SizeOf(typeof(NativeMethods.LVGROUP2)));
             group.mask = (uint)GroupMask.LVGF_STATE;
-            group.state = (uint)state;
-            group.stateMask = (uint)stateMask;
+            group.state = (uint)newState;
+            group.stateMask = (uint)mask;
             return NativeMethods.SetGroupInfo(this.ListView, this.GroupId, group);
         }
 
-        private void SetOneState(bool value, GroupState stateMask) {
-            this.StateMask ^= stateMask;
+        private void SetOneState(bool value, GroupState mask)
+        {
+            this.StateMask ^= mask;
             if (value)
-                this.State ^= stateMask;
+                this.State ^= mask;
             else
-                this.State &= ~stateMask;
+                this.State &= ~mask;
 
             if (this.Created)
-                this.SetState(this.State, stateMask);
+                this.SetState(this.State, mask);
         }
 
-        /// <summary>
-        /// Modify the space between groups
-        /// </summary>
-        /// <returns></returns>
-        protected int SetGroupSpacing() {
-            if (this.ListView.SpaceBetweenGroups <= 0)
-                return 0;
-
-            NativeMethods.LVGROUPMETRICS metrics = new NativeMethods.LVGROUPMETRICS();
-            metrics.cbSize = ((uint)Marshal.SizeOf(typeof(NativeMethods.LVGROUPMETRICS)));
-            metrics.mask = (uint)GroupMetricsMask.LVGMF_BORDERSIZE;
-            metrics.Bottom = (uint)this.ListView.SpaceBetweenGroups;
-            return NativeMethods.SetGroupMetrics(this.ListView, this.GroupId, metrics);
-        }
         #endregion
 
     }
