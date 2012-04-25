@@ -8,9 +8,13 @@ Frequently Asked Questions
 ==========================
 
 Some questions and issues surface regularly on the Forums or in emails. This section has
-several of the most common questions. Please read the questions before asking questions on
+a selection of the most common questions. Please read the questions before asking questions on
 the Forum. Several people have been known to have blood pressure problems.
 
+.. contents::
+   :depth: 1
+   :backlinks: none
+   :local:
 
 .. _rows-of-different-heights:
 
@@ -25,7 +29,7 @@ it that cannot have rows of different heights. There is no way to make one row b
 than other rows. It's just not possible.
 
 If being able to have rows of different heights is essential to you,
-ObjectListView is not your solution. 
+ObjectListView is not your solution.
 
 You may want
 to consider Matthew Hall's excellent XPTable_ and its `update project`_, as well as
@@ -51,12 +55,12 @@ of the above projects.
 How do I hide a column?
 -----------------------
 
-You hide a column by setting `IsVisible` to `false` on the column and then calling 
+You hide a column by setting `IsVisible` to `false` on the column and then calling
 `RebuildColumns()` on the `ObjectListView`::
 
     this.olvColumn2.IsVisible = false;
     this.olv1.RebuildColumns();
-	
+
 You cannot hide the primary column (i.e. column 0). If you want to hide the primary column,
 make it not the primary column, but give it `DisplayIndex = 0`.
 
@@ -78,7 +82,7 @@ available when hiding or showing columns.
 Why aren't the checkboxes responding to clicks ?!
 -------------------------------------------------
 
-This normally happens when the programmer tries to modify a checkbox 
+This normally happens when the programmer tries to modify a checkbox
 using .NET's normal mechanisms. In order to support virtual lists,
 `ObjectListView` cannot use those mechanisms -- you have to do things
 the `ObjectListView` way.
@@ -121,7 +125,7 @@ Why does VS 2010 complain that `BrightIdeasSoftware.ObjectListView` can't be fou
   *I've made a new project in Visual Studio 2010 and added the ObjectListView project to my solution.
   But when I build the solution, it complains that `BrightIdeasSoftware.ObjectListView` can't be found.
   What's going on here?*
-  
+
 The default framework for new projects in Visual Studio 2010 is a "Client Profile". That profile
 does not contain support for design time components. `ObjectListView` currently uses design time
 components to work within the IDE.
@@ -195,7 +199,7 @@ expected:
 Does it work with Mono?
 -----------------------
 
-As of September 2009, not any more. 
+As of September 2009, not any more.
 
 It would be possible to make it work with
 Mono again. Please let me know if you are interested.
@@ -218,4 +222,10 @@ More details about the relationship between virtual listviews and their data sou
 can be seen in this diagram:
 
 .. image:: images/ClassDiagram-VirtualList.png
+
+How can I add drag and drop to a TreeListView?
+----------------------------------------------
+
+See :ref:`this blog <blog-rearrangingtreelistview>` for a detailed discussion of
+how to add drag and drop support to a `TreeListView`.
 

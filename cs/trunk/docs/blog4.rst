@@ -1,6 +1,6 @@
 .. -*- coding: UTF-8 -*-
 
-:Subtitle: TreeListViews don't have to be a drag
+:Subtitle: Making TreeListViews into a drag
 
 .. _blog-rearrangingtreelistview:
 
@@ -11,9 +11,12 @@ Building a rearrangable TreeListView
 
 Everyone loves the `TreeListView`. It looks nice, and for a certain class of problem, it provides an elegant solution. It can be a little tricky to get it working in the first place, but once you have the knack, they are really quite simple.
 
-Once a `TreeListView` is working, the first request users will make is to make it rearrangeable -- drag this branch or row to somewhere else. `ObjectListView` has some nice support for drag and drop operations, and so  it should be easy to do that. But it isn't -- or at least, doesn't seem to be, judging from the number of emails and messages I receive about that topic. 
+Once a `TreeListView` is working, the first request users will make is to make it rearrangeable -- drag this branch or row to somewhere else. `ObjectListView` has some nice support for drag and drop operations, and so  it should be easy to do that. But it isn't -- or at least, doesn't seem to be, judging from the number of emails and messages I receive about that topic.
 
-So I decided to build one from scratch to see exactly what needs to be done to make it work. The goal I want to reach is to have two `TreeListViews` where branches can be rearranged within the same tree or dragged between trees. 
+So I decided to build one from scratch to see exactly what needs to be done to make it work. The goal I want to reach is to have two `TreeListViews` where branches can be rearranged within the same tree or dragged between trees.
+
+Update April 2012: I have added code to show how to handle `CanDrop` and `Dropped` events from non-`ObjectListView` sources. In this example,
+we can accept drops from a `RichTextBox` (actually, it works for any other source of text).
 
 You can `download the source code from here`_.
 
@@ -37,7 +40,7 @@ The exact implementation isn't important. It's enough that the model supports th
 Making a empty TreeListViews
 ----------------------------
 
-Before we can rearrange the tree, we need it to be working. [For those familiar with ObjectListView development, this is all obvious, but I'll include it for new comers]:
+Before we can rearrange the tree, we need it to be working. [For those familiar with ObjectListView development, this is all obvious, but I'll include it for newcomers]:
 
 #. Create a new WinForms project. I called mine TreeListViewDragDrop.
 
@@ -93,10 +96,10 @@ The final step is to give both trees a list of root objects::
     treeListView1.Roots = ModelWithChildren.CreateModels(null, new ArrayList { 0, 1, 2, 3, 4, 5 });
     treeListView2.Roots = ModelWithChildren.CreateModels(null, new ArrayList { "A", "B ", "C", "D", "E" });
 
-`ModelWithChildren.CreateModels` is a silly method that simply generates a list of `ModelWithChildren` objects that we can use in our trees. 
+`ModelWithChildren.CreateModels` is a silly method that simply generates a list of `ModelWithChildren` objects that we can use in our trees.
 
 With these delegates in place and a list of roots assigned, our form now has two fully functional `TreeListViews`:
-    
+
 .. image:: images/blog4-basicform.png
 
 
@@ -107,7 +110,7 @@ OK. We now have two functioning `TreeListViews` but what we really wanted was dr
 
 `ObjectListView` has good support for :ref:`drag and drop <dragdrop-label>`. In its simplest form, you can make an `ObjectListView` support dragging *from* it by setting `IsSimpleDropSource` to *true*, and make it support dragging *to* it by setting `IsSimpleDropSink` to *true*. Both these properties can be set in the Form Designer.
 
-If you set both these properties to *true* and run the solution again, you will be able to drag rows, but you will not be able to drop them anywhere. 
+If you set both these properties to *true* and run the solution again, you will be able to drag rows, but you will not be able to drop them anywhere.
 
 .. image:: images/blog4-nodrop.png
 
@@ -132,16 +135,19 @@ Here, we're telling the drop sink to:
 
   * to allow items to be dropped between rows;
 
-  * to allow drops on the background of the control. 
+  * to allow drops on the background of the control.
 
 You could also allow dropping on subitems, change the colouring of the target highlighting, or even tweak how information message were presented to the user. Knock yourself out :)
 
 Handling the drag
 -----------------
 
+Let's handle drags that come from the other `TreeListView` first.
+
 To tell the control that it's OK for a drop to happen, you have to listen for the `ModelCanDrop` event. Something like this::
 
     private void HandleModelCanDrop(object sender, BrightIdeasSoftware.ModelDropEventArgs e) {
+        e.Handled = true;
         e.Effect = DragDropEffects.None;
         if (e.SourceModels.Contains(e.TargetModel))
             e.InfoMessage = "Cannot drop on self";
@@ -155,7 +161,7 @@ To tell the control that it's OK for a drop to happen, you have to listen for th
         }
     }
 
-In this handler, the principal property we want to set is `ModelDropEventArgs.Effect`. If this is `None`, the user will not be able to drop at the current location. Above, we check that the user is not trying to drop something onto itself:: 
+In this handler, the principal property we want to set is `ModelDropEventArgs.Effect`. If this is `None`, the user will not be able to drop at the current location. Above, we check that the user is not trying to drop something onto itself::
 
   if (e.SourceModels.Contains(e.TargetModel))
      e.InfoMessage = "Cannot drop on self";
@@ -165,7 +171,7 @@ We also want to prevent the user from dropping something onto one of its descend
   if (sourceModels.Any(x => target.IsAncestor(x)))
      e.InfoMessage = "Cannot drop on descendant (think of the temporal paradoxes!)";
 
-If something is not right, we set the `InfoMessage` to give the user a nice explanation of why they can't drop at the current location. 
+If something is not right, we set the `InfoMessage` to give the user a nice explanation of why they can't drop at the current location.
 
 .. image:: images/blog4-infomessage.png
 
@@ -179,20 +185,20 @@ The `ModelDropEventArgs` has lots of information. Some of its crucial properties
 Property                In/Out      Description
 =====================   =========   ==============================================
 SourceModels            In          The *models* that are being dragged
-                       
+
 TargetModel             In          The model that is under the cursor.
                                     *null* if there is no row under the cursor.
-                       
+
 ListView                In          The `ObjectListView` that is under the cursor
-                       
+
 SourceListView          In          The `ObjectListView` where the drag started
-    
-DropTargetLocation      In          What is the current drop target? Key values 
-                                    are `Item` and `Background`.       
-                       
+
+DropTargetLocation      In          What is the current drop target? Key values
+                                    are `Item` and `Background`.
+
 InfoMessage             Out         An information message that will be shown
                                     to the user in a floating text tip.
-                       
+
 Effect                  Out         What action will be taken if the user
                                     releases the mouse button?
 =====================   =========   ==============================================
@@ -206,28 +212,28 @@ Once we listen for the `ModelCanDrop` event, the user will be able to drag and d
         switch (e.DropTargetLocation) {
             case DropTargetLocation.Background:
                 MoveObjectsToRoots(
-                    e.ListView as TreeListView, 
-                    e.SourceListView as TreeListView, 
+                    e.ListView as TreeListView,
+                    e.SourceListView as TreeListView,
                     e.SourceModels);
                 break;
             case DropTargetLocation.Item:
                 MoveObjectsToChildren(
-                    e.ListView as TreeListView, 
-                    e.SourceListView as TreeListView, 
-                    (ModelWithChildren)e.TargetModel, 
+                    e.ListView as TreeListView,
+                    e.SourceListView as TreeListView,
+                    (ModelWithChildren)e.TargetModel,
                     e.SourceModels);
-                break;            
+                break;
             default:
                 return;
         }
 
         e.RefreshObjects();
-    } 
+    }
 
 This looks more daunting than it really is. Basically, if the user has dropped the rows onto the background, we are going to make all the dropped objects into roots. If the user has dropped the model onto another model, then all the dropped models are going to become children of the target model. Once we have made all our changes to the model, we call `e.RefreshObjects()` to redraw the controls.
 
 In general, in the drop handler, you must update your model objects, make any changes to `Roots` property,
-and call `RefreshObjects()`. 
+and call `RefreshObjects()`.
 
 You must update your model objects first. Until that is done, `TreeListView` doesn't have a chance of updating itself.
 You must also tell `TreeListView` about changes to the `Roots` of the control.
@@ -246,7 +252,7 @@ Let's first deal with the case of making the dragged objects into the children o
 
     private void MoveObjectsToChildren(TreeListView targetTree, TreeListView sourceTree, ModelWithChildren target, IList toMove) {
         foreach (ModelWithChildren x in toMove) {
-            if (x.Parent == null) 
+            if (x.Parent == null)
                 sourceTree.RemoveObject(x);
             else
                 x.Parent.Children.Remove(x);
@@ -298,30 +304,30 @@ To make rearranging work, the existing `ModelCanDrop` will suffice as is -- we o
             case DropTargetLocation.AboveItem:
                 MoveObjectsToSibling(
                     e.ListView as TreeListView,
-                    e.SourceListView as TreeListView, 
-                    (ModelWithChildren)e.TargetModel, 
-                    e.SourceModels, 
+                    e.SourceListView as TreeListView,
+                    (ModelWithChildren)e.TargetModel,
+                    e.SourceModels,
                     0);
                 break;
             case DropTargetLocation.BelowItem:
                 MoveObjectsToSibling(
                     e.ListView as TreeListView,
-                    e.SourceListView as TreeListView, 
-                    (ModelWithChildren)e.TargetModel, 
-                    e.SourceModels, 
+                    e.SourceListView as TreeListView,
+                    (ModelWithChildren)e.TargetModel,
+                    e.SourceModels,
                     1);
                 break;
             case DropTargetLocation.Background:
                 MoveObjectsToRoots(
-                    e.ListView as TreeListView, 
-                    e.SourceListView as TreeListView, 
+                    e.ListView as TreeListView,
+                    e.SourceListView as TreeListView,
                     e.SourceModels);
                 break;
             case DropTargetLocation.Item:
                 MoveObjectsToChildren(
-                    e.ListView as TreeListView, 
-                    e.SourceListView as TreeListView, 
-                    (ModelWithChildren)e.TargetModel, 
+                    e.ListView as TreeListView,
+                    e.SourceListView as TreeListView,
+                    (ModelWithChildren)e.TargetModel,
                     e.SourceModels);
                 break;
             default:
@@ -331,7 +337,7 @@ To make rearranging work, the existing `ModelCanDrop` will suffice as is -- we o
         e.RefreshObjects();
     }
 
-The new cases in the switch statement are `DropTargetLocation.AboveItem` and `DropTargetLocation.BelowItem`. These values 
+The new cases in the switch statement are `DropTargetLocation.AboveItem` and `DropTargetLocation.BelowItem`. These values
 indicate that the user is trying to move a model to just before (or just after) the target.
 
 The real work is done in `MoveObjectsToSibling`::
@@ -345,11 +351,11 @@ The real work is done in `MoveObjectsToSibling`::
         ArrayList sourceRoots = sourceTree.Roots as ArrayList;
         ArrayList targetRoots = targetTree == sourceTree ? sourceRoots : targetTree.Roots as ArrayList;
 
-        // We want to make the moved objects to be siblings of the target. So, we have to 
+        // We want to make the moved objects to be siblings of the target. So, we have to
         // remove the moved objects from their old parent and give them the same parent as the target.
         // If the target is a root, then the moved objects have to become roots too.
         foreach (ModelWithChildren x in toMove) {
-            if (x.Parent == null) 
+            if (x.Parent == null)
                 sourceRoots.Remove(x);
             else
                 x.Parent.Children.Remove(x);
@@ -376,11 +382,11 @@ will be different. But your interactions with `TreeListView` will be the same. I
 one last time:
 
   #. Update your model
-  
+
   #. Maintain the `Roots` property
-  
+
   #. Call `e.RefreshObjects()` when you are done.
-  
+
 All done
 --------
 

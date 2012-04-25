@@ -38,7 +38,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'ObjectListView'
-copyright = '2006-2011, Phillip Piper'
+copyright = '2006-2016, Phillip Piper'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
@@ -46,7 +46,7 @@ copyright = '2006-2011, Phillip Piper'
 # The short X.Y version.
 version = '2.5'
 # The full version, including alpha/beta/rc tags.
-release = '2.5'
+release = '2.5.1'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
