@@ -254,7 +254,7 @@ Future directions
 
 v2.5.1 will bug fix and tweak v2.5. It will also move towards using `IEnumerable` whenever possible.
 `SelectedObjects`, `CheckedObjects`, `AddObjects()`, `InsertObjects()`
-`RefreshObjects()`, `RemoveObjects()`, and `CopyObjectsToClipboard()` will all be changed to use 
+`RefreshObjects()`, `RemoveObjects()`, and `CopyObjectsToClipboard()` will all be changed to use
 `IEnumerable`. This is with a view to using LINQ in future versions.
 
 v3.0 will be a big change. Until now, each version has strove to maintain strict backwards compatibility. v3.0 will not have this as a strict goal. It will be backwards compatible where possible, but will drop properties, events and methods where they do not fit within the new scheme. In particular, features that were a moment of design weakness (I'm looking at you *AlwaysGroupByColumn* and your friends) will disappear.
@@ -274,7 +274,7 @@ Site contents
 -------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    whatsnew
    features

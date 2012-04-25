@@ -104,8 +104,8 @@ example from the demo looks like this::
         e.RefreshObjects();
     }
 
-The event has a convenience method, `RefreshObjects()`, which refreshes all the objects
-involved in the operation. This is particularly useful with operations on `TreeListViews`.  
+The `ModelDropped` event has a convenience method, `RefreshObjects()`, which refreshes all the objects
+involved in the operation. This is particularly useful with operations on `TreeListViews`.
 
 Simply doing more
 -----------------
@@ -200,7 +200,8 @@ minimal implementations of all these methods.
 Rearranging rows by dragging
 ----------------------------
 
-The most common use for drag and drop is to provide a rearrangeable `ObjectListView`.
+One common use for drag and drop is to provide a rearrangeable `ObjectListView`.
+This is so common that there is a prebuild component to do this for you.
 This is done by installing a `RearrangingDropSink`::
 
     this.objectListView1.DragSource = new SimpleDragSource();
@@ -226,5 +227,6 @@ It also cannot work on `DataListView`, `VirtualObjectListView` and `TreeListView
 since the data in those control is outside the control of the `ObjectListView`.
 For those controls, you will have to use (or subclass) a `SimpleDropSink` and do
 the actual rearranging and refreshing yourself.
+
 See :ref:`this blog <blog-rearrangingtreelistview>` for a detailed discussion of
 how to make a rearrangeable `TreeListView`.
