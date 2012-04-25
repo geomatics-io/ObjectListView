@@ -5,6 +5,12 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2012-04-23  JPP  - Trigger GroupExpandingCollapsing event to allow the expand/collapse to be cancelled
+ *                  - Fixed SetGroupSpacing() so it corrects updates the space between all groups.
+ *                  - ResizeLastGroup() now does nothing since it was broken and I can't remember what it was
+ *                    even supposed to do :)
+ * 2012-04-18  JPP  - Upgraded hit testing to include hits on groups. 
+ *                  - HotItemChanged is now correctly recalculated on each mouse move. Includes "hot" group information.
  * 2012-04-14  JPP  - Added GroupStateChanged event. Useful for knowing when a group is collapsed/expanded.
  * 2012-04-10  JPP  - Added PersistentCheckBoxes property to allow primary checkboxes to remember their values
  *                    across list rebuilds.
@@ -1589,6 +1595,30 @@ namespace BrightIdeasSoftware
         private HitTestLocation hotCellHitLocation;
 
         /// <summary>
+        /// Gets an extended indication of the part of item/subitem/group that the mouse is currently over
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual HitTestLocationEx HotCellHitLocationEx
+        {
+            get { return this.hotCellHitLocationEx; }
+            protected set { this.hotCellHitLocationEx = value; }
+        }
+        private HitTestLocationEx hotCellHitLocationEx;
+
+        /// <summary>
+        /// Gets the group that the mouse is over
+        /// </summary>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public OLVGroup HotGroup
+        {
+            get { return hotGroup; }
+            internal set { hotGroup = value; }
+        }
+        private OLVGroup hotGroup;
+
+        /// <summary>
         /// The index of the item that is 'hot', i.e. under the cursor. -1 means no item.
         /// </summary>
         [Browsable(false),
@@ -2575,9 +2605,26 @@ namespace BrightIdeasSoftware
          DefaultValue(0)]
         public virtual int SpaceBetweenGroups {
             get { return this.spaceBetweenGroups; }
-            set { this.spaceBetweenGroups = value; }
+            set {
+                if (this.spaceBetweenGroups == value)
+                    return;
+
+                this.spaceBetweenGroups = value;
+                this.SetGroupSpacing();
+            }
         }
         private int spaceBetweenGroups;
+
+        private void SetGroupSpacing() {
+            if (!this.IsHandleCreated)
+                return;
+
+            NativeMethods.LVGROUPMETRICS metrics = new NativeMethods.LVGROUPMETRICS();
+            metrics.cbSize = ((uint)Marshal.SizeOf(typeof(NativeMethods.LVGROUPMETRICS)));
+            metrics.mask = (uint)GroupMetricsMask.LVGMF_BORDERSIZE;
+            metrics.Bottom = (uint)this.SpaceBetweenGroups;
+            NativeMethods.SetGroupMetrics(this, metrics);
+        }
 
         /// <summary>
         /// Should the sort column show a slight tinge?
@@ -3945,6 +3992,9 @@ namespace BrightIdeasSoftware
             NativeMethods.Scroll(this, dx, dy);
         }
 
+        /// <summary>
+        /// Return a point that represents the current horizontal and vertical scroll positions 
+        /// </summary>
         internal Point LowLevelScrollPosition {
             get {
                 return new Point(NativeMethods.GetScrollPosition(this, true), NativeMethods.GetScrollPosition(this, false));
@@ -4009,12 +4059,66 @@ namespace BrightIdeasSoftware
         /// <returns></returns>
         new public ListViewHitTestInfo HitTest(int x, int y) {
             // Everything costs something. Playing with the layout of the header can cause problems
-            // with the hit testing. If the header shrinks
+            // with the hit testing. If the header shrinks, the underlying control can throw a tantrum.
             try {
                 return base.HitTest(x, y);
             } catch (ArgumentOutOfRangeException) {
                 return new ListViewHitTestInfo(null, null, ListViewHitTestLocations.None);
             }
+        }
+
+        /// <summary>
+        /// Perform a hit test using the Windows control's SUBITEMHITTEST message.
+        /// This provides information about group hits that the standard ListView.HitTest() does not.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
+        protected OlvListViewHitTestInfo LowLevelHitTest(int x, int y) {
+            // If it's not even in the control, don't bother with anything else
+            if (!this.ClientRectangle.Contains(x, y))
+                return new OlvListViewHitTestInfo(null, null, 0, null);
+
+            //if (Control.ModifierKeys == Keys.Control)
+            //    System.Diagnostics.Debugger.Break();
+
+            // Call the native hit test method, which is a little confusing.
+            NativeMethods.LVHITTESTINFO lParam = new NativeMethods.LVHITTESTINFO();
+            lParam.pt_x = x;
+            lParam.pt_y = y;
+            int index = NativeMethods.HitTest(this, ref lParam);
+
+            // Setup the various values we need to make our hit test structure
+            bool isGroupHit = (lParam.flags & (int)HitTestLocationEx.LVHT_EX_GROUP) != 0;
+            OLVListItem hitItem = isGroupHit || index == -1 ? null : this.GetItem(index);
+            OLVListSubItem subItem = (this.View == View.Details && hitItem != null) ? hitItem.GetSubItem(lParam.iSubItem) : null;
+
+            // Figure out which group is involved in the hit test. This is a little complicated:
+            // If the list is virtual:
+            //   - the returned value is list view item index
+            //   - iGroup is the *index* of the hit group.
+            // If the list is not virtual:
+            //   - iGroup is always -1.
+            //   - if the point is over a group, the returned value is the *id* of the hit group.
+            //   - if the point is not over a group, the returned value is list view item index.
+            OLVGroup group = null;
+            if (this.ShowGroups && this.OLVGroups != null) {
+                if (this.VirtualMode) {
+                    group = lParam.iGroup >= 0 && lParam.iGroup < this.OLVGroups.Count ? this.OLVGroups[lParam.iGroup] : null;
+                } else {
+                    if (isGroupHit) {
+                        foreach (OLVGroup olvGroup in this.OLVGroups) {
+                            if (olvGroup.GroupId == index) {
+                                group = olvGroup;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            OlvListViewHitTestInfo olvListViewHitTest = new OlvListViewHitTestInfo(hitItem, subItem, lParam.flags, group);
+            // System.Diagnostics.Debug.WriteLine(String.Format("HitTest({0}, {1})=>{2}", x, y, olvListViewHitTest));
+            return olvListViewHitTest;
         }
 
         /// <summary>
@@ -4025,8 +4129,7 @@ namespace BrightIdeasSoftware
         /// <param name="y"></param>
         /// <returns>An information block about what is under the point</returns>
         public virtual OlvListViewHitTestInfo OlvHitTest(int x, int y) {
-            ListViewHitTestInfo hitTestInfo = this.HitTest(x, y);
-            OlvListViewHitTestInfo hti = new OlvListViewHitTestInfo(hitTestInfo);
+            OlvListViewHitTestInfo hti = this.LowLevelHitTest(x, y);
 
             // There is a bug/"feature" of the ListView concerning hit testing.
             // If FullRowSelect is false and the point is over cell 0 but not on
@@ -4054,7 +4157,7 @@ namespace BrightIdeasSoftware
 
             // Are we in the buggy context? Details view, not full row select, and
             // failing to find anything
-            if (hitTestInfo.Item == null && !this.FullRowSelect && this.View == View.Details) {
+            if (hti.Item == null && !this.FullRowSelect && this.View == View.Details) {
                 // Is the point within the column 0? If it is, maybe it should have been a hit.
                 // Let's test slightly to the right and then to left of column 0. Hopefully one
                 // of those will hit a subitem
@@ -4064,15 +4167,15 @@ namespace BrightIdeasSoftware
                     // - any subitem to the right of cell 0?
                     // - any subitem to the left of cell 0?
                     // - cell 0 at the left edge of the screen
-                    hitTestInfo = this.HitTest(sides.Y + 4, y);
-                    if (hitTestInfo.Item == null)
-                        hitTestInfo = this.HitTest(sides.X - 4, y);
-                    if (hitTestInfo.Item == null)
-                        hitTestInfo = this.HitTest(4, y);
+                    hti = this.LowLevelHitTest(sides.Y + 4, y);
+                    if (hti.Item == null)
+                        hti = this.LowLevelHitTest(sides.X - 4, y);
+                    if (hti.Item == null)
+                        hti = this.LowLevelHitTest(4, y);
 
-                    if (hitTestInfo.Item != null) {
+                    if (hti.Item != null)
+                    {
                         // We hit something! So, the original point must have been in cell 0
-                        hti.Item = (OLVListItem)hitTestInfo.Item;
                         hti.SubItem = hti.Item.GetSubItem(0);
                         hti.Location = ListViewHitTestLocations.None;
                         hti.HitTestLocation = HitTestLocation.InCell;
@@ -4682,14 +4785,17 @@ namespace BrightIdeasSoftware
                     if (!this.HandleChar(ref m))
                         base.WndProc(ref m);
                     break;
+                case 0x0200: // WM_MOUSEMOVE
+                    if (!this.HandleMouseMove(ref m))
+                        base.WndProc(ref m);
+                    break;
                 case 0x0201: // WM_LBUTTONDOWN
                     if (this.PossibleFinishCellEditing() && !this.HandleLButtonDown(ref m))
                         base.WndProc(ref m);
                     break;
                 case 0x202:  // WM_LBUTTONUP
-                    if (ObjectListView.IsVistaOrLater && this.HasCollapsibleGroups)
-                        base.DefWndProc(ref m);
-                    base.WndProc(ref m);
+                    if (this.PossibleFinishCellEditing() && !this.HandleLButtonUp(ref m))
+                        base.WndProc(ref m);
                     break;
                 case 0x0203: // WM_LBUTTONDBLCLK
                     if (this.PossibleFinishCellEditing() && !this.HandleLButtonDoubleClick(ref m))
@@ -4731,7 +4837,7 @@ namespace BrightIdeasSoftware
         /// Handle the search for item m if possible.
         /// </summary>
         /// <param name="m">The m to be processed</param>
-        /// <returns>bool to indicate if the m has been handled</returns>
+        /// <returns>bool to indicate if the msg has been handled</returns>
         protected virtual bool HandleChar(ref Message m) {
 
             // Trigger a normal KeyPress event, which listeners can handle if they want.
@@ -5074,7 +5180,7 @@ namespace BrightIdeasSoftware
         /// Handle the search for item m if possible.
         /// </summary>
         /// <param name="m">The m to be processed</param>
-        /// <returns>bool to indicate if the m has been handled</returns>
+        /// <returns>bool to indicate if the msg has been handled</returns>
         protected virtual bool HandleFindItem(ref Message m) {
             // NOTE: As far as I can see, this message is never actually sent to the control, making this
             // method redundant!
@@ -5259,7 +5365,7 @@ namespace BrightIdeasSoftware
         /// Catch the Left Button down event.
         /// </summary>
         /// <param name="m">The m to be processed</param>
-        /// <returns>bool to indicate if the m has been handled</returns>
+        /// <returns>bool to indicate if the msg has been handled</returns>
         protected virtual bool HandleLButtonDown(ref Message m) {
             // We have to intercept this low level message rather than the more natural
             // overridding of OnMouseDown, since ListCtrl's internal mouse down behavior
@@ -5281,6 +5387,7 @@ namespace BrightIdeasSoftware
         /// <param name="hti"></param>
         /// <returns>True if the message has been handled</returns>
         protected virtual bool ProcessLButtonDown(OlvListViewHitTestInfo hti) {
+
             if (hti.Item == null)
                 return false;
 
@@ -5312,10 +5419,43 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Catch the Left Button up event.
+        /// </summary>
+        /// <param name="m">The m to be processed</param>
+        /// <returns>bool to indicate if the msg has been handled</returns>
+        protected virtual bool HandleLButtonUp(ref Message m) {
+            if (this.MouseMoveHitTest == null)
+                return false;
+
+            // Are they trying to expand/collapse a group?
+            if (this.MouseMoveHitTest.HitTestLocation == HitTestLocation.GroupExpander) {
+                if (this.TriggerGroupExpandCollapse(this.MouseMoveHitTest.Group))
+                    return true;
+            }
+
+            if (ObjectListView.IsVistaOrLater && this.HasCollapsibleGroups)
+                base.DefWndProc(ref m);
+
+            return false;
+        }
+
+        /// <summary>
+        /// Trigger a GroupExpandCollapse event and return true if the action was cancelled
+        /// </summary>
+        /// <param name="group"></param>
+        /// <returns></returns>
+        protected virtual bool TriggerGroupExpandCollapse(OLVGroup group)
+        {
+            GroupExpandingCollapsingEventArgs args = new GroupExpandingCollapsingEventArgs(group);
+            this.OnGroupExpandingCollapsing(args);
+            return args.Canceled;
+        }
+
+        /// <summary>
         /// Catch the Right Button down event.
         /// </summary>
         /// <param name="m">The m to be processed</param>
-        /// <returns>bool to indicate if the m has been handled</returns>
+        /// <returns>bool to indicate if the msg has been handled</returns>
         protected virtual bool HandleRButtonDown(ref Message m) {
             int x = m.LParam.ToInt32() & 0xFFFF;
             int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
@@ -5341,7 +5481,7 @@ namespace BrightIdeasSoftware
         /// Catch the Left Button double click event.
         /// </summary>
         /// <param name="m">The m to be processed</param>
-        /// <returns>bool to indicate if the m has been handled</returns>
+        /// <returns>bool to indicate if the msg has been handled</returns>
         protected virtual bool HandleLButtonDoubleClick(ref Message m) {
             int x = m.LParam.ToInt32() & 0xFFFF;
             int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
@@ -5365,7 +5505,7 @@ namespace BrightIdeasSoftware
         /// Catch the right Button double click event.
         /// </summary>
         /// <param name="m">The m to be processed</param>
-        /// <returns>bool to indicate if the m has been handled</returns>
+        /// <returns>bool to indicate if the msg has been handled</returns>
         protected virtual bool HandleRButtonDoubleClick(ref Message m) {
             int x = m.LParam.ToInt32() & 0xFFFF;
             int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
@@ -5386,10 +5526,30 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// In the notification messages, we handle change of state of list items
+        /// Catch the MouseMove event.
         /// </summary>
         /// <param name="m">The m to be processed</param>
-        /// <returns>bool to indicate if the m has been handled</returns>
+        /// <returns>bool to indicate if the msg has been handled</returns>
+        protected virtual bool HandleMouseMove(ref Message m)
+        {
+            int x = m.LParam.ToInt32() & 0xFFFF;
+            int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
+
+            bool changed = x != this.lastMouseMoveX || y != this.lastMouseMoveY;
+
+            this.lastMouseMoveX = x;
+            this.lastMouseMoveY = y;
+
+            return !changed;
+        }
+        private int lastMouseMoveX = -1;
+        private int lastMouseMoveY = -1;
+
+        /// <summary>
+        /// Handle notifications that have been reflected back from the parent window
+        /// </summary>
+        /// <param name="m">The m to be processed</param>
+        /// <returns>bool to indicate if the msg has been handled</returns>
         protected virtual bool HandleReflectNotify(ref Message m) {
             const int NM_CLICK = -2;
             const int NM_DBLCLK = -3;
@@ -5544,7 +5704,7 @@ namespace BrightIdeasSoftware
         /// In the notification messages, we handle attempts to change the width of our columns
         /// </summary>
         /// <param name="m">The m to be processed</param>
-        /// <returns>bool to indicate if the m has been handled</returns>
+        /// <returns>bool to indicate if the msg has been handled</returns>
         protected bool HandleNotify(ref Message m) {
             bool isMsgHandled = false;
 
@@ -5753,7 +5913,7 @@ namespace BrightIdeasSoftware
         /// Handle the window position changing.
         /// </summary>
         /// <param name="m">The m to be processed</param>
-        /// <returns>bool to indicate if the m has been handled</returns>
+        /// <returns>bool to indicate if the msg has been handled</returns>
         protected virtual bool HandleWindowPosChanging(ref Message m) {
             const int SWP_NOSIZE = 1;
 
@@ -7075,6 +7235,15 @@ namespace BrightIdeasSoftware
 
         internal void ResizeLastGroup()
         {
+            // What was this method trying to do??
+            // It sets the height of the footer of the last group
+            // to the height of the first item plus horizontal scroll bar height.
+            // Why??
+
+            // It's faulty since SetGroupMetrics cannot set the characteristics 
+            // of just one group -- it changes the characteristics of all groups.
+            
+            /*
             // Don't mess with the control in design mode
             if (this.IsDesignMode) 
                 return;
@@ -7103,6 +7272,8 @@ namespace BrightIdeasSoftware
             metrics.mask = (uint)GroupMetricsMask.LVGMF_BORDERSIZE;
             metrics.Bottom = (uint)height;
             NativeMethods.SetGroupMetrics(this, olvGroup.GroupId, metrics);
+        
+             */ 
         }
 
         /// <summary>
@@ -7776,14 +7947,15 @@ namespace BrightIdeasSoftware
             if (!this.Created)
                 return;
 
+            //System.Diagnostics.Debug.WriteLine(String.Format("MouseMove: {0}", e.Location));
+
             CellOverEventArgs args = new CellOverEventArgs();
             this.BuildCellEvent(args, e.Location);
             this.OnCellOver(args);
             this.MouseMoveHitTest = args.HitTest;
 
-            if (!args.Handled) {
+            if (!args.Handled)
                 this.UpdateHotItem(args.HitTest);
-            }
         }
 
         /// <summary>
@@ -7969,6 +8141,7 @@ namespace BrightIdeasSoftware
             this.UseExplorerTheme = this.UseExplorerTheme;
 
             this.RememberDisplayIndicies();
+            this.SetGroupSpacing();
         }
 
         #endregion
@@ -8534,6 +8707,8 @@ namespace BrightIdeasSoftware
             int newHotRow = hti.RowIndex;
             int newHotColumn = hti.ColumnIndex;
             HitTestLocation newHotCellHitLocation = hti.HitTestLocation;
+            HitTestLocationEx newHotCellHitLocationEx = hti.HitTestLocationEx;
+            OLVGroup newHotGroup = hti.Group;
 
             // In non-details view, we treat any hit on a row as if it were a hit
             // on column 0 -- which (effectively) it is!
@@ -8542,23 +8717,31 @@ namespace BrightIdeasSoftware
 
             if (this.HotRowIndex == newHotRow &&
                 this.HotColumnIndex == newHotColumn &&
-                this.HotCellHitLocation == newHotCellHitLocation)
+                this.HotCellHitLocation == newHotCellHitLocation &&
+                this.HotCellHitLocationEx == newHotCellHitLocationEx &&
+                this.HotGroup == newHotGroup)
                 return;
 
             // Trigger the hotitem changed event
             HotItemChangedEventArgs args = new HotItemChangedEventArgs();
             args.HotCellHitLocation = newHotCellHitLocation;
+            args.HotCellHitLocationEx = newHotCellHitLocationEx;
             args.HotColumnIndex = newHotColumn;
             args.HotRowIndex = newHotRow;
+            args.HotGroup = newHotGroup;
             args.OldHotCellHitLocation = this.HotCellHitLocation;
+            args.OldHotCellHitLocationEx = this.HotCellHitLocationEx;
             args.OldHotColumnIndex = this.HotColumnIndex;
             args.OldHotRowIndex = this.HotRowIndex;
+            args.OldHotGroup = this.HotGroup;
             this.OnHotItemChanged(args);
 
             // Update the state of the control
             this.HotRowIndex = newHotRow;
             this.HotColumnIndex = newHotColumn;
             this.HotCellHitLocation = newHotCellHitLocation;
+            this.HotCellHitLocationEx = newHotCellHitLocationEx;
+            this.HotGroup = newHotGroup;
 
             // If the event handler handled it complete, don't do anything else
             if (args.Handled)
