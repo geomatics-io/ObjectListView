@@ -12,6 +12,8 @@
  * 2012-04-18  JPP  - Upgraded hit testing to include hits on groups. 
  *                  - HotItemChanged is now correctly recalculated on each mouse move. Includes "hot" group information.
  * 2012-04-14  JPP  - Added GroupStateChanged event. Useful for knowing when a group is collapsed/expanded.
+ *                  - Added AdditionalFilter property. This filter is combined with the Excel-like filtering that
+ *                    the end user might enact at runtime.
  * 2012-04-10  JPP  - Added PersistentCheckBoxes property to allow primary checkboxes to remember their values
  *                    across list rebuilds.
  * 2012-04-05  JPP  - Reverted some code to .NET 2.0 standard.
@@ -692,10 +694,12 @@ namespace BrightIdeasSoftware
         #region Public properties
 
         /// <summary>
-        /// Gets or sets an model filter that is combined with any column filtering that user specifies.
+        /// Gets or sets an model filter that is combined with any column filtering that the end-user specifies.
         /// </summary>
         /// <remarks>This is different from the ModelFilter property, since setting that will replace
         /// any column filtering, whereas setting this will combine this filter with the column filtering</remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual IModelFilter AdditionalFilter
         {
             get { return this.additionalFilter; }
@@ -2062,7 +2066,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         [Category("ObjectListView"),
          Description("Will primary checkboxes persistent their values across list rebuilds"),
-         DefaultValue(false)]
+         DefaultValue(true)]
         public virtual bool PersistentCheckBoxes {
             get { return persistentCheckBoxes; }
             set {
@@ -2072,7 +2076,7 @@ namespace BrightIdeasSoftware
                 this.ClearPersistentCheckState();
             }
         }
-        private bool persistentCheckBoxes;
+        private bool persistentCheckBoxes = true;
 
         /// <summary>
         /// Gets or sets a dictionary that remembers the check state of model objects
