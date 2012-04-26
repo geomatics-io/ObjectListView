@@ -259,6 +259,7 @@ namespace BrightIdeasSoftware
             set {
                 // Make sure that column 0 is showing a tree
                 if (this.Columns.Count > 0) {
+                    // TODO: Allow any column to contain the tree
                     OLVColumn columnZero = this.GetColumn(0);
                     if (!(columnZero.Renderer is TreeRenderer)) 
                         columnZero.Renderer = this.TreeColumnRenderer;
