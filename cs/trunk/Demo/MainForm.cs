@@ -2279,7 +2279,7 @@ namespace ObjectListViewDemo {
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
             olv.AdditionalFilter = filter;
-            olv.Invalidate();
+            //olv.Invalidate();
             stopWatch.Stop();
 
             IList objects = olv.Objects as IList;
@@ -2391,7 +2391,7 @@ namespace ObjectListViewDemo {
 
         private void olvSimple_GroupExpandingCollapsing(object sender, GroupExpandingCollapsingEventArgs e) {
             // TESTING ONLY - Don't allow expand/collapse unless Ctrl is held down
-            // e.Canceled = Control.ModifierKeys != Keys.Control;
+            //e.Canceled = Control.ModifierKeys != Keys.Control;
         }
     }
     
