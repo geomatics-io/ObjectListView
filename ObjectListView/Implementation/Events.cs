@@ -750,28 +750,36 @@ namespace BrightIdeasSoftware
         #region Events
 
         /// <summary>
-         /// This event is triggered when user input requests the expansion of a list item.
-         /// </summary>
+        /// This event is triggered when user input requests the expansion of a list item.
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("This event is triggered when a branch is about to expand.")]
         public event EventHandler<TreeBranchExpandingEventArgs> Expanding;
  
-         /// <summary>
-         /// This event is triggered when user input requests the collapse of a list item.
-         /// </summary>
+        /// <summary>
+        /// This event is triggered when user input requests the collapse of a list item.
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("This event is triggered when a branch is about to collapsed.")]
         public event EventHandler<TreeBranchCollapsingEventArgs> Collapsing;
  
-         /// <summary>
-         /// This event is triggered after the expansion of a list item due to user input.
-         /// </summary>
+        /// <summary>
+        /// This event is triggered after the expansion of a list item due to user input.
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("This event is triggered when a branch has been expanded.")]
         public event EventHandler<TreeBranchExpandedEventArgs> Expanded;
  
-         /// <summary>
-         /// This event is triggered after the collapse of a list item due to user input.
-         /// </summary>
+        /// <summary>
+        /// This event is triggered after the collapse of a list item due to user input.
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("This event is triggered when a branch has been collapsed.")]
         public event EventHandler<TreeBranchCollapsedEventArgs> Collapsed;
  
-         #endregion
+        #endregion
  
-         #region OnEvents
+        #region OnEvents
 
         /// <summary>
         /// Trigger the expanding event
@@ -2050,10 +2058,10 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Create a GroupExpandingCollapsingEventArgs
         /// </summary>
-        /// <param name="group"></param>
-        public GroupExpandingCollapsingEventArgs(OLVGroup group)
-        {
-            this.group = group;
+        /// <param name="group"> </param>
+        public GroupExpandingCollapsingEventArgs(OLVGroup group) {
+            if (group == null) throw new ArgumentNullException("group");
+            this.olvGroup = group;
         }
 
         /// <summary>
@@ -2061,9 +2069,17 @@ namespace BrightIdeasSoftware
         /// </summary>
         public OLVGroup Group
         {
-            get { return this.group; }
+            get { return this.olvGroup; }
         }
-        private readonly OLVGroup group;
+        private readonly OLVGroup olvGroup;
+
+        /// <summary>
+        /// Gets whether this event is going to expand the group.
+        /// If this is false, the group must be collapsing.
+        /// </summary>
+        public bool IsExpanding {
+            get { return this.Group.Collapsed; }
+        }
     }
 
     /// <summary>

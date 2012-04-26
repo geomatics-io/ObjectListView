@@ -5,6 +5,7 @@
  * Date: 12/08/2009 8:36 PM
  *
  * Change log:
+ * 2012-04-26   JPP  - Filter group events from TreeListView since it can't have groups
  * 2011-06-06   JPP  - Vastly improved ObjectListViewDesigner, based off information in
  *                     "'Inheriting' from an Internal WinForms Designer" on CodeProject.
  * v2.3
@@ -12,7 +13,7 @@
  *
  * To do:
  *
- * Copyright (C) 2009-2011 Phillip Piper
+ * Copyright (C) 2009-2012 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -196,7 +197,7 @@ namespace BrightIdeasSoftware.Design {
 
             // Remove the events that don't make sense for an ObjectListView.
             // See PreFilterProperties() for why we do this dance rather than just remove the event.
-            string[] unwanted = new string[] {
+            List<string> unwanted = new List<string> {
                 "AfterLabelEdit",
                 "BeforeLabelEdit",
                 "DrawColumnHeader",
@@ -206,6 +207,19 @@ namespace BrightIdeasSoftware.Design {
                 "SearchForVirtualItem",
                 "VirtualItemsSelectionRangeChanged"
             };
+
+            // If we are looking at a TreeListView, remove group related events
+            // since TreeListViews can't show groups
+            if (this.Control is TreeListView) {
+                unwanted.AddRange(new string[] {
+                    "AboutToCreateGroups",
+                    "AfterCreatingGroups",
+                    "BeforeCreatingGroups",
+                    "GroupTaskClicked",
+                    "GroupExpandingCollapsing", 
+                    "GroupStateChanged"
+                });
+            }
 
             foreach (string unwantedEvent in unwanted) {
                 EventDescriptor eventDesc = TypeDescriptor.CreateEvent(
@@ -451,27 +465,18 @@ namespace BrightIdeasSoftware.Design {
     /// </summary>
     internal class OverlayConverter : ExpandableObjectConverter {
         public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) {
-            if (destinationType == typeof(string))
-                return true;
-            else
-                return base.CanConvertTo(context, destinationType);
+            return destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
         }
 
         public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType) {
             if (destinationType == typeof(string)) {
                 ImageOverlay imageOverlay = value as ImageOverlay;
                 if (imageOverlay != null) {
-                    if (imageOverlay.Image == null)
-                        return "(none)";
-                    else
-                        return "(set)";
+                    return imageOverlay.Image == null ? "(none)" : "(set)";
                 }
                 TextOverlay textOverlay = value as TextOverlay;
                 if (textOverlay != null) {
-                    if (String.IsNullOrEmpty(textOverlay.Text))
-                        return "(none)";
-                    else
-                        return "(set)";
+                    return String.IsNullOrEmpty(textOverlay.Text) ? "(none)" : "(set)";
                 }
             }
 
