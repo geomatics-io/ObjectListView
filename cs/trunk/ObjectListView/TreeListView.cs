@@ -5,6 +5,9 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * v2.5.1
+ * 2012-04-30  JPP  - Fixed bug where CheckedObjects would return model objects that had been filtered out.
+ *                  - Allow any column to render the tree, not just column 0 (still not sure about this one)
  * v2.5.0
  * 2011-04-20  JPP  - Added ExpandedObjects property and RebuildAll() method.
  * 2011-04-09  JPP  - Added Expanding, Collapsing, Expanded and Collapsed events.
@@ -206,8 +209,10 @@ namespace BrightIdeasSoftware
             }
             set {
                 this.TreeModel.mapObjectToExpanded.Clear();
-                foreach (object x in value)
-                    this.TreeModel.SetModelExpanded(x, true);
+                if (value != null) {
+                    foreach (object x in value)
+                        this.TreeModel.SetModelExpanded(x, true);
+                }
             }
         }
 
@@ -257,35 +262,47 @@ namespace BrightIdeasSoftware
         public virtual IEnumerable Roots {
             get { return this.TreeModel.RootObjects; }
             set {
-                // Make sure that column 0 is showing a tree
-                if (this.Columns.Count > 0) {
-                    // TODO: Allow any column to contain the tree
-                    OLVColumn columnZero = this.GetColumn(0);
-                    if (!(columnZero.Renderer is TreeRenderer)) 
-                        columnZero.Renderer = this.TreeColumnRenderer;
-                    
-                    columnZero.WordWrap = columnZero.WordWrap;
-                }
-                if (value == null)
-                    this.TreeModel.RootObjects = new ArrayList();
-                else
-                    this.TreeModel.RootObjects = value;
+                this.TreeColumnRenderer = this.TreeColumnRenderer;
+                this.TreeModel.RootObjects = value ?? new ArrayList();
                 this.UpdateVirtualListSize();
             }
+        }
+
+        /// <summary>
+        /// Make sure that at least one column is displaying a tree. 
+        /// If no columns is showing the tree, make column 0 do it.
+        /// </summary>
+        protected virtual void EnsureTreeRendererPresent(TreeRenderer renderer) {
+            if (this.Columns.Count == 0) 
+                return;
+
+            foreach (OLVColumn col in this.Columns) {
+                if (col.Renderer is TreeRenderer) {
+                    col.Renderer = renderer;
+                    return;
+                }
+            }
+
+            // No column held a tree renderer, so give column 0 one
+            OLVColumn columnZero = this.GetColumn(0);
+            columnZero.Renderer = renderer;
+            columnZero.WordWrap = columnZero.WordWrap;
         }
 
         /// <summary>
         /// Gets or sets the renderer that will be used to draw the tree structure.
         /// Setting this to null resets the renderer to default.
         /// </summary>
+        /// <remarks>If a column is currently rendering the tree, the renderer
+        /// for that column will be replaced. If no column is rendering the tree,
+        /// column 0 will be given this renderer.</remarks>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual TreeRenderer TreeColumnRenderer {
-            get { return treeRenderer; }
+            get { return treeRenderer ?? (treeRenderer = new TreeRenderer()); }
             set {
                 treeRenderer = value ?? new TreeRenderer();
-                if (this.Columns.Count > 0)
-                    this.GetColumn(0).Renderer = treeRenderer;
+                EnsureTreeRendererPresent(treeRenderer);
             }
         }
         private TreeRenderer treeRenderer;
@@ -362,9 +379,22 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Remove all items from this list
+        /// </summary>
+        /// <remark>This method can safely be called from background threads.</remark>
+        public override void ClearObjects() {
+            if (this.InvokeRequired)
+                this.Invoke(new MethodInvoker(this.ClearObjects));
+            else {
+                this.DiscardAllState();
+            }
+        }
+
+        /// <summary>
         /// Collapse all roots and forget everything we know about all models
         /// </summary>
         public virtual void DiscardAllState() {
+            this.CheckStateMap.Clear();
             this.RebuildAll(false);
         }
 
@@ -375,7 +405,8 @@ namespace BrightIdeasSoftware
         public virtual void RebuildAll(bool preserveState) {
             this.RebuildAll(
                 preserveState ? this.SelectedObjects : null,
-                preserveState ? this.ExpandedObjects : null);
+                preserveState ? this.ExpandedObjects : null,
+                preserveState ? this.CheckedObjects : null);
         }
 
         /// <summary>
@@ -383,7 +414,8 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="selected">If not null, this list of objects will be selected after the tree is rebuilt</param>
         /// <param name="expanded">If not null, this collection of objects will be expanded after the tree is rebuilt</param>
-        protected virtual void RebuildAll(IList selected, IEnumerable expanded) {
+        /// <param name="checkedObjects">If not null, this collection of objects will be checked after the tree is rebuilt</param>
+        protected virtual void RebuildAll(IList selected, IEnumerable expanded, IList checkedObjects) {
             // Remember the bits of info we don't want to forget (anyone ever see Memento?)
             IEnumerable roots = this.Roots;
             CanExpandGetterDelegate canExpand = this.CanExpandGetter;
@@ -401,6 +433,8 @@ namespace BrightIdeasSoftware
             this.Roots = roots;
             if (selected != null)
                 this.SelectedObjects = selected;
+            if (checkedObjects != null)
+                this.CheckedObjects = checkedObjects;
         }
 
         /// <summary>
@@ -548,8 +582,11 @@ namespace BrightIdeasSoftware
             Branch br = this.TreeModel.GetBranch(model);
             if (br == null || !br.CanExpand)
                 return new ArrayList();
-            else
-                return br.Children;
+            
+            if (!br.IsExpanded)
+                br.Expand();
+
+            return br.Children;
         }
 
         //------------------------------------------------------------------------------------------
@@ -614,10 +651,10 @@ namespace BrightIdeasSoftware
         /// <returns></returns>
         protected override bool IsInputKey(Keys keyData) {
             // We want to handle Left and Right keys within the control
-            if (((keyData & Keys.KeyCode) == Keys.Left) || ((keyData & Keys.KeyCode) == Keys.Right)) {
+            if (((keyData & Keys.KeyCode) == Keys.Left) || ((keyData & Keys.KeyCode) == Keys.Right)) 
                 return true;
-            } else
-                return base.IsInputKey(keyData);
+            
+            return base.IsInputKey(keyData);
         }
 
         /// <summary>
@@ -924,6 +961,8 @@ namespace BrightIdeasSoftware
             /// </summary>
             /// <param name="startIndex"></param>
             protected virtual void RebuildObjectMap(int startIndex) {
+                if (startIndex == 0)
+                    this.mapObjectToIndex.Clear();
                 for (int i = startIndex; i < this.objectList.Count; i++)
                     this.mapObjectToIndex[this.objectList[i]] = i;
             }
