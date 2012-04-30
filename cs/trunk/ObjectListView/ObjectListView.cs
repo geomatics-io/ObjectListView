@@ -2714,22 +2714,15 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>
         /// <para>
-        /// In previous versions, setting this to true produced ugly behaviour, because every
-        /// column to the right of the divider being dragged was updated twice: once when
-        /// the column be resized changes size (this moves all the columns slightly to the right);
-        /// then again when the filling columns are updated - they are shrunk
-        /// so that the combined width is not more than the control, so everything jumps slightly back to the left again.
+        /// If you have a space filling column
+        /// is in the left of the column that is being resized, this will look odd: 
+        /// the right edge of the column will be dragged, but
+        /// its <b>left</b> edge will move since the space filling column is shrinking.
+        /// </para>
+        /// <para>This is logical behaviour -- it just looks wrong.   
         /// </para>
         /// <para>
-        /// But, as of v2.0, the change the Windows messages in place, so there is now only one update,
-        /// and everything looks nice and smooth.
-        /// </para>
-        /// <para>
-        /// However, it still looks odd when the space filling column
-        /// is in the left of the column that is being resized: the right edge of the column is dragged, but
-        /// its <b>left</b> edge moves, since the space filling column is shrinking.
-        /// </para>
-        /// <para>Given the above behavior is probably best to turn this property off if your space filling
+        /// Given the above behavior is probably best to turn this property off if your space filling
         /// columns aren't the right-most columns.</para>
         /// </remarks>
         [Category("ObjectListView"),
@@ -2809,8 +2802,16 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Should FormatCell events be called for each cell in the control?
         /// </summary>
-        /// <remarks>Individual rows can decide whether to call FormatCell
-        /// events. This is simply the default behaviour.</remarks>
+        /// <remarks>
+        /// <para>In many situations, no cell level formatting is performed. ObjectListView
+        /// can run somewhat faster if it does not trigger a format cell event for every cell
+        /// unless it is required. So, by default, it does not raise an event for each cell.
+        /// </para>
+        /// <para>ObjectListView *does* raise a FormatRow event every time a row is rebuilt.
+        /// Individual rows can decide whether to raise FormatCell
+        /// events for every cell in row.
+        /// </para>
+        /// </remarks>
         [Category("ObjectListView"),
          Description("Should FormatCell events be triggered to every cell that is built?"),
          DefaultValue(false)]
