@@ -7,13 +7,13 @@
 Filtering
 =========
 
-[v2.4] `ObjectListView` supports filtering on lists. 
+[v2.4] `ObjectListView` supports filtering on lists.
 
 To enable filtering
 on a list, you must set `UseFiltering` to `true`. To ensure backward
 compatibility, it is `false` by default.
 
-Once filtering is enabled, `ObjecListView` supports two sorts of filtering: 
+Once filtering is enabled, `ObjecListView` supports two sorts of filtering:
   (1) whole list filtering;
   (2) model filtering.
 
@@ -26,7 +26,7 @@ viewer and you only want to show the last 500 lines, you can set a filter
 to simply show the last 500 objects::
 
    this.olvLogView.ListFilter = new TailFilter(500);
-   
+
 Since this filter operates on the list as a whole, it runs quickly. By cutting down
 the number of objects shown in the list, it can speed up the list considerably.
 
@@ -36,7 +36,7 @@ Model based filtering
 Model filtering considers each object in turn and decides if it should be included.
 Because it considers every object individually, it is slower than a whole list filter,
 but it is still fast enough for normal use. On my mid-range laptop, model filtering on
-a list of 50,000 objects still has a sub-second response time. 
+a list of 50,000 objects still has a sub-second response time.
 
 Implementing a filter
 ---------------------
@@ -54,32 +54,32 @@ These interfaces are just about as simple as they could be::
     {
         IEnumerable Filter(IEnumerable modelObjects);
     }
-	
+
 If you only wanted to show emergency calls, you could make a filter like this::
 
     public class OnlyEmergenciesFilter : IModelFilter
     {
         public bool Filter(object modelObject) {
-            return ((PhoneCall)x).IsEmergency; 
+            return ((PhoneCall)x).IsEmergency;
         }
     }
     ...
     this.olv1.ModelFilter = new OnlyEmergenciesFilter();
-	
+
 Rather than subclassing, you will often be able to use an instance of `ModelFilter` directly.
 This accepts a delegate that decides if the given model should be included. Again, to only
 show emergency calls, you could install a filter like this::
 
-   this.olv1.ModelFilter = new ModelFilter(delegate(object x) { 
-       return ((PhoneCall)x).IsEmergency; 
+   this.olv1.ModelFilter = new ModelFilter(delegate(object x) {
+       return ((PhoneCall)x).IsEmergency;
    });
-   
+
 To remove a filter, simply set `ModelFilter` (or `ListFilter`) to `null`.
-   
+
 Filters and virtual lists
 -------------------------
 
-As always, since virtual lists keep their data to themselves, `ObjectListView` cannot filter 
+As always, since virtual lists keep their data to themselves, `ObjectListView` cannot filter
 their contents directly. However, if the `VirtualListDataSource` behind the virtual list
 implements the new `IFilterableDataSource` interface, then the virtual list can be filtered too.
 
@@ -99,9 +99,9 @@ The data source should store the given filters, and apply them to all subsequent
 Filtering and TreeListViews
 ---------------------------
 
-Filtering and `TreeListViews` interact in a predictable but perhaps unexpected fashion. 
+Filtering and `TreeListViews` interact in a predictable but perhaps unexpected fashion.
 
-Filtering considers only rows that are currently exposed (that is, all their ancestorss 
+Filtering considers only rows that are currently exposed (that is, all their ancestorss
 are expanded).
 
 Within those rows, rows will be included by the filtering process if they **or any of their
@@ -118,15 +118,15 @@ Filtering and RefreshObject()
 visible before `RefreshObject()` will still be visible after, and an object that was
 filtered before `RefreshObject()` was called will still be filtered afterwards.
 
-There are a main reason for this behaviour is that `RefreshObject()` has always had  
+There are a main reason for this behaviour is that `RefreshObject()` has always had
 the contract that it will not rebuild, resort or regroup the list. If the filtered-ness
 of an object changes, `RefreshObject()` would have to break one or more of these
 conditions.
 
-1. For a grouped list, `RefreshObject()` may have to create a new group or remove an 
+1. For a grouped list, `RefreshObject()` may have to create a new group or remove an
    existing group. This would break the "no rebuild"
    and "no regrouping" contract.
-   
+
 2. If there is a `ListFilter` installed, `RefreshObject()` would have to rebuild the whole list.
 
 3. In a `TreeListView`, the newly hidden (or revealed) object might be a deeply nest child row,
@@ -134,7 +134,7 @@ conditions.
 
 If you make a change to model objects and want filters to be reconsidered for them, you have
 to call `BuildList(true)` or reapply the filters. `RefreshObject()` will not work.
- 
+
 .. _column-filtering-label:
 
 Excel-like Filtering
@@ -145,11 +145,15 @@ filters. The user can choose which values should be matched by the filter, and O
 will create and install a filter to do just that.
 
 .. image:: images/excel-filtering.png
-    :class: left-padded
+
 
 Selecting "Clear all filtering" removes all column-based filtering from the control.
 
 Deselecting all clusters effectively removes any filtering associated with the column.
+
+When the user chooses an Excel filter, any previously installed `ModelFilter` will be replaced.
+If the programmer wants their filter to be combined with the user chosen Excel filter, the
+programmer should set the `AdditionalFilter` property instead of the `ModelFilter`.
 
 Turning off
 ^^^^^^^^^^^
@@ -162,14 +166,14 @@ To hide the 'Filter' menu item for a particular column, set `UsesFiltering` to *
 Changing the clustering
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-"Clustering" is the process of grouping the model objects into sets, where each set 
-shares the same data value for the attribute of interest. 
+"Clustering" is the process of grouping the model objects into sets, where each set
+shares the same data value for the attribute of interest.
 
-Not very clear? Let's try an example. 
+Not very clear? Let's try an example.
 
-Imagine we have a column that shows the birthdate of a collection of people.  
+Imagine we have a column that shows the birthdate of a collection of people.
 The clustering for that column might put all the people with a birthday in January into
-one set, all those with a birthday in February into a different set, and so on. 
+one set, all those with a birthday in February into a different set, and so on.
 
 ==========   ================================
 Person       Birthdate
@@ -181,7 +185,7 @@ Gerald       DateTime(1977, August, 27)
 Margy        DateTime(1947, February, 7)
 Phillip      DateTime(1969, January, 24)
 ==========   ================================
- 
+
 would produce these clusters:
 
 ===========  =============================  ============= ================
@@ -203,14 +207,14 @@ the safe base class, `ClusteringStrategy`.
 Date/Time Clustering
 ^^^^^^^^^^^^^^^^^^^^
 
-If you are showing dates or times in a column, an instance of `DateTimeClusteringStrategy` 
-can probably be configured to do exactly what you want. 
+If you are showing dates or times in a column, an instance of `DateTimeClusteringStrategy`
+can probably be configured to do exactly what you want.
 
 
 Customising the menu
 ^^^^^^^^^^^^^^^^^^^^
 
-The menu is constructed by an instance of `FilterMenuBuilder`. 
+The menu is constructed by an instance of `FilterMenuBuilder`.
 
 As it stands, there are two small customisations you can make to its behaviour:
 
@@ -223,20 +227,20 @@ As it stands, there are two small customisations you can make to its behaviour:
    the clusters for the menu. The property `MaxObjectsToConsider` gives an upper limit
    on the number of model objects that will be considered when constructing the clusters.
    The default is 10,000 -- which should be more than enough for most applications.
-   
+
 You can localize the strings used in the Filter menu setting the various static properties
 on the `FilterMenuBuilder` class::
 
     FilterMenuBuilder.SELECT_ALL_LABEL = "Selecionar tudo";
 
-To change the way the 
+To change the way the
 menu looks or works, you must subclass `FilterMenuBuilder` and then install an instance
 of your own class as the builder on your ObjectListView::
 
     public class MyFilterMenuBuilder : FilterMenuBuilder {
 	    // override whatever methods you like
     }
-	
+
 Once you have defined your menu builder, you need to assign it to your ObjectListView::
-	
+
 	this.olv1.FilterMenuBuilder = new MyFilterMenuBuilder();

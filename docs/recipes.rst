@@ -260,7 +260,7 @@ more (or less) of itself when the user changed the size of the ListView. For
 example, the rightmost column of a personnel list might display "Comments" about
 that person. When the window was made larger, it would be nice if that column
 automatically expanded to show more of the comments about that person. You can
-make this happen by setting the `IsSpaceFilling` property to  *true* on that column.
+make this happen by setting the `FillsFreeSpace` property to  *true* on that column.
 
 An `ObjectListView` can have more than one space filling column, and they
 generally share the available space equally between them (see the
@@ -1393,7 +1393,7 @@ There are two ways you can do this:
 31. Can I show groups on a virtual list?
 ----------------------------------------
 
-If it is on XP or earlier, no. If the program is running on Vista, yes -- but
+If it is on XP or earlier, no. If the program is running on Vista or later, yes -- but
 you may have to do some work.
 
 A `FastObjectListView` supports groups as it stands. Simple set `ShowGroups`
@@ -1487,6 +1487,9 @@ The base `ModelFilter` class can be given a delegate and used directly::
    this.olv1.ModelFilter = new ModelFilter(delegate(object x) {
        return ((PhoneCall)x).IsEmergency;
    });
+
+If you want your filter to co-operate with any :ref:`Excel-like filtering <column-filtering-label>`,
+set the `AdditionalFilter` property, instead of the `ModelFilter`.
 
 .. _recipe-text-filtering:
 
@@ -1761,9 +1764,9 @@ and then set its `DisplayIndex` to 0, so that it appears first.
 43. How can I make checkboxes keep their values when filtering an ObjectListView?
 ---------------------------------------------------------------------------------
 
-Set `PersistentCheckboxes` to *true*.
+Set `PersistentCheckboxes` to *true* (this is the default).
 
-By default, the "checkedness" of a row is maintained by the underlying ListView control.
+The "checkedness" of a row is maintained by the underlying ListView control.
 However, when the contents of the control are rebuild -- either by calling `BuildList()`
 or by applying or removing a filter --
 this "checkedness" is lost since all the underlying `ListViewItems` are destroyed and recreated.
@@ -1771,12 +1774,62 @@ this "checkedness" is lost since all the underlying `ListViewItems` are destroye
 When `PersistentCheckboxes` is *true*, the `ObjectListView` will remember the check state of
 each row, and ensure that it is correctly maintained whenever the list is rebuilt or filtered.
 
-This is *true* by default on all virtual lists (`FastObjectListView` and `TreeListView`). It
-should probably be *true* for all normal `ObjectListViews` too, but to maintain previous behaviour,
-it is *false* by default.
-
 If an `ObjectListView` has `CheckStateGetter` and `CheckStatePutters` installed, the `PersistentCheckboxes`
 property does nothing, since the getter and putter must already persist the checkbox state.
 
+This behaviour is new in v2.5.1. To revert to the previous behaviour, set `PersistentCheckboxes` to *false*.
 
+.. _recipe-cancel-group-expand:
+
+44. How can I stop the user expanding/collapsing a group?
+---------------------------------------------------------
+
+Listen for the `GroupExpandingCollapsing` event, and then set `Canceled` to *true* if the event should be prevented.
+
+This handler will stop a group from expanding if the group starts with "NO_EXPAND"::
+
+    private void olv1_GroupExpandingCollapsing(object sender, GroupExpandingCollapsingEventArgs e) {
+        e.Canceled = e.IsExpanding && e.Group.Header.StartsWith("NO_EXPAND");
+    }
+
+.. _recipe-native-backgrounds:
+
+45. How do I put a *real* background image onto an ObjectListView?
+------------------------------------------------------------------
+
+    *That overlay stuff is just too tricky. I want a real background image
+    and I want it now!*
+
+Since XP, the native ListView control has supported background images, via the `LVM_SETBKIMAGE` message.
+But it has always has serious limits, as this screen shot shows:
+
+.. image:: images/setbkimage.png
+
+
+However, Windows 7 seems to have improved the way this message works:
+
+.. image:: images/setbkimage2.png
+
+Better but still not perfect. The limitations are still there:
+
+* It does not work at all on XP.
+* It doesn't look very good when grid lines are enabled, since the grid lines are still drawn over the image.
+* It doesn't work with owner drawn mode. In owner drawn mode, each cell draws itself, including its background, which covers the background image.
+* The transparent areas of the background image aren't completely transparent.
+* Obviously, it looks odd when alternate row background colors are enabled.
+
+If you can live with these limits, `ObjectListView` now [v2.5.1] has built in support for native backgrounds::
+
+    // Set a watermark in the bottom right of the control
+    this.olv.SetNativeBackgroundWatermark(Resource1.redback1);
+
+    // Set the background image positioned 50% horizontally and 75% vertically
+    this.olv.SetNativeBackgroundImage(Resource1.redback1, 50, 75));
+
+    // Set a tiled background to the control
+    this.olv.SetNativeBackgroundTiledImage(Resource1.limeleaf);
+
+If you can live with these limitations, native watermarks are quite neat. They are true backgrounds, not
+translucent overlays like the `OverlayImage` uses. They also have the decided advantage over overlays in that
+they work correctly even in MDI applications.
 
