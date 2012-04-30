@@ -8,6 +8,7 @@
  * 10/25/2008 JPP  Initial Version
  */
 
+using System.Collections.Generic;
 using System.Windows.Forms;
 using NUnit.Framework;
 
@@ -296,11 +297,13 @@ namespace BrightIdeasSoftware.Tests
 
             this.olv.UseFiltering = true;
             this.olv.ModelFilter = new TextMatchFilter(this.olv, PersonDb.FirstAlphabeticalName);
+            Assert.AreEqual(1, this.olv.GetItemCount());
             Assert.AreEqual(1, this.olv.CheckedObjects.Count);
 
             this.olv.ModelFilter = null;
             Assert.AreEqual(this.olv.CheckedObjects.Count, PersonDb.All.Count);
             this.olv.PersistentCheckBoxes = false;
+            this.olv.UseFiltering = false;
         }
 
         [Test]

@@ -319,6 +319,7 @@ namespace BrightIdeasSoftware.Tests
     [TestFixture]
     public class TestTreeListFilters : TestFilters
     {
+        // ListFilters don't work on TreeListViews
 
         [Test]
         override public void Test_ListFilter_None() {

@@ -19,10 +19,10 @@ namespace BrightIdeasSoftware.Tests
     {
         [SetUp]
         public void InitEachTest() {
-            this.olv.Roots = PersonDb.All.GetRange(0, this.numberOfRoots);
+            this.olv.Roots = PersonDb.All.GetRange(0, NumberOfRoots);
             this.olv.DiscardAllState();
         }
-        int numberOfRoots = 2;
+        private const int NumberOfRoots = 2;
 
         [TearDown]
         public void TearDownEachTest() {
@@ -30,7 +30,7 @@ namespace BrightIdeasSoftware.Tests
 
         [Test]
         public void TestInitialConditions() {
-            Assert.AreEqual(this.numberOfRoots, this.olv.GetItemCount());
+            Assert.AreEqual(NumberOfRoots, this.olv.GetItemCount());
             int i = 0;
             foreach (Object x in this.olv.Roots) {
                 Assert.AreEqual(PersonDb.All[i], x);
@@ -43,7 +43,7 @@ namespace BrightIdeasSoftware.Tests
         public void TestCollapseAll() {
             this.olv.ExpandAll();
             this.olv.CollapseAll();
-            Assert.AreEqual(this.numberOfRoots, this.olv.GetItemCount());
+            Assert.AreEqual(NumberOfRoots, this.olv.GetItemCount());
         }
 
         [Test]
@@ -57,7 +57,7 @@ namespace BrightIdeasSoftware.Tests
             this.olv.ExpandAll();
             this.olv.CollapseAll();
 
-            Assert.AreEqual(this.numberOfRoots, this.olv.GetItemCount());
+            Assert.AreEqual(NumberOfRoots, this.olv.GetItemCount());
             int expectedCount = this.olv.GetItemCount() + PersonDb.All[0].Children.Count;
             this.olv.Expand(PersonDb.All[0]);
             Assert.AreEqual(expectedCount, this.olv.GetItemCount());
@@ -139,6 +139,7 @@ namespace BrightIdeasSoftware.Tests
                 Assert.AreEqual(x, p.Children[i]);
                 i++;
             }
+            Assert.AreEqual(i, p.Children.Count);
         }
 
         [Test]
@@ -150,6 +151,46 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual(PersonDb.All[1], this.olv.SelectedObject);
         }
 
+        [Test]
+        public void TestExpandedObjects() {
+            this.olv.ExpandedObjects = new Person[] {PersonDb.All[1]};
+            Assert.Contains(PersonDb.All[1], this.olv.ExpandedObjects as ICollection);
+            this.olv.ExpandedObjects = null;
+            Assert.IsEmpty(this.olv.ExpandedObjects as ICollection);
+        }
+
+        [Test]
+        public void TestPreserveExpansion() {
+            this.olv.Expand(PersonDb.All[1]);
+            Assert.Contains(PersonDb.All[1], this.olv.ExpandedObjects as ICollection);
+            this.olv.Collapse(PersonDb.All[1]);
+            Assert.IsEmpty(this.olv.ExpandedObjects as ICollection);
+        }
+
+        [Test]
+        public void TestRebuildAllWithPreserve() {
+            this.olv.CheckBoxes = true;
+            this.olv.SelectedObject = PersonDb.All[0];
+            this.olv.Expand(PersonDb.All[1]);
+            this.olv.CheckedObjects = new Person[] { PersonDb.All[0] };
+            this.olv.RebuildAll(true);
+            Assert.AreEqual(PersonDb.All[0], this.olv.SelectedObject);
+            Assert.Contains(PersonDb.All[1], this.olv.ExpandedObjects as ICollection);
+            Assert.Contains(PersonDb.All[0], this.olv.CheckedObjects as ICollection);
+            this.olv.CheckBoxes = false;
+        }
+
+        [Test]
+        public void TestModelFilterNestedMatchParentsIncluded() {
+            this.olv.ExpandAll();
+
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv, PersonDb.FirstAlphabeticalName.ToLowerInvariant());
+
+            // After filtering the list should contain the one item that matched the filter and its parent
+            Assert.AreEqual(2, this.olv.GetItemCount());
+        }
+
         [TestFixtureSetUp]
         public void Init() {
             this.olv = MyGlobals.mainForm.treeListView1;
@@ -159,6 +200,8 @@ namespace BrightIdeasSoftware.Tests
             this.olv.ChildrenGetter = delegate(Object x) {
                 return ((Person)x).Children;
             };
+            this.olv.UseFiltering = false;
+            this.olv.ModelFilter = null;
         }
         protected TreeListView olv;
     }
