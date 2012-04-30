@@ -568,10 +568,10 @@ namespace BrightIdeasSoftware
         /// Set the collection of objects that this control will show.
         /// </summary>
         /// <param name="collection"></param>
-        /// <remark>This method can safely be called from background threads.</remark>
-        public override void SetObjects(IEnumerable collection) {
+        /// <param name="preserveState">Should the state of the list be preserved as far as is possible.</param>
+        public override void SetObjects(IEnumerable collection, bool preserveState) {
             if (this.InvokeRequired) {
-                this.Invoke((MethodInvoker)delegate { this.SetObjects(collection); });
+                this.Invoke((MethodInvoker)delegate { this.SetObjects(collection, preserveState); });
                 return;
             }
 
