@@ -116,6 +116,8 @@ Technical details
 I've started keeping a :ref:`technical blog <blog>` documenting some of the efforts that were required to
 solve some of the problem encountered within the ObjectListView.
 
+* :ref:`Lifting up the downtrodden ListViewGroup<blog-listviewgroups>`
+
 * How can I make a :ref:`rearrangeable TreeListView <blog-rearrangingtreelistview>`?
 
 * Surely :ref:`a little bug <blog-subitemboundsbug>` can't cause too much trouble?
@@ -140,6 +142,10 @@ When thinking about using some new code, it's always interesting to hear what ot
 
    -- `thund3rstruck <http://www.codeproject.com/Messages/3397326/This-Could-Be-The-Greatest-Code-Project-Artifact-E.aspx>`_
 
+.. pull-quote:: Thank you very much, this is a great piece of work. ... It is easy to work with, fast and it looks great! I will replace all lists and in my application with it, and I will have a lot of fun doing this :)
+
+  -- `Jurgen Hansen <https://sourceforge.net/users/juhaberlin>`_
+
 .. pull-quote:: I have been using your tool for over a year now and it is absolutely incredible. It has solved almost all of my problems with the listview and I can't thank you enough for sharing this.
 
    -- `Statoon4200 <http://www.codeproject.com/Messages/3252682/Thanks-and-question.aspx>`_
@@ -148,9 +154,17 @@ When thinking about using some new code, it's always interesting to hear what ot
 
    -- `Werner Neumann <http://www.codeproject.com/Messages/3249574/Wow-Vote-5-modified.aspx>`_
 
+.. pull-quote:: Just want to say thanks for such an amazing control. I'm blown away with the level and thought put into the documentation (as a developer, I personally hate documenting things).   So thanks, awesome stuff :)
+
+   -- `SourceForge reviewer <https://sourceforge.net/users/?user_id=3694693>`_
+
 .. pull-quote:: Just a small THANK YOU for taking the time to code something as good as ObjectListView. It works extremely well, and is an absolute joy to work with, even for us beginners! Much appreciated.
 
    -- `Inztigator <http://www.codeproject.com/Messages/3246404/Brilliant.aspx>`_
+
+.. pull-quote:: Easily the best ListView out there for C#
+
+   -- `ezgar <https://sourceforge.net/users/ezgar>`_
 
 .. pull-quote:: This is awesome. Definently one of the better articles here at CodeProject. Just gotta say 'thanks for sharing this with the rest of the world'...
 

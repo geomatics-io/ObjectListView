@@ -38,7 +38,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'ObjectListView'
-copyright = '2006-2016, Phillip Piper'
+copyright = '2006-2012, Phillip Piper'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
