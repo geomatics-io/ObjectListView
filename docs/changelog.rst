@@ -9,6 +9,7 @@ Change Log
 
 Version Index
 -------------
+* `v2.5.1 - 01 May 2012`_
 * `v2.5 - 06 June 2011`_
 * `v2.4.1 - 15 September 2010`_
 * `v2.4 - 17 April 2010`_
@@ -20,17 +21,101 @@ Version Index
 * `v2.1a - 07 February 2009`_
 * `v2.0.1 - 10 January 2009`_
 * `v2.0 - 30 November 2008`_
-* `v1.13 - 24 July 2008`_
-* `v1.12 - 10 May 2008`_
-* `v1.11 - 11 April 2008`_
-* `v1.10 - 19 March 2008`_
-* `v1.9.1 - 02 February 2008`_
-* `v1.9 - 16 January 2008`_
-* `v1.8 - 30 November 2007`_
-* `v1.6 - 30 September 2007`_
-* `v1.5 - 03 August 2007`_
-* `v1.4 - 30 April 2007`_
-* `Previous versions - 04 April 2007`_
+* `Previous versions - 24 July 2008`_
+
+
+v2.5.1 - 01 May 2012
+--------------------
+
+2012-04-26 19:56 (#1208) - docs/whatsnew.rst, docs/blog.rst, docs/filtering.rst, docs/conf.py, docs/changelog.rst, docs/blog5.rst, docs/recipes.rst
+  - Polish docs for v2.5.1 release
+
+2012-04-26 19:55 (#1207) - ObjectListView/ObjectListView.cs, ObjectListView/ObjectListView.DesignTime.cs, ObjectListView/TreeListView.cs, ObjectListView/Implementation/Events.cs
+  - Remove group related events from TreeListView in the designer
+  - Correctly mark various properties and events with their correct designer attributes
+
+2012-04-24 17:35 (#1205) - docs/.static/blog5-icon.png, docs/blog.rst, docs/blog4.rst, docs/index.rst, docs/blog5.rst
+  - Added new blog about list view groups
+
+2012-04-24 17:34 (#1204) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Show hit test information in bottom status bar
+
+2012-04-24 17:33 (#1203) - ObjectListView/ObjectListView.cs
+  - Trigger GroupExpandingCollapsing event to allow the expand/collapse to be cancelled
+  - Fixed SetGroupSpacing() so it corrects updates the space between all groups.
+  - ResizeLastGroup() now does nothing since it was broken and I can't remember what it was even supposed to do :)
+  - Upgraded hit testing to include hits on groups.
+  - HotItemChanged is now correctly recalculated on each mouse move. Includes "hot" group information.
+
+2012-04-24 08:24 (#1202) - ObjectListView/VirtualObjectListView.cs
+  - Fixed bug that occurred when adding/removing item while the view was grouped.
+
+2012-04-24 08:23 (#1201) - ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/Implementation/NativeMethods.cs, ObjectListView/Implementation/OLVListItem.cs
+  - Added group hit test information
+
+2012-04-24 08:22 (#1200) - ObjectListView/Implementation/Groups.cs
+  - Removed OLVGroup.SetGroupSpacing() which never did what it suggested it did
+
+2012-04-24 08:21 (#1199) - ObjectListView/Implementation/Events.cs
+  - Added group state change and group expansion events
+
+2012-04-16 19:31 (#1197) - docs/.static, docs/images, docs/ClassDiagram.dia, docs/dragdrop.rst, docs/blog.rst, docs/.templates/layout.html, docs/conf.py, docs/blog4.rst, docs/faq.rst, docs, docs/images/ClassDiagram-VirtualList.png, docs/images/ClassDiagram.png
+  - Tweaked class diagrams
+  - Updated FAQ and rrearrangeable tree list view
+
+2012-04-16 19:29 (#1196) - ObjectListView, ObjectListView/FullClassDiagram.cd, ObjectListView/DragDrop/DropSink.cs, ObjectListView/ObjectListView2010.csproj
+  - Added original drag event args to DropEventArgs
+  - Added class diagram
+
+2012-04-14 16:24 (#1194) - ObjectListView/Filtering/FilterMenuBuilder.cs
+  - Fixed rare bug with clustering an empty list (SF #3445118)
+
+2012-04-14 16:04 (#1193) - ObjectListView/CellEditing/CellEditKeyEngine.cs
+  - Fixed bug where, on a OLV with only a single editable column, tabbing to change rows would edit the cell above rather than the cell below the cell being edited.
+
+2012-04-14 15:39 (#1191) - ObjectListView/ObjectListView.cs, ObjectListView/Implementation/NativeMethods.cs, ObjectListView/Implementation/Groups.cs, ObjectListView/Implementation/Events.cs
+  - Added GroupStateChanged event. Useful for knowing when a group is collapsed/expanded.
+
+2012-04-12 14:09 (#1190) - Tests/MainForm.Designer.cs, ObjectListView/ObjectListView.cs, Tests/SetupTestSuite.cs, Tests/TestCheckBoxes.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Rendering/Renderers.cs, ObjectListView/SubControls/HeaderControl.cs, docs/recipes.rst, Tests/MainForm.resx, ObjectListView/Filtering/Filters.cs
+  - Added PersistentCheckBoxes property
+
+2012-04-12 14:07 (#1189) - ListViewPrinterDemo/Properties/Resources.resx, ListViewPrinterDemo/Properties/Resources.Designer.cs
+  - Removed unused resource compass16
+
+2012-04-12 14:06 (#1188) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Changed demo to use AdditionalFilter rather than ModelFilter
+
+2012-04-07 15:37 (#1187) - ObjectListView/Implementation/Munger.cs
+  - Reverted some code to .NET 2.0 standard.
+
+2012-04-07 15:34 (#1186) - ObjectListView/ObjectListView.cs, ObjectListView/TreeListView.cs
+  - Reverted some code to .NET 2.0 standard.
+  - Tweaked some code
+
+2012-04-05 08:04 (#1185) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/Resources/coffee.jpg, Demo/MainForm.resx
+  - Minor tweak to exercise some other code paths
+
+2012-04-05 08:01 (#1184) - ObjectListView/Implementation/Munger.cs
+  - Handle case where class has an Item property and an Item[] accessor
+
+2012-04-05 07:58 (#1183) - ObjectListView/Rendering/Renderers.cs
+  - Fixed minor issue with drawing from image lists
+
+2012-04-05 07:58 (#1182) - ObjectListView/ObjectListView.cs
+  - Fixed issue with ColumnSelectMenu_ItemClicked
+
+2011-06-24 08:48 (#1180) - ObjectListView/Filtering/TextMatchFilter.cs
+  - Correctly handle searching for empty strings
+
+2011-06-24 08:46 (#1179) - ObjectListView/ObjectListView.cs
+  - Added CanUseApplicationIdle property to cover cases where Application.Idle events are not triggered.
+  - Handle cases where a second tool tip is installed onto the ObjectListView.
+  - Correctly recolour rows after an Insert or Move
+  - Removed m.LParam cast which could cause overflow issues on Win7/64 bit.
+
+2011-06-24 08:39 (#1177) - ObjectListView/ObjectListView.DesignTime.cs
+  - Vastly improved ObjectListViewDesigner, based off information in "'Inheriting' from an Internal WinForms Designer" on CodeProject.
+
 
 
 v2.5 - 06 June 2011
@@ -1951,8 +2036,8 @@ v2.0 - 30 November 2008
 
 
 
-v1.13 - 24 July 2008
---------------------
+Previous versions - 24 July 2008
+--------------------------------
 
 2008-07-24 01:29 (#183) - MainForm.Designer.cs, MainForm.cs
   - Corrected small bug in BusinessCardRenderer
@@ -1998,11 +2083,6 @@ v1.13 - 24 July 2008
 
 2008-05-12 07:10 (#171) - ObjectListView.cs
   - Allow selection foreground and background colors to be changed.
-
-
-
-v1.12 - 10 May 2008
--------------------
 
 2008-05-09 19:04 (#169) - ObjectListView.cs
   - v1.12 released
@@ -2087,11 +2167,6 @@ v1.12 - 10 May 2008
 2008-04-13 07:02 (#147) - ObjectListView.cs
   - Changed HandleHeaderRightClick() to have a columnIndex parameter, which tells which column was right-clicked
 
-
-
-v1.11 - 11 April 2008
----------------------
-
 2008-04-10 16:50 (#146) - ObjectListView.cs
   - Minor code improvements
 
@@ -2112,11 +2187,6 @@ v1.11 - 11 April 2008
 2008-03-26 09:15 (#139) - ObjectListView.shfb, ObjectListView.cs, ObjectListViewDemo.csproj, MainForm.resx, MainForm.Designer.cs, MainForm.cs
   - Add space filling columns
   - Remove most <code></code> brackets from docs because that tag doesn't do what I thought.
-
-
-
-v1.10 - 19 March 2008
----------------------
 
 2008-03-17 06:35 (#137) - AssemblyInfo.cs
   - Changed version number
@@ -2145,11 +2215,6 @@ v1.10 - 19 March 2008
   - Make sure that sort indicators are shown after changing which columns are visible
   - Added FastObjectListView
 
-
-
-v1.9.1 - 02 February 2008
--------------------------
-
 2008-01-20 05:41 (#129) - ObjectListView.cs
   - v1.9.0.2 but released to CodeProject as v1.9
 
@@ -2171,11 +2236,6 @@ v1.9.1 - 02 February 2008
   - Batch the adding of list items (15% faster)
   - Redraw the control EmptyListMsg changes
   - Made RefreshObject/s thread safe
-
-
-
-v1.9 - 16 January 2008
-----------------------
 
 2007-12-14 08:57 (#121) - ColumnSelectionForm.Designer.cs, ColumnSelectionForm.cs
   - Use new check box support in ObjectListView
@@ -2200,11 +2260,6 @@ v1.9 - 16 January 2008
 
 2007-12-01 04:19 (#112) - MainForm.Designer.cs, MainForm.cs
   - Set correct tab order on all pages
-
-
-
-v1.8 - 30 November 2007
------------------------
 
 2007-11-30 06:32 (#110) - ObjectListView.cs
   - Allow renderers to wrap text (only used when printing)
@@ -2333,11 +2388,6 @@ v1.8 - 30 November 2007
   - Corrected image scaling bug in DrawAlignedImage()
   - Allow item count labels on groups to be set per column
 
-
-
-v1.6 - 30 September 2007
-------------------------
-
 2007-08-21 06:29 (#59) - ObjectListView.cs, MainForm.cs
   - Massive rework of DataListView to make it truly bindable.
 
@@ -2346,11 +2396,6 @@ v1.6 - 30 September 2007
 
 2007-08-11 19:25 (#50) - ObjectListView.cs, ObjectListViewDemo.csproj, MainForm.resx, MainForm.Designer.cs
   - Added List Empty msg capability
-
-
-
-v1.5 - 03 August 2007
----------------------
 
 2007-08-03 07:07 (#48) - ObjectListViewDemo.sln, ObjectListView.cs, ObjectListViewDemo.csproj, MainForm.resx, MainForm.Designer.cs, MainForm.cs
   - v1.5 Release
@@ -2398,11 +2443,6 @@ v1.5 - 03 August 2007
 2007-05-02 00:20 (#30) - MainForm.resx, MainForm.Designer.cs, MainForm.cs
   - Add view comboboxes and owner draw check boxes
 
-
-
-v1.4 - 30 April 2007
---------------------
-
 2007-04-21 18:19 (#29) - ObjectListView.cs, MainForm.resx, Persons.xml, MainForm.Designer.cs, MainForm.cs
   - Made OwnerDraw optional.
   - Added list sort indicators on columns
@@ -2434,11 +2474,6 @@ v1.4 - 30 April 2007
 2007-04-06 14:55 (#18) - MainForm.resx, MainForm.Designer.cs, MainForm.cs
   - Changed DataSet example to use DataTableListView
   - Removed some unwanted code
-
-
-
-Previous versions - 04 April 2007
----------------------------------
 
 2007-01-18 00:01 (#17) - MainForm.resx, MainForm.Designer.cs, MainForm.cs
   - Added virtual list example

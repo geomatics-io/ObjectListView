@@ -7,6 +7,81 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
+May 2012 - Version 2.5.1
+------------------------
+
+New features
+^^^^^^^^^^^^
+
+* Added better support for groups. This includes hit detection,
+  cancellable group expand/collapse event (`GroupExpandingCollapsing`) and group state changed
+  event (unsurprisingly `GroupStateChanged`). See :ref:`this blog <blog-listviewgroups>` for more details.
+
+* Added `UsePersistentCheckboxes` property to allow `ObjectListView` to correctly remember checkbox
+  values across list rebuilds. Without this, applying a filter to plain `ObjectListView` would always
+  make the checkboxes lose their values. This is *true* by default. Set to *false* to return to v2.5 and earlier
+  behaviour.
+
+* Added `AdditionalFilter` property. Any `IModelFilter` installed through the `AdditionalFilter` property
+  will be combined with any column based filter that the user specifies at runtime. This is different
+  from the `ModelFilter` property, since setting that will *replace* any user given column filtering and vice versa.
+
+* Added `CanUseApplicationIdle` property to cover cases where `Application.Idle` events are not triggered.
+  In some contexts -- specifically VisualStudio and Office extensions -- the `Application.Idle` events
+  are never triggered. If you set `CanUseApplicationIdle` to *false*, `ObjectListView` will correctly handle
+  these situations.
+
+* Support for :ref:`native background images <recipe-native-backgrounds>`.
+
+Other Changes
+^^^^^^^^^^^^^
+
+* Vastly improved the runtime designer, based off information in
+  `'Inheriting' from an Internal WinForms Designer`__ on `CodeProject`_.
+
+.. __: http://www.codeproject.com/Articles/150801/Inheriting-from-an-Internal-WinForms-Designer
+
+.. _CodeProject: http://www.codeproject.com
+
+* Improved :ref:`TreeListView dragging example <blog-rearrangingtreelistview>`.
+  Now also shows how to handle accepting drops from
+  external sources.
+
+Bugs fixed
+^^^^^^^^^^
+
+* Fixed a bug that forced groups to always have 20 or so pixels of extra space between them. This is now
+  correctly controlled by the `SpaceBetweenGroups` property.
+
+* Fixed bug that occurred when adding/removing items to a `VirtualObjectListView` (including `FastObjectListView`
+  and `TreeListView`) while the view was grouped.
+
+* Fixed bug where, on a `ObjectListView` with only a single editable column, tabbing to change rows would edit
+  the cell above rather than the cell below the cell being edited.
+
+* Clicking the separator on the Column Select menu no longer crashes.
+
+* Fixed rare bug that could occur when trying to group/clustering an empty list.
+
+* Handle case where a model object has both an `Item` property and an `Item[]` accessor.
+
+* Fixed filters to correctly handle searching for empty strings.
+
+* Handle cases where a second tool tip is installed onto the ObjectListView.
+
+* Correctly recolour rows after an Insert or Move.
+
+* Removed `m.LParam` cast which could cause overflow issues on Win7/64 bit.
+
+Supported systems
+-----------------
+
+Another hard drive crash and my last remaining XP machine is no more.
+I no longer have access to XP or even Vista -- only Windows 7.
+
+I may try to purchase a cheap laptop simply to run XP, but for the moment, I cannot test
+ObjectListView on anything other than Windows 7.
+
 May 2011 - Version 2.5
 ----------------------
 
@@ -17,10 +92,10 @@ New features
 
 * `FastDataListView`. Just like a normal `DataListView`, only faster. On my laptop, it comfortably handles datasets of 100,000 rows without trouble. NOTE: This does not virtualize the data access part -- only the UI portion. So, if you have a query that returns one million rows, all the rows will still be loaded from the database. Once loaded, however, they will be managed by a virtual list.
 
-* Fully customizable character map during cell edit mode. 
+* Fully customizable character map during cell edit mode.
   This was an overkill solution for the various flavours of "tab wraps to new line" requests.
   As convinence wrappers, `CellEditTabChangesRows` and `CellEditEnterChangesRows` properties have
-  been added. 
+  been added.
 
 * Support for VS 2010. The target framework must be a "full" version of .Net. It will not work with a "Client Profile" (which is unfortunately the default for new projects in VS 2010).
 
@@ -48,12 +123,12 @@ Minor features
 
 * Column selection mechanism can be customised, through the `SelectColumnsOnRightClickBehaviour`. The default is `InlineMenu`, which behaves like previous versions. Other options are `SubMenu` and `ModalDialog`. This required moving the `ColumnSelectionForm` from the demo project into the ObjectListView project.
 
-* Added `OLVColumn.AutoCompleteEditorMode` in preference to `AutoCompleteEditor`  (which is now just a wrapper). Thanks to Clive Haskins 
+* Added `OLVColumn.AutoCompleteEditorMode` in preference to `AutoCompleteEditor`  (which is now just a wrapper). Thanks to Clive Haskins
 
-* Added `ObjectListView.IncludeColumnHeadersInCopy` 
+* Added `ObjectListView.IncludeColumnHeadersInCopy`
 
 * Added `ObjectListView.Freezing` event
-  
+
 * Added `TreeListView.ExpandedObjects` property.
 
 * Added `Expanding`, `Expanded`, `Collapsing` and `Collapsed` events to `TreeListView`.
@@ -120,14 +195,14 @@ Bug fixes (not a complete list)
 
 14 September 2010 - Version 2.4.1
 ---------------------------------
- 
+
 New features
 ^^^^^^^^^^^^
 
 * Column header improvements: they can be :ref:`rendered vertically <recipe-column-header-vertical>`;
   they can :ref:`show an image <recipe-column-header-image>`; they can be aligned differently to the cell's contents
   (use `OLVColumn.HeaderTextAlign` property).
-  
+
 * Group sorting can now be completely customised, as can item ordering within. See :ref:`this recipe <recipe-sorting-groups>`.
 
 * Improved text filtering to allow for prefix matching and full regex expressions.
@@ -140,7 +215,7 @@ New features
 
 Small tweaks
 ^^^^^^^^^^^^
- 
+
 * No more flickering of selection when tabbing between cells.
 
 * Added `ObjectListView.SmoothingMode` to control the smoothing of all graphics operations.
@@ -154,15 +229,15 @@ Small tweaks
 * CellEdit validation and finish events now have `NewValue` property.
 
 * Moved `AllowExternal` from `RearrangableDropSink` up the hierarchy to `SimpleDropSink`
-  since it could be generally useful. 
- 
+  since it could be generally useful.
+
 * Added `ObjectListView.HeaderMaximumHeight` to limit how tall the header section can become
 
-Bug fixes 
+Bug fixes
 ^^^^^^^^^
 
 * Avoid bug in standard `ListView` where virtual lists would send invalid item indicies for tool tip messages when in non-Details views.
-  
+
 * Fixed bug where `FastObjectListView` would throw an exception when showing hyperlinks in any view except Details.
 
 * Fixed bug in `ChangeToFilteredColumns()` that resulted in column display order being lost when a column was hidden.
@@ -174,7 +249,7 @@ Bug fixes
 * Correctly trigger a `Click` event when the mouse is clicked.
 
 * Right mouse clicks on checkboxes no longer confuses them
- 
+
 * Fixed bugs in `FastObjectListView` and `TreeListView` that prevented objects from being removed (or at least appeared to).
 
 * Avoid checkbox munging bug in standard `ListView` when shift clicking on non-primary columns when `FullRowSelect` is `true`.
@@ -199,7 +274,7 @@ New features
 * [Minor] Ctrl-C copies all selected rows to the clipboard (as it always did), but this can now be disabled by setting `CopySelectionOnControlC` to `false`.
 
 
-Bug fixes 
+Bug fixes
 ^^^^^^^^^
 
 * Changed object checking so that objects can be pre-checked before they are added to the list. Normal ObjectListViews managed "checkedness" in the ListViewItem, so this won't work for them, unless check state getters and putters have been installed. It will work on on virtual lists (thus fast lists and tree views) since they manage their own check state.
@@ -207,7 +282,7 @@ Bug fixes
 * Overlays can be turned off (set `UseOverlays` to `false`). They also only draw themselves on 32-bit displays.
 
 * ObjectListViews' overlays now play nicer with MDI, but it's still not great. When an ObjectListView overlay is used within an MDI
-  application, it doesn't crash any more, but it still doesn't handle overlapping windows. Overlays from one ObjectListView are 
+  application, it doesn't crash any more, but it still doesn't handle overlapping windows. Overlays from one ObjectListView are
   drawn over other controls too. Current advice: don't use overlays within MDI applications.
 
 * `F2` key presses are no longer silently swallowed.
@@ -215,10 +290,10 @@ Bug fixes
 * `ShowHeaderInAllViews` is better but not perfect. Setting it before the control is created or setting it
   to `true` work perfectly. However, if it is set to `false`, the primary checkboxes disappear! I could just ignore changes once
   the control is created, but it's probably better to let people change it on the fly and just document the idiosyncracies.
-  
+
 * Fixed bug in group sorting so that it actually uses `GroupByOrder` as it should always have done (thank to Michael Ehrt).
 
-* Destroying the `ObjectListView` during an mouse event (for example, closing a form in a double click handler) 
+* Destroying the `ObjectListView` during an mouse event (for example, closing a form in a double click handler)
   no longer throws a "disposed object" exception.
 
 12 October 2009 - Version 2.3
@@ -250,7 +325,7 @@ See :ref:`recipe-groupformatting` for how to make pretty groups like this.
 Hyperlinks
 ^^^^^^^^^^
 
-`ObjectListViews` can now have cells that are hyperlinks. 
+`ObjectListViews` can now have cells that are hyperlinks.
 
 .. image:: images/hyperlinks.png
 
@@ -259,7 +334,7 @@ See :ref:`recipe-hyperlink`.
 Header formatting
 ^^^^^^^^^^^^^^^^^
 
-The font and text color of the `ObjectListView` header can now be changed. 
+The font and text color of the `ObjectListView` header can now be changed.
 You can also word wrap the header text.
 
 .. image:: images/header-formatting.png
@@ -347,12 +422,12 @@ Small changes
 
 * Added `UseExplorerTheme` property, which when *true* forces the `ObjectListView`
   to use the same visual style as the explorer. On XP, this does nothing, but on
-  Vista it changes the hot item and selection mechanisms. 
+  Vista it changes the hot item and selection mechanisms.
   Be warned: setting this messes up several other properties. See
   :ref:`recipe-vistascheme`.
 
 * Added `OLVColumn.AutoCompleteEditor` which allows you to turn off auto-completion
-  on cell editors.  
+  on cell editors.
 
 * `OlvHitTest()` now works correctly even when `FullRowSelect` is *false*. There
   is a bug in the .NET `ListView` where `HitTest()` for a point that is in
