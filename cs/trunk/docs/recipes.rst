@@ -1805,18 +1805,20 @@ But it has always has serious limits, as this screen shot shows:
 
 .. image:: images/setbkimage.png
 
+This is less than ideal. Column 0 always draw over the background image, as do subitem images and grid lines.
+It was there limitations that lead to the creation of overlays.
 
-However, Windows 7 seems to have improved the way this message works:
+However, Windows 7 seems to have improved this situation:
 
 .. image:: images/setbkimage2.png
 
 Better but still not perfect. The limitations are still there:
 
-* It does not work at all on XP.
 * It doesn't look very good when grid lines are enabled, since the grid lines are still drawn over the image.
 * It doesn't work with owner drawn mode. In owner drawn mode, each cell draws itself, including its background, which covers the background image.
 * The transparent areas of the background image aren't completely transparent.
-* Obviously, it looks odd when alternate row background colors are enabled.
+* It looks odd when alternate row background colors are enabled.
+* This for Windows 7, so obviously, it does not work at all on XP.
 
 If you can live with these limits, `ObjectListView` now [v2.5.1] has built in support for native backgrounds::
 
