@@ -5,6 +5,8 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2012-05-04   JPP  - Avoid bug/feature in ListView.VirtalListSize setter that causes flickering
+ *                     when the size of the list changes.
  * 2012-04-24   JPP  - Fixed bug that occurred when adding/removing item while the view was grouped.
  * v2.5
  * 2011-05-31   JPP  - Setting CheckedObjects is more efficient on large collections
@@ -40,7 +42,7 @@
  * 2008-10-02   JPP  - MAJOR CHANGE: Use IVirtualListDataSource
  * 2008-09-27   JPP  - Separated from ObjectListView.cs
  * 
- * Copyright (C) 2006-2011 Phillip Piper
+ * Copyright (C) 2006-2012 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +64,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Reflection;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 
@@ -345,6 +349,40 @@ namespace BrightIdeasSoftware
             }
         }
         private IVirtualListDataSource virtualListDataSource;
+
+        /// <summary>
+        /// Gets or sets the number of rows in this virtual list.
+        /// </summary>
+        /// <remarks>
+        /// There is an annoying feature/bug in the .NET ListView class. 
+        /// When you change the VirtualListSize property, it always scrolls so
+        /// that the focused item is the top item. This is annoying since it makes
+        /// the virtual list seem to flicker as the control scrolls to show the focused
+        /// item and then scrolls back to where ObjectListView wants it to be.
+        /// </remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        protected new virtual int VirtualListSize {
+            get { return base.VirtualListSize; }
+            set {
+                if (value == this.VirtualListSize || value < 0)
+                    return;
+
+                // Get around the 'private' marker on 'virtualListSize' field using reflection
+                if (virtualListSizeFieldInfo == null) {
+                    virtualListSizeFieldInfo = typeof(ListView).GetField("virtualListSize", BindingFlags.NonPublic | BindingFlags.Instance);
+                    System.Diagnostics.Debug.Assert(virtualListSizeFieldInfo != null);
+                }
+
+                // Set the base class private field so that it keeps on working
+                virtualListSizeFieldInfo.SetValue(this, value);
+
+                // Send a raw message to change the virtual list size *without* changing the scroll position
+                if (this.IsHandleCreated && !this.DesignMode)
+                    NativeMethods.SetItemCount(this, value);
+            }
+        }
+        static private FieldInfo virtualListSizeFieldInfo;
 
         #endregion
 

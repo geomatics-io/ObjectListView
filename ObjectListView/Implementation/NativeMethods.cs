@@ -10,7 +10,7 @@
  *
  * To do:
  * 
- * Copyright (C) 2006-2009 Phillip Piper
+ * Copyright (C) 2006-2012 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,11 +60,11 @@ namespace BrightIdeasSoftware
         private const int LVM_SETGROUPMETRICS = LVM_FIRST + 155;
         private const int LVM_SETIMAGELIST = LVM_FIRST + 3;
         private const int LVM_SETITEM = LVM_FIRST + 76;
+        private const int LVM_SETITEMCOUNT = LVM_FIRST + 47;
         private const int LVM_SETITEMSTATE = LVM_FIRST + 43;
         private const int LVM_SETSELECTEDCOLUMN = LVM_FIRST + 140;
         private const int LVM_SETTOOLTIPS = LVM_FIRST + 74;
         private const int LVM_SUBITEMHITTEST = LVM_FIRST + 57;
-        
         private const int LVS_EX_SUBITEMIMAGES = 0x0002;
 
         private const int LVIF_TEXT = 0x0001;
@@ -99,6 +99,9 @@ namespace BrightIdeasSoftware
         private const int LVBKIF_FLAG_TILEOFFSET = 0x100;
         private const int LVBKIF_TYPE_WATERMARK = 0x10000000;
         private const int LVBKIF_FLAG_ALPHABLEND = 0x20000000;
+
+        private const int LVSICF_NOINVALIDATEALL = 1;
+        private const int LVSICF_NOSCROLL = 2;
 
         private const int HDM_FIRST = 0x1200;
         private const int HDM_HITTEST = HDM_FIRST + 6;
@@ -662,6 +665,16 @@ namespace BrightIdeasSoftware
         /// <param name="list">The listview to send a m to</param>
         public static void ForceSubItemImagesExStyle(ListView list) {
             SendMessage(list.Handle, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_SUBITEMIMAGES, LVS_EX_SUBITEMIMAGES);
+        }
+
+        /// <summary>
+        /// Change the virtual list size of the given ListView (which must be in virtual mode)
+        /// </summary>
+        /// <remarks>This will not change the scroll position</remarks>
+        /// <param name="list">The listview to send a message to</param>
+        /// <param name="count">How many rows should the list have?</param>
+        public static void SetItemCount(ListView list, int count) {
+            SendMessage(list.Handle, LVM_SETITEMCOUNT, count, LVSICF_NOSCROLL);
         }
 
         /// <summary>

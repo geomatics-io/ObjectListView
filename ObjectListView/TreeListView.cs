@@ -72,7 +72,7 @@
  *             to show the expand/collapse icon. If the tree has check boxes,
  *             it has to be owner drawn.
  * 
- * Copyright (C) 2006-2008 Phillip Piper
+ * Copyright (C) 2006-2012 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,6 +94,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
@@ -466,16 +467,19 @@ namespace BrightIdeasSoftware
                 try {
                     int countPerPage = NativeMethods.GetCountPerPage(this);
                     int descedentCount = this.TreeModel.GetVisibleDescendentCount(model);
-                    if (descedentCount < countPerPage)
+                    // If all of the descendents can be shown in the window, make sure that last one is visible.
+                    // If all the descendents can't fit into the window, move the model to the top of the window
+                    // (which will show as many of the descendents as possible)
+                    if (descedentCount < countPerPage) {
                         this.EnsureVisible(index + descedentCount);
-                    else
+                    } else {
                         this.TopItemIndex = index;
+                    }
                 }
                 finally {
                     this.EndUpdate();
                 }
             }
-
         }
 
         /// <summary>
