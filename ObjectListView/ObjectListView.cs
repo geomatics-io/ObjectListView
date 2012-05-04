@@ -461,9 +461,8 @@
  *
  * TO DO:
  * - Support undocumented group features: subseted groups, group footer items
- * - Complete custom designer
  *
- * Copyright (C) 2006-2011 Phillip Piper
+ * Copyright (C) 2006-2012 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -485,6 +484,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -673,21 +673,25 @@ namespace BrightIdeasSoftware
             return newObjects;
         }
 
-        ///// <summary>
-        ///// Decide if the given enumerable is empty
-        ///// </summary>
-        ///// <param name="collection">The source collection</param>
-        ///// <returns>True if the given enumerable is empty</returns>
-        ///// <remarks>
-        ///// <para>When we move to .NET 3.5, we can use LINQ and not need this method.</para>
-        ///// </remarks>
-        //public static bool IsEnumerableEmpty(IEnumerable collection) {
-        //    if (collection == null)
-        //        return true;
-
-        //    IEnumerator enumerator = collection.GetEnumerator();
-        //    return !enumerator.MoveNext();
-        //}
+        /// <summary>
+        /// Gets or sets whether all ObjectListViews will silently ignore missing aspect errors.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// By default, if an ObjectListView is asked to display an aspect
+        /// (i.e. a field/property/method)
+        /// that does not exist from a model, it displays an error message in that cell, since that 
+        /// condition is normally a programming error. There are some use cases where
+        /// this is not an error -- in those cases, set this to true and ObjectListView will
+        /// simply display an empty cell.
+        /// </para>
+        /// <para>Be warned: if you set this to true, it can be very difficult to track down
+        /// typing mistakes or name changes in AspectNames.</para>
+        /// </remarks>
+        public static bool IgnoreMissingAspects {
+            get { return Munger.IgnoreMissingAspects; }
+            set { Munger.IgnoreMissingAspects = value; }
+        }
 
         #endregion
 
@@ -9131,13 +9135,13 @@ namespace BrightIdeasSoftware
         /// Create and configure the empty list msg overlay
         /// </summary>
         protected virtual void InitializeEmptyListMsgOverlay() {
-            TextOverlay textOverlay = new TextOverlay();
-            textOverlay.Alignment = System.Drawing.ContentAlignment.MiddleCenter;
-            textOverlay.TextColor = SystemColors.ControlDarkDark;
-            textOverlay.BackColor = Color.BlanchedAlmond;
-            textOverlay.BorderColor = SystemColors.ControlDark;
-            textOverlay.BorderWidth = 2.0f;
-            this.EmptyListMsgOverlay = textOverlay;
+            TextOverlay overlay = new TextOverlay();
+            overlay.Alignment = System.Drawing.ContentAlignment.MiddleCenter;
+            overlay.TextColor = SystemColors.ControlDarkDark;
+            overlay.BackColor = Color.BlanchedAlmond;
+            overlay.BorderColor = SystemColors.ControlDark;
+            overlay.BorderWidth = 2.0f;
+            this.EmptyListMsgOverlay = overlay;
         }
 
         /// <summary>
