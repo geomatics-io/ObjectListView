@@ -17,7 +17,7 @@
  *
  * TO DO:
  *
- * Copyright (C) 2006-2009 Phillip Piper
+ * Copyright (C) 2006-2012 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -643,8 +643,8 @@ namespace BrightIdeasSoftware
         /// Mess with the basic message pump of the tooltip
         /// </summary>
         /// <param name="msg"></param>
-		[SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]       
-		override protected void WndProc(ref Message msg) {
+        [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]       
+        override protected void WndProc(ref Message msg) {
             //System.Diagnostics.Trace.WriteLine(String.Format("xx {0:x}", msg.Msg));
             switch (msg.Msg) {
                 case 0x4E: // WM_NOTIFY

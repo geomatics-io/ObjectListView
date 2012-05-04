@@ -14,7 +14,7 @@
  * - Use IPointLocator rather than Corners
  * - Add RotationCenter property ratherr than always using middle center
  * 
- * Copyright (C) 2009 Phillip Piper
+ * Copyright (C) 2009-2012 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

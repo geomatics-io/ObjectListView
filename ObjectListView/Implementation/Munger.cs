@@ -5,6 +5,8 @@
  * Date: 28/11/2008 17:15 
  *
  * Change log:
+ * v2.5.1
+ * 2012-05-01  JPP  - Added IgnoreMissingAspects property
  * v2.5
  * 2011-05-20  JPP  - Accessing through an indexer when the target had both a integer and
  *                    a string indexer didn't work reliably.
@@ -20,7 +22,7 @@
  *
  * TO DO:
  *
- * Copyright (C) 2006-2008 Phillip Piper
+ * Copyright (C) 2006-2012 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,6 +103,19 @@ namespace BrightIdeasSoftware
 
             return false;
         }
+
+        /// <summary>
+        /// Gets or sets whether Mungers will silently ignore missing aspect errors.
+        /// </summary>
+        /// <remarks>By default, if a Munger is asked to fetch a field/property/method
+        /// that does not exist from a model, it returns an error message, since that 
+        /// condition is normally a programming error. There are some use cases where
+        /// this is not an error, and the munger should simply keep quiet.</remarks>
+        public static bool IgnoreMissingAspects {
+            get { return ignoreMissingAspects;  }
+            set { ignoreMissingAspects = value;  }
+        }
+        private static bool ignoreMissingAspects;
 
         #endregion
 
