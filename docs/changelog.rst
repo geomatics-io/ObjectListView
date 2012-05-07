@@ -9,7 +9,7 @@ Change Log
 
 Version Index
 -------------
-* `v2.5.1 - 01 May 2012`_
+* `v2.5.1 - 08 May 2012`_
 * `v2.5 - 06 June 2011`_
 * `v2.4.1 - 15 September 2010`_
 * `v2.4 - 17 April 2010`_
@@ -24,8 +24,37 @@ Version Index
 * `Previous versions - 24 July 2008`_
 
 
-v2.5.1 - 01 May 2012
+v2.5.1 - 08 May 2012
 --------------------
+
+2012-05-07 15:07 (#1221) - ObjectListView/ObjectListView.DesignTime.cs
+  - Removed some non-2.0 language usage
+
+2012-05-07 14:58 (#1220) - ObjectListView/ObjectListView.cs, ObjectListView/Rendering/Overlays.cs, ObjectListView/VirtualObjectListView.cs
+  - Fix bug where collapsing the first group would cause decorations to stop being drawn (SR #3502608)
+  - VirtualObjectListView.CheckBoxes now has false as its default, as it always should have
+
+2012-05-04 17:32 (#1215) - ObjectListView/ObjectListView.cs, ObjectListView/Implementation/NativeMethods.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/TreeListView.cs
+  - Avoid bug/feature in ListView.VirtualListSize setter that causes flickering when the size of the list changes.
+
+2012-05-01 18:33 (#1213) - ObjectListView/CellEditing/CellEditors.cs, ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/Filtering/ClustersFromGroupsStrategy.cs, ObjectListView/Implementation/OLVListItem.cs, ObjectListView/Rendering/Styles.cs, ObjectListView/Utilities/Generator.cs, ObjectListView/Filtering/DateTimeClusteringStrategy.cs, ObjectListView/Filtering/Cluster.cs, ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Implementation/NullableDictionary.cs, ObjectListView/Implementation/VirtualGroups.cs, ObjectListView/Implementation/Attributes.cs, ObjectListView/FastObjectListView.cs, ObjectListView/Filtering/ICluster.cs, ObjectListView/FastDataListView.cs, ObjectListView/Utilities/TypedObjectListView.cs, ObjectListView/Implementation/DataSourceAdapter.cs, ObjectListView/Implementation/Comparers.cs, ObjectListView/Implementation/Delegates.cs, docs/olv-sandcastle.shfbproj, ObjectListView/TreeListView.cs, ObjectListView/Properties/AssemblyInfo.cs, ObjectListView/SubControls/ToolStripCheckedListBox.cs, docs/recipes.rst, ObjectListView/Filtering/TextMatchFilter.cs, ObjectListView/ObjectListView.cs, ObjectListView/Filtering/IClusteringStrategy.cs, ObjectListView/Implementation/NativeMethods.cs, ObjectListView/DataListView.cs, ObjectListView/DragDrop/DragSource.cs, ObjectListView/CellEditing/EditorRegistry.cs, ObjectListView/Implementation/GroupingParameters.cs, ObjectListView/SubControls/HeaderControl.cs, ObjectListView/Rendering/Renderers.cs, ObjectListView/CellEditing/CellEditKeyEngine.cs, ObjectListView/SubControls/ToolTipControl.cs, ObjectListView/Implementation/OLVListSubItem.cs, ObjectListView/Implementation/Enums.cs, ObjectListView/OLVColumn.cs, ObjectListView/Rendering/Overlays.cs, ObjectListView/Implementation/Munger.cs, ObjectListView/Implementation/VirtualListDataSource.cs, ObjectListView/DragDrop/OLVDataObject.cs, ObjectListView/Filtering/ClusteringStrategy.cs, ObjectListView/Rendering/Decorations.cs, ObjectListView/Rendering/Adornments.cs, ObjectListView/SubControls/GlassPanelForm.cs, ObjectListView/DragDrop/DropSink.cs, ObjectListView/Filtering/Filters.cs, ObjectListView/ObjectListView2010.csproj
+  - Updated docs
+  - Incremented version to 2.5.1
+  - Updated copyright dates
+
+2012-04-30 23:42 (#1212) - Tests/TestFilters.cs, Tests/TestTreeView.cs, Tests/TestCheckBoxes.cs
+  - Test a few more execution paths through TreeListView
+
+2012-04-30 23:42 (#1211) - ObjectListView/TreeListView.cs
+  - Fixed bug where CheckedObjects would return model objects that had been filtered out.
+  - Allow any column to render the tree, not just column 0 (still not sure about this one)
+  - Fixed a few minor issues
+
+2012-04-30 19:51 (#1210) - ObjectListView/ObjectListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/TreeListView.cs
+  - TreeListView now has a ClearObjects implementation that matches the other list views
+
+2012-04-30 19:48 (#1209) - docs/images/setbkimage2.png, docs/whatsnew.rst, docs/changelog.rst, docs/index.rst, docs/recipes.rst, docs/images/setbkimage.png
+  - Added docs about native backgrounds
 
 2012-04-26 19:56 (#1208) - docs/whatsnew.rst, docs/blog.rst, docs/filtering.rst, docs/conf.py, docs/changelog.rst, docs/blog5.rst, docs/recipes.rst
   - Polish docs for v2.5.1 release

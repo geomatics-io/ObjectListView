@@ -50,14 +50,21 @@ Other Changes
 Bugs fixed
 ^^^^^^^^^^
 
+* Avoid bug/feature in .NET's `ListView.VirtualListSize` setter that causes flickering when the size of the list changes
+  (:ref:`read this<blog-virtuallistflickers>` for the full details).
+
 * Fixed a bug that forced groups to always have 20 or so pixels of extra space between them. This is now
   correctly controlled by the `SpaceBetweenGroups` property.
+
+* Fixed a bug that caused decorations to not be drawn when the first group (olny) of a list was collapsed.
 
 * Fixed bug that occurred when adding/removing items to a `VirtualObjectListView` (including `FastObjectListView`
   and `TreeListView`) while the view was grouped.
 
 * Fixed bug where, on a `ObjectListView` with only a single editable column, tabbing to change rows would edit
   the cell above rather than the cell below the cell being edited.
+
+* Fixed bug in `TreeListView.CheckedObjects` where it would return model objects that had been filtered out.
 
 * Clicking the separator on the Column Select menu no longer crashes.
 
