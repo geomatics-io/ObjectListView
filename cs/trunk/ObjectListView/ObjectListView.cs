@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2012-05-06  JPP  - Fix bug where collapsing the first group would cause decorations to stop being drawn (SR #3502608)
  * 2012-04-23  JPP  - Trigger GroupExpandingCollapsing event to allow the expand/collapse to be cancelled
  *                  - Fixed SetGroupSpacing() so it corrects updates the space between all groups.
  *                  - ResizeLastGroup() now does nothing since it was broken and I can't remember what it was
@@ -4991,6 +4992,19 @@ namespace BrightIdeasSoftware
 
             NativeMethods.NMLVCUSTOMDRAW nmcustomdraw = (NativeMethods.NMLVCUSTOMDRAW)m.GetLParam(typeof(NativeMethods.NMLVCUSTOMDRAW));
             //System.Diagnostics.Debug.WriteLine(String.Format("cd: {0:x}, {1}, {2}", nmcustomdraw.nmcd.dwDrawStage, nmcustomdraw.dwItemType, nmcustomdraw.nmcd.dwItemSpec));
+
+            // Ignore drawing of group items
+            if (nmcustomdraw.dwItemType == 1) {
+                //nmcustomdraw.clrText = ColorTranslator.ToWin32(Color.DeepPink);
+                //nmcustomdraw.clrFace = ColorTranslator.ToWin32(Color.DeepPink);
+                //nmcustomdraw.clrTextBk = ColorTranslator.ToWin32(Color.DeepPink);
+                //Marshal.StructureToPtr(nmcustomdraw, m.LParam, false);
+                //using (Graphics g = Graphics.FromHdc(nmcustomdraw.nmcd.hdc)) {
+                //    g.DrawRectangle(Pens.Red, Rectangle.FromLTRB(nmcustomdraw.rcText.left, nmcustomdraw.rcText.top, nmcustomdraw.rcText.right, nmcustomdraw.rcText.bottom));
+                //}
+                //m.Result = (IntPtr)((int)m.Result | CDRF_SKIPDEFAULT);
+                return true;
+            }
 
             // There is a bug in owner drawn virtual lists which causes lots of custom draw messages
             // to be sent to the control *outside* of a WmPaint event. AFAIK, these custom draw events
