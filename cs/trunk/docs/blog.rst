@@ -13,6 +13,7 @@ These articles document some of the difficulties that were encountered while wri
 If you are looking for how to actually use an `ObjectListView`, you want to look
 at the :ref:`Cookbook`.
 
+* :ref:`Flickering on virtual lists and the .NET bug that causes it (5 May 2012)<blog-virtuallistflickers>`
 * :ref:`Lifting up the downtrodden ListViewGroup (20 April 2012)<blog-listviewgroups>`
 * :ref:`Making a rearrangeable TreeListView (9 May 2011, updated April 2012)<blog-rearrangingtreelistview>`
 * :ref:`The story of a little bug (1 August 2009)<blog-subitemboundsbug>`
