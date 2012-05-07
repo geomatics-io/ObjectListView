@@ -116,6 +116,8 @@ Technical details
 I've started keeping a :ref:`technical blog <blog>` documenting some of the efforts that were required to
 solve some of the problem encountered within the ObjectListView.
 
+* :ref:`Flickering on virtual lists and the .NET bug that causes it<blog-virtuallistflickers>`
+
 * :ref:`Lifting up the downtrodden ListViewGroup<blog-listviewgroups>`
 
 * How can I make a :ref:`rearrangeable TreeListView <blog-rearrangingtreelistview>`?
@@ -266,10 +268,12 @@ When thinking about using some new code, it's always interesting to hear what ot
 Future directions
 -----------------
 
-v2.5.1 will bug fix and tweak v2.5. It will also move towards using `IEnumerable` whenever possible.
+v2.6 will also move towards using `IEnumerable` whenever possible.
 `SelectedObjects`, `CheckedObjects`, `AddObjects()`, `InsertObjects()`
 `RefreshObjects()`, `RemoveObjects()`, and `CopyObjectsToClipboard()` will all be changed to use
 `IEnumerable`. This is with a view to using LINQ in future versions.
+
+It will probably add a data bindable `TreeListView`.
 
 v3.0 will be a big change. Until now, each version has strove to maintain strict backwards compatibility. v3.0 will not have this as a strict goal. It will be backwards compatible where possible, but will drop properties, events and methods where they do not fit within the new scheme. In particular, features that were a moment of design weakness (I'm looking at you *AlwaysGroupByColumn* and your friends) will disappear.
 

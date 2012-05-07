@@ -2,7 +2,7 @@
 
 :Subtitle: Nasty flickers! Hsss, me hates 'em
 
-.. _blog-listviewgroups:
+.. _blog-virtuallistflickers:
 
 Flickering and the Virtual List
 ===============================
@@ -18,22 +18,19 @@ One of my consistent goal for `ObjectListView` is that it does not flicker.
 So when a couple of people reported that `FastObjectListView` and `TreeListView` would
 sometimes flicker badly, I was irritated.
 
-Now, I know you can make the `ObjectListView` controls flicker -- but you have try hard. It's almost
+Now, I know you can make the `ObjectListView` controls flicker -- but you have to try hard. It's almost
 always a programmer error that causes the flickering. However, I knew the people
 who submitted the flickering reports and they were clever guys who were unlikely to make
 silly mistakes. Armed with the conviction that these guys were probably right, I looked hard.
-
-The actual problems seemed quite different. One problem was found when adding new items asynchronously
-to the end of a `FastObjectListView`. The other problem concerned a `TreeListView` when a branch was
-collapsed or expanded.
 
 Flicker occurs when the underlying ListView control is told to do one thing, and then moments later
 is told to do something different. So, for example, setting a cell's value to empty and then moments later
 set it to not empty will cause a slight flicker. Setting the sort order to one thing and then to something
 different will cause a major flicker, as will scrolling to one position and then to a different position.
 
-After playing for a while, I found that if the control was scrolled down to show
-a later part of the list, it would sometimes jump/flicker when rows were added or removed.
+After playing with the `TreeListView` for a while, I found that if the control was scrolled down to show
+a later part of the list, it would sometimes jump/flicker when a branch was
+collapsed or expanded.
 You can see this jumpiness below:
 
 .. raw:: html
@@ -113,10 +110,9 @@ and then the .NET `ListView` class tries to put it back to what it was.
 Flicking the flicker
 --------------------
 
-Now I knew what was causing the problem. But how could I fix it?
-
-The problem is in the .NET library itself (more specifically, in the interaction between the .NET ListView class
-and the underlying Windows ListView control).
+Now I knew what was causing the problem. But how could I fix it? The problem is in the .NET library itself
+(more specifically, in the interaction between the .NET ListView class
+and the underlying Windows ListView control). I don't think waiting for Microsoft to fix it was going to work.
 
 The `VirtualListSize` property is not declared as `virtual` so I could not just override it. However, it is never
 used within the .NET classes themselves -- only by the ObjectListView project code. So, I could `new` it, then all
