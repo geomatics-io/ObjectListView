@@ -197,7 +197,7 @@ namespace BrightIdeasSoftware.Design {
 
             // Remove the events that don't make sense for an ObjectListView.
             // See PreFilterProperties() for why we do this dance rather than just remove the event.
-            List<string> unwanted = new List<string> {
+            List<string> unwanted = new List<string>(new string[] {
                 "AfterLabelEdit",
                 "BeforeLabelEdit",
                 "DrawColumnHeader",
@@ -206,7 +206,7 @@ namespace BrightIdeasSoftware.Design {
                 "RetrieveVirtualItem",
                 "SearchForVirtualItem",
                 "VirtualItemsSelectionRangeChanged"
-            };
+            });
 
             // If we are looking at a TreeListView, remove group related events
             // since TreeListViews can't show groups
