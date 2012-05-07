@@ -239,6 +239,9 @@ namespace BrightIdeasSoftware
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The bounds of the rendering</param>
         public virtual void Draw(ObjectListView olv, Graphics g, Rectangle r) {
+            if (String.IsNullOrEmpty(this.Text))
+                return;
+
             Rectangle insetRect = r;
             insetRect.Inflate(-this.InsetX, -this.InsetY);
             // We hard code a transparency of 255 here since transparency is handled by the glass panel
