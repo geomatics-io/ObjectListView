@@ -137,7 +137,7 @@ namespace BrightIdeasSoftware
         /// that limitation.</remarks>
         [Category("Appearance"),
          Description("Should the list view show checkboxes?"),
-         DefaultValue(true)]
+         DefaultValue(false)]
         new public bool CheckBoxes {
             get { return base.CheckBoxes;  }
             set {
