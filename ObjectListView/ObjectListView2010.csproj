@@ -51,8 +51,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataTreeListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="DragDrop\OLVDataObject.cs" />
     <Compile Include="Filtering\DateTimeClusteringStrategy.cs" />
+    <Compile Include="Filtering\FlagClusteringStrategy.cs" />
     <Compile Include="Filtering\TextMatchFilter.cs" />
     <Compile Include="Implementation\Delegates.cs" />
     <Compile Include="Implementation\Enums.cs">
@@ -63,6 +67,7 @@
     <Compile Include="Implementation\OLVListItem.cs" />
     <Compile Include="Implementation\OLVListSubItem.cs" />
     <Compile Include="Implementation\OlvListViewHitTestInfo.cs" />
+    <Compile Include="Implementation\TreeDataSourceAdapter.cs" />
     <Compile Include="OLVColumn.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -156,7 +161,6 @@
     <None Include="Resources\filter.png" />
     <None Include="Resources\clear-filter.png" />
     <None Include="Resources\filter-icons3.png" />
-    <None Include="Resources\ColumnFilterIndicator.bmp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="olv-keyfile.snk" />
@@ -173,7 +177,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
