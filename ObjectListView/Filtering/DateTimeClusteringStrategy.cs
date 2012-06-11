@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Globalization;
 
 namespace BrightIdeasSoftware {
 
@@ -171,7 +172,7 @@ namespace BrightIdeasSoftware {
         /// <returns></returns>
         protected virtual string DateToString(DateTime dateTime) {
             if (String.IsNullOrEmpty(this.Format))
-                return dateTime.ToString();
+                return dateTime.ToString(CultureInfo.CurrentUICulture);
 
             try {
                 return dateTime.ToString(this.Format);
