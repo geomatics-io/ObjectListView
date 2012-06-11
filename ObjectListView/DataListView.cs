@@ -37,6 +37,7 @@ using System;
 using System.Collections;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing.Design;
 using System.Windows.Forms;
 
@@ -48,8 +49,10 @@ namespace BrightIdeasSoftware
     /// </summary>
     /// <remarks>
     /// <para>This listview keeps itself in sync with its source datatable by listening for change events.</para>
-    /// <para>If the listview has no columns when given a data source, it will automatically create columns to show all of the datatables columns.
-    /// This will be only the simplest view of the world, and would look more interesting with a few delegates installed.</para>
+    /// <para>The DataListView will automatically create columns to show all of the data source's columns/properties, if there is not already
+    /// a column showing that property. This allows you to define one or two columns in the designer and then have the others generated automatically.
+    /// If you don't want any column to be auto generated, set <see cref="AutoGenerateColumns"/> to false.
+    /// These generated columns will be only the simplest view of the world, and would look more interesting with a few delegates installed.</para>
     /// <para>This listview will also automatically generate missing aspect getters to fetch the values from the data view.</para>
     /// <para>Changing data sources is possible, but error prone. Before changing data sources, the programmer is responsible for modifying/resetting
     /// the column collection to be valid for the new data source.</para>
@@ -64,24 +67,28 @@ namespace BrightIdeasSoftware
         /// </summary>
         public DataListView()
         {
-        }
-
-        /// <summary>
-        /// Create the DataSourceAdapter that this control will use.
-        /// </summary>
-        /// <returns>A DataSourceAdapter configured for this list</returns>
-        /// <remarks>Subclasses should overrride this to create their
-        /// own specialized adapters</remarks>
-        protected virtual DataSourceAdapter CreateDataSourceAdapter() {
-            return new DataSourceAdapter(this);
+            this.Adapter = new DataSourceAdapter(this);
         }
 
         #region Public Properties
 
         /// <summary>
-        /// Get or set the VirtualListDataSource that will be displayed in this list view.
+        /// Gets or sets whether or not columns will be automatically generated to show the
+        /// columns when the DataSource is set. 
         /// </summary>
-        /// <remarks>The VirtualListDataSource should implement either <see cref="IList"/>, <see cref="IBindingList"/>,
+        /// <remarks>This must be set before the DataSource is set. It has no effect afterwards.</remarks>
+        [Category("Data"),
+         Description("Should the control automatically generate columns from the DataSource"),
+         DefaultValue(true)]
+        public bool AutoGenerateColumns {
+            get { return this.Adapter.AutoGenerateColumns; }
+            set { this.Adapter.AutoGenerateColumns = value; }
+        }
+
+        /// <summary>
+        /// Get or set the DataSource that will be displayed in this list view.
+        /// </summary>
+        /// <remarks>The DataSource should implement either <see cref="IList"/>, <see cref="IBindingList"/>,
         /// or <see cref="IListSource"/>. Some common examples are the following types of objects:
         /// <list type="unordered">
         /// <item><description><see cref="DataView"/></description></item>
@@ -95,7 +102,7 @@ namespace BrightIdeasSoftware
         /// you must also set the <see cref="DataMember"/> property in order
         /// to identify which particular list you would like to display. You
         /// may also set the <see cref="DataMember"/> property even when
-        /// VirtualListDataSource refers to a list, since <see cref="DataMember"/> can
+        /// DataSource refers to a list, since <see cref="DataMember"/> can
         /// also be used to navigate relations between lists.</para>
         /// </remarks>
         [Category("Data"),
@@ -129,8 +136,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected DataSourceAdapter Adapter {
             get {
-                if (adapter == null)
-                    adapter = this.CreateDataSourceAdapter();
+                Debug.Assert(adapter != null, "Data adapter should not be null");
                 return adapter; 
             }
             set { adapter = value; }
