@@ -10,33 +10,34 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace BrightIdeasSoftware.Tests
 {
-	/// <summary>
-	/// Description of Person.
-	/// </summary>
+    /// <summary>
+    /// Description of Person.
+    /// </summary>
 
-	public class Person
-	{
+    public class Person : INotifyPropertyChanged
+    {
         public bool? IsActive = null;
 
-		public Person(string name)
-		{
-			this.name = name;
-		}
+        public Person(string name)
+        {
+            this.name = name;
+        }
 
-		public Person(string name, string occupation, int culinaryRating, DateTime birthDate, double hourlyRate, bool canTellJokes, string photo, string comments)
-		{
-			this.name = name;
-			this.Occupation = occupation;
-			this.culinaryRating = culinaryRating;
-			this.birthDate = birthDate;
-			this.hourlyRate = hourlyRate;
+        public Person(string name, string occupation, int culinaryRating, DateTime birthDate, double hourlyRate, bool canTellJokes, string photo, string comments)
+        {
+            this.name = name;
+            this.Occupation = occupation;
+            this.culinaryRating = culinaryRating;
+            this.birthDate = birthDate;
+            this.hourlyRate = hourlyRate;
             this.CanTellJokes = canTellJokes;
             this.Comments = comments;
             this.Photo = photo;
-		}
+        }
 
         public Person(Person other)
         {
@@ -50,36 +51,51 @@ namespace BrightIdeasSoftware.Tests
             this.Comments = other.Comments;
         }
 
+        public Person Parent
+        {
+            get { return this; }
+        }
+
         // Allows tests for properties.
         public string Name
         {
             get { return name; }
-            set { name = value; }
+            set {
+                if (name == value) return;
+                name = value;
+                this.OnPropertyChanged("Name");
+            }
         }
         private string name;
 
         public string Occupation
         {
             get { return occupation; }
-            set { occupation = value; }
+            set {
+                if (occupation == value) return;
+                occupation = value;
+                this.OnPropertyChanged("Occupation");
+            }
         }
         private string occupation;
-
-
-        public Person Parent
-        {
-            get { return this; }
-        }
-	
-		public int CulinaryRating {
-			get { return culinaryRating; }
-            set { culinaryRating = value; }
+    
+        public int CulinaryRating {
+            get { return culinaryRating; }
+            set {
+                if (culinaryRating == value) return;
+                culinaryRating = value;
+                this.OnPropertyChanged("CulinaryRating");
+            }
         }
         private int culinaryRating;
 
-		public DateTime BirthDate {
-			get { return birthDate; }
-            set { birthDate = value; }
+        public DateTime BirthDate {
+            get { return birthDate; }
+            set {
+                if (birthDate == value) return;
+                birthDate = value;
+                this.OnPropertyChanged("BirthDate");
+            }
         }
         private DateTime birthDate;
 
@@ -108,12 +124,27 @@ namespace BrightIdeasSoftware.Tests
             set { children = value; }
         }
         private IList<Person> children = new List<Person>();
-	
+    
         
-		// Allows tests for fields.
+        // Allows tests for fields.
         public string Photo;
         public string Comments;
         public bool CanTellJokes;
+
+        #region Implementation of INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void OnPropertyChanged(string propertyName) {
+            if (this.PropertyChanged != null)
+                this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public int CountNotifyPropertyChangedSubscriptions {
+            get { return this.PropertyChanged == null ? 0 : this.PropertyChanged.GetInvocationList().Length; }
+        }
+
+        #endregion
     }
 
     // Model class for testing virtual and overridden methods
@@ -139,7 +170,7 @@ namespace BrightIdeasSoftware.Tests
 
     public static class PersonDb
     {
-        static PersonDb()
+        static void InitializeAllPersons()
         {
             allPersons = new List<Person>(new Person[] {             
                 new Person("name", "occupation", 200, DateTime.Now.AddYears(1), 1.0, true, "  photo  ", "comments"),
@@ -160,7 +191,15 @@ namespace BrightIdeasSoftware.Tests
 
         static public List<Person> All
         {
-            get { return allPersons; }
+            get {
+                if (allPersons == null)
+                    InitializeAllPersons();
+                return allPersons;
+            }
+        }
+
+        static public void Reset() {
+            allPersons = null;
         }
 
         static public string FirstAlphabeticalName

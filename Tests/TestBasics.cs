@@ -70,7 +70,7 @@ namespace BrightIdeasSoftware.Tests
             toRemove.Add(PersonDb.All[2]);
             toRemove.Add(PersonDb.All[5]);
             this.olv.RemoveObjects(toRemove);
-            foreach (object x in toRemove)
+            foreach (Person x in toRemove)
                 Assert.AreEqual(-1, this.olv.IndexOf(x));
             Assert.AreEqual(PersonDb.All.Count - toRemove.Count, this.olv.GetItemCount());
         }

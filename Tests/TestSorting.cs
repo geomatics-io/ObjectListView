@@ -228,6 +228,7 @@ namespace BrightIdeasSoftware.Tests
         
         [Test]
         override public void TestUnsort() {
+            // FastObjectListViews don't really support Unsort()
         }
 
         [TestFixtureSetUp]

@@ -74,15 +74,10 @@
     <Compile Include="TestFilters.cs" />
     <Compile Include="TestFormatting.cs" />
     <Compile Include="TestGenerator.cs" />
+    <Compile Include="TestNotifications.cs" />
     <Compile Include="TestSelection.cs" />
     <Compile Include="TestSorting.cs" />
     <Compile Include="TestTreeView.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ObjectListView\ObjectListView2008.csproj">
-      <Project>{18FEDA0C-D147-4286-B39A-01204808106A}</Project>
-      <Name>ObjectListView2008</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="MainForm.resx">
@@ -121,5 +116,11 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ObjectListView\ObjectListView2010.csproj">
+      <Project>{18FEDA0C-D147-4286-B39A-01204808106A}</Project>
+      <Name>ObjectListView2010</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>
