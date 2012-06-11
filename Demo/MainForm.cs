@@ -93,6 +93,7 @@ namespace ObjectListViewDemo {
             InitializeListPrinting();
             InitializeFastListExample(list);
             InitializeDragDropExample(list);
+            InitializeTreeDataSetExample();
         }
 
         void TimedRebuildList(ObjectListView olv) {
@@ -468,7 +469,13 @@ namespace ObjectListViewDemo {
             this.comboBox7.SelectedIndex = 0;
             this.rowHeightUpDown.Value = 32;
 
-            LoadXmlIntoList();
+            LoadXmlIntoDataListView();
+        }
+
+        void InitializeTreeDataSetExample() {
+            this.olvColumn41.ImageGetter = delegate(object row) { return "user"; };
+            this.olvDataTree.RootKeyValue = 0u;
+            LoadXmlIntoTreeDataListView();
         }
 
         // A sorter to order Person objects according to a given column in a list view
@@ -657,6 +664,7 @@ namespace ObjectListViewDemo {
             attributesRenderer.Add(FileAttributes.Hidden, "hidden");
             attributesRenderer.Add(FileAttributes.Temporary, "temporary");
             this.olvColumnAttributes.Renderer = attributesRenderer;
+            this.olvColumnAttributes.ClusteringStrategy = new FlagClusteringStrategy(typeof(FileAttributes));
 
             // Which hot item style to use?
             if (ObjectListView.IsVistaOrLater)
@@ -670,25 +678,14 @@ namespace ObjectListViewDemo {
 
 
         void InitializeTreeListExample() {
-
+            this.treeListView.HideSelection = false;
             this.treeListView.CanExpandGetter = delegate(object x) {
-                return (x is DirectoryInfo);
+                return ((MyFileSystemInfo)x).IsDirectory;
             };
             this.treeListView.ChildrenGetter = delegate(object x) {
-                DirectoryInfo dir = (DirectoryInfo)x;
+                MyFileSystemInfo myFileSystemInfo = (MyFileSystemInfo)x;
                 try {
-                    return new ArrayList(dir.GetFileSystemInfos());
-
-                    // Test checking objects before they exist in the list
-
-                    //ArrayList list = new ArrayList(dir.GetFileSystemInfos());
-                    //ArrayList list2 = new ArrayList();
-                    //foreach (FileSystemInfo fsi in list) {
-                    //    if (fsi.Name.ToLowerInvariant().StartsWith("d"))
-                    //        list2.Add(fsi);
-                    //}
-                    //this.treeListView.CheckedObjects = list2;
-                    //return list;
+                    return myFileSystemInfo.GetFileSystemInfos();
                 }
                 catch (UnauthorizedAccessException ex) {
                     MessageBox.Show(this, ex.Message, "ObjectListViewDemo", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -711,17 +708,19 @@ namespace ObjectListViewDemo {
             // Draw the system icon next to the name
             SysImageListHelper helper = new SysImageListHelper(this.treeListView);
             this.treeColumnName.ImageGetter = delegate(object x) {
-                return helper.GetImageIndex(((FileSystemInfo)x).FullName);
+                return helper.GetImageIndex(((MyFileSystemInfo)x).FullName);
             };
 
             // Show the size of files as GB, MB and KBs. Also, group them by
             // some meaningless divisions
             this.treeColumnSize.AspectGetter = delegate(object x) {
-                if (x is DirectoryInfo)
+                MyFileSystemInfo myFileSystemInfo = (MyFileSystemInfo)x;
+
+                if (myFileSystemInfo.IsDirectory)
                     return (long)-1;
 
                 try {
-                    return ((FileInfo)x).Length;
+                    return myFileSystemInfo.Length;
                 }
                 catch (System.IO.FileNotFoundException) {
                     // Mono 1.2.6 throws this for hidden files
@@ -731,18 +730,18 @@ namespace ObjectListViewDemo {
             this.treeColumnSize.AspectToStringConverter = delegate(object x) {
                 if ((long)x == -1) // folder
                     return "";
-                else
-                    return this.FormatFileSize((long)x);
+                
+                return this.FormatFileSize((long)x);
             };
 
             // Show the system description for this object
             this.treeColumnFileType.AspectGetter = delegate(object x) {
-                return ShellUtilities.GetFileType(((FileSystemInfo)x).FullName);
+                return ShellUtilities.GetFileType(((MyFileSystemInfo)x).FullName);
             };
 
             // Show the file attributes for this object
             this.treeColumnAttributes.AspectGetter = delegate(object x) {
-                return ((FileSystemInfo)x).Attributes;
+                return ((MyFileSystemInfo)x).Attributes;
             };
             FlagRenderer attributesRenderer = new FlagRenderer();
             attributesRenderer.Add(FileAttributes.Archive, "archive");
@@ -751,12 +750,13 @@ namespace ObjectListViewDemo {
             attributesRenderer.Add(FileAttributes.Hidden, "hidden");
             attributesRenderer.Add(FileAttributes.Temporary, "temporary");
             this.treeColumnAttributes.Renderer = attributesRenderer;
+            this.treeColumnAttributes.ClusteringStrategy = new FlagClusteringStrategy(typeof(FileAttributes));
 
             // List all drives as the roots of the tree
             ArrayList roots = new ArrayList();
             foreach (DriveInfo di in DriveInfo.GetDrives()) {
                 if (di.IsReady) {
-                    roots.Add(new DirectoryInfo(di.Name));
+                    roots.Add(new MyFileSystemInfo(new DirectoryInfo(di.Name)));
                     break;
                 }
             }
@@ -785,7 +785,7 @@ namespace ObjectListViewDemo {
             ;
         }
 
-        void LoadXmlIntoList() {
+        void LoadXmlIntoDataListView() {
             DataSet ds = LoadDatasetFromXml("Persons.xml");
 
             if (ds.Tables.Count > 0) {
@@ -795,27 +795,45 @@ namespace ObjectListViewDemo {
                 this.olvData.DataSource = new BindingSource(ds, "Person");
 
                 // Test with BindingSource
-                //this.listViewDataSet.VirtualListDataSource = new BindingSource(ds, "Person");
+                //this.olvData.DataSource = new BindingSource(ds, "Person");
 
                 // Test with DataTable
                 //DataTable personTable = ds.Tables["Person"];
-                //this.listViewDataSet.VirtualListDataSource = personTable;
+                //this.olvData.DataSource = personTable;
 
                 // Test with DataView
                 //DataTable personTable = ds.Tables["Person"];
-                //this.listViewDataSet.VirtualListDataSource = new DataView(personTable);
+                //this.olvData.DataSource = new DataView(personTable);
 
                 // Test with DataSet
-                //this.listViewDataSet.DataMember = "Person";
-                //this.listViewDataSet.VirtualListDataSource = ds;
+                //this.olvData.DataMember = "Person";
+                //this.olvData.DataSource = ds;
 
                 // Test with DataViewManager
-                //this.listViewDataSet.DataMember = "Person";
-                //this.listViewDataSet.VirtualListDataSource = new DataViewManager(ds);
+                //this.olvData.DataMember = "Person";
+                //this.olvData.DataSource = new DataViewManager(ds);
 
                 // Test with nulls
-                //this.listViewDataSet.DataMember = null;
-                //this.listViewDataSet.VirtualListDataSource = null;
+                //this.olvData.DataMember = null;
+                //this.olvData.DataSource = null;
+            }
+        }
+
+        void LoadXmlIntoTreeDataListView()
+        {
+            DataSet ds = LoadDatasetFromXml("FamilyTree.xml");
+
+            if (ds.Tables.Count > 0)
+            {
+                this.dataGridView2.DataSource = ds;
+                this.dataGridView2.DataMember = "Person";
+
+                // Test with various data sources
+                //this.olvDataTree.DataSource = new BindingSource(ds, "Person");
+                //this.olvDataTree.DataSource = ds.Tables["Person"];
+                //this.olvDataTree.DataSource = new DataView(ds.Tables["Person"]);
+                //this.olvDataTree.DataMember = "Person"; this.olvDataTree.DataSource = ds;
+                this.olvDataTree.DataMember = "Person"; this.olvDataTree.DataSource = new DataViewManager(ds);
             }
         }
 
@@ -840,13 +858,16 @@ namespace ObjectListViewDemo {
             return ds;
         }
 
-        void TimedReloadXml() {
+        void TimedReloadXml(bool dataTree) {
             Stopwatch stopWatch = new Stopwatch();
 
             try {
                 this.Cursor = Cursors.WaitCursor;
                 stopWatch.Start();
-                this.LoadXmlIntoList();
+                if (dataTree)
+                    this.LoadXmlIntoTreeDataListView();
+                else
+                    this.LoadXmlIntoDataListView();
             }
             finally {
                 stopWatch.Stop();
@@ -1037,7 +1058,7 @@ namespace ObjectListViewDemo {
         }
 
         void Button3Click(object sender, System.EventArgs e) {
-            this.TimedReloadXml();
+            this.TimedReloadXml(false);
         }
 
         void CheckBox5CheckedChanged(object sender, EventArgs e) {
@@ -1670,8 +1691,8 @@ namespace ObjectListViewDemo {
                 parents.Add(parent ?? x);
             }
             // Now tell the Tree to update 
-            //this.treeListView.RefreshObjects(parents);
-            this.treeListView.RebuildAll(true);
+            this.treeListView.RefreshObjects(parents);
+            //this.treeListView.RebuildAll(true);
         }
 
         private void listViewComplex_MouseClick(object sender, MouseEventArgs e) {
@@ -2393,6 +2414,14 @@ namespace ObjectListViewDemo {
             // TESTING ONLY - Don't allow expand/collapse unless Ctrl is held down
             //e.Canceled = Control.ModifierKeys != Keys.Control;
         }
+
+        private void dataTlvFilterTextBox_TextChanged(object sender, EventArgs e) {
+            this.TimedFilter(this.olvDataTree, dataTlvFilterTextBox.Text);
+        }
+
+        private void button32_Click_1(object sender, EventArgs e) {
+            this.TimedReloadXml(true);
+        }
     }
     
     /// <summary>
@@ -2549,5 +2578,90 @@ namespace ObjectListViewDemo {
 
         // Allow tests for enums
         public MaritalStatus MaritalStatus = MaritalStatus.Single;
+    }
+
+    /// <summary>
+    /// Standard .NET FileSystemInfos are always not equal to each other.
+    /// When we try to refresh a directory, our controls can't match up new
+    /// files with existing files. They are also sealed so we can't just subclass them.
+    /// This class is a wrapper around a FileSystemInfo that simply provides
+    /// equality.
+    /// </summary>
+    public class MyFileSystemInfo : IEquatable<MyFileSystemInfo> 
+    {
+        public MyFileSystemInfo(FileSystemInfo fileSystemInfo) {
+            if (fileSystemInfo == null) throw new ArgumentNullException("fileSystemInfo");
+            this.info = fileSystemInfo;
+        }
+
+        public bool IsDirectory { get { return this.AsDirectory != null; } }
+
+        public DirectoryInfo AsDirectory { get { return info as DirectoryInfo; } }
+        public FileInfo AsFile{ get { return info as FileInfo; } }
+
+        public FileSystemInfo Info {
+            get { return this.info; }
+        }
+        private readonly FileSystemInfo info;
+
+        public string Name {
+            get { return info.Name; }
+        }
+
+        public string Extension {
+            get { return info.Extension; }
+        }
+
+        public DateTime CreationTime {
+            get { return info.CreationTime; }
+        }
+
+        public DateTime LastWriteTime {
+            get { return info.LastWriteTime; }
+        }
+
+        public string FullName {
+            get { return info.FullName; }
+        }
+
+        public FileAttributes Attributes {
+            get { return info.Attributes; }
+        }
+
+        public long Length {
+            get { return this.AsFile.Length; }
+        }
+
+        public IEnumerable GetFileSystemInfos() {
+            ArrayList children = new ArrayList();
+            if (this.IsDirectory) {
+                foreach (FileSystemInfo x in this.AsDirectory.GetFileSystemInfos())
+                    children.Add(new MyFileSystemInfo(x));
+            }
+            return children;
+        }
+
+        // Two file system objects are equal if they point to the same file system path
+
+        public bool Equals(MyFileSystemInfo other) {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Equals(other.info.FullName, this.info.FullName);
+        }
+        public override bool Equals(object obj) {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != typeof(MyFileSystemInfo)) return false;
+            return Equals((MyFileSystemInfo)obj);
+        }
+        public override int GetHashCode() {
+            return (this.info != null ? this.info.FullName.GetHashCode() : 0);
+        }
+        public static bool operator ==(MyFileSystemInfo left, MyFileSystemInfo right) {
+            return Equals(left, right);
+        }
+        public static bool operator !=(MyFileSystemInfo left, MyFileSystemInfo right) {
+            return !Equals(left, right);
+        }
     }
 }
