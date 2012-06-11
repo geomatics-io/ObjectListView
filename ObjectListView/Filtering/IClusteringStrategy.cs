@@ -5,6 +5,9 @@
  * Date: 4-March-2011 11:59 pm
  *
  * Change log:
+ * 2012-05-23  JPP  - Added CreateFilter() method to interface to allow the strategy
+ *                    to control the actual model filter that is created.
+ * v2.5
  * 2011-03-04  JPP  - First version
  * 
  * Copyright (C) 2011-2012 Phillip Piper
@@ -26,6 +29,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -45,6 +49,8 @@ namespace BrightIdeasSoftware{
         /// <summary>
         /// Get the cluster key by which the given model will be partitioned by this strategy
         /// </summary>
+        /// <remarks>If the returned value is an IEnumerable, the given model is considered
+        /// to belong to multiple clusters</remarks>
         /// <param name="model"></param>
         /// <returns></returns>
         object GetClusterKey(object model);
@@ -62,5 +68,13 @@ namespace BrightIdeasSoftware{
         /// <param name="cluster"></param>
         /// <returns></returns>
         string GetClusterDisplayLabel(ICluster cluster);
+
+        /// <summary>
+        /// Create a filter that will include only model objects that
+        /// match one or more of the given values.
+        /// </summary>
+        /// <param name="valuesChosenForFiltering"></param>
+        /// <returns></returns>
+        IModelFilter CreateFilter(IList valuesChosenForFiltering);
     }
 }
