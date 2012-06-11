@@ -514,6 +514,17 @@ namespace BrightIdeasSoftware
         }
         private int keyState;
 
+        /// <summary>
+        /// Gets or sets whether the drop sink will automatically use cursors
+        /// based on the drop effect. By default, this is true. If this is
+        /// set to false, you must set the Cursor yourself.
+        /// </summary>
+        public bool UseDefaultCursors {
+            get { return useDefaultCursors; }
+            set { useDefaultCursors = value; }
+        }
+        private bool useDefaultCursors = true;
+
         #endregion
 
         #region Events
@@ -642,6 +653,14 @@ namespace BrightIdeasSoftware
             }
 
             this.Over(args);
+        }
+
+        /// <summary>
+        /// Change the cursor to reflect the current drag operation.
+        /// </summary>
+        /// <param name="args"></param>
+        public override void GiveFeedback(GiveFeedbackEventArgs args) {
+            args.UseDefaultCursors = this.UseDefaultCursors;
         }
 
         /// <summary>
