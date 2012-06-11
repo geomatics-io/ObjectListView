@@ -99,6 +99,11 @@ namespace BrightIdeasSoftware
             catch (MungerException) {
                 // Not a lot we can do about this. Something went wrong in the bowels
                 // of the property. Let's take the ostrich approach and just ignore it :-)
+
+                // Normally, we would never just silently ignore an exception.
+                // However, in this case, this is a utility method that explicitly 
+                // contracts to catch and ignore errors. If this is not acceptible,
+                // the programmer should not use this method.
             } 
 
             return false;
