@@ -26,7 +26,7 @@
  */
 
 using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Text;
 
 namespace BrightIdeasSoftware {
@@ -160,6 +160,16 @@ namespace BrightIdeasSoftware {
             if (String.IsNullOrEmpty(s)) 
                 s = EMPTY_LABEL;
             return this.ApplyDisplayFormat(cluster, s);
+        }
+
+        /// <summary>
+        /// Create a filter that will include only model objects that
+        /// match one or more of the given values.
+        /// </summary>
+        /// <param name="valuesChosenForFiltering"></param>
+        /// <returns></returns>
+        virtual public IModelFilter CreateFilter(IList valuesChosenForFiltering) {
+            return new OneOfFilter(this.GetClusterKey, valuesChosenForFiltering);
         }
 
         /// <summary>
