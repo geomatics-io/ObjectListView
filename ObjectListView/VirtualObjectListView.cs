@@ -626,6 +626,7 @@ namespace BrightIdeasSoftware
             try {
                 this.VirtualListDataSource.SetObjects(args.NewObjects);
                 this.BuildList();
+                this.UpdateNotificationSubscriptions(args.NewObjects);
             }
             finally {
                 this.EndUpdate();
