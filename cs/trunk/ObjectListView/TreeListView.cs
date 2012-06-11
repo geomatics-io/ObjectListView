@@ -240,6 +240,15 @@ namespace BrightIdeasSoftware
             set { this.Roots = value; }
         }
 
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public override IEnumerable ObjectsForClustering {
+            get {
+                for (int i = 0; i < this.TreeModel.GetObjectCount(); i++)
+                    yield return this.TreeModel.GetNthObject(i);
+            }
+        }
+
         /// <summary>
         /// After expanding a branch, should the TreeListView attempts to show as much of the 
         /// revealed descendents as possible.
@@ -894,9 +903,10 @@ namespace BrightIdeasSoftware
                 int index = this.GetObjectIndex(model);
                 if (count > 0)
                     this.objectList.RemoveRange(index + 1, count);
-                br.FetchChildren();
-                if (br.IsExpanded)
+                if (br.CanExpand && br.IsExpanded) {
+                    br.FetchChildren();
                     this.InsertChildren(br, index + 1);
+                }
                 return index;
             }
 
@@ -923,12 +933,12 @@ namespace BrightIdeasSoftware
             /// <param name="model"></param>
             /// <param name="isExpanded"></param>
             internal void SetModelExpanded(object model, bool isExpanded) {
-                if (model != null) {
-                    if (isExpanded)
-                        this.mapObjectToExpanded[model] = true;
-                    else
-                        this.mapObjectToExpanded.Remove(model);
-                }
+                if (model == null) return;
+
+                if (isExpanded)
+                    this.mapObjectToExpanded[model] = true;
+                else
+                    this.mapObjectToExpanded.Remove(model);
             }
 
             /// <summary>
@@ -1293,6 +1303,9 @@ namespace BrightIdeasSoftware
             /// </summary>
             public List<Branch> FilteredChildBranches {
                 get {
+                    if (!this.IsExpanded)
+                        return new List<Branch>();
+
                     if (!this.Tree.IsFiltering)
                         return this.ChildBranches;
 
@@ -1534,7 +1547,7 @@ namespace BrightIdeasSoftware
             /// Force a refresh of all children recursively
             /// </summary>
             public virtual void RefreshChildren() {
-                if (this.IsExpanded) {
+                if (this.IsExpanded && this.CanExpand) {
                     this.FetchChildren();
                     foreach (Branch br in this.ChildBranches)
                         br.RefreshChildren();
