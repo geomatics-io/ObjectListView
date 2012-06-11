@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing.Design;
@@ -47,10 +48,17 @@ namespace BrightIdeasSoftware
         /// Make a DataSourceAdapter
         /// </summary>
         public DataSourceAdapter(ObjectListView olv) {
-            Debug.Assert(olv != null);
+            if (olv == null) throw new ArgumentNullException("olv");
 
             this.ListView = olv;
             this.BindListView(this.ListView);
+        }
+
+        /// <summary>
+        /// Finalize this object
+        /// </summary>
+        ~DataSourceAdapter() {
+            this.Dispose(false);
         }
 
         /// <summary>
@@ -64,7 +72,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Release all the resources used by this instance
         /// </summary>
-        public void Dispose(bool all) {
+        public virtual void Dispose(bool fromUser) {
             this.UnbindListView(this.ListView);
             this.UnbindDataSource();
         }
@@ -72,6 +80,17 @@ namespace BrightIdeasSoftware
         #endregion
 
         #region Public Properties
+
+        /// <summary>
+        /// Gets or sets whether or not columns will be automatically generated to show the
+        /// columns when the DataSource is set. 
+        /// </summary>
+        /// <remarks>This must be set before the DataSource is set. It has no effect afterwards.</remarks>
+        public bool AutoGenerateColumns {
+            get { return this.autoGenerateColumns; }
+            set { this.autoGenerateColumns = value; }
+        }
+        private bool autoGenerateColumns = true;
 
         /// <summary>
         /// Get or set the DataSource that will be displayed in this list view.
@@ -126,40 +145,40 @@ namespace BrightIdeasSoftware
 
         #region Binding and unbinding
 
-        private void BindListView(ObjectListView listView) {
-            if (listView == null)
+        protected virtual void BindListView(ObjectListView olv) {
+            if (olv == null)
                 return;
 
-            listView.Freezing += new EventHandler<FreezeEventArgs>(listView_Freezing);
-            listView.SelectedIndexChanged += new EventHandler(listView_SelectedIndexChanged);
-            listView.BindingContextChanged += new EventHandler(listView_BindingContextChanged);
+            olv.Freezing += new EventHandler<FreezeEventArgs>(HandleListViewFreezing);
+            olv.SelectedIndexChanged += new EventHandler(HandleListViewSelectedIndexChanged);
+            olv.BindingContextChanged += new EventHandler(HandleListViewBindingContextChanged);
         }
 
-        private void UnbindListView(ObjectListView listView) {
-            if (listView == null)
+        protected virtual void UnbindListView(ObjectListView olv) {
+            if (olv == null)
                 return;
 
-            listView.Freezing -= new EventHandler<FreezeEventArgs>(listView_Freezing);
-            listView.SelectedIndexChanged -= new EventHandler(listView_SelectedIndexChanged);
-            listView.BindingContextChanged -= new EventHandler(listView_BindingContextChanged);
+            olv.Freezing -= new EventHandler<FreezeEventArgs>(HandleListViewFreezing);
+            olv.SelectedIndexChanged -= new EventHandler(HandleListViewSelectedIndexChanged);
+            olv.BindingContextChanged -= new EventHandler(HandleListViewBindingContextChanged);
         }
 
-        private void BindDataSource() {
+        protected virtual void BindDataSource() {
             if (this.CurrencyManager == null)
                 return;
 
-            this.CurrencyManager.MetaDataChanged += new EventHandler(currencyManager_MetaDataChanged);
-            this.CurrencyManager.PositionChanged += new EventHandler(currencyManager_PositionChanged);
-            this.CurrencyManager.ListChanged += new ListChangedEventHandler(currencyManager_ListChanged);
+            this.CurrencyManager.MetaDataChanged += new EventHandler(HandleCurrencyManagerMetaDataChanged);
+            this.CurrencyManager.PositionChanged += new EventHandler(HandleCurrencyManagerPositionChanged);
+            this.CurrencyManager.ListChanged += new ListChangedEventHandler(CurrencyManagerListChanged);
         }
 
-        private void UnbindDataSource() {
+        protected virtual void UnbindDataSource() {
             if (this.CurrencyManager == null)
                 return;
 
-            this.CurrencyManager.MetaDataChanged -= new EventHandler(currencyManager_MetaDataChanged);
-            this.CurrencyManager.PositionChanged -= new EventHandler(currencyManager_PositionChanged);
-            this.CurrencyManager.ListChanged -= new ListChangedEventHandler(currencyManager_ListChanged);
+            this.CurrencyManager.MetaDataChanged -= new EventHandler(HandleCurrencyManagerMetaDataChanged);
+            this.CurrencyManager.PositionChanged -= new EventHandler(HandleCurrencyManagerPositionChanged);
+            this.CurrencyManager.ListChanged -= new ListChangedEventHandler(CurrencyManagerListChanged);
         }
 
         #endregion
@@ -180,7 +199,7 @@ namespace BrightIdeasSoftware
 
             CurrencyManager tempCurrencyManager = null;
             if (this.ListView != null && this.ListView.BindingContext != null && this.DataSource != null) {
-                tempCurrencyManager = (CurrencyManager)this.ListView.BindingContext[this.DataSource, this.DataMember];
+                tempCurrencyManager = this.ListView.BindingContext[this.DataSource, this.DataMember] as CurrencyManager;
             }
 
             // Has our currency manager changed?
@@ -238,10 +257,10 @@ namespace BrightIdeasSoftware
         /// Create columns for the listview based on what properties are available in the data source
         /// </summary>
         /// <remarks>
-        /// <para>This method will not replace existing columns.</para>
+        /// <para>This method will create columns if there is not already a column displaying that property.</para>
         /// </remarks>
         protected virtual void CreateColumnsFromSource() {
-            if (this.CurrencyManager == null || this.ListView.AllColumns.Count != 0)
+            if (this.CurrencyManager == null)
                 return;
 
             // Don't generate any columns in design mode. If we do, the user will see them,
@@ -249,23 +268,24 @@ namespace BrightIdeasSoftware
             if (this.ListView.IsDesignMode)
                 return;
 
+            // Don't create columns if we've been told not to
+            if (!this.AutoGenerateColumns)
+                return;
+
             PropertyDescriptorCollection properties = this.CurrencyManager.GetItemProperties();
             if (properties.Count == 0)
                 return;
 
-            for (int i=0; i<properties.Count; i++) {
-                PropertyDescriptor property = properties[i];
+            foreach (PropertyDescriptor property in properties) {
 
-                // Relationships to other tables turn up as IBindibleLists. Don't make columns to show them.
-                // CHECK: Is this always true? What other things could be here? Constraints? Triggers?
-                if (property.PropertyType == typeof(IBindingList))
+                if (!this.ShouldCreateColumn(property))
                     continue;
 
                 // Create a column
                 OLVColumn column = new OLVColumn(this.DisplayNameToColumnTitle(property.DisplayName), property.Name);
                 column.IsEditable = !property.IsReadOnly;
-                column.Width = this.CalculateColumnWidth(property); 
-                column.LastDisplayIndex = i;
+                column.Width = this.CalculateColumnWidth(property);
+                column.LastDisplayIndex = this.ListView.AllColumns.Count;
                 this.ConfigureColumn(column, property);
 
                 // Add it to our list
@@ -276,6 +296,26 @@ namespace BrightIdeasSoftware
                 this.ListView.SetupSubItemCheckBoxes();
 
             this.ListView.RebuildColumns();
+        }
+
+        /// <summary>
+        /// Decide if a new column should be added to the control to display
+        /// the given property
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        protected virtual bool ShouldCreateColumn(PropertyDescriptor property) {
+
+            // Is there a column that already shows this property? If so, we don't show it again
+            if (this.ListView.AllColumns.Exists(delegate(OLVColumn x) { return x.AspectName == property.Name; }))
+                return false;
+
+            // Relationships to other tables turn up as IBindibleLists. Don't make columns to show them.
+            // CHECK: Is this always true? What other things could be here? Constraints? Triggers?
+            if (property.PropertyType == typeof(IBindingList))
+                return false;
+
+            return true;
         }
 
         /// <summary>
@@ -365,7 +405,7 @@ namespace BrightIdeasSoftware
         /// </remarks>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void currencyManager_ListChanged(object sender, ListChangedEventArgs e) {
+        protected virtual void CurrencyManagerListChanged(object sender, ListChangedEventArgs e) {
             Debug.Assert(sender == this.CurrencyManager);
 
             // Ignore changes make while frozen, since we will do a complete rebuild when we unfreeze
@@ -378,25 +418,25 @@ namespace BrightIdeasSoftware
             switch (e.ListChangedType) {
 
                 case ListChangedType.Reset:
-                    this.HandleListChanged_Reset(e);
+                    this.HandleListChangedReset(e);
                     break;
 
                 case ListChangedType.ItemChanged:
-                    this.HandleListChanged_ItemChanged(e);
+                    this.HandleListChangedItemChanged(e);
                     break;
 
                 case ListChangedType.ItemAdded:
-                    this.HandleListChanged_ItemAdded(e);
+                    this.HandleListChangedItemAdded(e);
                     break;
 
                 // An item has gone away.
                 case ListChangedType.ItemDeleted:
-                    this.HandleListChanged_ItemDeleted(e);
+                    this.HandleListChangedItemDeleted(e);
                     break;
 
                 // An item has changed its index.
                 case ListChangedType.ItemMoved:
-                    this.HandleListChanged_ItemMoved(e);
+                    this.HandleListChangedItemMoved(e);
                     break;
 
                 // Something has changed in the metadata.
@@ -404,7 +444,7 @@ namespace BrightIdeasSoftware
                 case ListChangedType.PropertyDescriptorAdded:
                 case ListChangedType.PropertyDescriptorChanged:
                 case ListChangedType.PropertyDescriptorDeleted:
-                    this.HandleListChanged_MetadataChanged(e);
+                    this.HandleListChangedMetadataChanged(e);
                     break;
             }
             //sw.Stop();
@@ -416,7 +456,7 @@ namespace BrightIdeasSoftware
         /// Handle PropertyDescriptor* events
         /// </summary>
         /// <param name="e"></param>
-        private void HandleListChanged_MetadataChanged(ListChangedEventArgs e) {
+        protected virtual void HandleListChangedMetadataChanged(ListChangedEventArgs e) {
             this.InitializeDataSource();
         }
 
@@ -424,7 +464,7 @@ namespace BrightIdeasSoftware
         /// Handle ItemMoved event
         /// </summary>
         /// <param name="e"></param>
-        private void HandleListChanged_ItemMoved(ListChangedEventArgs e) {
+        protected virtual void HandleListChangedItemMoved(ListChangedEventArgs e) {
             // When is this actually triggered?
             this.InitializeDataSource();
         }
@@ -433,7 +473,7 @@ namespace BrightIdeasSoftware
         /// Handle the ItemDeleted event
         /// </summary>
         /// <param name="e"></param>
-        private void HandleListChanged_ItemDeleted(ListChangedEventArgs e) {
+        protected virtual void HandleListChangedItemDeleted(ListChangedEventArgs e) {
             this.InitializeDataSource();
         }
 
@@ -441,7 +481,7 @@ namespace BrightIdeasSoftware
         /// Handle an ItemAdded event.
         /// </summary>
         /// <param name="e"></param>
-        private void HandleListChanged_ItemAdded(ListChangedEventArgs e) {
+        protected virtual void HandleListChangedItemAdded(ListChangedEventArgs e) {
             // We get this event twice if certain grid controls are used to add a new row to a
             // datatable: once when the editing of a new row begins, and once again when that
             // editing commits. (If the user cancels the creation of the new row, we never see
@@ -462,7 +502,7 @@ namespace BrightIdeasSoftware
         /// Handle the Reset event
         /// </summary>
         /// <param name="e"></param>
-        private void HandleListChanged_Reset(ListChangedEventArgs e) {
+        protected virtual void HandleListChangedReset(ListChangedEventArgs e) {
             // The whole list has changed utterly, so reload it.
             this.InitializeDataSource();
         }
@@ -474,9 +514,10 @@ namespace BrightIdeasSoftware
         /// <param name="e"></param>
         /// <remarks>Even in this simple case, we should probably rebuild the list.
         /// For example, the change could put the item into its own new group.</remarks>
-        private void HandleListChanged_ItemChanged(ListChangedEventArgs e) {
+        protected virtual void HandleListChangedItemChanged(ListChangedEventArgs e) {
             // A single item has changed, so just refresh that.
-
+            //System.Diagnostics.Debug.WriteLine(String.Format("HandleListChangedItemChanged: {0}, {1}", e.NewIndex, e.PropertyDescriptor.Name));
+           
             Object changedRow = this.CurrencyManager.List[e.NewIndex];
             this.ListView.RefreshObject(changedRow);
         }
@@ -490,7 +531,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// CHECK: Do we need this if we are handle ListChanged metadata events?
         /// </remarks>
-        protected virtual void currencyManager_MetaDataChanged(object sender, EventArgs e) {
+        protected virtual void HandleCurrencyManagerMetaDataChanged(object sender, EventArgs e) {
             this.InitializeDataSource();
         }
 
@@ -501,7 +542,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void currencyManager_PositionChanged(object sender, EventArgs e) {
+        protected virtual void HandleCurrencyManagerPositionChanged(object sender, EventArgs e) {
             int index = this.CurrencyManager.Position;
 
             // Make sure the index is sane (-1 pops up from time to time)
@@ -539,7 +580,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void listView_SelectedIndexChanged(object sender, EventArgs e) {
+        protected virtual void HandleListViewSelectedIndexChanged(object sender, EventArgs e) {
             // Prevent recursion
             if (this.isChangingIndex)
                 return;
@@ -564,7 +605,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void listView_Freezing(object sender, FreezeEventArgs e) {
+        protected virtual void HandleListViewFreezing(object sender, FreezeEventArgs e) {
             if (!alreadyFreezing && e.FreezeLevel == 0) {
                 try {
                     alreadyFreezing = true;
@@ -581,7 +622,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void listView_BindingContextChanged(object sender, EventArgs e) {
+        protected virtual void HandleListViewBindingContextChanged(object sender, EventArgs e) {
             this.RebindDataSource(false);
         }
 
