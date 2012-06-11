@@ -73,7 +73,7 @@
   <Class Name="BrightIdeasSoftware.DataListView" Collapsed="true">
     <Position X="17.25" Y="5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>ABAAAAAAAAAAAgIhAAACAAAEQAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>ABgAAAAAAAAAAgIhAAACAAAEAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>DataListView.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -104,7 +104,7 @@
   <Class Name="BrightIdeasSoftware.SimpleDropSink" Collapsed="true">
     <Position X="0.5" Y="18.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>ZS0gAiQEBAoQDA8YQBMAMCAFgwAHBALYAEBEiEAAAQA=</HashCode>
+      <HashCode>ZS0gAiQEBAoQDA8YQBMAMCAFgwQHBALcAEBEiEAAAQA=</HashCode>
       <FileName>DragDrop\DropSink.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -168,7 +168,7 @@
   <Class Name="BrightIdeasSoftware.ClusteringStrategy" Collapsed="true">
     <Position X="16.75" Y="16.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAEAAAAAAAAAhBABAgAQAAIKAQBAAAAAAAAoIA=</HashCode>
+      <HashCode>AAAAAAAEAAAAAAAAAhBABAgAQAAIKAQBAQAAAAAAoIA=</HashCode>
       <FileName>Filtering\ClusteringStrategy.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -190,12 +190,12 @@
   <Class Name="BrightIdeasSoftware.FilterMenuBuilder" Collapsed="true">
     <Position X="23.75" Y="2.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>SAEAADAQgEEAAQAIAAgQIAAAAFQAAAAAAAAAoAAAAAA=</HashCode>
+      <HashCode>SAEAADAQgEEAAQAIAAgQIAAAAFQAAAAAAAAAoAAAAAE=</HashCode>
       <FileName>Filtering\FilterMenuBuilder.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="BrightIdeasSoftware.AbstractModelFilter" Collapsed="true">
-    <Position X="19.5" Y="0.5" Width="1.5" />
+    <Position X="6.75" Y="18.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Filtering\Filters.cs</FileName>
@@ -211,7 +211,7 @@
     <Lollipop Position="0.2" Collapsed="true" />
   </Class>
   <Class Name="BrightIdeasSoftware.CompositeFilter" Collapsed="true">
-    <Position X="11.75" Y="16.5" Width="1.5" />
+    <Position X="4" Y="18.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAgAAAAAAIAAAACAABAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Filtering\Filters.cs</FileName>
@@ -219,29 +219,21 @@
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="BrightIdeasSoftware.CompositeAllFilter" Collapsed="true">
-    <Position X="10.5" Y="17.75" Width="1.5" />
+    <Position X="2.75" Y="20" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Filtering\Filters.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="BrightIdeasSoftware.CompositeAnyFilter" Collapsed="true">
-    <Position X="12.75" Y="17.75" Width="1.5" />
+    <Position X="5" Y="20" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Filtering\Filters.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="BrightIdeasSoftware.OneOfFilter" Collapsed="true" BaseTypeListCollapsed="true">
-    <Position X="36" Y="5.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAgAAAAIAAAAAAAAAAIAAAACABAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Filtering\Filters.cs</FileName>
-    </TypeIdentifier>
-    <Lollipop Position="0.2" Collapsed="true" />
-  </Class>
   <Class Name="BrightIdeasSoftware.AbstractListFilter" Collapsed="true">
-    <Position X="6.75" Y="14.5" Width="1.5" />
+    <Position X="11.25" Y="18.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Filtering\Filters.cs</FileName>
@@ -249,21 +241,21 @@
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="BrightIdeasSoftware.ListFilter" Collapsed="true">
-    <Position X="5.5" Y="15.75" Width="1.5" />
+    <Position X="10" Y="20" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAgAAAAIAABAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Filtering\Filters.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="BrightIdeasSoftware.TailFilter" Collapsed="true">
-    <Position X="7.75" Y="15.75" Width="1.5" />
+    <Position X="12.25" Y="20" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAABAAAAAQAABAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Filtering\Filters.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="BrightIdeasSoftware.TextMatchFilter" Collapsed="true">
-    <Position X="19.5" Y="1.75" Width="1.5" />
+    <Position X="6.75" Y="20" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAgAAACAAAABAAABAAgAQACABABAAAAyEIAAIgSgAA=</HashCode>
       <FileName>Filtering\TextMatchFilter.cs</FileName>
@@ -303,7 +295,7 @@
   <Class Name="BrightIdeasSoftware.DataSourceAdapter" Collapsed="true" BaseTypeListCollapsed="true">
     <Position X="32.5" Y="1.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>CZAgAAAwACAACgBAQAYCACAMCKAGAAQEgCEAQKAAAEo=</HashCode>
+      <HashCode>AZggAAAwAGAAAgACQAYCBCAEICACACUEhAEAQKBAgQg=</HashCode>
       <FileName>Implementation\DataSourceAdapter.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" Collapsed="true" />
@@ -311,7 +303,7 @@
   <Class Name="BrightIdeasSoftware.ObjectListView" Collapsed="true">
     <Position X="15" Y="3.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>5/7+//3/+/dX/+//+/+/f/3//f/37N////+//7+///8=</HashCode>
+      <HashCode>5/7+//3///fX/+//+///f/3//f/37N////+//7+///8=</HashCode>
       <FileName>Implementation\Enums.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -319,7 +311,7 @@
   <Class Name="BrightIdeasSoftware.TreeListView" Collapsed="true">
     <Position X="12.75" Y="6.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AQgQyTBAABICBAAAAIAAACCEMAKBQAMAABDAgAUpAQA=</HashCode>
+      <HashCode>ASgQyXBAABICBAAAAIAAACCEMAKBQAOAABDAgAUpAQA=</HashCode>
       <FileName>Implementation\Events.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -457,14 +449,14 @@
     </TypeIdentifier>
   </Class>
   <Class Name="BrightIdeasSoftware.FormatRowEventArgs" Collapsed="true">
-    <Position X="6.5" Y="17.5" Width="1.5" />
+    <Position X="8.5" Y="14.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AEAAAAAAAAAAAAAAgAQAAAAEAAAAAQAAgAkEAIAAAAA=</HashCode>
       <FileName>Implementation\Events.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="BrightIdeasSoftware.FormatCellEventArgs" Collapsed="true">
-    <Position X="6.5" Y="19" Width="1.5" />
+    <Position X="8.5" Y="16" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAEAAAAAAAAABABAAAUAQAAAAAAAgAAAAAAAA=</HashCode>
       <FileName>Implementation\Events.cs</FileName>
@@ -480,7 +472,7 @@
   <Class Name="BrightIdeasSoftware.HotItemChangedEventArgs" Collapsed="true">
     <Position X="27.25" Y="3.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAIgAAACJAABAAAAAAAEAAAABAABAAAAAAgIAAAAAAA=</HashCode>
+      <HashCode>AAIgAAAGJACRCAAEEABEAAAAJACBAAAAAAgIAAAAAAA=</HashCode>
       <FileName>Implementation\Events.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -557,7 +549,7 @@
   <Class Name="BrightIdeasSoftware.Munger" Collapsed="true">
     <Position X="27.25" Y="4.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAJAAAAAQEABCAAAAAhAAAAAAAAAAAAAIAAAE=</HashCode>
+      <HashCode>AAAAgAAAJAAAAAQEABCAAAAAhAAAAACAAAAAAAIAAAE=</HashCode>
       <FileName>Implementation\Munger.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -578,7 +570,7 @@
   <Class Name="BrightIdeasSoftware.NativeMethods" Collapsed="true">
     <Position X="30.75" Y="4.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>cChxFKkMjlMGIvLbZWKToPLMK45gioYxDAJnzL7yfN4=</HashCode>
+      <HashCode>cChxFKmMjlNGI/LfZWKToPLMK45gioYxDANnzL7yfN4=</HashCode>
       <FileName>Implementation\NativeMethods.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -590,14 +582,14 @@
     </TypeIdentifier>
   </Class>
   <Class Name="BrightIdeasSoftware.OLVListItem" Collapsed="true">
-    <Position X="30.75" Y="5.5" Width="1.5" />
+    <Position X="12.75" Y="3.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>ABAAAAAAAABEAACAAAAAAAAQABAAEgAQAAIAASAAAgE=</HashCode>
       <FileName>Implementation\OLVListItem.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="BrightIdeasSoftware.OLVListSubItem" Collapsed="true">
-    <Position X="32.5" Y="5.5" Width="1.5" />
+    <Position X="11" Y="4.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAEAAAAAAAAAAAAABAIAAAQCAgACSAAAAk=</HashCode>
       <FileName>Implementation\OLVListSubItem.cs</FileName>
@@ -606,12 +598,12 @@
   <Class Name="BrightIdeasSoftware.OlvListViewHitTestInfo" Collapsed="true">
     <Position X="34.25" Y="5.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAEAAAAABAAAZABAAGAAQAEAAAgAAAAAAIAAA=</HashCode>
+      <HashCode>AAAAgEAAEAgAAABEAAZABAAGAAQAEAAAgAAAAAAIAAA=</HashCode>
       <FileName>Implementation\OlvListViewHitTestInfo.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="BrightIdeasSoftware.AbstractVirtualGroups" Collapsed="true">
-    <Position X="3.5" Y="17.5" Width="1.5" />
+    <Position X="5.5" Y="14.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAACAAAAEAAAAAAAAAAAEAAAACAAAAAA=</HashCode>
       <FileName>Implementation\VirtualGroups.cs</FileName>
@@ -619,7 +611,7 @@
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="BrightIdeasSoftware.FastListGroupingStrategy" Collapsed="true">
-    <Position X="3.5" Y="18.75" Width="1.5" />
+    <Position X="5.5" Y="15.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAABAAAAAAAACAAAAAAAAAAAAAAAAEAAAACAAAAAA=</HashCode>
       <FileName>Implementation\VirtualGroups.cs</FileName>
@@ -649,7 +641,7 @@
     </TypeIdentifier>
   </Class>
   <Class Name="BrightIdeasSoftware.OLVColumn" Collapsed="true">
-    <Position X="36" Y="4.5" Width="1.5" />
+    <Position X="17.25" Y="3.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>MgARTxAAJEcEWCbkoNwJbE6WTnSOEnOKQhSWGDJgsFk=</HashCode>
       <FileName>OLVColumn.cs</FileName>
@@ -863,7 +855,7 @@
   <Class Name="BrightIdeasSoftware.GlassPanelForm" Collapsed="true">
     <Position X="30.75" Y="2.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>BgCkgAAARAoAAEAyEAAAAAIAAAAIAhCAAAIERAgAASA=</HashCode>
+      <HashCode>BgCkgAAARAoAAEAyEAAAAAIAAAAIAhCAAQIERAgAASA=</HashCode>
       <FileName>SubControls\GlassPanelForm.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -919,7 +911,7 @@
   <Class Name="BrightIdeasSoftware.VirtualObjectListView" Collapsed="true">
     <Position X="13.75" Y="5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AVgQQAAAAGIEAQAkKkHAEAgRH4ABgAGOCCEigAAgIAQ=</HashCode>
+      <HashCode>AVkQQAAAAGIEAQAkKkHAEAgRH4gBgAGOCCEigAAgIAQ=</HashCode>
       <FileName>VirtualObjectListView.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -950,6 +942,13 @@
       <HashCode>AAAAAAAAAAAAAAIAAAABEAAAgQAAAAAAAAAAQAIAAIg=</HashCode>
     </TypeIdentifier>
   </Class>
+  <Class Name="BrightIdeasSoftware.DataTreeListView" Collapsed="true">
+    <Position X="12.75" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAgIAAAACAAEGAAAAAEAAAAAAABAAQAA=</HashCode>
+      <FileName>DataTreeListView.cs</FileName>
+    </TypeIdentifier>
+  </Class>
   <Interface Name="BrightIdeasSoftware.IDragSource" Collapsed="true">
     <Position X="25.5" Y="8.75" Width="1.5" />
     <TypeIdentifier>
@@ -965,14 +964,14 @@
     </TypeIdentifier>
   </Interface>
   <Interface Name="BrightIdeasSoftware.IModelFilter" Collapsed="true">
-    <Position X="34.25" Y="8.75" Width="1.5" />
+    <Position X="5.5" Y="17.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Filtering\Filters.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="BrightIdeasSoftware.IListFilter" Collapsed="true">
-    <Position X="32.5" Y="8.75" Width="1.5" />
+    <Position X="11.25" Y="17.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Filtering\Filters.cs</FileName>
@@ -988,7 +987,7 @@
   <Interface Name="BrightIdeasSoftware.IClusteringStrategy" Collapsed="true">
     <Position X="23.75" Y="8.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAABBAAAAAAAAAAAQBAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAABBAAAAAAAAAAAQBAQAAAAAAAAA=</HashCode>
       <FileName>Filtering\IClusteringStrategy.cs</FileName>
     </TypeIdentifier>
   </Interface>
@@ -1107,7 +1106,7 @@
   <Enum Name="BrightIdeasSoftware.HitTestLocation" Collapsed="true">
     <Position X="34.25" Y="10.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>ASAAEAAAAAAAAAAAEAAAAAAAAAAAABAAAAAACAAAEAA=</HashCode>
+      <HashCode>ASAAEEAAAAAAAAQAEAAAAAAAAAAAABAAAAAACAAAEAA=</HashCode>
       <FileName>Implementation\OlvListViewHitTestInfo.cs</FileName>
     </TypeIdentifier>
   </Enum>
