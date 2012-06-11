@@ -5,6 +5,13 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2012-06-04  JPP  - [Big] Added UseNotifyPropertyChanged to allow OLV to listen for INotifyPropertyChanged events on models.
+ * 2012-05-30  JPP  - Added static property ObjectListView.IgnoreMissingAspects. If this is set to true, all 
+ *                    ObjectListViews will silently ignore missing aspect errors. Read the remarks to see why this would be useful.
+ * 2012-05-23  JPP  - Setting UseFilterIndicator to true now sets HeaderUsesTheme to false. 
+ *                    Also, changed default value of UseFilterIndicator to false. Previously, HeaderUsesTheme and UseFilterIndicator
+ *                    defaulted to true, which was pointless since when the HeaderUsesTheme is true, UseFilterIndicator does nothing.  
+ * v2.5.1
  * 2012-05-06  JPP  - Fix bug where collapsing the first group would cause decorations to stop being drawn (SR #3502608)
  * 2012-04-23  JPP  - Trigger GroupExpandingCollapsing event to allow the expand/collapse to be cancelled
  *                  - Fixed SetGroupSpacing() so it corrects updates the space between all groups.
@@ -580,13 +587,16 @@ namespace BrightIdeasSoftware
         protected override void Dispose(bool disposing) {
             base.Dispose(disposing);
 
-            if (disposing) {
-                foreach (GlassPanelForm glassPanel in this.glassPanels) {
-                    glassPanel.Unbind();
-                    glassPanel.Dispose();
-                }
-                this.glassPanels.Clear();
+            if (!disposing) 
+                return;
+
+            foreach (GlassPanelForm glassPanel in this.glassPanels) {
+                glassPanel.Unbind();
+                glassPanel.Dispose();
             }
+            this.glassPanels.Clear();
+
+            this.UnsubscribeNotifications(null);
         }
 
         #endregion
@@ -1965,7 +1975,7 @@ namespace BrightIdeasSoftware
         /// <para>
         /// The contents of the control will be updated immediately after setting this property.
         /// </para>
-        /// <para>This method preserves selection, if possible. Use SetObjects() if
+        /// <para>This method preserves selection, if possible. Use <see cref="SetObjects(IEnumerable, bool)"/> if
         /// you do not want to preserve the selection. Preserving selection is the slowest part of this
         /// code and performance is O(n) where n is the number of selected rows.</para>
         /// <para>This method is not thread safe.</para>
@@ -1975,21 +1985,20 @@ namespace BrightIdeasSoftware
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual IEnumerable Objects {
-            get {
-                return this.objects;
-            }
-            set {
-                this.BeginUpdate();
-                try {
-                    IList previousSelection = this.SelectedObjects;
-                    this.SetObjects(value);
-                    this.SelectedObjects = previousSelection;
-                } finally {
-                    this.EndUpdate();
-                }
-            }
+            get { return this.objects; }
+            set { this.SetObjects(value, true); }
         }
         private IEnumerable objects;
+
+        /// <summary>
+        /// Gets the collection of objects that will be considered when creating clusters
+        /// (which are used to generate Excel-like column filters)
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual IEnumerable ObjectsForClustering {
+            get { return this.Objects; }
+        }
 
         /// <summary>
         /// Gets or sets the image that will be drawn over the top of the ListView
@@ -2894,17 +2903,23 @@ namespace BrightIdeasSoftware
         /// Gets or sets whether the list should put an indicator into a column's header to show that
         /// it is filtering on that column
         /// </summary>
+        /// <remarks>If you set this to true, HeaderUsesThemes is automatically set to false, since
+        /// we can only draw a filter indicator when not using a themed header.</remarks>
         [Category("ObjectListView"),
         Description("Should an image be drawn in a column's header when that column is being used for filtering?"),
-        DefaultValue(true)]
+        DefaultValue(false)]
         virtual public bool UseFilterIndicator {
             get { return useFilterIndicator; }
-            set { 
+            set {
+                if (this.useFilterIndicator == value)
+                    return;
                 useFilterIndicator = value;
+                if (this.useFilterIndicator)
+                    this.HeaderUsesThemes = false;
                 this.Invalidate();
             }
         }
-        private bool useFilterIndicator = true;
+        private bool useFilterIndicator = false;
 
         /// <summary>
         /// Should the item under the cursor be formatted in a special way?
@@ -3539,10 +3554,6 @@ namespace BrightIdeasSoftware
         /// Use this method in situations were the contents of the list is basically the same
         /// as previously.
         /// </para>
-        /// <para>
-        /// Due to limitations in .NET's ListView, the scroll position is only preserved if
-        /// the control is in Details view AND it is not showing groups.
-        /// </para>
         /// </remarks>
         public virtual void BuildList(bool shouldPreserveState) {
             if (this.Frozen)
@@ -3944,30 +3955,30 @@ namespace BrightIdeasSoftware
                 if (this.IsFiltering) {
                     ourObjects.InsertRange(index, modelObjects);
                     this.BuildList(true);
-                    return;
-                }
-
-                this.ListViewItemSorter = null;
-                index = Math.Max(0, Math.Min(index, this.GetItemCount()));
-                int i = index;
-                foreach (object modelObject in modelObjects) {
-                    if (modelObject != null) {
-                        ourObjects.Insert(i, modelObject);
-                        OLVListItem lvi = new OLVListItem(modelObject);
-                        this.FillInValues(lvi, modelObject);
-                        this.Items.Insert(i, lvi);
-                        i++;
+                } else {
+                    this.ListViewItemSorter = null;
+                    index = Math.Max(0, Math.Min(index, this.GetItemCount()));
+                    int i = index;
+                    foreach (object modelObject in modelObjects) {
+                        if (modelObject != null) {
+                            ourObjects.Insert(i, modelObject);
+                            OLVListItem lvi = new OLVListItem(modelObject);
+                            this.FillInValues(lvi, modelObject);
+                            this.Items.Insert(i, lvi);
+                            i++;
+                        }
                     }
-                }
 
-                for (i = index; i < this.GetItemCount(); i++) {
-                    OLVListItem lvi = this.GetItem(i);
-                    this.SetSubItemImages(lvi.Index, lvi);
-                }
+                    for (i = index; i < this.GetItemCount(); i++) {
+                        OLVListItem lvi = this.GetItem(i);
+                        this.SetSubItemImages(lvi.Index, lvi);
+                    }
 
-                this.PostProcessRows();
+                    this.PostProcessRows();
+                }
 
                 // Tell the world that the list has changed
+                this.SubscribeNotifications(modelObjects);
                 this.OnItemsChanged(new ItemsChangedEventArgs());
             } finally {
                 this.EndUpdate();
@@ -4347,7 +4358,7 @@ namespace BrightIdeasSoftware
                 modelObjects = args.ObjectsToRemove;
 
                 this.TakeOwnershipOfObjects();
-                ArrayList ourObjects = (ArrayList)this.Objects;
+                ArrayList ourObjects = ObjectListView.EnumerableToArray(this.Objects, false);
                 foreach (object modelObject in modelObjects) {
                     if (modelObject != null) {
 // ReSharper disable PossibleMultipleEnumeration
@@ -4361,6 +4372,7 @@ namespace BrightIdeasSoftware
                 this.PostProcessRows();
 
                 // Tell the world that the list has changed
+                this.UnsubscribeNotifications(modelObjects);
                 this.OnItemsChanged(new ItemsChangedEventArgs());
             } finally {
                 this.EndUpdate();
@@ -4471,8 +4483,93 @@ namespace BrightIdeasSoftware
             this.BuildList(preserveState);
 
             // Tell the world that the list has changed
+            this.UpdateNotificationSubscriptions(this.objects);
             this.OnItemsChanged(new ItemsChangedEventArgs());
         }
+
+        /// <summary>
+        /// Change any subscriptions to INotifyPropertyChanged events on our current
+        /// model objects so that we no longer listen for events on the old models
+        /// and do listen for events on the given collection.
+        /// </summary>
+        /// <remarks>This does nothing if UseNotifyPropertyChanged is false.</remarks>
+        /// <param name="collection"></param>
+        protected virtual void UpdateNotificationSubscriptions(IEnumerable collection) {
+            if (!this.UseNotifyPropertyChanged)
+                return;
+
+            // We could calculate a symmetric difference between the old models and the new models
+            // except that we don't the previous models at this point.
+
+            this.UnsubscribeNotifications(null);
+            this.SubscribeNotifications(collection ?? this.Objects);
+        }
+
+        /// <summary>
+        /// Gets or sets whether or not ObjectListView should subscribe to INotifyPropertyChanged
+        /// events on the model objects that it is given.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This should be set before calling SetObjects(). If you set this to false,
+        /// ObjectListView will unsubscribe to all current model objects.
+        /// </para>
+        /// <para>If you set this to true on a virtual list, the ObjectListView will 
+        /// walk all the objects in the list trying to subscribe to change notifications.
+        /// If you have 10,000,000 items in your virtual list, this may take some time.</para>
+        /// </remarks>
+        [Category("ObjectListView"),
+        Description("Should ObjectListView listen for property changed events on the model objects?"),
+        DefaultValue(false)]
+        public bool UseNotifyPropertyChanged {
+            get { return this.useNotifyPropertyChanged; }
+            set {
+                if (this.useNotifyPropertyChanged == value)
+                    return;
+                this.useNotifyPropertyChanged = value;
+                if (value)
+                    this.SubscribeNotifications(this.Objects);
+                else
+                    this.UnsubscribeNotifications(null);
+            }
+        }
+        private bool useNotifyPropertyChanged;
+
+        private void SubscribeNotifications(IEnumerable models) {
+            if (!this.UseNotifyPropertyChanged || models == null)
+                return;
+            foreach (object x in models) {
+                INotifyPropertyChanged notifier = x as INotifyPropertyChanged;
+                if (notifier != null && !subscribedModels.ContainsKey(notifier)) {
+                    notifier.PropertyChanged += HandleModelOnPropertyChanged;
+                    subscribedModels[notifier] = notifier;
+                }
+            }
+        }
+
+        private void UnsubscribeNotifications(IEnumerable models) {
+            if (models == null) {
+                foreach (INotifyPropertyChanged notifier in this.subscribedModels.Keys) {
+                    notifier.PropertyChanged -= HandleModelOnPropertyChanged;
+                }
+                subscribedModels = new Hashtable();
+            } else {
+                foreach (object x in models) {
+                    INotifyPropertyChanged notifier = x as INotifyPropertyChanged;
+                    if (notifier != null) {
+                        notifier.PropertyChanged -= HandleModelOnPropertyChanged;
+                        subscribedModels.Remove(notifier);
+                    }
+                }
+            }
+        }
+
+        private void HandleModelOnPropertyChanged(object sender, PropertyChangedEventArgs propertyChangedEventArgs) {
+            // System.Diagnostics.Debug.WriteLine(String.Format("PropertyChanged: '{0}' on '{1}", propertyChangedEventArgs.PropertyName, sender));
+            this.RefreshObject(sender);
+        }
+
+        private Hashtable subscribedModels = new Hashtable();
 
         #endregion
 
@@ -7652,10 +7749,12 @@ namespace BrightIdeasSoftware
         #region ISupportInitialize Members
 
         void ISupportInitialize.BeginInit() {
+            System.Diagnostics.Debug.WriteLine("BeginInit");
             this.Frozen = true;
         }
 
         void ISupportInitialize.EndInit() {
+            System.Diagnostics.Debug.WriteLine("EndInit");
             if (this.RowHeight != -1) {
                 this.SmallImageList = this.SmallImageList;
                 if (this.CheckBoxes)
@@ -9285,35 +9384,35 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Do the actual work of filtering
         /// </summary>
-        /// <param name="objects"></param>
+        /// <param name="originalObjects"></param>
         /// <param name="aModelFilter"></param>
         /// <param name="aListFilter"></param>
         /// <returns></returns>
-        virtual protected IEnumerable FilterObjects(IEnumerable objects, IModelFilter aModelFilter, IListFilter aListFilter) {
+        virtual protected IEnumerable FilterObjects(IEnumerable originalObjects, IModelFilter aModelFilter, IListFilter aListFilter) {
             // Being cautious
-            objects = objects ?? new ArrayList();
+            originalObjects = originalObjects ?? new ArrayList();
 
             // Tell the world to filter the objects. If they do so, don't do anything else
-            FilterEventArgs args = new FilterEventArgs(objects);
+            FilterEventArgs args = new FilterEventArgs(originalObjects);
             this.OnFilter(args);
             if (args.FilteredObjects != null)
                 return args.FilteredObjects;
 
             // Apply a filter to the list as a whole
             if (aListFilter != null)
-                objects = aListFilter.Filter(objects);
+                originalObjects = aListFilter.Filter(originalObjects);
 
             // Apply the object filter if there is one
             if (aModelFilter != null) {
                 ArrayList filteredObjects = new ArrayList();
-                foreach (object model in objects) {
+                foreach (object model in originalObjects) {
                     if (aModelFilter.Filter(model))
                         filteredObjects.Add(model);
                 }
-                objects = filteredObjects;
+                originalObjects = filteredObjects;
             }
 
-            return objects;
+            return originalObjects;
         }
 
         /// <summary>
@@ -9331,24 +9430,28 @@ namespace BrightIdeasSoftware
         /// defined in each column
         /// </summary>
         public virtual void UpdateColumnFiltering() {
-            List<IModelFilter> filters = new List<IModelFilter>();
-            IModelFilter columnFilter = this.CreateColumnFilter();
-            if (columnFilter != null)
-                filters.Add(columnFilter);
-            if (this.AdditionalFilter != null)
-                filters.Add(this.AdditionalFilter);
-            this.ModelFilter = filters.Count == 0 ? null : new CompositeAllFilter(filters);
-        }
-        /*if (this.AdditionalFilter == null)
+            //List<IModelFilter> filters = new List<IModelFilter>();
+            //IModelFilter columnFilter = this.CreateColumnFilter();
+            //if (columnFilter != null)
+            //    filters.Add(columnFilter);
+            //if (this.AdditionalFilter != null)
+            //    filters.Add(this.AdditionalFilter);
+            //this.ModelFilter = filters.Count == 0 ? null : new CompositeAllFilter(filters);
+
+            if (this.AdditionalFilter == null)
                 this.ModelFilter = this.CreateColumnFilter();
             else {
                 IModelFilter columnFilter = this.CreateColumnFilter();
                 if (columnFilter == null)
                     this.ModelFilter = this.AdditionalFilter;
-                else
-                    this.ModelFilter = new CompositeAllFilter(this.AdditionalFilter;
-            }*/
-       // }
+                else {
+                    List<IModelFilter> filters = new List<IModelFilter>();
+                    filters.Add(columnFilter);
+                    filters.Add(this.AdditionalFilter);
+                    this.ModelFilter = new CompositeAllFilter(filters);
+                }
+            }
+        }
 
         /// <summary>
         /// When some setting related to filtering changes, this method is called.
