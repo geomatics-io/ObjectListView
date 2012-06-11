@@ -1004,7 +1004,7 @@ namespace BrightIdeasSoftware {
                 if (this.ValuesChosenForFiltering == null || this.ValuesChosenForFiltering.Count == 0)
                     return null;
 
-                return new OneOfFilter(this.ClusteringStrategy.GetClusterKey, this.ValuesChosenForFiltering);
+                return this.ClusteringStrategy.CreateFilter(this.ValuesChosenForFiltering);
             }
             set { valueBasedFilter = value; }
         }
