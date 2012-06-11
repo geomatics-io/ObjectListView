@@ -43,6 +43,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -107,22 +108,36 @@ namespace BrightIdeasSoftware
             this.mdiClient = null;
             this.mdiOwner = null;
 
+            if (this.objectListView == null)
+                return;
+
             // NOTE: If you listen to any events here, you *must* stop listening in Unbind()
+
             this.objectListView.Disposed += new EventHandler(objectListView_Disposed);
             this.objectListView.LocationChanged += new EventHandler(objectListView_LocationChanged);
             this.objectListView.SizeChanged += new EventHandler(objectListView_SizeChanged);
             this.objectListView.VisibleChanged += new EventHandler(objectListView_VisibleChanged);
             this.objectListView.ParentChanged += new EventHandler(objectListView_ParentChanged);
 
+            // Collect our ancestors in the widget hierachy
+            if (this.ancestors == null)
+                this.ancestors = new List<Control>();
             Control parent = this.objectListView.Parent;
             while (parent != null) {
-                parent.ParentChanged += new EventHandler(objectListView_ParentChanged);
-                TabControl tabControl = parent as TabControl;
+                this.ancestors.Add(parent);
+                parent = parent.Parent;
+            } 
+
+            // Listen for changes in the hierachy
+            foreach (Control ancestor in this.ancestors) {
+                ancestor.ParentChanged += new EventHandler(objectListView_ParentChanged);
+                TabControl tabControl = ancestor as TabControl;
                 if (tabControl != null) {
                     tabControl.Selected += new TabControlEventHandler(tabControl_Selected);
                 }
-                parent = parent.Parent;
             }
+
+            // Listen for changes in our owning form
             this.Owner = this.objectListView.FindForm();
             this.myOwner = this.Owner;
             if (this.Owner != null) {
@@ -165,7 +180,6 @@ namespace BrightIdeasSoftware
             this.Invalidate();
         }
 
-        MdiClient mdiClient;
         /// <summary>
         /// Made the overlay panel invisible
         /// </summary>
@@ -199,23 +213,24 @@ namespace BrightIdeasSoftware
         /// widget hierarchy.
         /// </remarks>
         public void Unbind() {
-            if (this.objectListView == null)
-                return;
+            if (this.objectListView != null) {
+                this.objectListView.Disposed -= new EventHandler(objectListView_Disposed);
+                this.objectListView.LocationChanged -= new EventHandler(objectListView_LocationChanged);
+                this.objectListView.SizeChanged -= new EventHandler(objectListView_SizeChanged);
+                this.objectListView.VisibleChanged -= new EventHandler(objectListView_VisibleChanged);
+                this.objectListView.ParentChanged -= new EventHandler(objectListView_ParentChanged);
+                this.objectListView = null;
+            }
 
-            this.objectListView.Disposed -= new EventHandler(objectListView_Disposed);
-            this.objectListView.LocationChanged -= new EventHandler(objectListView_LocationChanged);
-            this.objectListView.SizeChanged -= new EventHandler(objectListView_SizeChanged);
-            this.objectListView.VisibleChanged -= new EventHandler(objectListView_VisibleChanged);
-            this.objectListView.ParentChanged -= new EventHandler(objectListView_ParentChanged);
-
-            Control parent = this.objectListView.Parent;
-            while (parent != null) {
-                parent.ParentChanged -= new EventHandler(objectListView_ParentChanged);
-                TabControl tabControl = parent as TabControl;
-                if (tabControl != null) {
-                    tabControl.Selected -= new TabControlEventHandler(tabControl_Selected);
+            if (this.ancestors != null) {
+                foreach (Control parent in this.ancestors) {
+                    parent.ParentChanged -= new EventHandler(objectListView_ParentChanged);
+                    TabControl tabControl = parent as TabControl;
+                    if (tabControl != null) {
+                        tabControl.Selected -= new TabControlEventHandler(tabControl_Selected);
+                    }
                 }
-                parent = parent.Parent;
+                this.ancestors = null;
             }
 
             if (this.myOwner != null) {
@@ -223,6 +238,7 @@ namespace BrightIdeasSoftware
                 this.myOwner.SizeChanged -= new EventHandler(Owner_SizeChanged);
                 this.myOwner.ResizeBegin -= new EventHandler(Owner_ResizeBegin);
                 this.myOwner.ResizeEnd -= new EventHandler(Owner_ResizeEnd);
+                this.myOwner = null;
             }
 
             if (this.mdiOwner != null) {
@@ -230,13 +246,13 @@ namespace BrightIdeasSoftware
                 this.mdiOwner.SizeChanged -= new EventHandler(Owner_SizeChanged);
                 this.mdiOwner.ResizeBegin -= new EventHandler(Owner_ResizeBegin);
                 this.mdiOwner.ResizeEnd -= new EventHandler(Owner_ResizeEnd);
+                this.mdiOwner = null;
             }
 
             if (this.mdiClient != null) {
                 this.mdiClient.ClientSizeChanged -= new EventHandler(myMdiClient_ClientSizeChanged);
+                this.mdiClient = null;
             }
-
-            this.objectListView = null;
         }
 
         #endregion
@@ -427,6 +443,8 @@ namespace BrightIdeasSoftware
         // Cache these so we can unsubscribe from events even when the OLV has been disposed.
         private Form myOwner;
         private Form mdiOwner;
+        private List<Control> ancestors;
+        MdiClient mdiClient;
 
         #endregion
 
