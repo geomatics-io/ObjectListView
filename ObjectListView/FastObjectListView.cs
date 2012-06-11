@@ -68,6 +68,18 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets the collection of objects that survive any filtering that may be in place.
+        /// </summary>
+        [Browsable(false),
+            DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public override IEnumerable FilteredObjects {
+            get {
+                // This is much faster than the base method
+                return ((FastObjectListDataSource)this.VirtualListDataSource).FilteredObjectList;
+            }
+        }
+
+        /// <summary>
         /// Get/set the collection of objects that this list will show
         /// </summary>
         /// <remarks>
@@ -117,14 +129,6 @@ namespace BrightIdeasSoftware
             : base(listView) {
         }
 
-        internal ArrayList ObjectList {
-            get { return fullObjectList; }
-        }
-
-        internal ArrayList FilteredObjectList {
-            get { return filteredObjectList; }
-        }
-
         #region IVirtualListDataSource Members
 
         /// <summary>
@@ -135,8 +139,8 @@ namespace BrightIdeasSoftware
         public override object GetNthObject(int n) {
             if (n >= 0 && n < this.filteredObjectList.Count)
                 return this.filteredObjectList[n];
-            else
-                return null;
+            
+            return null;
         }
 
         /// <summary>
@@ -157,8 +161,8 @@ namespace BrightIdeasSoftware
 
             if (model != null && this.objectsToIndexMap.TryGetValue(model, out index))
                 return index;
-            else
-                return -1;
+            
+            return -1;
         }
 
         /// <summary>
@@ -262,8 +266,22 @@ namespace BrightIdeasSoftware
 
         #endregion
 
-
         #region Implementation
+
+        /// <summary>
+        /// Gets the full list of objects being used for this fast list. 
+        /// This list is unfiltered.
+        /// </summary>
+        public ArrayList ObjectList {
+            get { return fullObjectList; }
+        }
+
+        /// <summary>
+        /// Gets the list of objects from ObjectList which survive any installed filters.
+        /// </summary>
+        public ArrayList FilteredObjectList {
+            get { return filteredObjectList; }
+        }
 
         /// <summary>
         /// Rebuild the map that remembers which model object is displayed at which line
