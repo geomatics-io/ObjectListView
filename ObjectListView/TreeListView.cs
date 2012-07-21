@@ -413,10 +413,15 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="preserveState">If true, the control will try to preserve selection and expansion</param>
         public virtual void RebuildAll(bool preserveState) {
+            int previousTopItemIndex = preserveState ? this.TopItemIndex : -1;
+
             this.RebuildAll(
                 preserveState ? this.SelectedObjects : null,
                 preserveState ? this.ExpandedObjects : null,
                 preserveState ? this.CheckedObjects : null);
+
+            if (preserveState)
+                this.TopItemIndex = previousTopItemIndex;
         }
 
         /// <summary>
@@ -431,20 +436,27 @@ namespace BrightIdeasSoftware
             CanExpandGetterDelegate canExpand = this.CanExpandGetter;
             ChildrenGetterDelegate childrenGetter = this.ChildrenGetter;
 
-            // Give ourselves a new data structure
-            this.TreeModel = new Tree(this);
-            this.VirtualListDataSource = this.TreeModel;
+            try {
+                this.BeginUpdate();
 
-            // Put back the bits we didn't want to forget
-            this.CanExpandGetter = canExpand;
-            this.ChildrenGetter = childrenGetter;
-            if (expanded != null)
-                this.ExpandedObjects = expanded;
-            this.Roots = roots;
-            if (selected != null)
-                this.SelectedObjects = selected;
-            if (checkedObjects != null)
-                this.CheckedObjects = checkedObjects;
+                // Give ourselves a new data structure
+                this.TreeModel = new Tree(this);
+                this.VirtualListDataSource = this.TreeModel;
+
+                // Put back the bits we didn't want to forget
+                this.CanExpandGetter = canExpand;
+                this.ChildrenGetter = childrenGetter;
+                if (expanded != null)
+                    this.ExpandedObjects = expanded;
+                this.Roots = roots;
+                if (selected != null)
+                    this.SelectedObjects = selected;
+                if (checkedObjects != null)
+                    this.CheckedObjects = checkedObjects;
+            }
+            finally {
+                this.EndUpdate();
+            }
         }
 
         /// <summary>
