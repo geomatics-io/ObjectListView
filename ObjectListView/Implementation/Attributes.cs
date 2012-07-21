@@ -49,6 +49,10 @@ namespace BrightIdeasSoftware
     {
         #region Constructor
 
+        // There are several property where we actually want nullable value (bool?, int?),
+        // but it seems attribute properties can't be nullable types.
+        // So we explicitly track if those properties have been set.
+
         /// <summary>
         /// Create a new OLVColumnAttribute
         /// </summary>
@@ -81,9 +85,13 @@ namespace BrightIdeasSoftware
         /// </summary>
         public bool CheckBoxes {
             get { return checkBoxes; }
-            set { checkBoxes = value; }
+            set {
+                checkBoxes = value;
+                this.IsCheckBoxesSet = true;
+            }
         }
         private bool checkBoxes;
+        internal bool IsCheckBoxesSet = false;
 
         /// <summary>
         /// 
@@ -106,11 +114,15 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// 
         /// </summary>
-        public int? FreeSpaceProportion {
+        public int FreeSpaceProportion {
             get { return freeSpaceProportion; }
-            set { freeSpaceProportion = value; }
+            set {
+                freeSpaceProportion = value;
+                IsFreeSpaceProportionSet = true;
+            }
         }
-        private int? freeSpaceProportion;
+        private int freeSpaceProportion;
+        internal bool IsFreeSpaceProportionSet = false;
 
         /// <summary>
         /// An array of IComparables that mark the cutoff points for values when
@@ -166,9 +178,6 @@ namespace BrightIdeasSoftware
             set { imageAspectName = value; }
         }
         private string imageAspectName;
-
-        // We actually want this to be bool? but it seems attribute properties can't be nullable types.
-        // So we explicitly track if the property has been set.
 
         /// <summary>
         /// 
@@ -233,9 +242,13 @@ namespace BrightIdeasSoftware
         /// </summary>
         public HorizontalAlignment TextAlign {
             get { return this.textAlign; }
-            set { this.textAlign = value; }
+            set {
+                this.textAlign = value;
+                IsTextAlignSet = true;
+            }
         }
         private HorizontalAlignment textAlign = HorizontalAlignment.Left;
+        internal bool IsTextAlignSet = false;
 
         /// <summary>
         /// 
@@ -269,9 +282,13 @@ namespace BrightIdeasSoftware
         /// </summary>
         public bool TriStateCheckBoxes {
             get { return triStateCheckBoxes; }
-            set { triStateCheckBoxes = value; }
+            set { 
+                triStateCheckBoxes = value;
+                this.IsTriStateCheckBoxesSet = true;
+            }
         }
         private bool triStateCheckBoxes;
+        internal bool IsTriStateCheckBoxesSet = false;
 
         /// <summary>
         /// 
