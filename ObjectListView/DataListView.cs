@@ -104,6 +104,11 @@ namespace BrightIdeasSoftware
         /// may also set the <see cref="DataMember"/> property even when
         /// DataSource refers to a list, since <see cref="DataMember"/> can
         /// also be used to navigate relations between lists.</para>
+        /// <para>When a DataSource is set, the control will create OLVColumns to show any
+        /// data source columns that are not already shown.</para>
+        /// <para>If the DataSource is changed, you will have to remove any previously
+        /// created columns, since they will be configured for the previous DataSource.
+        /// <see cref="ObjectListView.Reset()"/>.</para>
         /// </remarks>
         [Category("Data"),
         TypeConverter("System.Windows.Forms.Design.DataSourceConverter, System.Design")]
