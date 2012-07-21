@@ -46,7 +46,7 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// These items allow combo boxes to remember a value and its description.
     /// </summary>
-    internal class ComboBoxItem
+    public class ComboBoxItem
     {
         public ComboBoxItem(Object key, String description) {
             this.key = key;
@@ -105,7 +105,7 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// This combo box is specialised to allow editing of an enum.
     /// </summary>
-    internal class EnumCellEditor : ComboBox
+    public class EnumCellEditor : ComboBox
     {
         public EnumCellEditor(Type type) {
             this.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -122,7 +122,7 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// This editor simply shows and edits integer values.
     /// </summary>
-    internal class IntUpDown : NumericUpDown
+    public class IntUpDown : NumericUpDown
     {
         public IntUpDown() {
             this.DecimalPlaces = 0;
@@ -139,7 +139,7 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// This editor simply shows and edits unsigned integer values.
     /// </summary>
-    internal class UintUpDown : NumericUpDown
+    public class UintUpDown : NumericUpDown
     {
         public UintUpDown() {
             this.DecimalPlaces = 0;
@@ -156,7 +156,7 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// This editor simply shows and edits boolean values.
     /// </summary>
-    internal class BooleanCellEditor : ComboBox
+    public class BooleanCellEditor : ComboBox
     {
         public BooleanCellEditor() {
             this.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -173,7 +173,7 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// This editor simply shows and edits boolean values using a checkbox
     /// </summary>
-    internal class BooleanCellEditor2 : CheckBox
+    public class BooleanCellEditor2 : CheckBox
     {
         public BooleanCellEditor2() {
         }
@@ -226,7 +226,7 @@ namespace BrightIdeasSoftware
     /// <remarks>You can intercept the CellEditStarting event if you want
     /// to change the characteristics of the editor. For example, by increasing
     /// the number of decimal places.</remarks>
-    internal class FloatCellEditor : NumericUpDown
+    public class FloatCellEditor : NumericUpDown
     {
         public FloatCellEditor() {
             this.DecimalPlaces = 2;
