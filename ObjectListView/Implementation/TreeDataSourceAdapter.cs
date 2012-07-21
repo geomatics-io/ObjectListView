@@ -155,11 +155,31 @@ namespace BrightIdeasSoftware
             // We can't do anything more specific. We don't know what the previous values, so we can't 
             // tell the previous parent to refresh itself. If the id itself has changed, things that used
             // to be children will no longer be children. Just rebuild everything.
-            if (e.PropertyDescriptor.Name == this.KeyAspectName ||
-                e.PropertyDescriptor.Name == this.ParentKeyAspectName)
+            // It seems PropertyDescriptor is only filled in .NET 4 :(
+            if (e.PropertyDescriptor != null && 
+                (e.PropertyDescriptor.Name == this.KeyAspectName ||
+                 e.PropertyDescriptor.Name == this.ParentKeyAspectName))
                 this.InitializeDataSource();
             else
                 base.HandleListChangedItemChanged(e);
+        }
+
+        protected override void ChangePosition(int index) {
+            // We can't use our base method directly, since the normal position management
+            // doesn't know about our tree structure. They treat our dataset as a flat list
+            // but we have a collapsable structure. This means that the 5'th row to them
+            // may not even be visible to us
+
+            // To display the n'th row, we have to make sure that all its ancestors
+            // are expanded. Then we will be able to select it.
+            object model = this.CurrencyManager.List[index];
+            object parent = this.CalculateParent(model);
+            while (parent != null && !this.TreeListView.IsExpanded(parent)) {
+                this.TreeListView.Expand(parent);
+                parent = this.CalculateParent(parent);
+            }
+
+            base.ChangePosition(index);
         }
 
         private IEnumerable CalculateRoots() {
@@ -192,6 +212,19 @@ namespace BrightIdeasSoftware
                         yield return x;
                 }
             }
+        }
+
+        private object CalculateParent(object model) {
+            object parentValue = this.GetParentValue(model);
+            if (parentValue == null) 
+                return null;
+
+            foreach (object x in this.CurrencyManager.List) {
+                object key = this.GetKeyValue(x);
+                if (Object.Equals(parentValue, key))
+                    return x;
+            }
+            return null;
         }
 
         private object GetKeyValue(object model) {
