@@ -557,18 +557,27 @@ namespace BrightIdeasSoftware
             try {
                 this.isChangingIndex = true;
 
-                // We can't use the index directly, since our listview may be sorted
-                this.ListView.SelectedObject = this.CurrencyManager.List[index];
-
-                // THINK: Do we always want to bring it into view?
-                if (this.ListView.SelectedIndices.Count > 0)
-                    this.ListView.EnsureVisible(this.ListView.SelectedIndices[0]);
-
-            } finally {
+                this.ChangePosition(index);
+            }
+            finally {
                 this.isChangingIndex = false;
             }
         }
         private bool isChangingIndex = false;
+
+        /// <summary>
+        /// Change the control's position (which is it's currently selected row)
+        /// to the n'th row in the dataset
+        /// </summary>
+        /// <param name="index">The index of the row to be selected</param>
+        protected virtual void ChangePosition(int index) {
+            // We can't use the index directly, since our listview may be sorted
+            this.ListView.SelectedObject = this.CurrencyManager.List[index];
+
+            // THINK: Do we always want to bring it into view?
+            if (this.ListView.SelectedIndices.Count > 0)
+                this.ListView.EnsureVisible(this.ListView.SelectedIndices[0]);
+        }
 
         #endregion
 
