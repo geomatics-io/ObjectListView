@@ -5,6 +5,8 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2012-06-11   JPP  - Added more efficient version of FilteredObjects
+ * v2.5.1
  * 2011-04-25   JPP  - Fixed problem with removing objects from filtered or sorted list
  * v2.4
  * 2010-04-05   JPP  - Added filtering
@@ -104,6 +106,9 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Remove any sorting and revert to the given order of the model objects
         /// </summary>
+        /// <remarks>To be really honest, Unsort() doesn't work on FastObjectListViews since
+        /// the original ordering of model objects is lost when Sort() is called. So this method
+        /// effectively just turns off sorting.</remarks>
         public override void Unsort() {
             this.ShowGroups = false;
             this.PrimarySortColumn = null;
@@ -168,13 +173,27 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="text"></param>
         /// <param name="first"></param>
         /// <param name="last"></param>
         /// <param name="column"></param>
         /// <returns></returns>
-        public override int SearchText(string value, int first, int last, OLVColumn column) {
-            return DefaultSearchText(value, first, last, column, this);
+        public override int SearchText(string text, int first, int last, OLVColumn column) {
+            if (first <= last) {
+                for (int i = first; i <= last; i++) {
+                    string data = column.GetStringValue(this.listView.GetNthItemInDisplayOrder(i).RowObject);
+                    if (data.StartsWith(text, StringComparison.CurrentCultureIgnoreCase))
+                        return i;
+                }
+            } else {
+                for (int i = first; i >= last; i--) {
+                    string data = column.GetStringValue(this.listView.GetNthItemInDisplayOrder(i).RowObject);
+                    if (data.StartsWith(text, StringComparison.CurrentCultureIgnoreCase))
+                        return i;
+                }
+            }
+
+            return -1;
         }
 
         /// <summary>
