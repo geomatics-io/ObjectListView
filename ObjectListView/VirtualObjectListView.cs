@@ -5,6 +5,9 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2012-06-13   JPP  - Corrected several bugs related to groups on virtual lists.
+ *                   - Added EnsureNthGroupVisible() since EnsureGroupVisible() can't work on virtual lists.
+ * v2.5.1
  * 2012-05-04   JPP  - Avoid bug/feature in ListView.VirtalListSize setter that causes flickering
  *                     when the size of the list changes.
  * 2012-04-24   JPP  - Fixed bug that occurred when adding/removing item while the view was grouped.
@@ -65,6 +68,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
@@ -431,10 +435,7 @@ namespace BrightIdeasSoftware
                 return null;
 
             int index = this.VirtualListDataSource.GetObjectIndex(modelObject);
-            if (index >= 0)
-                return this.GetItem(index);
-            else
-                return null;
+            return index >= 0 ? this.GetItem(index) : null;
         }
 
         #endregion
@@ -481,6 +482,37 @@ namespace BrightIdeasSoftware
             else {
                 this.CheckStateMap.Clear();
                 this.SetObjects(new ArrayList());
+            }
+        }
+
+        /// <summary>
+        /// Scroll the listview so that the given group is at the top.
+        /// </summary>
+        /// <param name="groupIndex">The index of the group to be revealed</param>
+        /// <remarks><para>
+        /// If the group is already visible, the list will still be scrolled to move
+        /// the group to the top, if that is possible.
+        /// </para>
+        /// <para>This only works when the list is showing groups (obviously).</para>
+        /// </remarks>
+        public virtual void EnsureNthGroupVisible(int groupIndex) {
+            if (!this.ShowGroups)
+                return;
+
+            if (groupIndex <= 0 || groupIndex >= this.OLVGroups.Count) {
+                // There is no easy way to scroll back to the beginning of the list
+                int delta = 0 - NativeMethods.GetScrollPosition(this, false);
+                NativeMethods.Scroll(this, 0, delta);
+            } else {
+                // Find the display rectangle of the last item in the previous group
+                OLVGroup previousGroup = this.OLVGroups[groupIndex - 1];
+                int lastItemInGroup = this.GroupingStrategy.GetGroupMember(previousGroup, previousGroup.VirtualItemCount - 1);
+                Rectangle r = this.GetItemRect(lastItemInGroup);
+
+                // Scroll so that the last item of the previous group is just out of sight,
+                // which will make the desired group header visible.
+                int delta = r.Y + r.Height / 2;
+                NativeMethods.Scroll(this, 0, delta);
             }
         }
 
@@ -743,7 +775,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="itemIndex"></param>
         /// <returns></returns>
-        public virtual int GetItemIndexInDisplayOrder(int itemIndex) {
+        public override int GetDisplayOrderOfItemIndex(int itemIndex) {
             if (!this.ShowGroups)
                 return itemIndex;
 
@@ -754,6 +786,46 @@ namespace BrightIdeasSoftware
             displayIndex += this.GroupingStrategy.GetIndexWithinGroup(this.OLVGroups[groupIndex], itemIndex);
 
             return displayIndex;
+        }
+
+        /// <summary>
+        /// Return the last item in the order they are shown to the user.
+        /// If the control is not grouped, the display order is the same as the
+        /// sorted list order. But if the list is grouped, the display order is different.
+        /// </summary>
+        /// <returns></returns>
+        public override OLVListItem GetLastItemInDisplayOrder() {
+            if (!this.ShowGroups)
+                return base.GetLastItemInDisplayOrder();
+
+            if (this.OLVGroups.Count > 0) {
+                OLVGroup lastGroup = this.OLVGroups[this.OLVGroups.Count - 1];
+                if (lastGroup.VirtualItemCount > 0)
+                    return this.GetItem(this.GroupingStrategy.GetGroupMember(lastGroup, lastGroup.VirtualItemCount - 1));
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Return the n'th item (0-based) in the order they are shown to the user.
+        /// If the control is not grouped, the display order is the same as the
+        /// sorted list order. But if the list is grouped, the display order is different.
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public override OLVListItem GetNthItemInDisplayOrder(int n) {
+            if (!this.ShowGroups)
+                return this.GetItem(n);
+
+            foreach (OLVGroup group in this.OLVGroups) {
+                if (n < group.VirtualItemCount)
+                    return this.GetItem(this.GroupingStrategy.GetGroupMember(group, n));
+
+                n -= group.VirtualItemCount;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -852,7 +924,7 @@ namespace BrightIdeasSoftware
             OLVListItem olvi = new OLVListItem(this.GetModelObject(itemIndex));
             this.FillInValues(olvi, olvi.RowObject);
 
-            this.PostProcessOneRow(itemIndex, this.GetItemIndexInDisplayOrder(itemIndex), olvi);
+            this.PostProcessOneRow(itemIndex, this.GetDisplayOrderOfItemIndex(itemIndex), olvi);
 
             if (this.HotRowIndex == itemIndex)
                 this.UpdateHotRow(olvi);
