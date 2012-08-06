@@ -5,6 +5,9 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2012-08-06  JPP  - Don't start a cell edit operation when the user clicks on the background of a checkbox cell.
+ *                  - Honor values from the BeforeSorting event when calling a CustomSorter
+ * 2012-08-02  JPP  - Added CellVerticalAlignment and CellPadding properties.
  * 2012-07-04  JPP  - Fixed bug with cell editing where the cell editing didn't finish until the first idle event.
  *                    This meant that if you clicked and held on the scroll thumb to finish a cell edit, the editor
  *                    wouldn't be removed until the mouse was released.
@@ -712,6 +715,21 @@ namespace BrightIdeasSoftware
             set { Munger.IgnoreMissingAspects = value; }
         }
 
+        /// <summary>
+        /// Gets or sets whether the control will draw a rectangle in each cell showing the cell padding.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This can help with debugging display problems from cell padding.
+        /// </para>
+        /// <para>As with all cell padding, this setting only takes effect when the control is owner drawn.</para>
+        /// </remarks>
+        public static bool ShowCellPaddingBounds {
+            get { return showCellPaddingBounds;  }
+            set { showCellPaddingBounds = value;  }
+        }
+        private static bool showCellPaddingBounds;
+
         #endregion
 
         #region Public properties
@@ -920,6 +938,51 @@ namespace BrightIdeasSoftware
             }
         }
         private ToolTipControl cellToolTip;
+
+        /// <summary>
+        /// Gets or sets how many pixels will be left blank around each cell of this item.
+        /// Cell contents are aligned after padding has been taken into account.
+        /// </summary>
+        /// <remarks>
+        /// <para>Each value of the given rectangle will be treated as an inset from
+        /// the corresponding side. The width of the rectangle is the padding for the
+        /// right cell edge. The height of the rectangle is the padding for the bottom
+        /// cell edge.
+        /// </para>
+        /// <para>
+        /// So, this.olv1.CellPadding = new Rectangle(1, 2, 3, 4); will leave one pixel
+        /// of space to the left of the cell, 2 pixels at the top, 3 pixels of space
+        /// on the right edge, and 4 pixels of space at the bottom of each cell.
+        /// </para>
+        /// <para>
+        /// This setting only takes effect when the control is owner drawn.
+        /// </para>
+        /// <para>This setting only affects the contents of the cell. The background is
+        /// not affected.</para>
+        /// <para>If you set this to a foolish value, your control will appear to be empty.</para>
+        /// </remarks>
+        [Category("ObjectListView"),
+         Description("How much padding will be applied to each cell in this control?"),
+         DefaultValue(null)]
+        public Rectangle? CellPadding {
+            get { return this.cellPadding; }
+            set { this.cellPadding = value; }
+        }
+        private Rectangle? cellPadding;
+
+        /// <summary>
+        /// Gets or sets how cells will be vertically aligned by default.
+        /// </summary>
+        /// <remarks>This setting only takes effect when the control is owner drawn. It will only be noticable
+        /// when RowHeight has been set such that there is some vertical space in each row.</remarks>
+        [Category("ObjectListView"),
+         Description("How will cell values be vertically aligned?"),
+         DefaultValue(StringAlignment.Center)]
+        public virtual StringAlignment CellVerticalAlignment {
+            get { return this.cellVerticalAlignment;  }
+            set { this.cellVerticalAlignment = value;  }
+        }
+        private StringAlignment cellVerticalAlignment = StringAlignment.Center;
 
         /// <summary>
         /// Should this list show checkboxes?
@@ -4896,7 +4959,7 @@ namespace BrightIdeasSoftware
                         base.WndProc(ref m);
                     break;
                 case 0x46: // WM_WINDOWPOSCHANGING
-                    if (!this.HandleWindowPosChanging(ref m))
+                    if (this.PossibleFinishCellEditing() && !this.HandleWindowPosChanging(ref m))
                         base.WndProc(ref m);
                     break;
                 case 0x4E: // WM_NOTIFY
@@ -5107,6 +5170,19 @@ namespace BrightIdeasSoftware
             //const int CDRF_NOTIFYSUBITEMDRAW = 0x20; // same value as above!
             const int CDRF_NOTIFYPOSTERASE = 0x40;
 
+            // There is a bug in owner drawn virtual lists which causes lots of custom draw messages
+            // to be sent to the control *outside* of a WmPaint event. AFAIK, these custom draw events
+            // are spurious and only serve to make the control flicker annoyingly.
+            // So, we ignore messages that are outside of a paint event.
+            if (!this.isInWmPaintEvent)
+                return true;
+
+            // One more complication! Sometimes with owner drawn virtual lists, the act of drawing
+            // the overlays triggers a second attempt to paint the control -- which makes an annoying
+            // flicker. So, we only do the custom drawing once per WmPaint event.
+            if (!this.shouldDoCustomDrawing)
+                return true;
+
             NativeMethods.NMLVCUSTOMDRAW nmcustomdraw = (NativeMethods.NMLVCUSTOMDRAW)m.GetLParam(typeof(NativeMethods.NMLVCUSTOMDRAW));
             //System.Diagnostics.Debug.WriteLine(String.Format("cd: {0:x}, {1}, {2}", nmcustomdraw.nmcd.dwDrawStage, nmcustomdraw.dwItemType, nmcustomdraw.nmcd.dwItemSpec));
 
@@ -5124,19 +5200,6 @@ namespace BrightIdeasSoftware
                 //m.Result = (IntPtr)((int)m.Result | CDRF_SKIPDEFAULT);
                 return true;
             }
-
-            // There is a bug in owner drawn virtual lists which causes lots of custom draw messages
-            // to be sent to the control *outside* of a WmPaint event. AFAIK, these custom draw events
-            // are spurious and only serve to make the control flicker annoyingly.
-            // So, we ignore messages that are outside of a paint event.
-            if (!this.isInWmPaintEvent)
-                return true;
-
-            // One more complication! Sometimes with owner drawn virtual lists, the act of drawing
-            // the overlays triggers a second attempt to paint the control -- which makes an annoying
-            // flicker. So, we only do the custom drawing once per WmPaint event.
-            if (!this.shouldDoCustomDrawing)
-                return true;
 
             switch (nmcustomdraw.nmcd.dwDrawStage) {
                 case CDDS_PREPAINT:
@@ -5925,8 +5988,8 @@ namespace BrightIdeasSoftware
                     break;
                 case HDN_ENDTRACKA:
                 case HDN_ENDTRACKW:
-                    if (this.ShowGroups)
-                        this.ResizeLastGroup();
+                    //if (this.ShowGroups)
+                    //    this.ResizeLastGroup();
                     break;
                 case HDN_TRACKA:
                 case HDN_TRACKW:
@@ -6068,8 +6131,6 @@ namespace BrightIdeasSoftware
                 if (pos.cx < this.Bounds.Width) // only when shrinking
                     // pos.cx is the window width, not the client area width, so we have to subtract the border widths
                     this.ResizeFreeSpaceFillingColumns(pos.cx - (this.Bounds.Width - this.ClientSize.Width));
-                if (this.ShowGroups)
-                    this.ResizeLastGroup();
             }
 
             return false;
@@ -7222,9 +7283,7 @@ namespace BrightIdeasSoftware
 
             // Virtual lists don't preserve selection, so we have to do it specifically
             // THINK: Do we need to preserve focus too?
-            IList selection = new ArrayList();
-            if (this.VirtualMode)
-                selection = this.SelectedObjects;
+            IList selection = this.VirtualMode ? this.SelectedObjects : null;
 
             this.ClearHotItem();
 
@@ -7236,7 +7295,7 @@ namespace BrightIdeasSoftware
                         this.BuildGroups(args.ColumnToGroupBy, args.GroupByOrder, args.ColumnToSort, args.SortOrder,
                             args.SecondaryColumnToSort, args.SecondarySortOrder);
                     else if (this.CustomSorter != null)
-                        this.CustomSorter(columnToSort, order);
+                        this.CustomSorter(args.ColumnToSort, args.SortOrder);
                     else
                         this.ListViewItemSorter = new ColumnComparer(args.ColumnToSort, args.SortOrder,
                             args.SecondaryColumnToSort, args.SecondarySortOrder);
@@ -7249,7 +7308,7 @@ namespace BrightIdeasSoftware
             this.LastSortColumn = args.ColumnToSort;
             this.LastSortOrder = args.SortOrder;
 
-            if (selection.Count > 0)
+            if (selection != null && selection.Count > 0)
                 this.SelectedObjects = selection;
 
             this.RefreshHotItem();
@@ -7373,50 +7432,6 @@ namespace BrightIdeasSoftware
                 group.InsertGroupOldStyle(this);
                 group.SetItemsOldStyle();
             }
-            this.ResizeLastGroup();
-        }
-
-        internal void ResizeLastGroup()
-        {
-            // What was this method trying to do??
-            // It sets the height of the footer of the last group
-            // to the height of the first item plus horizontal scroll bar height.
-            // Why??
-
-            // It's faulty since SetGroupMetrics cannot set the characteristics 
-            // of just one group -- it changes the characteristics of all groups.
-            
-            /*
-            // Don't mess with the control in design mode
-            if (this.IsDesignMode) 
-                return;
-
-            // Sanity checks
-            if (this.GetItemCount() == 0 || !this.ShowGroups || this.Groups.Count == 0) 
-                return;
-            
-            // Get the last group and make sure we know which OLVGroup it came from
-            ListViewGroup grp = this.Groups[this.Groups.Count-1];
-            OLVGroup olvGroup = grp.Tag as OLVGroup;
-            if (olvGroup == null)
-                return;
-
-            int height = this.GetItem(0).Bounds.Height;
-
-            // Is the Horizontal scrollbar visible
-            if (NativeMethods.HasHorizontalScrollBar(this))
-                height += SystemInformation.HorizontalScrollBarHeight;
-            
-            if (this.SpaceBetweenGroups > height) 
-                return;
-            
-            NativeMethods.LVGROUPMETRICS metrics = new NativeMethods.LVGROUPMETRICS();
-            metrics.cbSize = ((uint)Marshal.SizeOf(typeof(NativeMethods.LVGROUPMETRICS)));
-            metrics.mask = (uint)GroupMetricsMask.LVGMF_BORDERSIZE;
-            metrics.Bottom = (uint)height;
-            NativeMethods.SetGroupMetrics(this, olvGroup.GroupId, metrics);
-        
-             */ 
         }
 
         /// <summary>
@@ -7791,12 +7806,10 @@ namespace BrightIdeasSoftware
         #region ISupportInitialize Members
 
         void ISupportInitialize.BeginInit() {
-            System.Diagnostics.Debug.WriteLine("BeginInit");
             this.Frozen = true;
         }
 
         void ISupportInitialize.EndInit() {
-            System.Diagnostics.Debug.WriteLine("EndInit");
             if (this.RowHeight != -1) {
                 this.SmallImageList = this.SmallImageList;
                 if (this.CheckBoxes)
@@ -8163,18 +8176,27 @@ namespace BrightIdeasSoftware
                 !String.IsNullOrEmpty(args.SubItem.Url)) {
                 // We have to delay the running of this process otherwise we can generate
                 // a series of MouseUp events (don't ask me why)
-                this.BeginInvoke((MethodInvoker)delegate { ProcessHyperlinkClicked(args); });
+                this.BeginInvoke((MethodInvoker)delegate { this.ProcessHyperlinkClicked(args); });
             }
 
             // No one handled it so check to see if we should start editing.
-            // We only start the edit if the user clicked on the image or text.
-            if (this.ShouldStartCellEdit(e) &&
-                args.HitTest.HitTestLocation != HitTestLocation.Nothing) {
+            if (!this.ShouldStartCellEdit(e))
+                return;
 
-                // We don't edit the primary column by single clicks -- only subitems.
-                if (this.CellEditActivation != CellEditActivateMode.SingleClick || args.ColumnIndex > 0)
-                    this.EditSubItem(args.Item, args.ColumnIndex);
-            }
+            // We only start the edit if the user clicked on the image or text.
+            if (args.HitTest.HitTestLocation == HitTestLocation.Nothing) 
+                return;
+
+            // We don't edit the primary column by single clicks -- only subitems.
+            if (this.CellEditActivation == CellEditActivateMode.SingleClick && args.ColumnIndex <= 0) 
+                return;
+
+            // Don't start a cell edit operation when the user clicks on the background of a checkbox column -- it just looks wrong.
+            // If the user clicks on the actual checkbox, changing the checkbox state is handled elsewhere.
+            if (args.Column != null && args.Column.CheckBoxes)
+                return;
+
+            this.EditSubItem(args.Item, args.ColumnIndex);
         }
 
         /// <summary>
@@ -8394,8 +8416,8 @@ namespace BrightIdeasSoftware
         /// <param name="subItemIndex">The index of the cell to be edited</param>
         public virtual void StartCellEdit(OLVListItem item, int subItemIndex) {
             OLVColumn column = this.GetColumn(subItemIndex);
-            Rectangle r = this.CalculateCellEditorBounds(item, subItemIndex);
             Control c = this.GetCellEditor(item, subItemIndex);
+            Rectangle r = this.CalculateCellEditorBounds(item, subItemIndex, c.PreferredSize);
             c.Bounds = r;
 
             // Try to align the control as the column is aligned. Not all controls support this property
@@ -8413,11 +8435,12 @@ namespace BrightIdeasSoftware
             // The event handler may have completely changed the control, so we need to remember it
             this.cellEditor = this.cellEditEventArgs.Control;
 
-            // If the control isn't the height of the cell, centre it vertically. We don't
-            // need to do this when in Tile view.
-            if (this.View != View.Tile && this.cellEditor.Height != r.Height)
+            // If the control isn't the height of the cell, centre it vertically. 
+            // We don't do this in OwnerDrawn mode since the renderer already aligns the control correctly.
+            // We also dont need to do this when in Tile view.
+            if (this.View != View.Tile && !this.OwnerDraw && this.cellEditor.Height != r.Height) {
                 this.cellEditor.Top += (r.Height - this.cellEditor.Height) / 2;
-
+            }
             this.Invalidate();
             this.Controls.Add(this.cellEditor);
             this.ConfigureControl();
@@ -8431,17 +8454,18 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="item"></param>
         /// <param name="subItemIndex"></param>
+        /// <param name="preferredSize"> </param>
         /// <returns></returns>
-        public Rectangle CalculateCellEditorBounds(OLVListItem item, int subItemIndex) {
+        public Rectangle CalculateCellEditorBounds(OLVListItem item, int subItemIndex, Size preferredSize) {
             Rectangle r;
             if (this.View == View.Details)
                 r = item.GetSubItemBounds(subItemIndex);
             else
                 r = this.GetItemRect(item.Index, ItemBoundsPortion.Label);
             if (this.OwnerDraw)
-                return CalculateCellEditorBoundsOwnerDrawn(item, subItemIndex, r);
+                return CalculateCellEditorBoundsOwnerDrawn(item, subItemIndex, r, preferredSize);
             
-            return CalculateCellEditorBoundsStandard(item, subItemIndex, r);
+            return CalculateCellEditorBoundsStandard(item, subItemIndex, r, preferredSize);
         }
 
         /// <summary>
@@ -8451,22 +8475,20 @@ namespace BrightIdeasSoftware
         /// <param name="item"></param>
         /// <param name="subItemIndex"></param>
         /// <param name="r"></param>
+        /// <param name="preferredSize"> </param>
         /// <returns>A rectangle that is the bounds of the cell editor</returns>
-        protected Rectangle CalculateCellEditorBoundsOwnerDrawn(OLVListItem item, int subItemIndex, Rectangle r) {
-            IRenderer renderer = null;
-            if (this.View == View.Details)
-                renderer = this.GetColumn(subItemIndex).Renderer ?? this.DefaultRenderer;
-            else
-                renderer = this.ItemRenderer;
+        protected Rectangle CalculateCellEditorBoundsOwnerDrawn(OLVListItem item, int subItemIndex, Rectangle r, Size preferredSize) {
+            IRenderer renderer = this.View == View.Details
+                                     ? (this.GetColumn(subItemIndex).Renderer ?? this.DefaultRenderer)
+                                     : this.ItemRenderer;
 
             if (renderer == null)
                 return r;
-            else {
+
                 using (Graphics g = this.CreateGraphics()) {
-                    return renderer.GetEditRectangle(g, r, item, subItemIndex);
+                return renderer.GetEditRectangle(g, r, item, subItemIndex, preferredSize);
                 }
             }
-        }
 
         /// <summary>
         /// Calculate the bounds of the edit control for the given item/column, when the listview
@@ -8475,17 +8497,23 @@ namespace BrightIdeasSoftware
         /// <param name="item"></param>
         /// <param name="subItemIndex"></param>
         /// <param name="cellBounds"></param>
+        /// <param name="preferredSize"> </param>
         /// <returns>A rectangle that is the bounds of the cell editor</returns>
-        protected Rectangle CalculateCellEditorBoundsStandard(OLVListItem item, int subItemIndex, Rectangle cellBounds) {
+        protected Rectangle CalculateCellEditorBoundsStandard(OLVListItem item, int subItemIndex, Rectangle cellBounds, Size preferredSize) {
             if (this.View != View.Details)
-                return cellBounds;//
+                return cellBounds;
 
-            // Allow for image (if there is one)
+            // Allow for image (if there is one). 
             int offset = 0;
-            object subItemImageSelector = item.ImageSelector;
-            if (subItemIndex > 0)
-                subItemImageSelector = ((OLVListSubItem)item.SubItems[subItemIndex]).ImageSelector;
-            if (this.GetActualImageIndex(subItemImageSelector) != -1) {
+            object imageSelector = null;
+            if (subItemIndex == 0)
+                imageSelector = item.ImageSelector;
+            else {
+                // We only check for subitem images if we are owner drawn or showing subitem images
+                if (this.OwnerDraw || this.ShowImagesOnSubItems)
+                    imageSelector = item.GetSubItem(subItemIndex).ImageSelector;
+            }
+            if (this.GetActualImageIndex(imageSelector) != -1) {
                 offset += this.SmallImageSize.Width + 2;
             }
 
