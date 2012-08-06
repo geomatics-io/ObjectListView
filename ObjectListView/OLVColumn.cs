@@ -208,6 +208,36 @@ namespace BrightIdeasSoftware {
         }
 
         /// <summary>
+        /// Gets or sets how many pixels will be left blank around this cells in this column
+        /// </summary>
+        /// <remarks>This setting only takes effect when the control is owner drawn.</remarks>
+        public Rectangle? CellPadding {
+            get { return this.cellPadding; }
+            set { this.cellPadding = value; }
+        }
+        private Rectangle? cellPadding;
+
+        /// <summary>
+        /// Gets or sets how cells in this column will be vertically aligned.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This setting only takes effect when the control is owner drawn.
+        /// </para>        
+        /// <para>
+        /// If this is not set, the value from the control itself will be used.
+        /// </para>
+        /// </remarks>
+        [Category("ObjectListView"),
+         Description("How will cell values be vertically aligned?"),
+         DefaultValue(null)]
+        public virtual StringAlignment? CellVerticalAlignment {
+            get { return this.cellVerticalAlignment; }
+            set { this.cellVerticalAlignment = value; }
+        }
+        private StringAlignment? cellVerticalAlignment;
+
+        /// <summary>
         /// Gets or sets whether this column will show a checkbox.
         /// </summary>
         /// <remarks>
