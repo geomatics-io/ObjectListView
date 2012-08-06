@@ -78,6 +78,13 @@ namespace BrightIdeasSoftware
             NativeMethods.ShowWithoutActivate(this);
         }
 
+        protected override void Dispose(bool disposing) {
+            if (disposing)
+                this.Unbind();
+
+            base.Dispose(disposing);
+        }
+
         #region Properties
 
         /// <summary>
