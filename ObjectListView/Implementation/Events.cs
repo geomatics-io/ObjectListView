@@ -1733,7 +1733,6 @@ namespace BrightIdeasSoftware
             set { useCellFormatEvents = value; }
         }
         private bool useCellFormatEvents;
-        
     }
 
     /// <summary>
