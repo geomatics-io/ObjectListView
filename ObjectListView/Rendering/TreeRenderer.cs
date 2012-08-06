@@ -234,10 +234,10 @@ namespace BrightIdeasSoftware {
             /// <param name="cellBounds"></param>
             /// <param name="item"></param>
             /// <param name="subItemIndex"></param>
+            /// <param name="preferredSize"> </param>
             /// <returns></returns>
-            protected override Rectangle HandleGetEditRectangle(Graphics g, Rectangle cellBounds,
-                OLVListItem item, int subItemIndex) {
-                return this.StandardGetEditRectangle(g, cellBounds);
+            protected override Rectangle HandleGetEditRectangle(Graphics g, Rectangle cellBounds, OLVListItem item, int subItemIndex, Size preferredSize) {
+                return this.StandardGetEditRectangle(g, cellBounds, preferredSize);
             }
         }
     }
