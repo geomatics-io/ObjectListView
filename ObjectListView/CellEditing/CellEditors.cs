@@ -5,6 +5,8 @@
  * Date: 20/10/2008 5:15 PM
  *
  * Change log:
+ * v2.6
+ * 2012-08-02   JPP  - Make most editors public so they can be reused/subclassed
  * v2.3
  * 2009-08-13   JPP  - Standardized code formatting
  * v2.2.1
@@ -41,23 +43,29 @@ using System.Windows.Forms;
 
 namespace BrightIdeasSoftware
 {
-    
-
     /// <summary>
     /// These items allow combo boxes to remember a value and its description.
     /// </summary>
     public class ComboBoxItem
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="description"></param>
         public ComboBoxItem(Object key, String description) {
             this.key = key;
             this.description = description;
         }
-        private String description;
+        private readonly String description;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public Object Key {
             get { return key; }
         }
-        private Object key;
+        private readonly Object key;
 
         public override string ToString() {
             return this.description;
@@ -105,8 +113,13 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// This combo box is specialised to allow editing of an enum.
     /// </summary>
+    [ToolboxItem(false)]
     public class EnumCellEditor : ComboBox
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
         public EnumCellEditor(Type type) {
             this.DropDownStyle = ComboBoxStyle.DropDownList;
             this.ValueMember = "Key";
@@ -122,14 +135,21 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// This editor simply shows and edits integer values.
     /// </summary>
+    [ToolboxItem(false)]
     public class IntUpDown : NumericUpDown
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public IntUpDown() {
             this.DecimalPlaces = 0;
             this.Minimum = -9999999;
             this.Maximum = 9999999;
         }
 
+        /// <summary>
+        /// Gets or sets the value shown by this editor
+        /// </summary>
         new public int Value {
             get { return Decimal.ToInt32(base.Value); }
             set { base.Value = new Decimal(value); }
@@ -139,7 +159,11 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// This editor simply shows and edits unsigned integer values.
     /// </summary>
-    public class UintUpDown : NumericUpDown
+    /// <remarks>This class can't be made public because unsigned int is not a
+    /// CLS-compliant type. If you want to use, just copy the code to this class
+    /// into your project and use it from there.</remarks>
+    [ToolboxItem(false)]
+    internal class UintUpDown : NumericUpDown
     {
         public UintUpDown() {
             this.DecimalPlaces = 0;
@@ -156,8 +180,12 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// This editor simply shows and edits boolean values.
     /// </summary>
+    [ToolboxItem(false)]
     public class BooleanCellEditor : ComboBox
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public BooleanCellEditor() {
             this.DropDownStyle = ComboBoxStyle.DropDownList;
             this.ValueMember = "Key";
@@ -173,11 +201,12 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// This editor simply shows and edits boolean values using a checkbox
     /// </summary>
+    [ToolboxItem(false)]
     public class BooleanCellEditor2 : CheckBox
     {
-        public BooleanCellEditor2() {
-        }
-
+        /// <summary>
+        /// Gets or sets the value shown by this editor
+        /// </summary>
         public bool? Value {
             get {
                 switch (this.CheckState) {
@@ -195,6 +224,9 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Gets or sets how the checkbox will be aligned
+        /// </summary>
         public new HorizontalAlignment TextAlign {
             get {
                 switch (this.CheckAlign) {
@@ -226,14 +258,21 @@ namespace BrightIdeasSoftware
     /// <remarks>You can intercept the CellEditStarting event if you want
     /// to change the characteristics of the editor. For example, by increasing
     /// the number of decimal places.</remarks>
+    [ToolboxItem(false)]
     public class FloatCellEditor : NumericUpDown
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public FloatCellEditor() {
             this.DecimalPlaces = 2;
             this.Minimum = -9999999;
             this.Maximum = 9999999;
         }
 
+        /// <summary>
+        /// Gets or sets the value shown by this editor
+        /// </summary>
         new public double Value {
             get { return Convert.ToDouble(base.Value); }
             set { base.Value = Convert.ToDecimal(value); }
