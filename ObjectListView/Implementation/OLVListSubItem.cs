@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.ComponentModel;
@@ -60,6 +61,26 @@ namespace BrightIdeasSoftware {
         #region Properties
 
         /// <summary>
+        /// Gets or sets how many pixels will be left blank around this cell
+        /// </summary>
+        /// <remarks>This setting only takes effect when the control is owner drawn.</remarks>
+        public Rectangle? CellPadding {
+            get { return this.cellPadding; }
+            set { this.cellPadding = value; }
+        }
+        private Rectangle? cellPadding;
+
+        /// <summary>
+        /// Gets or sets how this cell will be vertically aligned
+        /// </summary>
+        /// <remarks>This setting only takes effect when the control is owner drawn.</remarks>
+        public StringAlignment? CellVerticalAlignment {
+            get { return this.cellVerticalAlignment; }
+            set { this.cellVerticalAlignment = value; }
+        }
+        private StringAlignment? cellVerticalAlignment;
+
+        /// <summary>
         /// Gets or sets the model value is being displayed by this subitem.
         /// </summary>
         public object ModelValue
@@ -84,10 +105,7 @@ namespace BrightIdeasSoftware {
         /// <remarks>Setting this replaces all other decorations</remarks>
         public IDecoration Decoration {
             get {
-                if (this.HasDecoration)
-                    return this.Decorations[0];
-                else
-                    return null;
+                return this.HasDecoration ? this.Decorations[0] : null;
             }
             set {
                 this.Decorations.Clear();
