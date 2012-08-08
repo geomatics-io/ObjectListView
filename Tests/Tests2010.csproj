@@ -71,6 +71,7 @@
     </Compile>
     <Compile Include="TestCheckBoxes.cs" />
     <Compile Include="TestColumn.cs" />
+    <Compile Include="TestExport.cs" />
     <Compile Include="TestFilters.cs" />
     <Compile Include="TestFormatting.cs" />
     <Compile Include="TestGenerator.cs" />
