@@ -7,6 +7,41 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
+July 2012 - Version 2.6
+-----------------------
+
+New features
+^^^^^^^^^^^^
+
+* Added `DataTreeListView` -- a data bindable `TreeListView`. :ref:`[More info] <recipe-datatreelistview>`.
+
+* Added `UseNotifyPropertyChanged` property to allow ObjectListViews to listen for `INotifyPropertyChanged` events on models.
+
+* `Generator` can now work on plain model objects without requiring properties to be marked with `[OLVColumn]` attribute.
+  :ref:`[More info] <recipe-datatreelistview>`.
+
+* Added `FlagClusteringStrategy` -- a new clustering strategy based off bit-xor’ed integer fields.
+
+Other changes
+^^^^^^^^^^^^^
+
+* Added `Reset()` method, which definitively removes all rows and columns from all flavours of `ObjectListView`.
+* Renamed `GetItemIndexInDisplayOrder()` to `GetDisplayOrderOfItemIndex()` to better reflect its function.
+* Changed the way column filtering works so that the same model object can now be in multiple clusters.
+  This is useful for filtering on xor'ed flag fields or multi-value strings (e.g. hobbies that are stored as comma separated values).
+* Added `SimpleDropSink.UseDefaultCursors` property. Set this to *false* to use custom cursors in drop operations.
+* Added more efficient version of `FilteredObjects` property to `FastObjectListView`.
+
+Bugs fixed
+^^^^^^^^^^
+
+* Fixed bug where removing a column from a LargeIcon or SmallIcon view would crash the control.
+* Fixed bug where search-by-typing would not work correctly on a `FastObjectListView` when showing groups
+* Fixed several bugs related to groups on virtual lists.
+* Overlays now remember all the ObjectListView's parents so that we can explicitly unbind all those parents when disposing.
+  This protects us against unexpected changes in the visual hierarchy (e.g. moving a parent `UserControl` from one tab to another)
+
+
 May 2012 - Version 2.5.1
 ------------------------
 

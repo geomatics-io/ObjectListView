@@ -48,8 +48,8 @@ OK, here's the bullet point feature list:
 
 * Automatically transforms a list of model objects into a fully functional ListView, including automatically sorting and grouping rows.
 * Supports :ref:`owner drawing <owner-draw-label>`, including rendering animated graphics and images stored in a database.
-* Easily :ref:`edit the cell values <cell-editing-label>`.
-* Easily enable :ref:`drag and drop <dragdrop-label>`.
+* Easily :ref:`edit cell values <cell-editing-label>`.
+* Easily :ref:`use drag and drop <dragdrop-label>`.
 * Supports all ListView views (report, list, large and small icons).
 * Supports automatic grouping.
 * Supports sophisticated :ref:`group formatting <recipe-groupformatting>`, including collapsible groups (Vista and later only).
@@ -70,11 +70,11 @@ OK, here's the bullet point feature list:
 * Supports :ref:`animations <animations-label>` on cells, row, and the entire list.
 * Supports :ref:`column selection <recipe-column-selection>` through right-click on header.
 * Supports :ref:`Excel-like column filtering <column-filtering-label>`.
-* The `DataListView` version supports data binding.
-* The `FastDataListView` version supports data binding on large lists (100,000 plus rows).
+* Supports :ref:`native background images <recipe-native-backgrounds>` with all their inherent limitations.
 * The `FastObjectListView` version can build a list of 10,000 objects in less than 0.1 seconds.
-* The `VirtualObjectListView` version supports millions of rows through ListView's virtual mode.
-* The `TreeListView` version combines an expandable tree structure with the columns of a ListView.
+* The `TreeListView` version combines :ref:`an expandable tree structure with the columns of a ListView <recipe-treelistview>`.
+* The `VirtualObjectListView` class allow you to create your own million row `ListView` through ListView's virtual mode.
+* Has :ref:`data binding versions of each control <recipe-databinding>`.
 
 Seriously, after using an `ObjectListView`, you will never go back to using a plain `ListView`.
 
