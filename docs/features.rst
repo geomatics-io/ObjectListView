@@ -23,6 +23,7 @@ of what's available so that you can use it when the need arises.
 * `Copy selected rows to clipboard`_
 * `Custom row formatting`_
 * `Custom selection colours`_
+* `Data binding`_
 * `Different flavours of ObjectListView for different purposes`_
 * `Displays a "list is empty" message`_
 * `Drag and drop`_
@@ -103,6 +104,15 @@ This is enabled by default. If you don't want your groups to be collapsible, set
 
 Under XP, groups cannot be collapsed.
 
+
+Data binding
+------------
+
+Each flavour of control (`ObjectListView`, `FastObjectListView`, `TreeListView`)
+has a data bindable version: `DataListView`, `FastDataListView`, `DataTreeListView`.
+
+Each data bindable version has two additional properties: `DataSource` and `DataMember`.
+These let you control which data set is bound to the control.
 
 Groups on virtual lists
 -----------------------
@@ -376,8 +386,8 @@ With a normal ListView, the row height is calculated from a combination of the c
 font and the `SmallImageList` height. It cannot be changed. But, an `ObjectListView` has a
 `RowHeight` property which allows the height of all rows to be specified.
 
-N.B. Every row has the same height. No variable height rows are allowed. 
-See :ref:`rows-of-different-heights` to understand why. 
+N.B. Every row has the same height. No variable height rows are allowed.
+See :ref:`rows-of-different-heights` to understand why.
 
 
 Custom selection colours
@@ -447,7 +457,7 @@ Header formatting
 -----------------
 
 Each column header can be given its own font, text color, background color
-and border. These can be set per column or on 
+and border. These can be set per column or on
 all headers at once using `HeaderFormatStyle` on the `ObjectListView` itself.
 
 The text of column header can also be word wrapped, rather than truncated.
@@ -468,7 +478,7 @@ Header drawn vertically
 To save horizonal space, a header can be drawn vertically.
 
 See :ref:`recipe-column-header-vertical`.
- 
+
 Header visible in all views
 ---------------------------
 
@@ -490,7 +500,7 @@ See :ref:`animations-label`.
 Filtering
 ---------
 
-`ObjectListViews` (in all flavours) support filtering of their contents. 
+`ObjectListViews` (in all flavours) support filtering of their contents.
 This filtering is done by installing `ModelFilters` (or less often `ListFilters`)
 which select which rows will be shown in the list. See :ref:`recipe-filtering`.
 
@@ -499,4 +509,4 @@ filter which includes only rows that contains a certain string in any cell.
 This can be combined with a special renderer to highlight the text matches.
 See :ref:`recipe-text-filtering`.
 
-These filters are of course extensible. 
+These filters are of course extensible.
