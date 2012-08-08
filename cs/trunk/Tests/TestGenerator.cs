@@ -18,6 +18,7 @@ namespace BrightIdeasSoftware.Tests
             CheckBoxes = true,
             DisplayIndex = 0,
             FillsFreeSpace = true,
+            FreeSpaceProportion = 98,
             GroupWithItemCountFormat = "GroupWithItemCountFormat",
             GroupWithItemCountSingularFormat = "GroupWithItemCountSingularFormat",
             Hyperlink = true,
@@ -119,6 +120,33 @@ namespace BrightIdeasSoftware.Tests
         private int groupy;
     }
 
+    class GeneratorTestPropertiesWithoutOlvColumnAttribute {
+        public int Property1 {
+            get { return this.property1; }
+            set { this.property1 = value; }
+        }
+        private int property1;
+
+        public string Property2 {
+            get { return this.property2; }
+        }
+#pragma warning disable 649
+        private string property2;
+#pragma warning restore 649
+
+        public bool CheckBoxProperty {
+            get { return this.checkBoxProperty; }
+            set { this.checkBoxProperty = value; }
+        }
+        private bool checkBoxProperty;
+
+        public bool? TriStateCheckBox {
+            get { return this.triStateCheckBox; }
+            set { this.triStateCheckBox = value; }
+        }
+        private bool? triStateCheckBox;
+    }
+
     [TestFixture]
     public class TestColumnBuilding
     {
@@ -148,6 +176,7 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual(true, columns[0].CheckBoxes);
             Assert.AreEqual(0, columns[0].DisplayIndex);
             Assert.AreEqual(true, columns[0].FillsFreeSpace);
+            Assert.AreEqual(98, columns[0].FreeSpaceProportion);
             Assert.AreEqual("GroupWithItemCountFormat", columns[0].GroupWithItemCountFormat);
             Assert.AreEqual("GroupWithItemCountSingularFormat", columns[0].GroupWithItemCountSingularFormat);
             Assert.AreEqual(true, columns[0].Hyperlink);
@@ -250,6 +279,47 @@ namespace BrightIdeasSoftware.Tests
             Generator.GenerateColumns(this.olv, models);
             Assert.AreEqual(5, this.olv.AllColumns.Count);
             Assert.AreEqual(4, this.olv.Columns.Count);
+        }
+
+        [Test]
+        public void TestPropertiesWithoutAttributes_Ignored() {
+            Generator.GenerateColumns(this.olv, typeof(GeneratorTestPropertiesWithoutOlvColumnAttribute));
+            Assert.AreEqual(0, this.olv.AllColumns.Count);
+        }
+
+        [Test]
+        public void TestPropertiesWithoutAttributes_Basics() {
+            Generator.GenerateColumns(this.olv, typeof(GeneratorTestPropertiesWithoutOlvColumnAttribute), true);
+            Assert.AreEqual(4, this.olv.AllColumns.Count);
+            Assert.AreEqual(4, this.olv.Columns.Count);
+            Assert.AreEqual("Property1", this.olv.GetColumn(0).Text);
+            Assert.AreEqual("Property1", this.olv.GetColumn(0).AspectName);
+            Assert.AreEqual("Property2", this.olv.GetColumn(1).Text);
+            Assert.AreEqual("Property2", this.olv.GetColumn(1).AspectName);
+            Assert.AreEqual("CheckBoxProperty", this.olv.GetColumn(2).Text);
+            Assert.AreEqual("CheckBoxProperty", this.olv.GetColumn(2).AspectName);
+        }
+
+        [Test]
+        public void TestPropertiesWithoutAttributes_Editable() {
+            Generator.GenerateColumns(this.olv, typeof(GeneratorTestPropertiesWithoutOlvColumnAttribute), true);
+            Assert.IsTrue(this.olv.GetColumn("Property1").IsEditable);
+            Assert.IsFalse(this.olv.GetColumn("Property2").IsEditable);
+        }
+
+        [Test]
+        public void TestPropertiesWithoutAttributes_CheckBox() {
+            Generator.GenerateColumns(this.olv, typeof(GeneratorTestPropertiesWithoutOlvColumnAttribute), true);
+            Assert.IsFalse(this.olv.GetColumn("Property1").CheckBoxes);
+            Assert.IsTrue(this.olv.GetColumn("CheckBoxProperty").CheckBoxes);
+            Assert.IsTrue(this.olv.GetColumn("TriStateCheckBox").TriStateCheckBoxes);
+        }
+
+        [Test]
+        public void TestPropertiesWithoutAttributes_DisplayIndexSetCorrectly() {
+            Generator.GenerateColumns(this.olv, typeof(GeneratorTestPropertiesWithoutOlvColumnAttribute), true);
+            for (int i = 0; i < this.olv.AllColumns.Count; i++)
+                Assert.AreEqual(i, this.olv.GetColumn(i).DisplayIndex);
         }
     }
 }
