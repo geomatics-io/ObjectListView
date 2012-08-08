@@ -9,6 +9,7 @@ Change Log
 
 Version Index
 -------------
+* `v2.6 - 10 July 2012`_
 * `v2.5.1 - 08 May 2012`_
 * `v2.5 - 06 June 2011`_
 * `v2.4.1 - 15 September 2010`_
@@ -24,8 +25,108 @@ Version Index
 * `Previous versions - 24 July 2008`_
 
 
+v2.6 - 10 July 2012
+-------------------
+
+2012-07-02 18:46 (#1254) - ObjectListView/TreeListView.cs
+  - RebuildAll() will now preserve scroll position
+
+2012-07-02 18:45 (#1253) - ObjectListView/ObjectListView.cs
+  - Handle bug in .NET where setting TopItem can throw NullReferenceException
+
+2012-07-02 18:45 (#1252) - ObjectListView/Utilities/Generator.cs
+  - Added static method that takes a collection of objects and allows all properties to be generated
+
+2012-07-02 18:43 (#1251) - ObjectListView/Implementation/DataSourceAdapter.cs, ObjectListView/Implementation/TreeDataSourceAdapter.cs
+  - Handle selection changed events on treeListView's when the selected row is currently not visible
+
+2012-07-02 18:42 (#1250) - ObjectListView/Implementation/Attributes.cs
+  - Removed IsWidthSet
+
+2012-07-02 18:41 (#1249) - ObjectListView/CellEditing/CellEditors.cs
+  - Made internal editor public classes
+
+2012-07-02 18:41 (#1248) - Tests/TestGenerator.cs
+  - Added test for generator with OLVColumn attributes
+
+2012-06-26 08:11 (#1247) - ObjectListView/Utilities/Generator.cs, ObjectListView/Rendering/Renderers.cs, ObjectListView/Implementation/Attributes.cs
+  - Allow columns to be generated even if they are not marked with [OLVColumn]
+  - Converted class from static to instance to allow it to be subclassed.
+  - Added IGenerator to allow the generator to be completely reimplemented.
+
+2012-06-26 08:07 (#1246) - ObjectListView/ObjectListView.cs
+  - Fixed bug where removing a column from a LargeIcon or SmallIcon view would crash the control.
+  - Added Reset() method, which definitively removes all rows *and* columns from an ObjectListView.
+
+2012-06-13 19:44 (#1245) - ObjectListView/VirtualObjectListView.cs
+  - Corrected several bugs related to groups on virtual lists.
+  - Added EnsureNthGroupVisible() since EnsureGroupVisible() can't work on virtual lists.
+
+2012-06-13 19:43 (#1244) - ObjectListView/ObjectListView.cs
+  - Renamed GetItemIndexInDisplayOrder() to GetDisplayOrderOfItemIndex() to be reflect its function
+
+2012-06-13 19:41 (#1243) - ObjectListView/FastObjectListView.cs
+  - Fixed bug where search-by-typing would not work correctly on a FastObjectListView when showing groups
+
+2012-06-11 13:23 (#1242) - ObjectListView/ObjectListView.cs, ObjectListView/FullClassDiagram.cd, Tests/TestSorting.cs, ObjectListView/FastObjectListView.cs
+  - Added more efficient version of FilteredObjects property to FastObjectListView
+
+2012-06-11 12:24 (#1241) - Tests/Tests2008.csproj, ObjectListView/ObjectListView2005.csproj, Tests/Tests2005.csproj, ObjectListView/ObjectListView2010.csproj
+  - Added new unit tests to 2005 and 2008 project
+  - Removed reference to unused resource
+
+2012-06-05 08:33 (#1240) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Added MyFileSystemInfo to allow files/directories to be compared using Equals() based on their names
+  - Added a Flags clustering strategy
+
+2012-06-05 08:31 (#1239) - ObjectListView/ObjectListView.cs, ObjectListView/VirtualObjectListView.cs
+  - Added UseNotifyPropertyChanged to allow OLV to listen for INotifyPropertyChanged events on models.
+
+2012-06-05 08:29 (#1238) - Tests/TestNotifications.cs, Tests/Tests2010.csproj, Tests/TestBasics.cs, Tests/Person.cs
+  - Added tests for notifications
+
+2012-06-01 10:05 (#1237) - ObjectListView/TreeListView.cs
+  - Added ObjectsForClustering
+
+2012-06-01 10:04 (#1236) - ObjectListView/ObjectListView2005.csproj, ObjectListView/ObjectListView2008.csproj, ObjectListView/ObjectListView2010.csproj
+  - Added new files
+
+2012-06-01 10:01 (#1235) - ObjectListView/Filtering/IClusteringStrategy.cs, ObjectListView/Filtering/FlagClusteringStrategy.cs, ObjectListView/Filtering/DateTimeClusteringStrategy.cs, ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/Filtering/ClusteringStrategy.cs, ObjectListView/Filtering/Filters.cs
+  - Added new clustering strategy based off bit-xor'ed integer fields
+  - Added FlagBitSetFilter to help with the above
+  - Added IClusteringStrategy.CreateFilter() to allow the strategy to control the actual model filter that is created.
+  - Allow the same model object to be in multiple clusters. Useful for xor'ed flag fields, and multi-value strings (e.g. hobbies that are stored as comma separated values).
+
+2012-06-01 09:57 (#1234) - ObjectListView/Implementation/TreeDataSourceAdapter.cs
+  - Remove some non-NET 2.0 language usages
+
+2012-06-01 09:57 (#1233) - ObjectListView/SubControls/GlassPanelForm.cs
+  - Remember all the OLV's parents when Binding so that we can explicitly unbind all those parents. This protects us against unexpected changes in the visual hierarchy (e.g. moving a parent UserControl from one tab to another)
+
+2012-06-01 09:51 (#1231) - ObjectListView/OLVColumn.cs
+  - Delegate creation of a filter in ValueBasedFilter to the clustering strategy
+
+2012-06-01 09:50 (#1230) - ObjectListView/DataTreeListView.cs
+  - Auto create TreeDataSourceAdapter when needed
+
+2012-06-01 09:49 (#1229) - Tests/TestFilters.cs, Tests/Tests2010.csproj
+  - Added tests for date clustering and flag clustering
+  - Reference correct OLV project
+
+2012-05-18 17:32 (#1228) - , ObjectListView/Rendering/Styles.cs, ObjectListView/Implementation/TreeDataSourceAdapter.cs, ObjectListView/Utilities/Generator.cs, ObjectListView/Implementation/Groups.cs, Demo/MainForm.resx, ObjectListView/Implementation/Attributes.cs, ObjectListView/Implementation/VirtualGroups.cs, ObjectListView/Utilities/TypedObjectListView.cs, ObjectListView/Implementation/DataSourceAdapter.cs, ObjectListView/DataTreeListView.cs, ObjectListView/Implementation/Comparers.cs, Demo/FamilyTree.xml, ObjectListView/TreeListView.cs, Demo/ObjectListViewDemo2010.csproj, ObjectListView/SubControls/ToolStripCheckedListBox.cs, ObjectListView/Implementation/Events.cs, ObjectListView/ObjectListView.cs, Demo/MainForm.Designer.cs, Demo/MainForm.cs, ObjectListView/Implementation/NativeMethods.cs, ObjectListView/DataListView.cs, ObjectListView/SubControls/HeaderControl.cs, ObjectListView/Rendering/Renderers.cs, ObjectListView/SubControls/ToolTipControl.cs, ObjectListView/Rendering/Overlays.cs, ObjectListView/Implementation/Munger.cs, ObjectListView/Implementation/VirtualListDataSource.cs, Demo, ObjectListView/Rendering/Adornments.cs, ObjectListView/Rendering/Decorations.cs, ObjectListView/SubControls/GlassPanelForm.cs, ObjectListView/DragDrop/DropSink.cs, ObjectListView/ObjectListView2010.csproj
+  - Allow customisable cursors on drag/drag
+  - Added DataTreeListView
+
+2012-05-17 17:38 (#1226) - docs/Help/Documentation.chm, docs/download.rst, docs/Help/ObjectListView-Documentation.chm
+  - Corrected some docs
+
+
+
 v2.5.1 - 08 May 2012
 --------------------
+
+2012-05-07 15:54 (#1224) - docs/Help/Documentation.chm, docs/whatsnew.rst, docs/blog.rst, docs/.templates/layout.html, docs/changelog.rst, docs/index.rst, docs/blog6.rst
+  - Tweaked docs for 2.5.1
 
 2012-05-07 15:07 (#1221) - ObjectListView/ObjectListView.DesignTime.cs
   - Removed some non-2.0 language usage

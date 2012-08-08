@@ -18,7 +18,7 @@ Learning to cook
 1. What flavour of ObjectListView do I want to use?
 ---------------------------------------------------
 
-There are six flavours of ObjectListView:
+There are four basic flavours of ObjectListView. Of those, three have data bound versions.
 
 ObjectListView - Plain Vanilla
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -34,39 +34,6 @@ suited for smaller lists, that is, about 1000 rows or less.
 
 If in doubt, start with this flavour. You can always change it to one of the others later on.
 
-
-DataListView - Strawberry Smoothie
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. image:: images/smoothie2.jpg
-    :class: left-padded
-
-*Everything is just smooth and easy*
-
-A `DataListView` is for the ultra-slothful: those who literally do not want to even write one line of code.
-
-A `DataListView` can be given a `DataSource` from within the IDE, and it will
-automatically keep itself sync with that `DataSource`. Further, if the
-`DataListView` is marked as editable, edits will be automatically written into the
-`DataSource`.
-
-
-FastDataListView - Chilli Smoothie
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. image:: images/chili-smoothie2.jpg
-   :target: http://www.flickr.com/photos/flashfire/3178281016/
-   :class: left-padded
-
-*Fast and easy*
-
-A `FastDataListView` combines speed with ease of use: the speed of a virtual list with the
-ease of `DataListView`. On my mid-range laptop, a `FastDataListView` can easily handle data sets of 100,000 rows or more.
-
-A `FastDataListView` virtualizes the display of the data set -- it does not change the process of
-loading data into the dataset. If your dataset is a SQL statement that fetches one million rows
-from a remote database, your program will still have to load all one millions rows. Once loaded, however,
-`FastDataListView` will show them almost instantly.
 
 VirtualObjectListView - Expresso
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -126,6 +93,56 @@ is at your disposal.
 
 See :ref:`recipe-treelistview` for more information.
 
+.. _label-datalistviewsummary:
+
+DataListView - Strawberry Smoothie
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: images/smoothie2.jpg
+    :class: left-padded
+
+*Everything is just smooth and easy*
+
+A `DataListView` is for the ultra-slothful: those who literally do not want to even write one line of code.
+
+A `DataListView` can be given a `DataSource` from within the IDE, and it will
+automatically keep itself sync with that `DataSource`. Further, if the
+`DataListView` is marked as editable, edits will be automatically written into the
+`DataSource`.
+
+.. _label-fastdatalistviewsummary:
+
+FastDataListView - Chilli Smoothie
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: images/chili-smoothie2.jpg
+   :target: http://www.flickr.com/photos/flashfire/3178281016/
+   :class: left-padded
+
+*Fast and easy*
+
+A `FastDataListView` combines speed with ease of use: the speed of a virtual list with the
+ease of `DataListView`. On my mid-range laptop, a `FastDataListView` can easily handle data sets of 100,000 rows or more.
+
+A `FastDataListView` virtualizes the display of the data set -- it does not change the process of
+loading data into the dataset. If your dataset is a SQL statement that fetches one million rows
+from a remote database, your program will still have to load all one millions rows. Once loaded, however,
+`FastDataListView` will show them almost instantly.
+
+DataTreeListView - Lime Smoothie
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: images/chili-smoothie2.jpg
+   :target: http://www.flickr.com/photos/flashfire/3178281016/
+   :class: left-padded
+
+*Hierarchy -- fast and easy*
+
+A `DataTreeListView` makes tree structured data available to the ultra-slothful. Simply
+tell the `DataTreeListView` which column holds the row id, and which holds the parent id,
+and the list will make a fully functional tree listview all by itself.
+
+See :ref:`recipe-datatreelistview` for more information.
 
 .. _recipe-editing:
 
@@ -1311,12 +1328,21 @@ Funnily enough, yes, you can -- I'm glad you asked.
 
 The basic idea is that you decide which properties of your model class you want
 to display in the `ObjectListView.` You give those properties an `OLVColumn`
-attribute. When you want to generate your `ObjectListView`, you call::
+attribute.
+
+The `Generator` class looks at the properties of a class and
+generates columns for all the public properties. So, this line would
+generate columns in the `this.olv1` ObjectListView for all the public
+properties of `MyModelClass`::
+
+    Generator.GenerateColumns(this.olv1, typeof(MyModelClass), true);
+
+There are a couple of flavours of `GenerateColumns()`. This next one
+looks at the first member of `myListOfObjects`, and based on its type,
+generates the columns of `this.olv1`::
 
     Generator.GenerateColumns(this.olv1, this.myListOfObjects);
 
-This looks at the first member of `myListOfObjects`, and based on its type,
-generates the columns of `this.olv1`.
 
 So, if there was a foreign exchange management application, one of its model classes
 might look like this::
@@ -1328,36 +1354,52 @@ might look like this::
         public Currency ToCurrency { get; set; }
         public decimal FromValue { get; set; }
         public decimal ToValue { get; set; }
-        public int UserId { get; set; }
+        public string UserId { get; set; }
     }
 
-Of these, all except `UserId` should be visible on the `ObjectListView`. So for
-all those properties, we give them `OLVColumn` attributes::
+So to generate columns for this class, you would do this::
+
+    Generator.GenerateColumns(this.olv1, typeof(ForexTransaction), true);
+
+This would generate reasonable, but boring, columns:
+
+.. image:: images/generator-boring.png
+
+If you want to make the
+columns more interesting, you can give them an `OLVColumn` attributes.
+Most properties of
+`OLVColumn` instances can be set through the `OLVColumn` attributes::
 
     public class ForexTransaction {
-        [OLVColumn()]
+
+        [OLVColumn(Width = 150)]
         public DateTime When { get; set; }
 
-        [OLVColumn(DisplayIndex=5)]
+        [OLVColumn(DisplayIndex = 5, Width = 75, TextAlign = HorizontalAlignment.Right)]
         public decimal Rate { get; set; }
 
-        [OLVColumn("From", DisplayIndex=1)]
-        public Currency FromCurrency { get; set; }
+        [OLVColumn("From", DisplayIndex=1, Width = 50, TextAlign = HorizontalAlignment.Center)]
+        public string FromCurrency { get; set; }
 
-        [OLVColumn("To", DisplayIndex=3]
-        public Currency ToCurrency { get; set; }
+        [OLVColumn("To", DisplayIndex = 3, Width = 50, TextAlign = HorizontalAlignment.Center)]
+        public string ToCurrency { get; set; }
 
-        [OLVColumn("Amount", DisplayIndex=2, AspectToStringFormat="{0:C}")]
+        [OLVColumn("Amount", DisplayIndex = 2, AspectToStringFormat = "{0:C}", Width = 75, TextAlign = HorizontalAlignment.Right)]
         public decimal FromValue { get; set; }
 
-        [OLVColumn("Amount", DisplayIndex=4, AspectToStringFormat="{0:C}")]
+        [OLVColumn("Amount", DisplayIndex = 4, AspectToStringFormat = "{0:C}", Width = 75, TextAlign = HorizontalAlignment.Right)]
         public decimal ToValue { get; set; }
 
-        public int UserId { get; set; }
+        [OLVColumn(IsVisible = false)]
+        public string UserId { get; set; }
     }
 
-`DisplayIndex` governs the ordering of the columns. Most properties of
-`OLVColumn` instances can be set through the `OLVColumn` attributes.
+`DisplayIndex` governs the ordering of the columns.
+
+This gives a slightly more interesting control:
+
+.. image:: images/generator-better.png
+
 
 [Thanks to John Kohler for this idea and the original implementation]
 
@@ -1540,6 +1582,9 @@ would give something that looks like this:
 
 You can change the highlighting by playing with the `CornerRoundness`, `FramePen` and `FillBrush` properties
 on the `HighlightTextRenderer.`
+
+If you just want to highlight the text without actually filtering the rows, just don't
+set the `ModelFilter` property.
 
 Remember: the list has to be owner drawn for the renderer to have any effect.
 
@@ -1806,7 +1851,7 @@ But it has always has serious limits, as this screen shot shows:
 .. image:: images/setbkimage.png
 
 This is less than ideal. Column 0 always draw over the background image, as do subitem images and grid lines.
-It was there limitations that lead to the creation of overlays.
+It was these limitations that lead to the creation of overlays.
 
 However, Windows 7 seems to have improved this situation:
 
@@ -1835,3 +1880,157 @@ If you can live with these limitations, native watermarks are quite neat. They a
 translucent overlays like the `OverlayImage` uses. They also have the decided advantage over overlays in that
 they work correctly even in MDI applications.
 
+.. _recipe-databinding:
+
+46. How do I bind a `DataSet` to an `ObjectListView`?
+-----------------------------------------------------
+
+Each flavour of control has a data bindable version:
+
+* `ObjectListView` => `DataListView`
+* `FastObjectListView` => `FastDataListView`
+* `TreeListView` =>  `DataTreeListView`
+
+Each data bindable version has two additional properties: `DataSource` and `DataMember`.
+These let you control which data set is bound to the control. These operates as they
+would for .NET's `DataView`.
+
+`DataTreeListView` requires some more configuration. :ref:`See the next recipe <recipe-datatreelistview>`.
+
+When setting `DataSource`, the provided value should implement either `IList`, `IBindingList`,
+or `IListSource`. Some common examples are the following types of objects:
+
+* `DataView`
+* `DataTable`
+* `DataSet`
+* `DataViewManager`
+* `BindingSource`
+
+When binding to a list container (i.e. one that implements the
+`IListSource` interface, such as `DataSet`)
+you must also set the `DataMember` property in order
+to identify which particular list you would like to display. You
+may also set the `DataMember` property even when
+DataSource refers to a list, since `DataMember` can
+also be used to navigate relations between lists.
+
+All of the following will show the "Persons" table from the data set::
+
+  DataSet ds = LoadDataset();
+
+  if (ds == null || ds.Tables.Count == 0)
+    return;
+
+  // Install a DataTable
+  this.olvData.DataSource = ds.Tables["Person"];
+
+  // Install a DataView
+  this.olvData.DataSource = new DataView(ds.Tables["Person"]);
+
+  // Use DataSet directly
+  this.olvData.DataMember = "Person";
+  this.olvData.DataSource = ds;
+
+  // Use a DataViewManager
+  this.olvData.DataMember = "Person";
+  this.olvData.DataSource = new DataViewManager(ds);
+
+  // Install a BindingSource
+  this.olvData.DataSource = new BindingSource(ds, "Person");
+
+Obviously, in the real world, you would only use one of these calls.
+
+Automatic column creation
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Using data binding will create columns in the `ObjectListView` for all columns in the data source.
+
+ListView columns will only be created if one doesn't already exist for that dataset column. If
+you want to set up a fancy column to show the "UserName" column from the database, you could create
+a column in the `ObjectListView` in the IDE's Designer, and set `AspectName` to "UserName." The data binding
+process will see that there is already a column for "UserName" and not create a new one.
+
+Other bits and pieces
+^^^^^^^^^^^^^^^^^^^^^
+
+If there is a data column in the `DataSet` that you don't want to display, create a column in the `ObjectListView`,
+set the `AspectName` to the name of the data column and mark that column as `IsVisible` = *false*.
+
+If you wanted to use a navigator and synchronize several data bound
+controls, you will need a `BindingSource` and something like this::
+
+  BindingSource bs = new BindingSource(ds, "Person");
+  this.bindingNavigator1.BindingSource = bs;
+  this.dataGridView1.DataSource = bs;
+  this.dataListView1.DataSource = bs;
+
+.. _recipe-datatreelistview:
+
+47. Why can't I data-bind the `TreeListView`?
+---------------------------------------------
+
+    *I want a TreeListView but I'm basically too lazy to even lift a
+    schooner to my mouth. Can't you make it so I don't have to write even
+    a single line of code?*
+
+I actually received an email that said this -- well, alright, maybe the words were slightly
+different, but the meaning was the same.
+
+So, as of v2.6, there is now a `DataTreeListView` -- a data bindable `TreeListView`.
+
+In order to construct a `DataTreeListView`, the control needs three pieces of data, which can all
+be set in the Designer:
+
+* name of the column that hold the unique id of each row -- `KeyAspectName`
+* name of the column that hold the id of the parent of each row -- `ParentKeyAspectName`
+* the value that indicates a row is a top level row in the control (a root) -- `RootKeyValue`
+
+Imagine we have a table that looks like this:
+
+.. image:: images/dtlv-table.png
+
+To show this table, the `DataTreeListView` would be configured like this:
+
+========================   ==============
+  Property                 Value
+========================   ==============
+  `KeyAspectName`          "Id"
+  `ParentKeyAspectName`    "ParentId"
+  `RootKeyValue`           0
+========================   ==============
+
+This says, the unique of each row can be found in the "Id" column. The
+"ParentId" holds the parent id of each row. And the value "0" in the "ParentId" column indicates
+that the row should be shown a top level root.
+
+Combining that table with a `DataTreeListView` configured like this would give this:
+
+.. image:: images/dtlv-hierarchy.png
+
+The rows that have "0" in the "ParentId" column are the roots of the tree, so
+"Jonathan Piper" and "Bill Gates" are the roots.
+
+All rows that have "1" (the "Id" of "Jonathan Piper") in their "ParentId" cell
+will appear as child rows of "Jonthan Piper". Similarly, all rows that have "6"
+in their "ParentId" cell will appear as child rows of "Bill Gates".
+
+Other bits and pieces
+^^^^^^^^^^^^^^^^^^^^^
+
+The hierarchy
+must be strictly self-referential. All the information it needs must be within
+the table itself.
+This control does not handle joins to other tables.
+If you want to do something like that, make  a VIEW
+that holds all the data you want to display and then bind to that view.
+
+Many times, the columns that hold the identity and parent keys are not really
+meant for end user consumption. If you want those columns to be hidden from
+the user, you can set `ShowKeyColumns` to *false* before binding the control
+to a data source. Setting this after binding has no effect.
+
+Due to the limitations of the Designer in the IDE, `RootKeyValue` can only be
+given a string value through the IDE. If your ParentKey is not of type string,
+you will have to set its value through code.
+
+`null` is a valid value for `RootKeyValue`. 
