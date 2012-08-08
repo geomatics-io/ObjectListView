@@ -3854,8 +3854,8 @@ namespace BrightIdeasSoftware
             if (objectsToConvert.Count == 0)
                 return String.Empty;
 
-            OLVDataObject dataObject = new OLVDataObject(this, objectsToConvert);
-            return dataObject.CreateHtml();
+            OLVExporter exporter = new OLVExporter(this, objectsToConvert);
+            return exporter.ExportTo(OLVExporter.ExportFormat.HTML);
         }
 
         /// <summary>

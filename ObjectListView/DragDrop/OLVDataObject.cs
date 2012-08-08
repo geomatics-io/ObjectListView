@@ -5,6 +5,10 @@
  * Date: 2011-03-29 3:34PM
  *
  * Change log:
+ * v2.6
+ * 2012-08-08   JPP  - Changed to use OLVExporter.
+ *                   - Added CSV to formats exported to Clipboard
+ * v2.4
  * 2011-03-29   JPP  - Initial version
  * 
  * Copyright (C) 2011-2012 Phillip Piper
@@ -27,11 +31,7 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows.Forms;
-using System.Drawing;
-using System.Drawing.Drawing2D;
 
 namespace BrightIdeasSoftware {
     
@@ -76,7 +76,7 @@ namespace BrightIdeasSoftware {
         public bool IncludeHiddenColumns {
             get { return includeHiddenColumns; }
         }
-        private bool includeHiddenColumns;
+        private readonly bool includeHiddenColumns;
 
         /// <summary>
         /// Gets or sets whether column headers will also be included in the text
@@ -85,7 +85,7 @@ namespace BrightIdeasSoftware {
         public bool IncludeColumnHeaders {
             get { return includeColumnHeaders; }
         }
-        private bool includeColumnHeaders;
+        private readonly bool includeColumnHeaders;
 
         /// <summary>
         /// Gets the ObjectListView that is being used as the source of the data
@@ -93,7 +93,7 @@ namespace BrightIdeasSoftware {
         public ObjectListView ListView {
             get { return objectListView; }
         }
-        private ObjectListView objectListView;
+        private readonly ObjectListView objectListView;
 
         /// <summary>
         /// Gets the model objects that are to be placed in the data object
@@ -101,7 +101,7 @@ namespace BrightIdeasSoftware {
         public IList ModelObjects {
             get { return modelObjects; }
         }
-        private IList modelObjects = new ArrayList();
+        private readonly IList modelObjects;
 
         #endregion
 
@@ -110,75 +110,33 @@ namespace BrightIdeasSoftware {
         /// into the data object.
         /// </summary>
         public void CreateTextFormats() {
-            IList<OLVColumn> columns = this.IncludeHiddenColumns ? this.ListView.AllColumns : this.ListView.ColumnsInDisplayOrder;
 
-            // Build text and html versions of the selection
-            StringBuilder sbText = new StringBuilder();
-            StringBuilder sbHtml = new StringBuilder("<table>");
-
-            // Include column headers
-            if (includeColumnHeaders) {
-                sbHtml.Append("<tr><td>");
-                foreach (OLVColumn col in columns) {
-                    if (col != columns[0]) {
-                        sbText.Append("\t");
-                        sbHtml.Append("</td><td>");
-                    }
-                    string strValue = col.Text;
-                    sbText.Append(strValue);
-                    sbHtml.Append(strValue); //TODO: Should encode the string value
-                }
-                sbText.AppendLine();
-                sbHtml.AppendLine("</td></tr>");
-            }
-
-            foreach (object modelObject in this.ModelObjects) {
-                sbHtml.Append("<tr><td>");
-                foreach (OLVColumn col in columns) {
-                    if (col != columns[0]) {
-                        sbText.Append("\t");
-                        sbHtml.Append("</td><td>");
-                    }
-                    string strValue = col.GetStringValue(modelObject);
-                    sbText.Append(strValue);
-                    sbHtml.Append(strValue); //TODO: Should encode the string value
-                }
-                sbText.AppendLine();
-                sbHtml.AppendLine("</td></tr>");
-            }
-            sbHtml.AppendLine("</table>");
+            OLVExporter exporter = this.CreateExporter();
 
             // Put both the text and html versions onto the clipboard.
             // For some reason, SetText() with UnicodeText doesn't set the basic CF_TEXT format,
             // but using SetData() does.
             //this.SetText(sbText.ToString(), TextDataFormat.UnicodeText);
-            this.SetData(sbText.ToString());
-            this.SetText(ConvertToHtmlFragment(sbHtml.ToString()), TextDataFormat.Html);
+            this.SetData(exporter.ExportTo(OLVExporter.ExportFormat.TabSeparated));
+            this.SetText(exporter.ExportTo(OLVExporter.ExportFormat.CSV), TextDataFormat.CommaSeparatedValue);
+            this.SetText(ConvertToHtmlFragment(exporter.ExportTo(OLVExporter.ExportFormat.HTML)), TextDataFormat.Html);
+        }
+
+        protected OLVExporter CreateExporter() {
+            OLVExporter exporter = new OLVExporter(this.ListView);
+            exporter.IncludeColumnHeaders = this.IncludeColumnHeaders;
+            exporter.IncludeHiddenColumns = this.IncludeHiddenColumns;
+            exporter.ModelObjects = this.ModelObjects;
+            return exporter;
         }
 
         /// <summary>
         /// Make a HTML representation of our model objects
         /// </summary>
+        [Obsolete("Use OLVExporter directly instead", false)]
         public string CreateHtml() {
-            IList<OLVColumn> columns = this.ListView.ColumnsInDisplayOrder;
-
-            // Build html version of the selection
-            StringBuilder sbHtml = new StringBuilder("<table>");
-
-            foreach (object modelObject in this.ModelObjects) {
-                sbHtml.Append("<tr><td>");
-                foreach (OLVColumn col in columns) {
-                    if (col != columns[0]) {
-                        sbHtml.Append("</td><td>");
-                    }
-                    string strValue = col.GetStringValue(modelObject);
-                    sbHtml.Append(strValue); //TODO: Should encode the string value
-                }
-                sbHtml.AppendLine("</td></tr>");
-            }
-            sbHtml.AppendLine("</table>");
-
-            return sbHtml.ToString();
+            OLVExporter exporter = this.CreateExporter();
+            return exporter.ExportTo(OLVExporter.ExportFormat.HTML);
         }
 
         /// <summary>
@@ -190,7 +148,7 @@ namespace BrightIdeasSoftware {
         /// <returns>A string that can be put onto the clipboard and will be recognized as HTML</returns>
         private string ConvertToHtmlFragment(string fragment) {
             // Minimal implementation of HTML clipboard format
-            string source = "http://www.codeproject.com/KB/list/ObjectListView.aspx";
+            const string SOURCE = "http://www.codeproject.com/Articles/16009/A-Much-Easier-to-Use-ListView";
 
             const String MARKER_BLOCK =
                 "Version:1.0\r\n" +
@@ -203,7 +161,7 @@ namespace BrightIdeasSoftware {
                 "SourceURL:{4}\r\n" +
                 "{5}";
 
-            int prefixLength = String.Format(MARKER_BLOCK, 0, 0, 0, 0, source, "").Length;
+            int prefixLength = String.Format(MARKER_BLOCK, 0, 0, 0, 0, SOURCE, "").Length;
 
             const String DEFAULT_HTML_BODY =
                 "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">" +
@@ -213,7 +171,7 @@ namespace BrightIdeasSoftware {
             int startFragment = prefixLength + html.IndexOf(fragment);
             int endFragment = startFragment + fragment.Length;
 
-            return String.Format(MARKER_BLOCK, prefixLength, prefixLength + html.Length, startFragment, endFragment, source, html);
+            return String.Format(MARKER_BLOCK, prefixLength, prefixLength + html.Length, startFragment, endFragment, SOURCE, html);
         }
     }
 }
