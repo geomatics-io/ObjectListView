@@ -512,7 +512,10 @@ namespace BrightIdeasSoftware
             // If we couldn't find anything with that name, pop the current result and return an error
             if (info == null) {
                 il.Emit(OpCodes.Pop);
-                il.Emit(OpCodes.Ldstr, String.Format("'{0}' is not a parameter-less method, property or field of type '{1}'", pathPart, type.FullName));
+                if (Munger.IgnoreMissingAspects)
+                    il.Emit(OpCodes.Ldnull);
+                else
+                    il.Emit(OpCodes.Ldstr, String.Format("'{0}' is not a parameter-less method, property or field of type '{1}'", pathPart, type.FullName));
                 return null;
             }
 
