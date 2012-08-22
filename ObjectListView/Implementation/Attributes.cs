@@ -6,6 +6,9 @@
  * Date: 15/08/2009 22:01
  *
  * Change log:
+ * v2.6
+ * 2012-08-16  JPP  - Added [OLVChildren] and [OLVIgnore]
+ *                  - OLV attributes can now only be set on properties
  * v2.4
  * 2010-04-14  JPP  - Allow Name property to be set
  * 
@@ -39,12 +42,13 @@ using System.Windows.Forms;
 namespace BrightIdeasSoftware
 {
     /// <summary>
-    /// This attribute is used to mark a field, property, or parameter-less method of a model
+    /// This attribute is used to mark a property of a model
     /// class that should be noticed by Generator class.
     /// </summary>
     /// <remarks>
     /// All the attributes of this class match their equivilent properties on OLVColumn.
     /// </remarks>
+    [AttributeUsage(AttributeTargets.Property)]
     public class OLVColumnAttribute : Attribute
     {
         #region Constructor
@@ -309,5 +313,23 @@ namespace BrightIdeasSoftware
         private int width = 150;
 
         #endregion
+    }
+
+    /// <summary>
+    /// Properties marked with [OLVChildren] will be used as the children source in a TreeListView.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public class OLVChildrenAttribute : Attribute
+    {
+        
+    }
+
+    /// <summary>
+    /// Properties marked with [OLVIgnore] will not have columns generated for them.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public class OLVIgnoreAttribute : Attribute
+    {
+
     }
 }
