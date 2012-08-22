@@ -5,7 +5,10 @@
  * Date: 20/09/2010 7:42 AM
  *
  * Change log:
- * 2010-09-20   JPP  - Initial version
+ * v2.6
+ * 2012-08-16  JPP  - Unify common column creation functionality with Generator when possible
+ * 
+ * 2010-09-20  JPP  - Initial version
  * 
  * Copyright (C) 2010-2012 Phillip Piper
  *
@@ -226,7 +229,7 @@ namespace BrightIdeasSoftware
             this.CreateColumnsFromSource();
             this.CreateMissingAspectGettersAndPutters();
             this.SetListContents();
-            this.InitializeColumnWidths();
+            this.ListView.AutoSizeColumns();
         }
 
         /// <summary>
@@ -234,23 +237,6 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected virtual void SetListContents() {
             this.ListView.Objects = this.CurrencyManager.List;
-        }
-
-        /// <summary>
-        /// Set up any automatically initialized column widths
-        /// </summary>
-        protected virtual void InitializeColumnWidths() {
-            // If we are supposed to resize to content, but there is no content, resize to
-            // the header size instead.
-            ColumnHeaderAutoResizeStyle resizeToContentStyle = ColumnHeaderAutoResizeStyle.ColumnContent;
-            if (this.ListView.GetItemCount() == 0)
-                resizeToContentStyle = ColumnHeaderAutoResizeStyle.HeaderSize;
-            foreach (ColumnHeader column in this.ListView.Columns) {
-                if (column.Width == 0)
-                    this.ListView.AutoResizeColumn(column.Index, resizeToContentStyle);
-                else if (column.Width == -1)
-                    this.ListView.AutoResizeColumn(column.Index, ColumnHeaderAutoResizeStyle.HeaderSize);
-            }
         }
 
         /// <summary>
@@ -272,6 +258,9 @@ namespace BrightIdeasSoftware
             if (!this.AutoGenerateColumns)
                 return;
 
+            // Use a Generator to create columns
+            Generator generator = Generator.Instance as Generator ?? new Generator();
+
             PropertyDescriptorCollection properties = this.CurrencyManager.GetItemProperties();
             if (properties.Count == 0)
                 return;
@@ -282,20 +271,14 @@ namespace BrightIdeasSoftware
                     continue;
 
                 // Create a column
-                OLVColumn column = new OLVColumn(this.DisplayNameToColumnTitle(property.DisplayName), property.Name);
-                column.IsEditable = !property.IsReadOnly;
-                column.Width = this.CalculateColumnWidth(property);
-                column.LastDisplayIndex = this.ListView.AllColumns.Count;
+                OLVColumn column = generator.MakeColumnFromPropertyDescriptor(property);
                 this.ConfigureColumn(column, property);
 
                 // Add it to our list
                 this.ListView.AllColumns.Add(column);
             }
 
-            if (this.ListView.AllColumns.Exists(delegate(OLVColumn x) { return x.CheckBoxes; }))
-                this.ListView.SetupSubItemCheckBoxes();
-
-            this.ListView.RebuildColumns();
+            generator.PostCreateColumns(this.ListView);
         }
 
         /// <summary>
@@ -315,28 +298,8 @@ namespace BrightIdeasSoftware
             if (property.PropertyType == typeof(IBindingList))
                 return false;
 
-            return true;
-        }
-
-        /// <summary>
-        /// Calculate how wide the column for the given property should be
-        /// when it is first created. 
-        /// </summary>
-        /// <param name="property">The property for which a column is being created</param>
-        /// <returns>The initial width of the column. 0 means auto size to contents. -1 means auto
-        /// size to column header.</returns>
-        protected virtual int CalculateColumnWidth(PropertyDescriptor property) {
-            return 0; // Resize to data contents
-        }
-
-        /// <summary>
-        /// Convert the given property display name into a column title
-        /// </summary>
-        /// <param name="displayName">The display name of the property</param>
-        /// <returns>The title of the column</returns>
-        protected virtual string DisplayNameToColumnTitle(string displayName) {
-            string title = displayName.Replace("_", " ");
-            return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(title);
+            // Ignore anything marked with [OLVIgnore]
+            return property.Attributes[typeof(OLVIgnoreAttribute)] == null;
         }
 
         /// <summary>
@@ -346,14 +309,8 @@ namespace BrightIdeasSoftware
         /// <param name="column"></param>
         /// <param name="property"></param>
         protected virtual void ConfigureColumn(OLVColumn column, PropertyDescriptor property) {
-            if (property.PropertyType == typeof(bool) || property.PropertyType == typeof(CheckState)) {
-                column.TextAlign = HorizontalAlignment.Center;
-                column.Width = 32;
-                column.CheckBoxes = true;
 
-                if (property.PropertyType == typeof(CheckState))
-                    column.TriStateCheckBoxes = true;
-            }
+            column.LastDisplayIndex = this.ListView.AllColumns.Count;
 
             // If our column is a BLOB, it could be an image, so assign a renderer to draw it.
             // CONSIDER: Is this a common enough case to warrant this code?
@@ -383,8 +340,10 @@ namespace BrightIdeasSoftware
                         DataRowView drv = row as DataRowView;
                         if (drv == null)
                             column.PutAspectByName(row, newValue);
-                        else
-                            drv[column.AspectName] = newValue;
+                        else {
+                            if (drv.Row.RowState != DataRowState.Detached)
+                                drv[column.AspectName] = newValue;
+                        }
                     };
                 }
             }
