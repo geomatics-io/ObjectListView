@@ -72,22 +72,26 @@ namespace BrightIdeasSoftware {
 
                 Branch br = this.Branch;
 
+                Rectangle paddedRectangle = this.ApplyCellPadding(r);
+
+                Rectangle expandGlyphRectangle = paddedRectangle;
+                expandGlyphRectangle.Offset((br.Level - 1) * PIXELS_PER_LEVEL, 0);
+                expandGlyphRectangle.Width = PIXELS_PER_LEVEL;
+                expandGlyphRectangle.Height = PIXELS_PER_LEVEL;
+                expandGlyphRectangle.Y = this.AlignVertically(paddedRectangle, expandGlyphRectangle);
+                int expandGlyphRectangleMidVertical = expandGlyphRectangle.Y + (expandGlyphRectangle.Height/2);
+
                 if (this.IsShowLines)
-                    this.DrawLines(g, r, this.LinePen, br);
+                    this.DrawLines(g, r, this.LinePen, br, expandGlyphRectangleMidVertical);
 
-                if (br.CanExpand) {
-                    Rectangle r2 = r;
-                    r2.Offset((br.Level - 1) * PIXELS_PER_LEVEL, 0);
-                    r2.Width = PIXELS_PER_LEVEL;
-
-                    this.DrawExpansionGlyph(g, r2, br.IsExpanded);
-                }
+                if (br.CanExpand) 
+                    this.DrawExpansionGlyph(g, expandGlyphRectangle, br.IsExpanded);
 
                 int indent = br.Level * PIXELS_PER_LEVEL;
-                r.Offset(indent, 0);
-                r.Width -= indent;
+                paddedRectangle.Offset(indent, 0);
+                paddedRectangle.Width -= indent;
 
-                this.DrawImageAndText(g, r);
+                this.DrawImageAndText(g, paddedRectangle);
             }
 
             /// <summary>
@@ -154,7 +158,8 @@ namespace BrightIdeasSoftware {
             /// <param name="r"></param>
             /// <param name="p"></param>
             /// <param name="br"></param>
-            protected virtual void DrawLines(Graphics g, Rectangle r, Pen p, Branch br) {
+            /// <param name="glyphMidVertical"> </param>
+            protected virtual void DrawLines(Graphics g, Rectangle r, Pen p, Branch br, int glyphMidVertical) {
                 Rectangle r2 = r;
                 r2.Width = PIXELS_PER_LEVEL;
 
@@ -177,18 +182,17 @@ namespace BrightIdeasSoftware {
 
                 // Draw lines for this branch
                 midX = r2.Left + r2.Width / 2;
-                int midY = r2.Top + r2.Height / 2;
 
                 // Horizontal line first
-                g.DrawLine(p, midX, midY, r2.Right, midY);
+                g.DrawLine(p, midX, glyphMidVertical, r2.Right, glyphMidVertical);
 
                 // Vertical line second
                 if (br.IsFirstBranch) {
                     if (!br.IsLastChild && !br.IsOnlyBranch)
-                        g.DrawLine(p, midX, midY, midX, r2.Bottom);
+                        g.DrawLine(p, midX, glyphMidVertical, midX, r2.Bottom);
                 } else {
                     if (br.IsLastChild)
-                        g.DrawLine(p, midX, top, midX, midY);
+                        g.DrawLine(p, midX, top, midX, glyphMidVertical);
                     else
                         g.DrawLine(p, midX, top, midX, r2.Bottom);
                 }
