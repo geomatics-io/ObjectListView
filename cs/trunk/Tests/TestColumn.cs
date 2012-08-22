@@ -122,6 +122,17 @@ namespace BrightIdeasSoftware.Tests
             this.ExecuteAspect("Photo.Unknown", "'Unknown' is not a parameter-less method, property or field of type 'System.String'");
         }
 
+        [Test]
+        public virtual void TestWrongNameIgnoreMissingAspects() {
+            try {
+                ObjectListView.IgnoreMissingAspects = true;
+                this.ExecuteAspect("Unknown2", null);
+            }
+            finally {
+                ObjectListView.IgnoreMissingAspects = false;
+            }
+        }
+
         [TestFixtureSetUp]
         public void Init() {
             this.person1 = new Person("name", "occupation", 100, DateTime.Now, 1.0, true, "  photo  ", "comments");

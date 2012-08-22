@@ -147,8 +147,67 @@ namespace BrightIdeasSoftware.Tests
         private bool? triStateCheckBox;
     }
 
+    class ClassWithChildren
+    {
+        public int Property1 {
+            get { return this.property1; }
+            set { this.property1 = value; }
+        }
+        private int property1;
+
+        public string Property2 {
+            get { return this.property2; }
+        }
+        private string property2;
+
+        [OLVChildren]
+        public IList<ClassWithChildren> MyChildren {
+            get { return this.myChildren; }
+            set { this.myChildren = value; }
+        }
+        private IList<ClassWithChildren> myChildren;
+    }
+
+    class ClassWithUntypedChildren
+    {
+        public int Property1 {
+            get { return this.property1; }
+            set { this.property1 = value; }
+        }
+        private int property1;
+
+        public string Property2 {
+            get { return this.property2; }
+        }
+        private string property2;
+
+        [OLVChildren]
+        public ArrayList UntypedChildList {
+            get { return this.untypedChildList; }
+            set { this.untypedChildList = value; }
+        }
+        private ArrayList untypedChildList;
+
+        [OLVChildren]
+        public IList<ClassWithChildren> MyNotUsedChildren {
+            get { return this.myChildren; }
+            set { this.myChildren = value; }
+        }
+        private IList<ClassWithChildren> myChildren;
+    }
+
+    class ClassWithIgnoredProperties {
+
+        [OLVIgnore]
+        public string PublicProperty {
+            get { return this.publicProperty; }
+            set { this.publicProperty = value; }
+        }
+        private string publicProperty;
+    }
+
     [TestFixture]
-    public class TestColumnBuilding
+    public class TestGenerator
     {
         [TestFixtureSetUp]
         public void Init() {
@@ -320,6 +379,102 @@ namespace BrightIdeasSoftware.Tests
             Generator.GenerateColumns(this.olv, typeof(GeneratorTestPropertiesWithoutOlvColumnAttribute), true);
             for (int i = 0; i < this.olv.AllColumns.Count; i++)
                 Assert.AreEqual(i, this.olv.GetColumn(i).DisplayIndex);
+        }
+
+        [Test]
+        public void TestIgnoreAttribute_NoColumnCreated() {
+            Generator.GenerateColumns(this.olv, typeof(ClassWithIgnoredProperties), true);
+            Assert.AreEqual(0, this.olv.AllColumns.Count);
+        }
+    }
+
+
+    [TestFixture]
+    public class TestColumnBuildingForTreeListView {
+
+        [TestFixtureSetUp]
+        public void Init() {
+            this.tolv = MyGlobals.mainForm.treeListView1;
+        }
+        protected TreeListView tolv;
+
+        [SetUp]
+        public void InitEachTest() {
+            this.tolv.Reset();
+        }
+
+        [Test]
+        public void TestDelegatesCreated() {
+            Generator.GenerateColumns(this.tolv, typeof(ClassWithChildren), true);
+            Assert.IsNotNull(this.tolv.CanExpandGetter);
+            Assert.IsNotNull(this.tolv.ChildrenGetter);
+        }
+
+        [Test]
+        public void TestCanExpandDelegateWorks() {
+            Generator.GenerateColumns(this.tolv, typeof(ClassWithChildren), true);
+            ClassWithChildren parent = new ClassWithChildren();
+            parent.MyChildren = new List<ClassWithChildren>();
+            parent.MyChildren.Add(new ClassWithChildren());
+
+            List<ClassWithChildren> roots = new List<ClassWithChildren>();
+            roots.Add(parent);
+            this.tolv.Objects = roots;
+
+            Assert.IsTrue(this.tolv.CanExpand(parent));
+        }
+
+        [Test]
+        public void TestGetChildrenDelegateWorks() {
+            Generator.GenerateColumns(this.tolv, typeof(ClassWithChildren), true);
+            ClassWithChildren parent = new ClassWithChildren();
+            parent.MyChildren = new List<ClassWithChildren>();
+            parent.MyChildren.Add(new ClassWithChildren());
+
+            List<ClassWithChildren> roots = new List<ClassWithChildren>();
+            roots.Add(parent);
+            this.tolv.Objects = roots;
+            this.tolv.ExpandAll();
+
+            Assert.AreEqual(2, this.tolv.GetItemCount());
+        }
+
+        [Test]
+        public void TestGetChildrenDelegateWorksWithUntypedChildren_NestedChildren() {
+            Generator.GenerateColumns(this.tolv, typeof(ClassWithUntypedChildren), true);
+            ClassWithUntypedChildren parent = new ClassWithUntypedChildren();
+            ClassWithUntypedChildren child1 = new ClassWithUntypedChildren();
+            ClassWithUntypedChildren child2 = new ClassWithUntypedChildren();
+            parent.UntypedChildList = new ArrayList();
+            parent.UntypedChildList.Add(child1);
+            parent.UntypedChildList.Add(child2);
+            child1.UntypedChildList = new ArrayList();
+            child1.UntypedChildList.Add(new ClassWithUntypedChildren()); 
+            child2.UntypedChildList = new ArrayList();
+            child2.UntypedChildList.Add(new ClassWithUntypedChildren());
+
+            ArrayList roots = new ArrayList();
+            roots.Add(parent);
+            this.tolv.Objects = roots;
+            this.tolv.ExpandAll();
+
+            Assert.AreEqual(5, this.tolv.GetItemCount());
+        }
+
+        [Test]
+        public void TestGetChildrenDelegateWorksWithUntypedChildren_WrongTypes() {
+            Generator.GenerateColumns(this.tolv, typeof(ClassWithUntypedChildren), true);
+            ClassWithUntypedChildren parent = new ClassWithUntypedChildren();
+            parent.UntypedChildList = new ArrayList();
+            parent.UntypedChildList.Add("string");
+            parent.UntypedChildList.Add(1);
+
+            ArrayList roots = new ArrayList();
+            roots.Add(parent);
+            this.tolv.Objects = roots;
+            this.tolv.ExpandAll();
+
+            Assert.AreEqual(3, this.tolv.GetItemCount());
         }
     }
 }

@@ -75,6 +75,14 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual(PersonDb.All.Count - toRemove.Count, this.olv.GetItemCount());
         }
 
+
+        [Test]
+        public void Test_EffectiveRowHeight() {
+            this.olv.RowHeight = 32;
+            Assert.AreEqual(32, this.olv.RowHeightEffective);
+            this.olv.RowHeight = -1;
+        }
+
         [TestFixtureSetUp]
         public void Init()
         {
