@@ -49,6 +49,7 @@ namespace BrightIdeasSoftware
         private const int LVM_GETGROUPSTATE = LVM_FIRST + 92;
         private const int LVM_GETHEADER = LVM_FIRST + 31;
         private const int LVM_GETTOOLTIPS = LVM_FIRST + 78;
+        private const int LVM_GETTOPINDEX = LVM_FIRST + 39;
         private const int LVM_HITTEST = LVM_FIRST + 18;
         private const int LVM_INSERTGROUP = LVM_FIRST + 145;
         private const int LVM_REMOVEALLGROUPS = LVM_FIRST + 160;
@@ -961,6 +962,10 @@ namespace BrightIdeasSoftware
         static public void SetSelectedColumn(ListView objectListView, ColumnHeader value) {
             NativeMethods.SendMessage(objectListView.Handle,
                 LVM_SETSELECTEDCOLUMN, (value == null) ? -1 : value.Index, 0);
+        }
+
+        static public int GetTopIndex(ListView lv) {
+            return (int)SendMessage(lv.Handle, LVM_GETTOPINDEX, 0, 0);
         }
 
         static public IntPtr GetTooltipControl(ListView lv) {
