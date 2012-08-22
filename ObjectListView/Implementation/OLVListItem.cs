@@ -257,13 +257,10 @@ namespace BrightIdeasSoftware {
                 r.X = sides.X + 1;
                 r.Width = sides.Y - sides.X;
                 return r;
-            } else {
-                OLVListSubItem subItem = this.GetSubItem(subItemIndex);
-                if (subItem == null)
-                    return new Rectangle();
-                else
-                    return subItem.Bounds;
             }
+
+            OLVListSubItem subItem = this.GetSubItem(subItemIndex);
+            return subItem == null ? new Rectangle() : subItem.Bounds;
         }
 
         #endregion
