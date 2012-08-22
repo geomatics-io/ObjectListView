@@ -64,8 +64,43 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestSelectionEvents()
-        {
+        public void TestSortingShouldNotRaiseSelectionChangedEvents() {
+            this.olv.SelectionChanged += new EventHandler(olv_SelectionChanged);
+            this.olv.SelectedObjects = PersonDb.All;
+            Application.RaiseIdle(new EventArgs());
+            countSelectionChanged = 0;
+
+            this.olv.Sort(this.olv.GetColumn(1));
+
+            // Force an idle cycle so the selection changed event is processed
+            Application.RaiseIdle(new EventArgs());
+
+            Assert.AreEqual(0, countSelectionChanged);
+
+            // Cleanup
+            this.olv.SelectionChanged -= new EventHandler(olv_SelectionChanged);
+        }
+
+        [Test]
+        public void TestAddingAColumnShouldNotRaiseSelectionChangedEvents() {
+            this.olv.SelectionChanged += new EventHandler(olv_SelectionChanged);
+            this.olv.SelectedObjects = PersonDb.All;
+            Application.RaiseIdle(new EventArgs());
+            countSelectionChanged = 0;
+
+            this.olv.RebuildColumns();
+
+            // Force an idle cycle so the selection changed event is processed
+            Application.RaiseIdle(new EventArgs());
+
+            Assert.AreEqual(0, countSelectionChanged);
+
+            // Cleanup
+            this.olv.SelectionChanged -= new EventHandler(olv_SelectionChanged);
+        }
+
+        [Test]
+        public void TestSelectionEvents() {
             countSelectedIndexChanged = 0;
             countSelectionChanged = 0;
             this.olv.SelectedIndexChanged += new EventHandler(olv_SelectedIndexChanged);
@@ -80,9 +115,9 @@ namespace BrightIdeasSoftware.Tests
             // normal lists, there should two selectedIndex events for each object.
             // Regardless of anything, there should be only one selection changed event.
             if (this.olv.VirtualMode)
-                Assert.AreEqual(PersonDb.All.Count+1, countSelectedIndexChanged);
+                Assert.AreEqual(PersonDb.All.Count + 1, countSelectedIndexChanged);
             else
-                Assert.AreEqual(PersonDb.All.Count*2, countSelectedIndexChanged);
+                Assert.AreEqual(PersonDb.All.Count * 2, countSelectedIndexChanged);
             Assert.AreEqual(1, countSelectionChanged);
 
             // Cleanup
@@ -96,11 +131,11 @@ namespace BrightIdeasSoftware.Tests
         }
         int countSelectedIndexChanged;
 
-        void olv_SelectionChanged(object sender, EventArgs e)
+        protected void olv_SelectionChanged(object sender, EventArgs e)
         {
             countSelectionChanged++;
         }
-        int countSelectionChanged;
+        protected int countSelectionChanged;
 
         [TestFixtureSetUp]
         public void Init()
@@ -126,7 +161,37 @@ namespace BrightIdeasSoftware.Tests
         [TestFixtureSetUp]
         new public void Init()
         {
-            this.olv = MyGlobals.mainForm.treeListView1;
+            this.olv = this.treeListView = MyGlobals.mainForm.treeListView1;
+            this.treeListView.CanExpandGetter = delegate(Object x) {
+                return ((Person)x).Children.Count > 0;
+            };
+            this.treeListView.ChildrenGetter = delegate(Object x) {
+                return ((Person)x).Children;
+            };
+        }
+        private TreeListView treeListView;
+
+        [Test]
+        public void TestCollapseExpandShouldNotRaiseSelectionChangedEvents() {
+            this.olv.SelectedObjects = PersonDb.All;
+            Application.RaiseIdle(new EventArgs());
+            this.olv.SelectionChanged += new EventHandler(olv_SelectionChanged);
+            countSelectionChanged = 0;
+
+            this.treeListView.Expand(PersonDb.All[0]);
+            this.treeListView.ExpandAll();
+
+            // Force an idle cycle so the selection changed event is processed
+            Application.RaiseIdle(new EventArgs());
+
+            Assert.AreEqual(0, countSelectionChanged);
+
+            // Cleanup
+            this.treeListView.CollapseAll();
+
+            this.olv.SelectionChanged -= new EventHandler(olv_SelectionChanged);
+            this.treeListView.CanExpandGetter = null;
+            this.treeListView.ChildrenGetter = null;
         }
     }
 }
