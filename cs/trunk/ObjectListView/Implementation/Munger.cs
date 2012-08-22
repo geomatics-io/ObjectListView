@@ -112,15 +112,24 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets whether Mungers will silently ignore missing aspect errors.
         /// </summary>
-        /// <remarks>By default, if a Munger is asked to fetch a field/property/method
+        /// <remarks>
+        /// <para>
+        /// By default, if a Munger is asked to fetch a field/property/method
         /// that does not exist from a model, it returns an error message, since that 
         /// condition is normally a programming error. There are some use cases where
-        /// this is not an error, and the munger should simply keep quiet.</remarks>
+        /// this is not an error, and the munger should simply keep quiet.
+        /// </para>
+        /// <para>By default this is true during release builds.</para>
+        /// </remarks>
         public static bool IgnoreMissingAspects {
             get { return ignoreMissingAspects;  }
             set { ignoreMissingAspects = value;  }
         }
-        private static bool ignoreMissingAspects;
+        private static bool ignoreMissingAspects
+#if !DEBUG
+            = true
+#endif
+            ;
 
         #endregion
 
@@ -170,9 +179,26 @@ namespace BrightIdeasSoftware
             try {
                 return this.EvaluateParts(target, this.Parts);
             } catch (MungerException ex) {
-                return String.Format("'{0}' is not a parameter-less method, property or field of type '{1}'", 
-                    ex.Munger.AspectName, ex.Target.GetType());
+                if (Munger.IgnoreMissingAspects) 
+                    return null;
+                
+                return String.Format("'{0}' is not a parameter-less method, property or field of type '{1}'",
+                                         ex.Munger.AspectName, ex.Target.GetType());
             }
+        }
+
+        /// <summary>
+        /// Extract the value indicated by our AspectName from the given target, raising exceptions
+        /// if the munger fails.
+        /// </summary>
+        /// <remarks>If the aspect name is null or empty, this will return null.</remarks>
+        /// <param name="target">The object that will be peeked</param>
+        /// <returns>The value read from the target</returns>
+        public Object GetValueEx(Object target) {
+            if (this.Parts.Count == 0)
+                return null;
+
+            return this.EvaluateParts(target, this.Parts);
         }
 
         /// <summary>
