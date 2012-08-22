@@ -5,6 +5,7 @@
  * Date: 15/08/2009 22:37
  *
  * Change log:
+ * 2012-08-16  JPP  - Generator now considers [OLVChildren] and [OLVIgnore] attributes.
  * 2012-06-14  JPP  - Allow columns to be generated even if they are not marked with [OLVColumn]
  *                  - Converted class from static to instance to allow it to be subclassed.
  *                    Also, added IGenerator to allow it to be completely reimplemented.
@@ -41,8 +42,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace BrightIdeasSoftware
@@ -81,7 +85,7 @@ namespace BrightIdeasSoftware
     /// </summary>
     /// <remarks>
     /// <para>For a given type, a Generator can create columns to match the public properties
-    /// of that type. The generator can consider all public properties or only those marked with
+    /// of that type. The generator can consider all public properties or only those public properties marked with
     /// [OLVColumn] attribute.</para>
     /// </remarks>
     public class Generator : IGenerator {
@@ -90,8 +94,8 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets the actual generator used by the static convinence methods.
         /// </summary>
-        /// <remarks>If you subclass the standard generator, you should install an instance of
-        /// your subclass here.</remarks>
+        /// <remarks>If you subclass the standard generator or implement IGenerator yourself, 
+        /// you should install an instance of your subclass/implementation here.</remarks>
         public static IGenerator Instance {
             get { return Generator.instance ?? (Generator.instance = new Generator()); }
             set { Generator.instance = value; }
@@ -131,7 +135,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Generate columns into the given ObjectListView that come from the given 
+        /// Generate columns into the given ObjectListView that come from the public properties of the given 
         /// model object type. 
         /// </summary>
         /// <param name="olv">The ObjectListView to modify</param>
@@ -141,7 +145,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Generate columns into the given ObjectListView that come from the given 
+        /// Generate columns into the given ObjectListView that come from the public properties of the given 
         /// model object type. 
         /// </summary>
         /// <param name="olv">The ObjectListView to modify</param>
@@ -152,7 +156,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Generate a list of OLVColumns based on the attributes of the given type
+        /// Generate a list of OLVColumns based on the public properties of the given type
         /// that have a OLVColumn attribute.
         /// </summary>
         /// <param name="type"></param>
@@ -174,6 +178,9 @@ namespace BrightIdeasSoftware
         /// <param name="allProperties">Will columns be generated for properties that are not marked with [OLVColumn].</param>
         public virtual void GenerateAndReplaceColumns(ObjectListView olv, Type type, bool allProperties) {
             IList<OLVColumn> columns = this.GenerateColumns(type, allProperties);
+            TreeListView tlv = olv as TreeListView;
+            if (tlv != null)
+                this.TryGenerateChildrenDelegates(tlv, type);
             this.ReplaceColumns(olv, columns);
         }
 
@@ -193,8 +200,11 @@ namespace BrightIdeasSoftware
                 return columns;
 
             // Iterate all public properties in the class and build columns from those that have
-            // an OLVColumn attribute.
+            // an OLVColumn attribute and that are not ignored.
             foreach (PropertyInfo pinfo in type.GetProperties()) {
+                if (Attribute.GetCustomAttribute(pinfo, typeof(OLVIgnoreAttribute)) != null)
+                    continue;
+
                 OLVColumnAttribute attr = Attribute.GetCustomAttribute(pinfo, typeof(OLVColumnAttribute)) as OLVColumnAttribute;
                 if (attr == null) {
                     if (allProperties)
@@ -242,9 +252,20 @@ namespace BrightIdeasSoftware
 
             // Setup the columns
             olv.AllColumns.AddRange(columns);
+            this.PostCreateColumns(olv);
+        }
+
+        /// <summary>
+        /// Post process columns after creating them and adding them to the AllColumns collection.
+        /// </summary>
+        /// <param name="olv"></param>
+        public virtual void PostCreateColumns(ObjectListView olv) {
             if (olv.AllColumns.Exists(delegate(OLVColumn x) { return x.CheckBoxes; }))
-                olv.SetupSubItemCheckBoxes();
+                olv.UseSubItemCheckBoxes = true;
+            if (olv.AllColumns.Exists(delegate(OLVColumn x) { return x.Index > 0 && (x.ImageGetter != null || !String.IsNullOrEmpty(x.ImageAspectName)); }))
+                olv.ShowImagesOnSubItems = true;
             olv.RebuildColumns();
+            olv.AutoSizeColumns();
         }
 
         /// <summary>
@@ -254,12 +275,36 @@ namespace BrightIdeasSoftware
         /// <param name="attr"></param>
         /// <returns></returns>
         protected virtual OLVColumn MakeColumnFromAttribute(PropertyInfo pinfo, OLVColumnAttribute attr) {
-            string aspectName = pinfo.Name;
-            bool editable = pinfo.CanWrite;
+            return MakeColumn(pinfo.Name, DisplayNameToColumnTitle(pinfo.Name), pinfo.CanWrite, pinfo.PropertyType, attr);
+        }
 
-            string title = String.IsNullOrEmpty(attr.Title) ? aspectName : attr.Title;
-            OLVColumn column = new OLVColumn(title, aspectName);
-            this.ConfigurePossibleBooleanColumn(column, pinfo.PropertyType);
+        /// <summary>
+        /// Make a column from the given PropertyInfo
+        /// </summary>
+        /// <param name="pinfo"></param>
+        /// <returns></returns>
+        protected virtual OLVColumn MakeColumnFromPropertyInfo(PropertyInfo pinfo) {
+            return MakeColumn(pinfo.Name, DisplayNameToColumnTitle(pinfo.Name), pinfo.CanWrite, pinfo.PropertyType, null);
+        }
+
+        /// <summary>
+        /// Make a column from the given PropertyDescriptor
+        /// </summary>
+        /// <param name="pd"></param>
+        /// <returns></returns>
+        public virtual OLVColumn MakeColumnFromPropertyDescriptor(PropertyDescriptor pd) {
+            OLVColumnAttribute attr = pd.Attributes[typeof(OLVColumnAttribute)] as OLVColumnAttribute;
+            return MakeColumn(pd.Name, DisplayNameToColumnTitle(pd.DisplayName), !pd.IsReadOnly, pd.PropertyType, attr);
+        }
+
+        protected virtual OLVColumn MakeColumn(string aspectName, string title, bool editable, Type propertyType, OLVColumnAttribute attr) {
+
+            OLVColumn column = this.MakeColumn(aspectName, title, attr);
+            column.Name = (attr == null || String.IsNullOrEmpty(attr.Name)) ? aspectName : attr.Name;
+            this.ConfigurePossibleBooleanColumn(column, propertyType);
+
+            if (attr == null)
+                return column;
 
             column.AspectToStringFormat = attr.AspectToStringFormat;
             if (attr.IsCheckBoxesSet)
@@ -277,7 +322,6 @@ namespace BrightIdeasSoftware
             column.IsVisible = attr.IsVisible;
             column.MaximumWidth = attr.MaximumWidth;
             column.MinimumWidth = attr.MinimumWidth;
-            column.Name = String.IsNullOrEmpty(attr.Name) ? aspectName : attr.Name;
             column.Tag = attr.Tag;
             if (attr.IsTextAlignSet)
                 column.TextAlign = attr.TextAlign;
@@ -292,18 +336,34 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Make a column from the given PropertyInfo
+        /// Create a column.
         /// </summary>
-        /// <param name="pinfo"></param>
+        /// <param name="aspectName"></param>
+        /// <param name="title"></param>
+        /// <param name="attr"></param>
         /// <returns></returns>
-        protected virtual OLVColumn MakeColumnFromPropertyInfo(PropertyInfo pinfo) {
-            OLVColumn column = new OLVColumn(pinfo.Name, pinfo.Name);
-            column.IsEditable = pinfo.CanWrite;
-            column.Name = pinfo.Name;
-            this.ConfigurePossibleBooleanColumn(column, pinfo.PropertyType);
-            return column;
+        protected virtual OLVColumn MakeColumn(string aspectName, string title, OLVColumnAttribute attr) {
+            string columnTitle = (attr == null || String.IsNullOrEmpty(attr.Title)) ? title : attr.Title;
+            return new OLVColumn(columnTitle, aspectName);
         }
 
+        /// <summary>
+        /// Convert a property name to a displayable title.
+        /// </summary>
+        /// <param name="displayName"></param>
+        /// <returns></returns>
+        protected virtual string DisplayNameToColumnTitle(string displayName) {
+            string title = displayName.Replace("_", " ");
+            // Put a space between a lower-case letter that is followed immediately by an upper case letter
+            title = Regex.Replace(title, @"(\p{Ll})(\p{Lu})", @"$1 $2");
+            return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(title);
+        }
+
+        /// <summary>
+        /// Configure the given column to show a checkbox if appropriate
+        /// </summary>
+        /// <param name="column"></param>
+        /// <param name="propertyType"></param>
         protected virtual void ConfigurePossibleBooleanColumn(OLVColumn column, Type propertyType) {
             if (propertyType != typeof(bool) && propertyType != typeof(bool?) && propertyType != typeof(CheckState)) 
                 return;
@@ -311,10 +371,52 @@ namespace BrightIdeasSoftware
             column.CheckBoxes = true;
             column.TextAlign = HorizontalAlignment.Center;
             column.Width = 32;
-            if (propertyType == typeof(bool?) || propertyType == typeof(CheckState))
-                column.TriStateCheckBoxes = true;
+            column.TriStateCheckBoxes = (propertyType == typeof(bool?) || propertyType == typeof(CheckState));
         }
 
+        /// <summary>
+        /// If this given type has an property marked with [OLVChildren], make delegates that will
+        /// traverse that property as the children of an instance of the model
+        /// </summary>
+        /// <param name="tlv"></param>
+        /// <param name="type"></param>
+        protected virtual void TryGenerateChildrenDelegates(TreeListView tlv, Type type) {
+            foreach (PropertyInfo pinfo in type.GetProperties()) {
+                OLVChildrenAttribute attr = Attribute.GetCustomAttribute(pinfo, typeof(OLVChildrenAttribute)) as OLVChildrenAttribute;
+                if (attr != null) {
+                    this.GenerateChildrenDelegates(tlv, pinfo);
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Generate CanExpand and ChildrenGetter delegates from the given property.
+        /// </summary>
+        /// <param name="tlv"></param>
+        /// <param name="pinfo"></param>
+        protected virtual void GenerateChildrenDelegates(TreeListView tlv, PropertyInfo pinfo) {
+            Munger childrenGetter = new Munger(pinfo.Name);
+            tlv.CanExpandGetter = delegate(object x) {
+                try {
+                    IEnumerable result = childrenGetter.GetValueEx(x) as IEnumerable;
+                    return !ObjectListView.IsEnumerableEmpty(result);
+                }
+                catch (MungerException ex) {
+                    System.Diagnostics.Debug.WriteLine(ex);
+                    return false;
+                }
+            };
+            tlv.ChildrenGetter = delegate(object x) {
+                try {
+                    return childrenGetter.GetValueEx(x) as IEnumerable;
+                }
+                catch (MungerException ex) {
+                    System.Diagnostics.Debug.WriteLine(ex);
+                    return null;
+                }
+            };
+        }
         #endregion
 
         /*
