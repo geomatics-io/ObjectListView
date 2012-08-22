@@ -5,6 +5,8 @@
  * Date: 16/08/2009 1:02 AM
  *
  * Change log:
+ * v2.6
+ * 2012-08-18   JPP  - Correctly dispose of brush and pen resources
  * v2.3
  * 2009-09-22   JPP  - Added Wrap property to TextAdornment, to allow text wrapping to be disabled
  *                   - Added ShrinkToWidth property to ImageAdornment
@@ -141,7 +143,7 @@ namespace BrightIdeasSoftware
         /// <example>CalculateAlignedPosition(new Point(50, 100), new Size(10, 20), System.Drawing.ContentAlignment.TopLeft) -> Point(50, 100)</example>
         /// <example>CalculateAlignedPosition(new Point(50, 100), new Size(10, 20), System.Drawing.ContentAlignment.MiddleCenter) -> Point(45, 90)</example>
         /// <example>CalculateAlignedPosition(new Point(50, 100), new Size(10, 20), System.Drawing.ContentAlignment.BottomRight) -> Point(40, 80)</example>
-        public Point CalculateAlignedPosition(Point pt, Size size, System.Drawing.ContentAlignment corner) {
+        public virtual Point CalculateAlignedPosition(Point pt, Size size, System.Drawing.ContentAlignment corner) {
             switch (corner) {
                 case System.Drawing.ContentAlignment.TopLeft:
                     return pt;
@@ -174,7 +176,7 @@ namespace BrightIdeasSoftware
         /// <param name="r"></param>
         /// <param name="sz"></param>
         /// <returns></returns>
-        public Rectangle CreateAlignedRectangle(Rectangle r, Size sz) {
+        public virtual Rectangle CreateAlignedRectangle(Rectangle r, Size sz) {
             return this.CreateAlignedRectangle(r, sz, this.ReferenceCorner, this.AdornmentCorner, this.Offset);
         }
 
@@ -194,7 +196,7 @@ namespace BrightIdeasSoftware
         /// <para>This is a powerful concept that takes some getting used to, but is
         /// very neat once you understand it.</para>
         /// </remarks>
-        public Rectangle CreateAlignedRectangle(Rectangle r, Size sz,
+        public virtual Rectangle CreateAlignedRectangle(Rectangle r, Size sz,
             System.Drawing.ContentAlignment corner, System.Drawing.ContentAlignment referenceCorner, Size offset) {
             Point referencePt = this.CalculateCorner(r, referenceCorner);
             Point topLeft = this.CalculateAlignedPosition(referencePt, sz, corner);
@@ -211,7 +213,7 @@ namespace BrightIdeasSoftware
         /// <example>CalculateReferenceLocation(new Rectangle(0, 0, 50, 100), System.Drawing.ContentAlignment.TopLeft) -> Point(0, 0)</example>
         /// <example>CalculateReferenceLocation(new Rectangle(0, 0, 50, 100), System.Drawing.ContentAlignment.MiddleCenter) -> Point(25, 50)</example>
         /// <example>CalculateReferenceLocation(new Rectangle(0, 0, 50, 100), System.Drawing.ContentAlignment.BottomRight) -> Point(50, 100)</example>
-        public Point CalculateCorner(Rectangle r, System.Drawing.ContentAlignment corner) {
+        public virtual Point CalculateCorner(Rectangle r, System.Drawing.ContentAlignment corner) {
             switch (corner) {
                 case System.Drawing.ContentAlignment.TopLeft:
                     return new Point(r.Left, r.Top);
@@ -243,14 +245,14 @@ namespace BrightIdeasSoftware
         /// <param name="item"></param>
         /// <param name="subItem"></param>
         /// <returns></returns>
-        public Rectangle CalculateItemBounds(OLVListItem item, OLVListSubItem subItem) {
+        public virtual Rectangle CalculateItemBounds(OLVListItem item, OLVListSubItem subItem) {
             if (item == null)
                 return Rectangle.Empty;
 
             if (subItem == null)
                 return item.Bounds;
-            else
-                return item.GetSubItemBounds(item.SubItems.IndexOf(subItem));
+            
+            return item.GetSubItemBounds(item.SubItems.IndexOf(subItem));
         }
 
         #endregion
@@ -262,7 +264,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="g">The Graphics to be transformed</param>
         /// <param name="r">The rotation will be around the centre of this rect</param>
-        protected void ApplyRotation(Graphics g, Rectangle r) {
+        protected virtual void ApplyRotation(Graphics g, Rectangle r) {
             if (this.Rotation == 0)
                 return;
 
@@ -277,7 +279,7 @@ namespace BrightIdeasSoftware
         /// Reverse the rotation created by ApplyRotation()
         /// </summary>
         /// <param name="g"></param>
-        protected void UnapplyRotation(Graphics g) {
+        protected virtual void UnapplyRotation(Graphics g) {
             if (this.Rotation != 0)
                 g.ResetTransform();
         }
@@ -326,7 +328,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The bounds of the rendering</param>
-        public void DrawImage(Graphics g, Rectangle r) {
+        public virtual void DrawImage(Graphics g, Rectangle r) {
             if (this.ShrinkToWidth)
                 this.DrawScaledImage(g, r, this.Image, this.Transparency);
             else
@@ -340,7 +342,7 @@ namespace BrightIdeasSoftware
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The bounds of the rendering</param>
         /// <param name="transparency">How transparent should the image be (0 is completely transparent, 255 is opaque)</param>
-        public void DrawImage(Graphics g, Rectangle r, Image image, int transparency) {
+        public virtual void DrawImage(Graphics g, Rectangle r, Image image, int transparency) {
             if (image != null)
                 this.DrawImage(g, r, image, image.Size, transparency);
         }
@@ -353,7 +355,7 @@ namespace BrightIdeasSoftware
         /// <param name="r">The bounds of the rendering</param>
         /// <param name="sz">How big should the image be?</param>
         /// <param name="transparency">How transparent should the image be (0 is completely transparent, 255 is opaque)</param>
-        public void DrawImage(Graphics g, Rectangle r, Image image, Size sz, int transparency) {
+        public virtual void DrawImage(Graphics g, Rectangle r, Image image, Size sz, int transparency) {
             if (image == null)
                 return;
 
@@ -375,7 +377,7 @@ namespace BrightIdeasSoftware
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The bounds of the rendering</param>
         /// <param name="transparency">How transparent should the image be (0 is completely transparent, 255 is opaque)</param>
-        public void DrawScaledImage(Graphics g, Rectangle r, Image image, int transparency) {
+        public virtual void DrawScaledImage(Graphics g, Rectangle r, Image image, int transparency) {
             if (image == null)
                 return;
 
@@ -398,7 +400,7 @@ namespace BrightIdeasSoftware
         /// <param name="r"></param>
         /// <param name="image"></param>
         /// <param name="transparency"></param>
-        protected void DrawTransparentBitmap(Graphics g, Rectangle r, Image image, int transparency) {
+        protected virtual void DrawTransparentBitmap(Graphics g, Rectangle r, Image image, int transparency) {
             ImageAttributes imageAttributes = null;
             if (transparency != 255) {
                 imageAttributes = new ImageAttributes();
@@ -449,7 +451,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public Brush BackgroundBrush {
             get {
-                return new SolidBrush(Color.FromArgb(this.WorkingTransparency, this.BackColor));
+                return new SolidBrush(Color.FromArgb(this.workingTransparency, this.BackColor));
             }
         }
 
@@ -472,7 +474,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public Pen BorderPen {
             get {
-                return new Pen(Color.FromArgb(this.WorkingTransparency, this.BorderColor), this.BorderWidth);
+                return new Pen(Color.FromArgb(this.workingTransparency, this.BorderColor), this.BorderWidth);
             }
         }
 
@@ -563,7 +565,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public StringFormat StringFormat {
+        public virtual StringFormat StringFormat {
             get {
                 if (this.stringFormat == null) {
                     this.stringFormat = new StringFormat();
@@ -599,7 +601,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public Brush TextBrush {
             get {
-                return new SolidBrush(Color.FromArgb(this.WorkingTransparency, this.TextColor));
+                return new SolidBrush(Color.FromArgb(this.workingTransparency, this.TextColor));
             }
         }
 
@@ -638,7 +640,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The reference rectangle in relation to which the text will be drawn</param>
-        public void DrawText(Graphics g, Rectangle r) {
+        public virtual void DrawText(Graphics g, Rectangle r) {
             this.DrawText(g, r, this.Text, this.Transparency);
         }
 
@@ -647,14 +649,14 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="g">The Graphics used for drawing</param>
         /// <param name="r">The reference rectangle in relation to which the text will be drawn</param>
-        /// <param name="text">The text to draw</param>
+        /// <param name="s">The text to draw</param>
         /// <param name="transparency">How opaque should be text be</param>
-        public void DrawText(Graphics g, Rectangle r, string text, int transparency) {
-            if (String.IsNullOrEmpty(text))
+        public virtual void DrawText(Graphics g, Rectangle r, string s, int transparency) {
+            if (String.IsNullOrEmpty(s))
                 return;
 
-            Rectangle textRect = this.CalculateTextBounds(g, r, text);
-            this.DrawBorderedText(g, textRect, text, transparency);
+            Rectangle textRect = this.CalculateTextBounds(g, r, s);
+            this.DrawBorderedText(g, textRect, s, transparency);
         }
 
         /// <summary>
@@ -664,7 +666,7 @@ namespace BrightIdeasSoftware
         /// <param name="textRect">The bounds within which the text should be drawn</param>
         /// <param name="text">The text to draw</param>
         /// <param name="transparency">How opaque should be text be</param>
-        protected void DrawBorderedText(Graphics g, Rectangle textRect, string text, int transparency) {
+        protected virtual void DrawBorderedText(Graphics g, Rectangle textRect, string text, int transparency) {
             Rectangle borderRect = textRect;
             borderRect.Inflate((int)this.BorderWidth / 2, (int)this.BorderWidth / 2);
             borderRect.Y -= 1; // Looker better a little higher
@@ -672,14 +674,19 @@ namespace BrightIdeasSoftware
             try {
                 this.ApplyRotation(g, textRect);
                 using (GraphicsPath path = this.GetRoundedRect(borderRect, this.CornerRounding)) {
-                    this.WorkingTransparency = transparency;
-                    if (this.HasBackground)
-                        g.FillPath(this.BackgroundBrush, path);
+                    this.workingTransparency = transparency;
+                    if (this.HasBackground) {
+                        using (Brush b = this.BackgroundBrush)
+                            g.FillPath(b, path);
+                    }
 
-                    g.DrawString(text, this.FontOrDefault, this.TextBrush, textRect, this.StringFormat);
+                    using (Brush b = this.TextBrush)
+                        g.DrawString(text, this.FontOrDefault, b, textRect, this.StringFormat);
 
-                    if (this.HasBorder)
-                        g.DrawPath(this.BorderPen, path);
+                    if (this.HasBorder) {
+                        using (Pen p = this.BorderPen)
+                            g.DrawPath(p, path);
+                    }
                 }
             }
             finally {
@@ -692,11 +699,11 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="g"></param>
         /// <param name="r"></param>
-        /// <param name="text"></param>
+        /// <param name="s"></param>
         /// <returns>The bounds of the text</returns>
-        protected Rectangle CalculateTextBounds(Graphics g, Rectangle r, string text) {
+        protected virtual Rectangle CalculateTextBounds(Graphics g, Rectangle r, string s) {
             int maxWidth = this.MaximumTextWidth <= 0 ? r.Width : this.MaximumTextWidth;
-            SizeF sizeF = g.MeasureString(text, this.FontOrDefault, maxWidth, this.StringFormat);
+            SizeF sizeF = g.MeasureString(s, this.FontOrDefault, maxWidth, this.StringFormat);
             Size size = new Size(1 + (int)sizeF.Width, 1 + (int)sizeF.Height);
             return this.CreateAlignedRectangle(r, size);
         }
@@ -709,7 +716,7 @@ namespace BrightIdeasSoftware
         /// <returns>A round cornered rectagle path</returns>
         /// <remarks>If I could rely on people using C# 3.0+, this should be
         /// an extension method of GraphicsPath.</remarks>
-        protected GraphicsPath GetRoundedRect(Rectangle rect, float diameter) {
+        protected virtual GraphicsPath GetRoundedRect(Rectangle rect, float diameter) {
             GraphicsPath path = new GraphicsPath();
 
             if (diameter > 0) {
@@ -731,6 +738,6 @@ namespace BrightIdeasSoftware
 
         #endregion
 
-        private int WorkingTransparency;
+        private int workingTransparency;
     }
 }
