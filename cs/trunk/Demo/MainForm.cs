@@ -12,12 +12,14 @@
  */
 
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Threading;
@@ -94,7 +96,12 @@ namespace ObjectListViewDemo {
             InitializeFastListExample(list);
             InitializeDragDropExample(list);
             InitializeTreeDataSetExample();
+
+            this.bindingList = new BindingList<Person>(list);
+            this.dataListView1.UseNotifyPropertyChanged = true;
+            this.dataListView1.DataSource = bindingList;
         }
+        private BindingList<Person> bindingList;
 
         void TimedRebuildList(ObjectListView olv) {
             Stopwatch stopWatch = new Stopwatch();
@@ -125,6 +132,30 @@ namespace ObjectListViewDemo {
 
             // Uncomment this to see a fancy cell highlighting while editing
             this.olvSimple.AddDecoration(new EditingCellBorderDecoration(true));
+            
+            // An example of how to do per-cell formatting
+
+            /*
+            this.olvSimple.UseCellFormatEvents = true;
+            this.olvSimple.FormatCell += (sender, args) =>
+            {
+                // Only for the columns you want
+                if (args.Column.Text != "Cooking Skill")
+                    return;
+
+                if (!(args.CellValue is int))
+                    return;
+
+                switch ((int)args.CellValue) {
+                    case 1:
+                        args.SubItem.BackColor = Color.Aquamarine;
+                        break;
+                    case 30:
+                        args.SubItem.BackColor = Color.GreenYellow;
+                        break;
+                }
+            };
+            */
 
             // Just one line of code make everything happen.
             this.olvSimple.SetObjects(list);
@@ -2422,6 +2453,43 @@ namespace ObjectListViewDemo {
         private void button32_Click_1(object sender, EventArgs e) {
             this.TimedReloadXml(true);
         }
+
+        private void olvSimple_BeforeCreatingGroups(object sender, CreateGroupsEventArgs e) {
+            e.Parameters.PrimarySort = olvColumn34;
+            e.Parameters.PrimarySortOrder = SortOrder.Ascending;
+        }
+
+        private void button33_Click(object sender, EventArgs e) {
+            Person person = new Person("Some One Else " + System.Environment.TickCount);
+            person.BirthDate = DateTime.Today;
+            this.bindingList.Add(person);
+            this.dataListView1.EditModel(person);
+        }
+
+        private void button34_Click(object sender, EventArgs e) {
+            Person p = this.dataListView1.SelectedObject as Person;
+            if (p != null)
+                this.bindingList.Remove(p);
+        }
+
+        private void button35_Click(object sender, EventArgs e) {
+            Person p = this.bindingList[random.Next(this.bindingList.Count)];
+            p.Occupation = "Occupation " + System.Environment.TickCount;
+        }
+        private readonly Random random = new Random();
+
+        /*
+         * Radio button behaviour for check boxes
+         * 
+        private void olvSimple_ItemChecked(object sender, ItemCheckedEventArgs e) {
+            var item = e.Item as OLVListItem;
+            if (item != null && e.Item.Checked) {
+                var objects = ObjectListView.EnumerableToArray(olvSimple.Objects, true);
+                objects.Remove(item.RowObject);
+                olvSimple.UncheckObjects(objects);
+            }
+        }
+         */
     }
     
     /// <summary>
@@ -2494,7 +2562,8 @@ namespace ObjectListViewDemo {
         Partnered
     }
 
-    class Person {
+    class Person : INotifyPropertyChanged
+    {
         public bool IsActive = true;
 
         public Person(string name) {
@@ -2524,22 +2593,40 @@ namespace ObjectListViewDemo {
             this.MaritalStatus = other.MaritalStatus;
         }
 
+        [OLVIgnore]
         public Image ImageAspect {
             get {
                 return Resource1.folder16;
             }
         }
 
+        [OLVIgnore]
+        public string ImageName {
+            get {
+                return "user";
+            }
+        }
+
         // Allows tests for properties.
+        [OLVColumn(ImageAspectName = "ImageName")]
         public string Name {
             get { return name; }
-            set { name = value; }
+            set {
+                if (name == value) return;
+                name = value;
+                this.OnPropertyChanged("Name");
+            }
         }
         private string name;
 
+        [OLVColumn(ImageAspectName = "ImageName")]
         public string Occupation {
             get { return occupation; }
-            set { occupation = value; }
+            set {
+                if (occupation == value) return;
+                occupation = value;
+                this.OnPropertyChanged("Occupation");
+            }
         }
         private string occupation;
 
@@ -2578,6 +2665,17 @@ namespace ObjectListViewDemo {
 
         // Allow tests for enums
         public MaritalStatus MaritalStatus = MaritalStatus.Single;
+
+        #region Implementation of INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void OnPropertyChanged(string propertyName) {
+            if (this.PropertyChanged != null)
+                this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
     }
 
     /// <summary>
