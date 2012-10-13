@@ -5,6 +5,9 @@
  * Date: 12/08/2009 8:36 PM
  *
  * Change log:
+ * 2012-08-27   JPP  - Fall back to more specific type name for the ListViewDesigner if
+ *                     the first GetType() fails.
+ * v2.5.1
  * 2012-04-26   JPP  - Filter group events from TreeListView since it can't have groups
  * 2011-06-06   JPP  - Vastly improved ObjectListViewDesigner, based off information in
  *                     "'Inheriting' from an Internal WinForms Designer" on CodeProject.
@@ -42,7 +45,8 @@ using System.Reflection;
 using System.Windows.Forms;
 using System.Windows.Forms.Design;
 
-namespace BrightIdeasSoftware.Design {
+namespace BrightIdeasSoftware.Design
+{
 
     /// <summary>
     /// Designer for <see cref="ObjectListView"/> and its subclasses.
@@ -57,7 +61,8 @@ namespace BrightIdeasSoftware.Design {
     /// So, this class uses reflection to create a ListViewDesigner and then forwards messages to that designer.
     /// </para>
     /// </remarks>
-    public class ObjectListViewDesigner : ControlDesigner {
+    public class ObjectListViewDesigner : ControlDesigner
+    {
 
         #region Initialize & Dispose
 
@@ -65,7 +70,12 @@ namespace BrightIdeasSoftware.Design {
             // Debug.WriteLine("ObjectListViewDesigner.Initialize");
 
             // Use reflection to bypass the "internal" marker on ListViewDesigner
-            Type tListViewDesigner = Type.GetType("System.Windows.Forms.Design.ListViewDesigner, System.Design");
+            // If we can't get the unversioned designer, look specifically for .NET 4.0 version of it.
+            Type tListViewDesigner = Type.GetType("System.Windows.Forms.Design.ListViewDesigner, System.Design") ??
+                                     Type.GetType("System.Windows.Forms.Design.ListViewDesigner, System.Design, " +
+                                                  "Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
+            if (tListViewDesigner == null) throw new ArgumentException("Could not load ListViewDesigner");
+
             this.listViewDesigner = (ControlDesigner)Activator.CreateInstance(tListViewDesigner, BindingFlags.Instance | BindingFlags.Public, null, null, null);
             this.designerFilter = this.listViewDesigner;
 
@@ -73,8 +83,8 @@ namespace BrightIdeasSoftware.Design {
             this.listViewDesignGetHitTest = tListViewDesigner.GetMethod("GetHitTest", BindingFlags.Instance | BindingFlags.NonPublic);
             this.listViewDesignWndProc = tListViewDesigner.GetMethod("WndProc", BindingFlags.Instance | BindingFlags.NonPublic);
 
-            Debug.Assert(this.listViewDesignGetHitTest != null, "Required method (GetHitTest) not found");
-            Debug.Assert(this.listViewDesignWndProc != null, "Required method (WndProc) not found");
+            Debug.Assert(this.listViewDesignGetHitTest != null, "Required method (GetHitTest) not found on ListViewDesigner");
+            Debug.Assert(this.listViewDesignWndProc != null, "Required method (WndProc) not found on ListViewDesigner");
 
             // Tell the Designer to use properties of default designer as well as the properties of this class (do before base.Initialize)
             TypeDescriptor.CreateAssociation(component, this.listViewDesigner);
@@ -308,8 +318,8 @@ namespace BrightIdeasSoftware.Design {
         /// only have to modify the returned collection of actions, but we have to implement
         /// the properties and commands that the returned actions use. </para>
         /// </remarks>
-        private class ListViewActionListAdapter : DesignerActionList {
-
+        private class ListViewActionListAdapter : DesignerActionList
+        {
             public ListViewActionListAdapter(ObjectListViewDesigner designer, DesignerActionList wrappedList)
                 : base(wrappedList.Component) {
                 this.designer = designer;
@@ -372,7 +382,8 @@ namespace BrightIdeasSoftware.Design {
 
         #region DesignerCommandSet
 
-        private class CDDesignerCommandSet : DesignerCommandSet {
+        private class CDDesignerCommandSet : DesignerCommandSet
+        {
 
             public CDDesignerCommandSet(ComponentDesigner componentDesigner) {
                 this.componentDesigner = componentDesigner;
@@ -401,7 +412,8 @@ namespace BrightIdeasSoftware.Design {
     /// This class works in conjunction with the OLVColumns property to allow OLVColumns
     /// to be added to the ObjectListView.
     /// </summary>
-    public class OLVColumnCollectionEditor : System.ComponentModel.Design.CollectionEditor {
+    public class OLVColumnCollectionEditor : System.ComponentModel.Design.CollectionEditor
+    {
         /// <summary>
         /// Create a OLVColumnCollectionEditor
         /// </summary>
@@ -463,7 +475,8 @@ namespace BrightIdeasSoftware.Design {
     /// <summary>
     /// Control how the overlay is presented in the IDE
     /// </summary>
-    internal class OverlayConverter : ExpandableObjectConverter {
+    internal class OverlayConverter : ExpandableObjectConverter
+    {
         public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) {
             return destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
         }
