@@ -5,6 +5,9 @@
  * Date: 31/05/2011 7:45am 
  *
  * Change log:
+ * v2.6
+ * 2012-10-13  JPP  Allow filtering to consider additional columns
+ * v2.5.1
  * 2011-06-22  JPP  Handle searching for empty strings
  * v2.5.0
  * 2011-05-31  JPP  Initial version
@@ -120,13 +123,23 @@ namespace BrightIdeasSoftware {
         #region Public properties
 
         /// <summary>
-        /// Which columns will be used for the comparisons? If this is null, all columns will be used
+        /// Gets or sets which columns will be used for the comparisons? If this is null, all columns will be used
         /// </summary>
         public OLVColumn[] Columns {
             get { return columns; }
             set { columns = value; }
         }
         private OLVColumn[] columns;
+
+        /// <summary>
+        /// Gets or sets additional columns which will be used in the comparison. These will be used
+        /// in addition to either the Columns property or to all columns taken from the control.
+        /// </summary>
+        public OLVColumn[] AdditionalColumns {
+            get { return additionalColumns; }
+            set { additionalColumns = value; }
+        }
+        private OLVColumn[] additionalColumns;
 
         /// <summary>
         /// Gets or sets the collection of strings that will be used for 
@@ -263,12 +276,16 @@ namespace BrightIdeasSoftware {
         /// Loop over the columns that are being considering by the filter
         /// </summary>
         /// <returns></returns>
-        protected IEnumerable<OLVColumn> IterateColumns() {
+        protected virtual IEnumerable<OLVColumn> IterateColumns() {
             if (this.Columns == null) {
                 foreach (OLVColumn column in this.ListView.Columns)
                     yield return column;
             } else {
                 foreach (OLVColumn column in this.Columns)
+                    yield return column;
+            }
+            if (this.AdditionalColumns != null) {
+                foreach (OLVColumn column in this.AdditionalColumns)
                     yield return column;
             }
         }
