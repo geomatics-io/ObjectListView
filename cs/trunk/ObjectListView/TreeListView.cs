@@ -5,6 +5,8 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2012-08-10  JPP  - Don't trigger selection changed events during expands
+ * 
  * v2.5.1
  * 2012-04-30  JPP  - Fixed bug where CheckedObjects would return model objects that had been filtered out.
  *                  - Allow any column to render the tree, not just column 0 (still not sure about this one)
@@ -477,7 +479,8 @@ namespace BrightIdeasSoftware
 
             // Update the size of the list and restore the selection
             this.UpdateVirtualListSize();
-            this.SelectedObjects = selection;
+            using (this.SuspendSelectionEventsDuring())
+                this.SelectedObjects = selection;
 
             // Redraw the items that were changed by the expand operation
             this.RedrawItems(index, this.GetItemCount() - 1, false);
@@ -512,11 +515,13 @@ namespace BrightIdeasSoftware
                 return;
             IList selection = this.SelectedObjects;
             int index = this.TreeModel.ExpandAll();
-            if (index >= 0) {
-                this.UpdateVirtualListSize();
+            if (index < 0) 
+                return;
+
+            this.UpdateVirtualListSize();
+            using (this.SuspendSelectionEventsDuring())
                 this.SelectedObjects = selection;
-                this.RedrawItems(index, this.GetItemCount() - 1, false);
-            }
+            this.RedrawItems(index, this.GetItemCount() - 1, false);
         }
 
         /// <summary>
@@ -581,6 +586,16 @@ namespace BrightIdeasSoftware
 
         //------------------------------------------------------------------------------------------
         // Commands - Tree traversal
+
+        /// <summary>
+        /// Return whether or not the given model can expand.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <remarks>The given model must have already been seen in the tree</remarks>
+        public virtual bool CanExpand(Object model) {
+            Branch br = this.TreeModel.GetBranch(model);
+            return (br != null && br.CanExpand);
+        }
 
         /// <summary>
         /// Return the model object that is the parent of the given model object.
@@ -905,7 +920,7 @@ namespace BrightIdeasSoftware
             /// <returns>The index of the model in flat list version of the tree</returns>
             public virtual int RebuildChildren(Object model) {
                 Branch br = this.GetBranch(model);
-                if (br == null || !br.Visible)
+                if (br == null || !br.Visible || !br.CanExpand)
                     return -1;
 
                 int count = br.NumberVisibleDescendents;
@@ -1495,8 +1510,10 @@ namespace BrightIdeasSoftware
             /// </summary>
             public virtual void ExpandAll() {
                 this.Expand();
-                foreach (Branch br in this.ChildBranches)
-                    br.ExpandAll();
+                foreach (Branch br in this.ChildBranches) {
+                    if (br.CanExpand)
+                        br.ExpandAll();
+                }
             }
 
             /// <summary>
