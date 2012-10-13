@@ -5,6 +5,8 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2012-08-16  JPP  - Added ObjectListView.EditModel() -- a convienence method to start an edit operation on a model
+ * 2012-08-10  JPP  - Don't trigger selection changed events during sorting/grouping or add/removing columns
  * 2012-08-06  JPP  - Don't start a cell edit operation when the user clicks on the background of a checkbox cell.
  *                  - Honor values from the BeforeSorting event when calling a CustomSorter
  * 2012-08-02  JPP  - Added CellVerticalAlignment and CellPadding properties.
@@ -696,6 +698,19 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Return whether or not the given enumerable is empty. A string is regarded as 
+        /// an empty collection.
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <returns>True if the given collection is null or empty</returns>
+        /// <remarks>
+        /// <para>When we move to .NET 3.5, we can use LINQ and not need this method.</para>
+        /// </remarks>
+        public static bool IsEnumerableEmpty(IEnumerable collection) {
+            return collection == null || (collection is string) || !collection.GetEnumerator().MoveNext();
+        }
+
+        /// <summary>
         /// Gets or sets whether all ObjectListViews will silently ignore missing aspect errors.
         /// </summary>
         /// <remarks>
@@ -1379,30 +1394,6 @@ namespace BrightIdeasSoftware
             set { filterMenuBuilder = value; }
         }
         private FilterMenuBuilder filterMenuBuilder = new FilterMenuBuilder();
-
-        /// <summary>
-        /// Get or set whether or not the listview is frozen. When the listview is
-        /// frozen, it will not update itself.
-        /// </summary>
-        /// <remarks><para>The Frozen property is similar to the methods Freeze()/Unfreeze()
-        /// except that setting Frozen property to false immediately unfreezes the control
-        /// regardless of the number of Freeze() calls outstanding.</para></remarks>
-        /// <example>objectListView1.Frozen = false; // unfreeze the control now!
-        /// </example>
-        [Browsable(false),
-         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public virtual bool Frozen {
-            get { return freezeCount > 0; }
-            set {
-                if (value)
-                    Freeze();
-                else if (freezeCount > 0) {
-                    freezeCount = 1;
-                    Unfreeze();
-                }
-            }
-        }
-        private int freezeCount;
 
         /// <summary>
         /// Hide the Groups collection so it's not visible in the Properties grid.
@@ -2671,7 +2662,7 @@ namespace BrightIdeasSoftware
         [Browsable(false)]
         public virtual Size SmallImageSize {
             get {
-                return this.SmallImageList == null ? new Size(16, 16) : this.SmallImageList.ImageSize;
+                return this.BaseSmallImageList == null ? new Size(16, 16) : this.BaseSmallImageList.ImageSize;
             }
         }
 
@@ -2728,8 +2719,8 @@ namespace BrightIdeasSoftware
             get { return this.tintSortColumn; }
             set {
                 this.tintSortColumn = value;
-                if (value && this.LastSortColumn != null)
-                    this.SelectedColumn = this.LastSortColumn;
+                if (value && this.PrimarySortColumn != null)
+                    this.SelectedColumn = this.PrimarySortColumn;
                 else
                     this.SelectedColumn = null;
             }
@@ -2777,8 +2768,8 @@ namespace BrightIdeasSoftware
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual int TopItemIndex {
             get {
-                if (this.View == View.Details && this.TopItem != null)
-                    return this.TopItem.Index;
+                if (this.View == View.Details && this.IsHandleCreated)
+                    return NativeMethods.GetTopIndex(this);
                 
                 return -1;
             }
@@ -3419,17 +3410,41 @@ namespace BrightIdeasSoftware
                 return;
             }
             this.InsertObjects(this.GetItemCount(), modelObjects);
-            this.Sort(this.LastSortColumn, this.LastSortOrder);
+            this.Sort(this.PrimarySortColumn, this.PrimarySortOrder);
         }
 
         /// <summary>
         /// Resize the columns to the maximum of the header width and the data.
         /// </summary>		
-        public void AutoResizeColumns()
+        public virtual void AutoResizeColumns()
         {
             foreach (OLVColumn c in this.Columns)
             {
                 c.Width = -2;
+            }
+        }
+
+
+        /// <summary>
+        /// Set up any automatically initialized column widths (columns that 
+        /// have a width of 0 or -1 will be resized to the width of their 
+        /// contents or header respectively).
+        /// </summary>
+        public virtual void AutoSizeColumns() {
+            // If we are supposed to resize to content, but there is no content, resize to
+            // the header size instead.
+            ColumnHeaderAutoResizeStyle resizeToContentStyle = ColumnHeaderAutoResizeStyle.ColumnContent;
+            if (this.GetItemCount() == 0)
+                resizeToContentStyle = ColumnHeaderAutoResizeStyle.HeaderSize;
+            foreach (ColumnHeader column in this.Columns) {
+                switch (column.Width) {
+                    case 0:
+                        this.AutoResizeColumn(column.Index, resizeToContentStyle);
+                        break;
+                    case -1:
+                        this.AutoResizeColumn(column.Index, ColumnHeaderAutoResizeStyle.HeaderSize);
+                        break;
+                }
             }
         }
 
@@ -3438,7 +3453,7 @@ namespace BrightIdeasSoftware
         /// if there is no last sort column
         /// </summary>
         public virtual void BuildGroups() {
-            this.BuildGroups(this.LastSortColumn, this.LastSortOrder == SortOrder.None ? SortOrder.Ascending : this.LastSortOrder);
+            this.BuildGroups(this.PrimarySortColumn, this.PrimarySortOrder == SortOrder.None ? SortOrder.Ascending : this.PrimarySortOrder);
         }
 
         /// <summary>
@@ -3577,10 +3592,10 @@ namespace BrightIdeasSoftware
             // Sort the items within each group (unless specifically turned off)
             OLVColumn sortColumn = parms.SortItemsByPrimaryColumn ? parms.ListView.GetColumn(0) : parms.PrimarySort;
             if (sortColumn != null && parms.PrimarySortOrder != SortOrder.None) {
-                ColumnComparer itemSorter = new ColumnComparer(sortColumn, parms.PrimarySortOrder,
-                    parms.SecondarySort, parms.SecondarySortOrder);
+                IComparer<OLVListItem> itemSorter = parms.ItemComparer ?? 
+                    new ColumnComparer(sortColumn, parms.PrimarySortOrder, parms.SecondarySort, parms.SecondarySortOrder);
                 foreach (object key in map.Keys) {
-                    map[key].Sort(parms.ItemComparer ?? itemSorter);
+                    map[key].Sort(itemSorter);
                 }
             }
 
@@ -3696,7 +3711,6 @@ namespace BrightIdeasSoftware
                     this.LowLevelScroll(currentScrollPosition.X, currentScrollPosition.Y);
                 else
                     this.TopItemIndex = previousTopIndex;
-
             }
         }
 
@@ -3758,6 +3772,7 @@ namespace BrightIdeasSoftware
         /// <param name="view"></param>
         public virtual void ChangeToFilteredColumns(View view) {
             // Store the state
+            this.SuspendSelectionEvents();
             IList previousSelection = this.SelectedObjects;
             int previousTopIndex = this.TopItemIndex;
 
@@ -3792,6 +3807,7 @@ namespace BrightIdeasSoftware
             // Restore the state
             this.SelectedObjects = previousSelection;
             this.TopItemIndex = previousTopIndex;
+            this.ResumeSelectionEvents();
         }
 
         /// <summary>
@@ -4686,9 +4702,9 @@ namespace BrightIdeasSoftware
             // case, it's Index will be -1. So we calculate its index directly. Technically, the sort
             // column does not even have to a member of AllColumns, in which case IndexOf will return -1,
             // which is works fine since we have no way of restoring such a column anyway.
-            if (this.LastSortColumn != null)
-                olvState.SortColumn = this.AllColumns.IndexOf(this.LastSortColumn);
-            olvState.LastSortOrder = this.LastSortOrder;
+            if (this.PrimarySortColumn != null)
+                olvState.SortColumn = this.AllColumns.IndexOf(this.PrimarySortColumn);
+            olvState.LastSortOrder = this.PrimarySortOrder;
             olvState.IsShowingGroups = this.ShowGroups;
 
             if (this.AllColumns.Count > 0 && this.AllColumns[0].LastDisplayIndex == -1)
@@ -4729,11 +4745,11 @@ namespace BrightIdeasSoftware
                 if (olvState == null || olvState.NumberOfColumns != this.AllColumns.Count)
                     return false;
                 if (olvState.SortColumn == -1) {
-                    this.LastSortColumn = null;
-                    this.LastSortOrder = SortOrder.None;
+                    this.PrimarySortColumn = null;
+                    this.PrimarySortOrder = SortOrder.None;
                 } else {
-                    this.LastSortColumn = this.AllColumns[olvState.SortColumn];
-                    this.LastSortOrder = olvState.LastSortOrder;
+                    this.PrimarySortColumn = this.AllColumns[olvState.SortColumn];
+                    this.PrimarySortOrder = olvState.LastSortOrder;
                 }
                 for (int i = 0; i < olvState.NumberOfColumns; i++) {
                     OLVColumn column = this.AllColumns[i];
@@ -4922,10 +4938,10 @@ namespace BrightIdeasSoftware
                 return;
 
             // Toggle the sorting direction on successive clicks on the same column
-            if (this.LastSortColumn != null && e.Column == this.LastSortColumn.Index)
-                this.LastSortOrder = (this.LastSortOrder == SortOrder.Descending ? SortOrder.Ascending : SortOrder.Descending);
+            if (this.PrimarySortColumn != null && e.Column == this.PrimarySortColumn.Index)
+                this.PrimarySortOrder = (this.PrimarySortOrder == SortOrder.Descending ? SortOrder.Ascending : SortOrder.Descending);
             else
-                this.LastSortOrder = SortOrder.Ascending;
+                this.PrimarySortOrder = SortOrder.Ascending;
 
             this.BeginUpdate();
             try {
@@ -5424,8 +5440,8 @@ namespace BrightIdeasSoftware
 
             // Which column are we going to use for our comparing?
             OLVColumn column = this.GetColumn(0);
-            if (this.IsSearchOnSortColumn && this.View == View.Details && this.LastSortColumn != null)
-                column = this.LastSortColumn;
+            if (this.IsSearchOnSortColumn && this.View == View.Details && this.PrimarySortColumn != null)
+                column = this.PrimarySortColumn;
 
             // Do two searches if necessary to find a match. The second search is the wrap-around part of searching
             int i;
@@ -6373,7 +6389,7 @@ namespace BrightIdeasSoftware
                     if (!String.IsNullOrEmpty(label)) {
                         strip.Items.Add(label, null, (EventHandler)delegate(object sender, EventArgs args) {
                             this.AlwaysGroupByColumn = null;
-                            this.AlwaysGroupBySortOrder = SortOrder.Ascending;
+                            this.AlwaysGroupBySortOrder = SortOrder.None;
                             this.BuildList();
                         });
                     }
@@ -7166,7 +7182,31 @@ namespace BrightIdeasSoftware
 
         #endregion
 
-        #region Freezing
+        #region Freezing/Suspending
+
+        /// <summary>
+        /// Get or set whether or not the listview is frozen. When the listview is
+        /// frozen, it will not update itself.
+        /// </summary>
+        /// <remarks><para>The Frozen property is similar to the methods Freeze()/Unfreeze()
+        /// except that setting Frozen property to false immediately unfreezes the control
+        /// regardless of the number of Freeze() calls outstanding.</para></remarks>
+        /// <example>objectListView1.Frozen = false; // unfreeze the control now!
+        /// </example>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual bool Frozen {
+            get { return freezeCount > 0; }
+            set {
+                if (value)
+                    Freeze();
+                else if (freezeCount > 0) {
+                    freezeCount = 1;
+                    Unfreeze();
+                }
+            }
+        }
+        private int freezeCount;
 
         /// <summary>
         /// Freeze the listview so that it no longer updates itself.
@@ -7201,6 +7241,61 @@ namespace BrightIdeasSoftware
             this.BuildList();
         }
 
+        /// <summary>
+        /// Returns true if selection events are currently suspended.
+        /// While selection events are suspended, neither SelectedIndexChanged
+        /// or SelectionChanged events will be raised.
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        protected bool SelectionEventsSuspended {
+            get { return this.suspendSelectionEventCount > 0; }
+        }
+
+        /// <summary>
+        /// Suspend selection events until a matching ResumeSelectionEvents()
+        /// is called.
+        /// </summary>
+        /// <remarks>Calls to this method nest correctly. Every call to SuspendSelectionEvents()
+        /// must have a matching ResumeSelectionEvents().</remarks>
+        protected void SuspendSelectionEvents() {
+            this.suspendSelectionEventCount++;
+        }
+
+        /// <summary>
+        /// Resume raising selection events.
+        /// </summary>
+        protected void ResumeSelectionEvents() {
+            Debug.Assert(this.SelectionEventsSuspended, "Mismatched called to ResumeSelectionEvents()");
+            this.suspendSelectionEventCount--;
+        }
+
+        /// <summary>
+        /// Returns a disposable that will disable selection events
+        /// during a using() block.
+        /// </summary>
+        /// <returns></returns>
+        protected IDisposable SuspendSelectionEventsDuring() {
+            return new SuspendSelectionDisposable(this);
+        }
+
+        /// <summary>
+        /// Implementation only class that suspends and resumes selection
+        /// events on instance creation and disposal.
+        /// </summary>
+        private class SuspendSelectionDisposable : IDisposable {
+            public SuspendSelectionDisposable(ObjectListView objectListView) {
+                this.objectListView = objectListView;
+                this.objectListView.SuspendSelectionEvents();
+            }
+
+            public void Dispose() {
+                this.objectListView.ResumeSelectionEvents();
+            }
+
+            private readonly ObjectListView objectListView;
+        }
+
         #endregion
 
         #region Column sorting
@@ -7209,7 +7304,7 @@ namespace BrightIdeasSoftware
         /// Sort the items by the last sort column and order
         /// </summary>
         new public void Sort() {
-            this.Sort(this.LastSortColumn, this.LastSortOrder);
+            this.Sort(this.PrimarySortColumn, this.PrimarySortOrder);
         }
 
         /// <summary>
@@ -7217,7 +7312,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="columnToSortName">The name of the column whose values will be used for the sorting</param>
         public virtual void Sort(string columnToSortName) {
-            this.Sort(this.GetColumn(columnToSortName), this.LastSortOrder);
+            this.Sort(this.GetColumn(columnToSortName), this.PrimarySortOrder);
         }
 
         /// <summary>
@@ -7226,7 +7321,7 @@ namespace BrightIdeasSoftware
         /// <param name="columnToSortIndex">The index of the column whose values will be used for the sorting</param>
         public virtual void Sort(int columnToSortIndex) {
             if (columnToSortIndex >= 0 && columnToSortIndex < this.Columns.Count)
-                this.Sort(this.GetColumn(columnToSortIndex), this.LastSortOrder);
+                this.Sort(this.GetColumn(columnToSortIndex), this.PrimarySortOrder);
         }
 
         /// <summary>
@@ -7237,7 +7332,7 @@ namespace BrightIdeasSoftware
             if (this.InvokeRequired) {
                 this.Invoke((MethodInvoker)delegate { this.Sort(columnToSort); });
             } else {
-                this.Sort(columnToSort, this.LastSortOrder);
+                this.Sort(columnToSort, this.PrimarySortOrder);
             }
         }
 
@@ -7284,6 +7379,7 @@ namespace BrightIdeasSoftware
             // Virtual lists don't preserve selection, so we have to do it specifically
             // THINK: Do we need to preserve focus too?
             IList selection = this.VirtualMode ? this.SelectedObjects : null;
+            this.SuspendSelectionEvents();
 
             this.ClearHotItem();
 
@@ -7305,11 +7401,12 @@ namespace BrightIdeasSoftware
             if (this.ShowSortIndicators)
                 this.ShowSortIndicator(args.ColumnToSort, args.SortOrder);
 
-            this.LastSortColumn = args.ColumnToSort;
-            this.LastSortOrder = args.SortOrder;
+            this.PrimarySortColumn = args.ColumnToSort;
+            this.PrimarySortOrder = args.SortOrder;
 
             if (selection != null && selection.Count > 0)
                 this.SelectedObjects = selection;
+            this.ResumeSelectionEvents();
 
             this.RefreshHotItem();
 
@@ -7320,8 +7417,8 @@ namespace BrightIdeasSoftware
         /// Put a sort indicator next to the text of the sort column
         /// </summary>
         public virtual void ShowSortIndicator() {
-            if (this.ShowSortIndicators && this.LastSortOrder != SortOrder.None)
-                this.ShowSortIndicator(this.LastSortColumn, this.LastSortOrder);
+            if (this.ShowSortIndicators && this.PrimarySortOrder != SortOrder.None)
+                this.ShowSortIndicator(this.PrimarySortColumn, this.PrimarySortOrder);
         }
 
         /// <summary>
@@ -8288,6 +8385,9 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="e"></param>
         protected override void OnSelectedIndexChanged(EventArgs e) {
+            if (this.SelectionEventsSuspended)
+                return;
+
             base.OnSelectedIndexChanged(e);
 
             // If we haven't already scheduled an event, schedule it to be triggered
@@ -8386,7 +8486,32 @@ namespace BrightIdeasSoftware
 
             return base.ProcessDialogKey(keyData);
         }
-       
+        
+        /// <summary>
+        /// Start an editing operation on the first editable column of the given model.
+        /// </summary>
+        /// <param name="rowModel"></param>
+        /// <remarks>
+        /// <para>
+        /// If the model doesn't exist, or there are no editable columns, this method
+        /// will do nothing.</para>
+        /// <para>
+        /// This will start an edit operation regardless of CellActivationMode.
+        /// </para>
+        /// </remarks>
+        public virtual void EditModel(object rowModel) {
+            OLVListItem olvItem = this.ModelToItem(rowModel);
+            if (olvItem == null)
+                return;
+
+            for (int i = 0; i < olvItem.SubItems.Count; i++) {
+                if (this.GetColumn(i).IsEditable) {
+                    this.StartCellEdit(olvItem, i);
+                    return;
+                }
+            }
+        }
+
         /// <summary>
         /// Begin an edit operation on the given cell.
         /// </summary>
@@ -8631,6 +8756,9 @@ namespace BrightIdeasSoftware
         /// <param name="subItemIndex">The index of the cell to be edited</param>
         /// <returns>A Rectangle</returns>
         public virtual Rectangle CalculateCellBounds(OLVListItem item, int subItemIndex) {
+
+            // TODO: Check if this is the same thing as OLVListItem.GetSubItemBounds() ?
+
             // We use ItemBoundsPortion.Label rather than ItemBoundsPortion.Item
             // since Label extends to the right edge of the cell, whereas Item gives just the
             // current text width.
@@ -9611,6 +9739,7 @@ namespace BrightIdeasSoftware
         private bool isInWmPaintEvent; // is a WmPaint event currently being handled?
         private bool shouldDoCustomDrawing; // should the list do its custom drawing?
         private bool isMarqueSelecting; // Is a marque selection in progress?
+        private int suspendSelectionEventCount; // How many unmatched SuspendSelectionEvents() calls have been made?
 
         private List<GlassPanelForm> glassPanels = new List<GlassPanelForm>(); // The transparent panel that draws overlays
         Dictionary<string, bool> visitedUrlMap = new Dictionary<string, bool>(); // Which urls have been visited?
