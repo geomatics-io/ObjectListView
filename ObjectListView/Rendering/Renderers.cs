@@ -98,6 +98,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
+using Timer = System.Threading.Timer;
 
 namespace BrightIdeasSoftware
 {
@@ -2133,7 +2134,6 @@ namespace BrightIdeasSoftware
         /// Make an empty image renderer
         /// </summary>
         public ImageRenderer() {
-            this.tickler = new System.Threading.Timer(new TimerCallback(this.OnTimer), null, Timeout.Infinite, Timeout.Infinite);
             this.stopwatch = new Stopwatch();
         }
 
@@ -2143,6 +2143,14 @@ namespace BrightIdeasSoftware
         public ImageRenderer(bool startAnimations)
             : this() {
             this.Paused = !startAnimations;
+        }
+
+        /// <summary>
+        /// Finalizer
+        /// </summary>
+        protected override void Dispose(bool disposing) {
+            Paused = true;
+            base.Dispose(disposing);
         }
 
         #region Properties
@@ -2155,19 +2163,34 @@ namespace BrightIdeasSoftware
         public bool Paused {
             get { return isPaused; }
             set {
-                if (isPaused != value) {
-                    isPaused = value;
-                    if (isPaused) {
-                        this.tickler.Change(Timeout.Infinite, Timeout.Infinite);
-                        this.stopwatch.Stop();
-                    } else {
-                        this.tickler.Change(1, Timeout.Infinite);
-                        this.stopwatch.Start();
-                    }
+                if (this.isPaused == value) 
+                    return;
+
+                this.isPaused = value;
+                if (this.isPaused) {
+                    this.StopTickler();
+                    this.stopwatch.Stop();
+                } else {
+                    this.Tickler.Change(1, Timeout.Infinite);
+                    this.stopwatch.Start();
                 }
             }
         }
         private bool isPaused = true;
+
+        private void StopTickler() {
+            this.Tickler.Change(Timeout.Infinite, Timeout.Infinite);
+            this.Tickler.Dispose();
+            this.tickler = null;
+        }
+
+        protected Timer Tickler {
+            get {
+                if (this.tickler == null)
+                    this.tickler = new System.Threading.Timer(new TimerCallback(this.OnTimer), null, Timeout.Infinite, Timeout.Infinite);
+                return this.tickler;
+            }
+        }
 
         #endregion
 
@@ -2286,14 +2309,13 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="state">not used</param>
         public void OnTimer(Object state) {
-            if (this.ListView == null || this.Paused)
-                this.tickler.Change(1000, Timeout.Infinite);
-            else {
-                if (this.ListView.InvokeRequired)
-                    this.ListView.Invoke((MethodInvoker)delegate { this.OnTimer(state); });
-                else
-                    this.OnTimerInThread();
-            }
+            if (this.ListView == null || this.Paused) 
+                return;
+
+            if (this.ListView.InvokeRequired)
+                this.ListView.Invoke((MethodInvoker)delegate { this.OnTimer(state); });
+            else
+                this.OnTimerInThread();
         }
 
         /// <summary>
@@ -2305,13 +2327,13 @@ namespace BrightIdeasSoftware
 
             // If this listview has been destroyed, we can't do anything, so we return without
             // renewing the tickler, effectively killing all animations on this renderer
-            if (this.ListView.IsDisposed)
+            if (this.ListView == null || this.Paused || this.ListView.IsDisposed)
                 return;
 
             // If we're not in Detail view or our column has been removed from the list,
             // we can't do anything at the moment, but we still renew the tickler because the view may change later.
             if (this.ListView.View != System.Windows.Forms.View.Details || this.Column == null || this.Column.Index < 0) {
-                this.tickler.Change(1000, Timeout.Infinite);
+                this.Tickler.Change(1000, Timeout.Infinite);
                 return;
             }
 
@@ -2352,7 +2374,7 @@ namespace BrightIdeasSoftware
                 this.ListView.Invalidate(updateRect);
 
             // Renew the tickler in time for the next frame change
-            this.tickler.Change(nextCheckAt - elapsedMilliseconds, Timeout.Infinite);
+            this.Tickler.Change(nextCheckAt - elapsedMilliseconds, Timeout.Infinite);
         }
 
         #endregion
