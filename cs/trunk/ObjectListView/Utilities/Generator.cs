@@ -303,8 +303,10 @@ namespace BrightIdeasSoftware
             column.Name = (attr == null || String.IsNullOrEmpty(attr.Name)) ? aspectName : attr.Name;
             this.ConfigurePossibleBooleanColumn(column, propertyType);
 
-            if (attr == null)
-                return column;
+            if (attr == null) {
+                column.IsEditable = editable;
+                return column;                
+            }
 
             column.AspectToStringFormat = attr.AspectToStringFormat;
             if (attr.IsCheckBoxesSet)

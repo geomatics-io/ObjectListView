@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * v2.6
  * 2012-08-16  JPP  - Added ObjectListView.EditModel() -- a convienence method to start an edit operation on a model
  * 2012-08-10  JPP  - Don't trigger selection changed events during sorting/grouping or add/removing columns
  * 2012-08-06  JPP  - Don't start a cell edit operation when the user clicks on the background of a checkbox cell.
@@ -4597,7 +4598,7 @@ namespace BrightIdeasSoftware
                 return;
 
             // We could calculate a symmetric difference between the old models and the new models
-            // except that we don't the previous models at this point.
+            // except that we don't have the previous models at this point.
 
             this.UnsubscribeNotifications(null);
             this.SubscribeNotifications(collection ?? this.Objects);

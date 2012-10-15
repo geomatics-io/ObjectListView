@@ -19,14 +19,10 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Forms;
 using System.Diagnostics;
-using System.Threading;
-using System.Drawing.Imaging;
 
 using BrightIdeasSoftware;
-using System.Runtime.InteropServices;
 
 namespace ObjectListViewDemo {
     /// <summary>
@@ -96,12 +92,7 @@ namespace ObjectListViewDemo {
             InitializeFastListExample(list);
             InitializeDragDropExample(list);
             InitializeTreeDataSetExample();
-
-            this.bindingList = new BindingList<Person>(list);
-            this.dataListView1.UseNotifyPropertyChanged = true;
-            this.dataListView1.DataSource = bindingList;
         }
-        private BindingList<Person> bindingList;
 
         void TimedRebuildList(ObjectListView olv) {
             Stopwatch stopWatch = new Stopwatch();
@@ -187,10 +178,10 @@ namespace ObjectListViewDemo {
                 string name = ((Person)row).Name.ToUpperInvariant();
                 if (name.Length > 0 && "AEIOU".Contains(name.Substring(0, 1)))
                     return "star";
-                else if (name.CompareTo("T") < 0)
+                if (name.CompareTo("T") < 0)
                     return 2; // person
-                else
-                    return "music"; 
+                
+                return "music"; 
             };
 
             // Cooking skill columns
@@ -233,10 +224,10 @@ namespace ObjectListViewDemo {
             this.birthdayColumn.ImageGetter = delegate(object row) {
                 Person p = (Person)row;
                 // People born in leap years get an asterisk (yes, the leap year calculation is wrong).
-                if (p.BirthDate != null && (p.BirthDate.Year % 4) == 0)
+                if ((p.BirthDate.Year % 4) == 0)
                     return "hidden";
-                else
-                    return -1; // no image
+                
+                return -1; // no image
             };
             this.birthdayColumn.ClusteringStrategy = new DateTimeClusteringStrategy(DateTimePortion.Month, "MMMM");
 
@@ -482,7 +473,7 @@ namespace ObjectListViewDemo {
 
             #endregion
 
-            private BusinessCardRenderer businessCardRenderer = new BusinessCardRenderer();
+            private readonly BusinessCardRenderer businessCardRenderer = new BusinessCardRenderer();
         }
 
         void InitializeDataSetExample() {
@@ -515,8 +506,8 @@ namespace ObjectListViewDemo {
                 this.column = col;
                 this.sortOrder = order;
             }
-            private OLVColumn column;
-            private SortOrder sortOrder;
+            private readonly OLVColumn column;
+            private readonly SortOrder sortOrder;
 
             public override int Compare(Person x, Person y) {
                 IComparable xValue = this.column.GetValue(x) as IComparable;
@@ -2458,25 +2449,6 @@ namespace ObjectListViewDemo {
             e.Parameters.PrimarySort = olvColumn34;
             e.Parameters.PrimarySortOrder = SortOrder.Ascending;
         }
-
-        private void button33_Click(object sender, EventArgs e) {
-            Person person = new Person("Some One Else " + System.Environment.TickCount);
-            person.BirthDate = DateTime.Today;
-            this.bindingList.Add(person);
-            this.dataListView1.EditModel(person);
-        }
-
-        private void button34_Click(object sender, EventArgs e) {
-            Person p = this.dataListView1.SelectedObject as Person;
-            if (p != null)
-                this.bindingList.Remove(p);
-        }
-
-        private void button35_Click(object sender, EventArgs e) {
-            Person p = this.bindingList[random.Next(this.bindingList.Count)];
-            p.Occupation = "Occupation " + System.Environment.TickCount;
-        }
-        private readonly Random random = new Random();
 
         /*
          * Radio button behaviour for check boxes

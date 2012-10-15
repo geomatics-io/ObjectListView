@@ -15,12 +15,18 @@ New features
 
 * Added `DataTreeListView` -- a data bindable `TreeListView`. :ref:`[More info] <recipe-datatreelistview>`.
 
-* Added `UseNotifyPropertyChanged` property to allow ObjectListViews to listen for `INotifyPropertyChanged` events on models.
+* Added `UseNotifyPropertyChanged` property to allow ObjectListViews to listen for `INotifyPropertyChanged` 
+  events on models. :ref:`[More info] <features-inotifypropertychanged>`.
 
 * `Generator` can now work on plain model objects without requiring properties to be marked with `[OLVColumn]` attribute.
-  :ref:`[More info] <recipe-datatreelistview>`.
+  :ref:`[More info] <recipe-generator>`.
 
 * Added `FlagClusteringStrategy` -- a new clustering strategy based off bit-xor’ed integer fields.
+
+* Added `CellPadding`, `CellHorizontalAlignment` and `CellVerticalAlignment` properties to `ObjectListView` and
+  `OLVColumn`. On owner drawn controls, these control the placement of cell contents within the cell.
+
+* Added OLVExporter -- a utility to export data from `ObjectListView`.
 
 Other changes
 ^^^^^^^^^^^^^
@@ -31,15 +37,25 @@ Other changes
   This is useful for filtering on xor'ed flag fields or multi-value strings (e.g. hobbies that are stored as comma separated values).
 * Added `SimpleDropSink.UseDefaultCursors` property. Set this to *false* to use custom cursors in drop operations.
 * Added more efficient version of `FilteredObjects` property to `FastObjectListView`.
+* Added `ObjectListView.EditModel()` convenience method
+* Added `ObjectListView.AutoSizeColumns()` to resize all columns according to their content or header
+* Added static property `ObjectListView.IgnoreMissingAspects`. If this is set to *true*, all 
+  `ObjectListViews` will silently ignore missing aspect errors. Read the remarks to see why this would be useful.
+* Don’t trigger selection changed events during sorting/grouping, add/removing columns, or expanding branches.
+* Clipboard and drag-drop now includes CSV format.
+* Reimplemented `Generator` to be subclassable. Added `IGenerator` to allow column generation to be be completely replaced.
 
 Bugs fixed
 ^^^^^^^^^^
 
+* Fixed bug with single click cell editing where the cell editing didn’t start until the first mouse move.
+  This fixed a number of related bugs concerning cell editing and mouse moves.
 * Fixed bug where removing a column from a LargeIcon or SmallIcon view would crash the control.
 * Fixed bug where search-by-typing would not work correctly on a `FastObjectListView` when showing groups
 * Fixed several bugs related to groups on virtual lists.
 * Overlays now remember all the ObjectListView's parents so that we can explicitly unbind all those parents when disposing.
   This protects us against unexpected changes in the visual hierarchy (e.g. moving a parent `UserControl` from one tab to another)
+* `TreeListView.RebuildAll()` will now preserve scroll position.
 
 
 May 2012 - Version 2.5.1

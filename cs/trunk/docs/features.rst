@@ -30,13 +30,14 @@ of what's available so that you can use it when the need arises.
 * `Ease of use`_
 * `Editing cell values`_
 * `Filtering`_
+* `Groups on virtual lists`_
 * `Header formatting`_
 * `Header images`_
 * `Header drawn vertically`_
 * `Header visible in all views`_
 * `Hot item tracking`_
-* `Groups on virtual lists`_
 * `In-place modifications of the list`_
+* `INotifyPropertyChanged support`_
 * `Model object level operations`_
 * `More control over column width`_
 * `Owner drawing`_
@@ -510,3 +511,16 @@ This can be combined with a special renderer to highlight the text matches.
 See :ref:`recipe-text-filtering`.
 
 These filters are of course extensible.
+
+.. _features-inotifypropertychanged:
+
+INotifyPropertyChanged support
+------------------------------
+
+Yet more slothful!
+
+If you set `UseNotifyPropertyChanged`, then `ObjectListView` will listen
+for changes on your model classes, and automatically update the rows when
+properties on the model classes changed.
+
+Obviously, your model objects have to implement `INotifyPropertyChanged`.
