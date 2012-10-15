@@ -355,7 +355,7 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual("Property1", this.olv.GetColumn(0).AspectName);
             Assert.AreEqual("Property2", this.olv.GetColumn(1).Text);
             Assert.AreEqual("Property2", this.olv.GetColumn(1).AspectName);
-            Assert.AreEqual("CheckBoxProperty", this.olv.GetColumn(2).Text);
+            Assert.AreEqual("Check Box Property", this.olv.GetColumn(2).Text);
             Assert.AreEqual("CheckBoxProperty", this.olv.GetColumn(2).AspectName);
         }
 
@@ -370,8 +370,8 @@ namespace BrightIdeasSoftware.Tests
         public void TestPropertiesWithoutAttributes_CheckBox() {
             Generator.GenerateColumns(this.olv, typeof(GeneratorTestPropertiesWithoutOlvColumnAttribute), true);
             Assert.IsFalse(this.olv.GetColumn("Property1").CheckBoxes);
-            Assert.IsTrue(this.olv.GetColumn("CheckBoxProperty").CheckBoxes);
-            Assert.IsTrue(this.olv.GetColumn("TriStateCheckBox").TriStateCheckBoxes);
+            Assert.IsTrue(this.olv.GetColumn("Check Box Property").CheckBoxes);
+            Assert.IsTrue(this.olv.GetColumn("Tri State Check Box").TriStateCheckBoxes);
         }
 
         [Test]

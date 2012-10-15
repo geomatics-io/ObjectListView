@@ -35,7 +35,7 @@ suited for smaller lists, that is, about 1000 rows or less.
 If in doubt, start with this flavour. You can always change it to one of the others later on.
 
 
-VirtualObjectListView - Expresso
+VirtualObjectListView - Espresso
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. image:: images/coffee.jpg
@@ -156,7 +156,7 @@ This really needs a page to itself: :ref:`Cell Editing in an ObjectListView <cel
 3. How can I do some fancy sorting?
 -----------------------------------
 
-There are a couple of ways to change the standard sorting behavior:
+There are a couple of ways to change the standard sorting behaviour:
 
 * You can listen for the `BeforeSorting` event, do whatever sorting you like, and then set
   `Handled` to  *true* on the event so that no standard sorting is done. If you want
@@ -261,8 +261,8 @@ them again.
 6. How can I stop the user from resizing a column?
 --------------------------------------------------
 
-There are some columns just don't make sense to be resizable. A column that
-always shows a 16x16 status icon makes no sense to be resizable. To make a
+There are some columns just don't make sense to be resizeable. A column that
+always shows a 16x16 status icon makes no sense to be resizeable. To make a
 column be fixed width and unresizable by the user, simply set both `MinimumWidth`
 and `MaximumWidth` to be the same value.
 
@@ -292,20 +292,19 @@ space filling column doesn't disappear.
 
 .. _recipe-formatter:
 
-8. How can I change the colours of a row?
------------------------------------------
+8. How can I change the colours of a row or just a cell?
+--------------------------------------------------------
 
-v2.3 and later
-^^^^^^^^^^^^^^
+You listen for `FormatRow` or `FormatCell` event. 
 
-You listen for `FormatRow` event. To show customers in red when they owe money,
+To show customers in red when they owe money,
 you would set up a handler for the `FormatRow` event in the IDE, and then do
 something like this::
 
     private void olv1_FormatRow(object sender, FormatRowEventArgs e) {
         Customer customer = (Customer)e.Model;
         if (customer.Credit < 0)
-            e.Item.ForeColor = Color.Red;
+            e.Item.BackColor = Color.Red;
     }
 
 To change the formatting of an individual cell, you need to set
@@ -320,15 +319,15 @@ To show just the credit balance in red, you could do something like this::
         }
     }
 
-Unlike `RowFormatters`, these events do know where the row is going to
+These events play well
+with `UseAlternateBackColors`. Any formatting you do in these events takes
+precedence over the alternate backcolors.
+
+These events know where the row is going to
 appear in the control, so the `DisplayIndex` property of the event
 can be used for more sophisticated alternate background color schemes.
 The `DisplayIndex` is correct even when the list is showing groups and
 when the listview is virtual.
-
-Another improvement over `RowFormatters` is that these events play well
-with `UseAlternateBackColors`. Any formatting you do in these events takes
-precedence over the alternate backcolors.
 
 To improve performance, `FormatCell` events are only fired when a handler
 of the `FormatRow`
@@ -1845,8 +1844,8 @@ This handler will stop a group from expanding if the group starts with "NO_EXPAN
     *That overlay stuff is just too tricky. I want a real background image
     and I want it now!*
 
-Since XP, the native ListView control has supported background images, via the `LVM_SETBKIMAGE` message.
-But it has always has serious limits, as this screen shot shows:
+Since XP, the native ListView control has supported background images via the `LVM_SETBKIMAGE` message.
+But it has always had serious limits, as this screen shot shows:
 
 .. image:: images/setbkimage.png
 
@@ -1876,7 +1875,7 @@ If you can live with these limits, `ObjectListView` now [v2.5.1] has built in su
     // Set a tiled background to the control
     this.olv.SetNativeBackgroundTiledImage(Resource1.limeleaf);
 
-If you can live with these limitations, native watermarks are quite neat. They are true backgrounds, not
+Apart from these limitations, native watermarks are quite neat. They are true backgrounds, not
 translucent overlays like the `OverlayImage` uses. They also have the decided advantage over overlays in that
 they work correctly even in MDI applications.
 

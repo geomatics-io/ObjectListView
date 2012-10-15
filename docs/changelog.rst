@@ -9,7 +9,7 @@ Change Log
 
 Version Index
 -------------
-* `v2.6 - 10 July 2012`_
+* `v2.6 - 17 October 2012`_
 * `v2.5.1 - 08 May 2012`_
 * `v2.5 - 06 June 2011`_
 * `v2.4.1 - 15 September 2010`_
@@ -25,8 +25,141 @@ Version Index
 * `Previous versions - 24 July 2008`_
 
 
-v2.6 - 10 July 2012
--------------------
+v2.6 - 17 October 2012
+----------------------
+
+2012-10-13 16:50 (#1304) - ObjectListView/Filtering/TextMatchFilter.cs
+  - Allow filtering to consider additional columns
+
+2012-10-13 16:46 (#1303) - ObjectListView/TreeListView.cs
+  - When rebuilding children, make sure that each branch is still expandable before expanding
+
+2012-10-13 16:45 (#1302) - ObjectListView/Rendering/Renderers.cs
+  - Only create Timer when animating GIFs.
+
+2012-10-13 16:44 (#1301) - ObjectListView/ObjectListView.DesignTime.cs
+  - Fall back to more specific type name for the ListViewDesigner if the first GetType() fails.
+
+2012-10-13 16:42 (#1300) - ObjectListView/ObjectListView.cs
+  - Unlock grouping menu commands now correctly resets AlwaysGroupBySortOrder
+
+2012-10-13 16:40 (#1299) - docs/recipes.rst
+  - Edit of FormatRow/FormatCell recipe
+
+2012-10-13 16:39 (#1298) - Demo/MainForm.cs
+  - Added some more examples as commented out code
+
+2012-08-22 21:24 (#1295) - ObjectListView/Rendering/TreeRenderer.cs, ObjectListView/Rendering/Renderers.cs
+  - Make HighlightTextRenderer correctly vertically position the highlighting
+  - Make TreeRenderer correctly vertically align the tree rendering
+  - Make all renderers honour padding settings
+  - Make rendering work without a Column
+
+2012-08-18 11:49 (#1291) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Added IBindingList demo (still needs cleaning up)
+
+2012-08-18 11:44 (#1290) - ObjectListView/ObjectListView.cs, ObjectListView/Implementation/NativeMethods.cs
+  - Added ObjectListView.EditModel() convenience method
+  - Added ObjectListView.AutoSizeColumns() to resize all columns according to their content or header
+  - Use native LVM_GETTOPINDEX to avoid exceptions thrown by TopItem property
+
+2012-08-18 11:42 (#1289) - ObjectListView/Implementation/DataSourceAdapter.cs, ObjectListView/Utilities/Generator.cs, ObjectListView/Implementation/Attributes.cs
+  - Added OLVIgnore attribute so that properties can be specifically ignored by the generator/data view.
+  - Clarified that the Generator only considers properties -- not fields or parameter-less methods.
+  - DataListView column creation now shares code with Generator
+
+2012-08-18 11:37 (#1288) - Tests/TestGenerator.cs
+  - Added test for OLVIgnore attribute
+
+2012-08-15 19:57 (#1287) - ObjectListView/ObjectListView2010.csproj
+  - Turn off DEBUG for release builds (how was that ever set to true?)
+
+2012-08-15 19:56 (#1286) - ObjectListView/Implementation/Munger.cs
+  - Set ignoreMissingAspects to true on release builds
+
+2012-08-13 14:26 (#1285) - Tests/TestColumn.cs, Tests/TestGenerator.cs
+  - Added tests for [OLVChildren] attribute
+  - Added tests for IgnoreMissingAspects setting
+
+2012-08-13 14:25 (#1284) - ObjectListView/Utilities/TypedObjectListView.cs, ObjectListView/Implementation/Munger.cs
+  - Added implementation for IgnoreMissingAspects (which had seemed to have vanished?)
+  - Added Munger.GetValueEx() which throws an exception when it cant find an appropriate Property/Field/Method
+
+2012-08-13 14:24 (#1283) - ObjectListView/ObjectListView.cs, ObjectListView/Utilities/Generator.cs, ObjectListView/TreeListView.cs, ObjectListView/Implementation/Attributes.cs
+  - Added [OLVChildren] attribute, which allows Generator to create TreeListView delegates
+  - Added ObjectListView.IsEnumerableEmpty()
+  - Added TreeListView.CanExpand() method
+  - Check that children are expandable in ExpandAll()
+
+2012-08-10 18:34 (#1282) - Tests/TestBasics.cs, Tests/TestSelection.cs
+  - Added tests for selection event suspension
+
+2012-08-10 18:33 (#1281) - ObjectListView/ObjectListView.cs, ObjectListView/TreeListView.cs
+  - Don't trigger selection changed events during sorting/grouping, add/removing columns, or expanding branches
+  - Replace all references to LastSortColumn/Order with PrimarySortColumn/Order
+
+2012-08-08 22:37 (#1280) - Tests/Tests2008.csproj, Tests/Tests2010.csproj, Tests/TestExport.cs, Tests/Tests2005.csproj
+  - Added tests for OLVExporter
+
+2012-08-08 22:37 (#1279) - ObjectListView/ObjectListView.cs, ObjectListView/ObjectListView2005.csproj, ObjectListView/ObjectListView2008.csproj, ObjectListView/DragDrop/OLVDataObject.cs, ObjectListView/Utilities/OLVExporter.cs, ObjectListView/ObjectListView2010.csproj
+  - Added OLVExporter.cs
+  - Clipboard now includes CSV format
+
+2012-08-06 10:22 (#1278) - ObjectListView/ObjectListView.cs
+  - Added CellVerticalAlignment and CellPadding properties.
+  - Don't start a cell edit operation when the user clicks on the background of a checkbox cell.
+  - Honor values from the BeforeSorting event when calling a CustomSorter
+
+2012-08-02 19:41 (#1275) - ObjectListView/OLVColumn.cs
+  - Added CellPadding and CellVerticalAlignment properties
+
+2012-08-02 19:41 (#1274) - ObjectListView/ObjectListView.cs
+  - [BIG] Added CellPadding and CellVerticalAlignment properties
+  - [BREAKING CHANGE] Added preferredSize parameter to CalculateCellEditorBounds()
+  - Added ObjectListView.ShowCellPaddingBounds as a debugging property to help with padding issues
+  - Remove archaic ResizeLastGroup()
+
+2012-08-02 19:33 (#1271) - ObjectListView/Rendering/Renderers.cs
+  - [Breaking change] Added preferedSize parameter to IRenderer.GetEditRectangle().
+  - Added CellPadding to various places. Replaced DescribedTaskRenderer.CellPadding.
+  - Added CellVerticalAlignment to various places allow cell contents to be vertically aligned (rather than always being centered).
+
+2012-08-02 19:30 (#1269) - ObjectListView/Rendering/TreeRenderer.cs
+  - Added preferredSize parameter to HandleGetEditRectangle()
+
+2012-08-02 19:28 (#1267) - ObjectListView/Implementation/OLVListItem.cs, ObjectListView/Implementation/OLVListSubItem.cs
+  - Added CellPadding and CellVerticalAlignment properties
+
+2012-08-02 19:27 (#1266) - ObjectListView/CellEditing/CellEditors.cs
+  - Made UintUpDown internal since uint is not a CLS-compliant type
+
+2012-08-02 09:07 (#1265) - ObjectListView/CellEditing/CellEditors.cs
+  - Removed these editors from the toolbox
+  - Reverted UintUpDown editor to be internal since it exposes an unsigned int, and uints are not CLS-compliant
+
+2012-08-02 08:48 (#1263) - ObjectListView/Implementation/NullableDictionary.cs
+  - Include null value in Values property
+
+2012-08-02 08:47 (#1262) - ObjectListView/SubControls/GlassPanelForm.cs
+  - Unbind GlassPanelForm on dispose
+
+2012-07-21 17:18 (#1261) - ObjectListView/DataListView.cs
+  - Updated docs about changing DataSource on a DataListView
+
+2012-07-04 08:41 (#1259) - ObjectListView/ObjectListView.cs
+  - Fixed bug with cell editing where the cell editing didn't finish until the first idle event.
+
+2012-07-03 19:35 (#1258) - ObjectListView/ObjectListView.cs
+  - Fixed bug with SingleClick cell edit mode where the cell editing would not begin until the mouse moved after the click.
+
+2012-07-03 19:32 (#1257) - ObjectListView/Implementation/TreeDataSourceAdapter.cs
+  - Handle PropertyDescriptor being null in list changed event
+
+2012-07-03 19:31 (#1256) - Demo/ObjectListViewDemo2005.csproj
+  - Added missing data file
+
+2012-07-02 18:48 (#1255) - docs/features.rst, docs/whatsnew.rst, docs/.templates/layout.html, docs/conf.py, docs/changelog.rst, docs/download.rst, docs/index.rst, docs/recipes.rst
+  - Updated docs for 2.6 release
 
 2012-07-02 18:46 (#1254) - ObjectListView/TreeListView.cs
   - RebuildAll() will now preserve scroll position
