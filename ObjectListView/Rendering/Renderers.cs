@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log: 
+ * 2012-10-26   JPP  - Hit detection will no longer report check box hits on columns without checkboxes.
  * 2012-07-13   JPP  - [Breaking change] Added preferedSize parameter to IRenderer.GetEditRectangle().
  * v2.5.1
  * 2012-07-14   JPP  - Added CellPadding to various places. Replaced DescribedTaskRenderer.CellPadding.
@@ -1098,17 +1099,27 @@ namespace BrightIdeasSoftware
         /// <param name="y"></param>
         protected void StandardHitTest(Graphics g, OlvListViewHitTestInfo hti, Rectangle bounds, int x, int y) {
             Rectangle r = bounds;
-            r = ApplyCellPadding(r);
 
-            // Did they hit a check box?
-            Rectangle r2 = this.CalculateCheckBoxBounds(g, r);
-            Rectangle r3 = r2;
-            r3.Inflate(2, 2); // slightly larger hit area
-            if (r3.Contains(x, y)) {
-                hti.HitTestLocation = HitTestLocation.CheckBox;
-                return;
+            // Match tweaking from renderer
+            if (this.ColumnIsPrimary && !(this is TreeListView.TreeRenderer)) {
+                r.X += 3;
+                r.Width -= 1;
             }
-            int width = r2.Width;
+            r = ApplyCellPadding(r);
+            int width = 0;
+
+            // Did they hit a check box on the primary column?
+            if (this.ColumnIsPrimary && this.ListView.CheckBoxes) {
+                Rectangle r2 = this.CalculateCheckBoxBounds(g, r);
+                Rectangle r3 = r2;
+                r3.Inflate(2, 2); // slightly larger hit area
+                //g.DrawRectangle(Pens.DarkGreen, r3);
+                if (r3.Contains(x, y)) {
+                    hti.HitTestLocation = HitTestLocation.CheckBox;
+                    return;
+                }
+                width = r3.Width;
+            }
 
             // Did they hit the image? If they hit the image of a 
             // non-primary column that has a checkbox, it counts as a 
@@ -1116,9 +1127,10 @@ namespace BrightIdeasSoftware
             r.X += width;
             r.Width -= width;
             width = this.CalculateImageWidth(g, this.GetImageSelector());
-            r2 = r;
-            r2.Width = width;
-            if (r2.Contains(x, y)) {
+            Rectangle rTwo = r;
+            rTwo.Width = width;
+            //g.DrawRectangle(Pens.Red, rTwo);
+            if (rTwo.Contains(x, y)) {
                 if (this.Column != null && (this.Column.Index > 0 && this.Column.CheckBoxes))
                     hti.HitTestLocation = HitTestLocation.CheckBox;
                 else
@@ -1130,9 +1142,10 @@ namespace BrightIdeasSoftware
             r.X += width;
             r.Width -= width;
             width = this.CalculateTextWidth(g, this.GetText());
-            r2 = r;
-            r2.Width = width;
-            if (r2.Contains(x, y)) {
+            rTwo = r;
+            rTwo.Width = width;
+            //g.DrawRectangle(Pens.Blue, rTwo);
+            if (rTwo.Contains(x, y)) {
                 hti.HitTestLocation = HitTestLocation.Text;
                 return;
             }
