@@ -5,6 +5,8 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * v2.6
+ * 2012-10-26   JPP  - Handle rare case where a null model object was passed into aspect getters.
  * v2.3
  * 2009-03-31   JPP  - Added Objects property
  * 2008-11-26   JPP  - Added tool tip getting methods
@@ -373,7 +375,7 @@ namespace BrightIdeasSoftware
                     this.column.AspectGetter = null;
                 else
                     this.column.AspectGetter = delegate(object x) {
-                        return this.aspectGetter((T)x);
+                        return x == null ? null : this.aspectGetter((T)x);
                     };
             }
         }
