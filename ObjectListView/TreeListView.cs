@@ -5,6 +5,8 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2012-10-25  JPP  - Circumvent annoying bug in ListView control where changing
+ *                    selection would leave artefacts on the control.
  * 2012-08-10  JPP  - Don't trigger selection changed events during expands
  * 
  * v2.5.1
@@ -685,13 +687,36 @@ namespace BrightIdeasSoftware
         #region Event handlers
 
         /// <summary>
+        /// The application is idle and a SelectionChanged event has been scheduled
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected override void HandleApplicationIdle(object sender, EventArgs e) {
+            base.HandleApplicationIdle(sender, e);
+
+            // There is an annoying redraw bug on ListViews that use indentation and
+            // that have full row select enabled. When the selection reduces to a subset
+            // of previously selected rows, or when the selection is extended using
+            // shift-pageup/down, then the space occupied by the identation is not
+            // invalidated, and hence remains highlighted.
+            // Ideally we'd want to know exactly which rows were selected or deselected
+            // and then invalidate just the indentation region of those rows,
+            // but that's too much work. So just redraw the control.
+            // Actually... the selection issues show just slightly for non-full row select
+            // controls as well. So, always redraw the control after the selection
+            // changes.
+            this.Invalidate();
+        }
+
+        /// <summary>
         /// Decide if the given key event should be handled as a normal key input to the control?
         /// </summary>
         /// <param name="keyData"></param>
         /// <returns></returns>
         protected override bool IsInputKey(Keys keyData) {
             // We want to handle Left and Right keys within the control
-            if (((keyData & Keys.KeyCode) == Keys.Left) || ((keyData & Keys.KeyCode) == Keys.Right)) 
+            Keys key = keyData & Keys.KeyCode;
+            if (key == Keys.Left || key == Keys.Right) 
                 return true;
             
             return base.IsInputKey(keyData);
