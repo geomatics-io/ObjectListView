@@ -315,7 +315,7 @@ namespace BrightIdeasSoftware {
          DefaultValue(false)]
         public bool FillsFreeSpace {
             get { return this.FreeSpaceProportion > 0; }
-            set { this.freeSpaceProportion = value ? 1 : 0; }
+            set { this.FreeSpaceProportion = value ? 1 : 0; }
         }
 
         /// <summary>

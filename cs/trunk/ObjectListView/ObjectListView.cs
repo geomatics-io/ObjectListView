@@ -5,6 +5,8 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2013-04-21  JPP  - Clicking on a non-groupable column header when showing groups will now sort
+ *                    the group contents by that column.
  * v2.6
  * 2012-08-16  JPP  - Added ObjectListView.EditModel() -- a convienence method to start an edit operation on a model
  * 2012-08-10  JPP  - Don't trigger selection changed events during sorting/grouping or add/removing columns
@@ -586,12 +588,14 @@ namespace BrightIdeasSoftware
             this.ColumnWidthChanged += new ColumnWidthChangedEventHandler(this.HandleColumnWidthChanged);
 
             base.View = View.Details;
+// ReSharper disable DoNotCallOverridableMethodsInConstructor
             this.DoubleBuffered = true; // kill nasty flickers. hiss... me hates 'em
             this.ShowSortIndicators = true;
 
             // Setup the overlays that will be controlled by the IDE settings
             this.InitializeStandardOverlays();
             this.InitializeEmptyListMsgOverlay();
+// ReSharper restore DoNotCallOverridableMethodsInConstructor
         }
 
         /// <summary>
@@ -3553,18 +3557,30 @@ namespace BrightIdeasSoftware
 
             // Tell the world that new groups have been created
             this.OnAfterCreatingGroups(args);
+            lastGroupingParameters = args.Parameters;
         }
+        private GroupingParameters lastGroupingParameters;
 
         /// <summary>
         /// Collect and return all the variables that influence the creation of groups
         /// </summary>
         /// <returns></returns>
         protected virtual GroupingParameters CollectGroupingParameters(OLVColumn groupByColumn, SortOrder groupByOrder,
-            OLVColumn column, SortOrder order, OLVColumn secondaryColumn, SortOrder secondaryOrder) {
+            OLVColumn sortByColumn, SortOrder sortByOrder, OLVColumn secondaryColumn, SortOrder secondaryOrder) {
+            
+            // If the user tries to group by a non-groupable column, keep the current group by
+            // settings, but use the non-groupable column for sorting
+            if (!groupByColumn.Groupable && lastGroupingParameters != null) {
+                sortByColumn = groupByColumn;
+                sortByOrder = groupByOrder;
+                groupByColumn = lastGroupingParameters.GroupByColumn;
+                groupByOrder = lastGroupingParameters.GroupByOrder;
+            }
+
             string titleFormat = this.ShowItemCountOnGroups ? groupByColumn.GroupWithItemCountFormatOrDefault : null;
             string titleSingularFormat = this.ShowItemCountOnGroups ? groupByColumn.GroupWithItemCountSingularFormatOrDefault : null;
             GroupingParameters parms = new GroupingParameters(this, groupByColumn, groupByOrder,
-                column, order, secondaryColumn, secondaryOrder,
+                sortByColumn, sortByOrder, secondaryColumn, secondaryOrder,
                 titleFormat, titleSingularFormat, this.SortGroupItemsByPrimaryColumn);
             return parms;
         }
@@ -4108,14 +4124,14 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="dx">Horizontal delta</param>
         /// <param name="dy">Vertical delta</param>
-        internal void LowLevelScroll(int dx, int dy) {
+        public void LowLevelScroll(int dx, int dy) {
             NativeMethods.Scroll(this, dx, dy);
         }
 
         /// <summary>
         /// Return a point that represents the current horizontal and vertical scroll positions 
         /// </summary>
-        internal Point LowLevelScrollPosition {
+        public Point LowLevelScrollPosition {
             get {
                 return new Point(NativeMethods.GetScrollPosition(this, true), NativeMethods.GetScrollPosition(this, false));
             }
@@ -5034,6 +5050,10 @@ namespace BrightIdeasSoftware
                     if (!this.HandleContextMenu(ref m))
                         base.WndProc(ref m);
                     break;
+                //case 0x1000 + 18: // LVM_HITTEST:
+                //    if (!this.HandleHitTest(ref m))
+                //        base.WndProc(ref m);
+                //    break;
                 default:
                     base.WndProc(ref m);
                     break;
@@ -5161,6 +5181,47 @@ namespace BrightIdeasSoftware
             return this.HandleHeaderRightClick(columnIndex);
         }
         readonly IntPtr minusOne = new IntPtr(-1);
+
+        protected virtual bool HandleHitTest(ref Message m) {
+            System.Diagnostics.Debug.WriteLine("HandleHitTest");
+
+            // The underlying control knows nothing about checkboxes on virtual lists.
+            // This throws off the hit testing. We can handle that for functionality that is
+            // triggered internally, but we need to intercept the hit test message so we
+            // can fool the underlying control when it does hit testing for itself.
+
+            // Basic condition we are trying to fix: a virtual list with checkboxes.
+            // Anything else and we can just use the normal hit test
+            if (!this.VirtualMode || !this.CheckBoxes)
+                return false;
+
+            // Do the normal hit test and see if we hit something
+            base.DefWndProc(ref m);
+            NativeMethods.LVHITTESTINFO lvhittestinfo = (NativeMethods.LVHITTESTINFO) m.GetLParam(typeof (NativeMethods.LVHITTESTINFO));
+
+            // If we did hit something, we don't need to do anything else
+            if (lvhittestinfo.iItem != -1) {
+                Debug.WriteLine(String.Format("Found item {0} normally", lvhittestinfo.iItem));
+                return true;
+            }
+            // The hit test doesn't take the checkbox into account. So pretend the click happened
+            // slightly to the left (the width of the checkbox)
+            int originalX = lvhittestinfo.pt_x;
+            int checkBoxWidth = this.StateImageList.ImageSize.Width;
+            lvhittestinfo.pt_x -= checkBoxWidth; // TODO: Handle RTL
+            Marshal.StructureToPtr(lvhittestinfo, m.LParam, false);
+            base.DefWndProc(ref m);
+
+            // Put back the original x co-ord so if anything was hit, it will appear
+            // to have been at the original location
+            lvhittestinfo = (NativeMethods.LVHITTESTINFO)m.GetLParam(typeof(NativeMethods.LVHITTESTINFO));
+            System.Diagnostics.Debug.WriteLine(lvhittestinfo.iItem);
+            System.Diagnostics.Debug.WriteLine(lvhittestinfo.flags);
+            lvhittestinfo.pt_x = originalX;
+            Marshal.StructureToPtr(lvhittestinfo, m.LParam, false);
+
+            return true;
+        }
 
         /// <summary>
         /// Handle the Custom draw series of notifications
@@ -5513,21 +5574,21 @@ namespace BrightIdeasSoftware
             return false;
         }
 
-        private static string StateToString(uint state)
-        {
-            if (state == 0)
-                return Enum.GetName(typeof(GroupState), 0);
+        //private static string StateToString(uint state)
+        //{
+        //    if (state == 0)
+        //        return Enum.GetName(typeof(GroupState), 0);
 
-            List<string> names = new List<string>();
-            foreach (int value in Enum.GetValues(typeof(GroupState)))
-            {
-                if (value != 0 && (state & value) == value)
-                {
-                    names.Add(Enum.GetName(typeof(GroupState), value));
-                }
-            }
-            return names.Count == 0 ? state.ToString("x") : String.Join("|", names.ToArray());
-        }
+        //    List<string> names = new List<string>();
+        //    foreach (int value in Enum.GetValues(typeof(GroupState)))
+        //    {
+        //        if (value != 0 && (state & value) == value)
+        //        {
+        //            names.Add(Enum.GetName(typeof(GroupState), value));
+        //        }
+        //    }
+        //    return names.Count == 0 ? state.ToString("x") : String.Join("|", names.ToArray());
+        //}
 
         /// <summary>
         /// Handle a key down message
@@ -5629,7 +5690,7 @@ namespace BrightIdeasSoftware
             // They must have clicked the primary checkbox
             this.ToggleCheckObject(hti.RowObject);
 
-            // If they change the checkbox of a selecte row, all the rows in the selection
+            // If they change the checkbox of a selected row, all the rows in the selection
             // should be given the same state
             if (hti.Item.Selected) {
                 CheckState? state = this.GetCheckState(hti.RowObject);
@@ -5756,19 +5817,16 @@ namespace BrightIdeasSoftware
         /// <returns>bool to indicate if the msg has been handled</returns>
         protected virtual bool HandleMouseMove(ref Message m)
         {
-            int x = m.LParam.ToInt32() & 0xFFFF;
-            int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
+            //int x = m.LParam.ToInt32() & 0xFFFF;
+            //int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
 
-            this.lastMouseMoveChangedPosition = x != this.lastMouseMoveX || y != this.lastMouseMoveY;
-
-            this.lastMouseMoveX = x;
-            this.lastMouseMoveY = y;
+            //this.lastMouseMoveX = x;
+            //this.lastMouseMoveY = y;
 
             return false;
         }
-        private int lastMouseMoveX = -1;
-        private int lastMouseMoveY = -1;
-        private bool lastMouseMoveChangedPosition;
+        //private int lastMouseMoveX = -1;
+        //private int lastMouseMoveY = -1;
 
         /// <summary>
         /// Handle notifications that have been reflected back from the parent window
@@ -5905,9 +5963,9 @@ namespace BrightIdeasSoftware
                     isMsgHandled = this.HandleGroupInfo(ref m);
                     break;
 
-                default:
+                //default:
                     //System.Diagnostics.Debug.WriteLine(String.Format("reflect notify: {0}", nmhdr.code));
-                    break;
+                    //break;
             }
 
             return isMsgHandled;
@@ -6056,9 +6114,9 @@ namespace BrightIdeasSoftware
                         isMsgHandled = this.CellToolTip.HandleGetDispInfo(ref m);
                     break;
 
-                default:
+               // default:
                     //System.Diagnostics.Debug.WriteLine(String.Format("notify: {0}", nmheader.nhdr.code));
-                    break;
+                 //   break;
             }
 
             return isMsgHandled;
@@ -6711,8 +6769,7 @@ namespace BrightIdeasSoftware
         /// <returns>Is the given object checked?</returns>
         /// <remarks>If the given object is not in the list, this method returns false.</remarks>
         public virtual bool IsChecked(object modelObject) {
-            OLVListItem olvi = this.ModelToItem(modelObject);
-            return olvi != null && olvi.CheckState == CheckState.Checked;
+            return this.GetCheckState(modelObject) == CheckState.Checked;
         }
 
         /// <summary>
@@ -6722,8 +6779,7 @@ namespace BrightIdeasSoftware
         /// <returns>Is the given object indeterminately checked?</returns>
         /// <remarks>If the given object is not in the list, this method returns false.</remarks>
         public virtual bool IsCheckedIndeterminate(object modelObject) {
-            OLVListItem olvi = this.ModelToItem(modelObject);
-            return olvi != null && olvi.CheckState == CheckState.Indeterminate;
+            return this.GetCheckState(modelObject) == CheckState.Indeterminate;
         }
 
         /// <summary>
@@ -6771,30 +6827,32 @@ namespace BrightIdeasSoftware
         /// its state, in case it is referenced in the future.</remarks>
         /// <param name="modelObject"></param>
         /// <param name="state"></param>
-        protected virtual void SetObjectCheckedness(object modelObject, CheckState state) {
+        /// <returns>True if the checkedness of the model changed</returns>
+        protected virtual bool SetObjectCheckedness(object modelObject, CheckState state) {
             OLVListItem olvi = this.ModelToItem(modelObject);
 
             // If we didn't find the given, we still try to record the check state.
             if (olvi == null) {
                 this.PutCheckState(modelObject, state);
-                return;
+                return true;
             }
 
             if (olvi.CheckState == state)
-                return;
+                return false;
 
             // Trigger checkbox changing event. We only need to do this for virtual
             // lists, since setting CheckState triggers these events for non-virtual lists
             ItemCheckEventArgs ice = new ItemCheckEventArgs(olvi.Index, state, olvi.CheckState);
             this.OnItemCheck(ice);
             if (ice.NewValue == olvi.CheckState)
-                return;
+                return false;
 
             olvi.CheckState = this.PutCheckState(modelObject, state);
             this.RefreshItem(olvi);
 
             // Trigger check changed event
             this.OnItemChecked(new ItemCheckedEventArgs(olvi));
+            return true;
         }
 
         /// <summary>
@@ -6851,7 +6909,6 @@ namespace BrightIdeasSoftware
             switch (currentState) {
                 case CheckState.Checked: return column.TriStateCheckBoxes ? CheckState.Indeterminate : CheckState.Unchecked;
                 case CheckState.Indeterminate: return CheckState.Unchecked;
-                case CheckState.Unchecked: 
                 default: return CheckState.Checked;
             }
         }
@@ -7436,7 +7493,11 @@ namespace BrightIdeasSoftware
                 if (this.SmallImageList == null || !this.SmallImageList.Images.ContainsKey(SORT_INDICATOR_UP_KEY))
                     MakeSortIndicatorImages();
 
-                imageIndex = this.SmallImageList.Images.IndexOfKey(sortOrder == SortOrder.Ascending ? SORT_INDICATOR_UP_KEY : SORT_INDICATOR_DOWN_KEY);
+                if (this.SmallImageList != null)
+                {
+                    string key = sortOrder == SortOrder.Ascending ? SORT_INDICATOR_UP_KEY : SORT_INDICATOR_DOWN_KEY;
+                    imageIndex = this.SmallImageList.Images.IndexOfKey(key);
+                }
             }
 
             // Set the image for each column
@@ -7569,8 +7630,6 @@ namespace BrightIdeasSoftware
                         if (column.IsTileViewColumn)
                             lvi.SubItems.Add(this.MakeSubItem(rowObject, column));
                     }
-                    break;
-                default:
                     break;
             }
 
@@ -8157,8 +8216,8 @@ namespace BrightIdeasSoftware
             // Except with Mono, which doesn't seem to handle double buffering at all :-(
             Graphics g = e.Graphics;
             BufferedGraphics buffer = null;
-            bool avoidFlickerMode = true; // set this to false to see the problems with flicker
-            if (avoidFlickerMode) {
+            const bool AVOID_FLICKER_MODE = true; // set this to false to see the problems with flicker
+            if (AVOID_FLICKER_MODE) {
                 buffer = BufferedGraphicsManager.Current.Allocate(e.Graphics, r);
                 g = buffer.Graphics;
             }
@@ -8423,7 +8482,7 @@ namespace BrightIdeasSoftware
             this.HotItemStyle = this.HotItemStyle;
 
             // Arrange for any group images to be installed after the control is created
-            int x = NativeMethods.SetGroupImageList(this, this.GroupImageList);
+            NativeMethods.SetGroupImageList(this, this.GroupImageList);
 
             this.UseExplorerTheme = this.UseExplorerTheme;
 
@@ -8815,11 +8874,9 @@ namespace BrightIdeasSoftware
             // TODO: What do we do if value is still null here?
 
             // Ask the registry for an instance of the appropriate editor.
-            Control editor = ObjectListView.EditorRegistry.GetEditor(item.RowObject, column, value);
-
             // Use a default editor if the registry can't create one for us.
-            if (editor == null)
-                editor = this.MakeDefaultCellEditor(column);
+            Control editor = ObjectListView.EditorRegistry.GetEditor(item.RowObject, column, value) ??
+                             this.MakeDefaultCellEditor(column);
 
             return editor;
         }
@@ -8987,7 +9044,7 @@ namespace BrightIdeasSoftware
         /// Remove all trace of any existing cell edit operation
         /// </summary>
         /// <param name="expectingCellEdit">True if it is likely that another cell is going to be 
-        /// edited immediately after this cell finishes editing</param
+        /// edited immediately after this cell finishes editing</param>
         protected virtual void CleanupCellEdit(bool expectingCellEdit) {
             if (this.cellEditor == null)
                 return;
@@ -9379,8 +9436,8 @@ namespace BrightIdeasSoftware
         /// Draw all the decorations
         /// </summary>
         /// <param name="g">A Graphics</param>
-        /// <param name="drawnItems">The items that were redrawn and whose decorations should also be redrawn</param>
-        protected virtual void DrawAllDecorations(Graphics g, List<OLVListItem> drawnItems) {
+        /// <param name="itemsThatWereRedrawn">The items that were redrawn and whose decorations should also be redrawn</param>
+        protected virtual void DrawAllDecorations(Graphics g, List<OLVListItem> itemsThatWereRedrawn) {
             g.TextRenderingHint = ObjectListView.TextRenderingHint;
             g.SmoothingMode = ObjectListView.SmoothingMode;
 
@@ -9396,7 +9453,7 @@ namespace BrightIdeasSoftware
             }
 
             // Draw our item and subitem decorations
-            foreach (OLVListItem olvi in drawnItems) {
+            foreach (OLVListItem olvi in itemsThatWereRedrawn) {
                 if (olvi.HasDecoration) {
                     foreach (IDecoration d in olvi.Decorations) {
                         d.ListItem = olvi;
@@ -9743,7 +9800,7 @@ namespace BrightIdeasSoftware
         private int suspendSelectionEventCount; // How many unmatched SuspendSelectionEvents() calls have been made?
 
         private List<GlassPanelForm> glassPanels = new List<GlassPanelForm>(); // The transparent panel that draws overlays
-        Dictionary<string, bool> visitedUrlMap = new Dictionary<string, bool>(); // Which urls have been visited?
+        private Dictionary<string, bool> visitedUrlMap = new Dictionary<string, bool>(); // Which urls have been visited?
 
         #endregion
     }
