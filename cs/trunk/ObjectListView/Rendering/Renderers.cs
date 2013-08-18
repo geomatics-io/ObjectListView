@@ -5,6 +5,8 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log: 
+ * 2013-04-29   JPP  - Fixed bug where Images were not vertically aligned
+ * v2.6
  * 2012-10-26   JPP  - Hit detection will no longer report check box hits on columns without checkboxes.
  * 2012-07-13   JPP  - [Breaking change] Added preferedSize parameter to IRenderer.GetEditRectangle().
  * v2.5.1
@@ -300,6 +302,10 @@ namespace BrightIdeasSoftware
         }
         private StringAlignment? cellVerticalAlignment;
 
+        /// <summary>
+        /// Gets the optional padding that this renderer should apply before drawing.
+        /// This property considers all possible sources of padding
+        /// </summary>
         [Browsable(false)]
         protected virtual Rectangle? EffectiveCellPadding {
             get {
@@ -322,6 +328,10 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Gets the vertical cell alignment that should govern the rendering.
+        /// This property considers all possible sources.
+        /// </summary>
         [Browsable(false)]
         protected virtual StringAlignment EffectiveCellVerticalAlignment {
             get {
@@ -1186,8 +1196,16 @@ namespace BrightIdeasSoftware
             return r;
         }
 
-        protected Rectangle CalculatePaddedAlignedBounds(Graphics g, Rectangle bounds, Size preferredSize) {
-            Rectangle r = ApplyCellPadding(bounds);
+        /// <summary>
+        /// Apply any padding to the given bounds, and then align a rectangle of the given
+        /// size within that padded area.
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="cellBounds"></param>
+        /// <param name="preferredSize"></param>
+        /// <returns></returns>
+        protected Rectangle CalculatePaddedAlignedBounds(Graphics g, Rectangle cellBounds, Size preferredSize) {
+            Rectangle r = ApplyCellPadding(cellBounds);
             r = this.AlignRectangle(r, new Rectangle(0, 0, r.Width, preferredSize.Height));
             return r;
         }
@@ -1344,6 +1362,9 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Is the current item hot (i.e. under the mouse)?
+        /// </summary>
         protected bool IsItemHot {
             get {
                 return this.ListView != null &&
@@ -1354,6 +1375,12 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// Calculate the bounds of a checkbox given the cell bounds
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="cellBounds"></param>
+        /// <returns></returns>
         protected Rectangle CalculateCheckBoxBounds(Graphics g, Rectangle cellBounds) {
             Size checkBoxSize = CheckBoxRenderer.GetGlyphSize(g, CheckBoxState.CheckedNormal);
             return this.AlignRectangle(cellBounds,
@@ -1411,11 +1438,10 @@ namespace BrightIdeasSoftware
             // Is the selector actually an image?
             Image image = imageSelector as Image;
             if (image != null) {
-                int top = r.Y;
                 if (image.Size.Height < r.Height)
                     r.Y = this.AlignVertically(r, new Rectangle(Point.Empty, image.Size));
 
-                g.DrawImageUnscaled(image, r.X, top);
+                g.DrawImageUnscaled(image, r.X, r.Y);
                 return image.Width;
             }
 
@@ -2120,7 +2146,7 @@ namespace BrightIdeasSoftware
             if (r.Contains(x, y))
                 hti.HitTestLocation = HitTestLocation.CheckBox;
         }
-        }
+    }
 
     /// <summary>
     /// Render an image that comes from our data source.
@@ -2197,6 +2223,9 @@ namespace BrightIdeasSoftware
             this.tickler = null;
         }
 
+        /// <summary>
+        /// Gets a timer that can be used to trigger redraws on animations
+        /// </summary>
         protected Timer Tickler {
             get {
                 if (this.tickler == null)
