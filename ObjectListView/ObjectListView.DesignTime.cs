@@ -256,6 +256,12 @@ namespace BrightIdeasSoftware.Design
 
         #region Overrides
 
+        /// <summary>
+        /// Gets the design-time action lists supported by the component associated with the designer.
+        /// </summary>
+        /// <returns>
+        /// The design-time action lists supported by the component associated with the designer.
+        /// </returns>
         public override DesignerActionListCollection ActionLists {
             get {
                 // We want to change the first action list so it only has the commands we want
@@ -267,6 +273,12 @@ namespace BrightIdeasSoftware.Design
             }
         }
 
+        /// <summary>
+        /// Gets the collection of components associated with the component managed by the designer.
+        /// </summary>
+        /// <returns>
+        /// The components that are associated with the component managed by the designer.
+        /// </returns>
         public override ICollection AssociatedComponents {
             get {
                 ArrayList components = new ArrayList(base.AssociatedComponents);
@@ -275,11 +287,22 @@ namespace BrightIdeasSoftware.Design
             }
         }
 
+        /// <summary>
+        /// Indicates whether a mouse click at the specified point should be handled by the control.
+        /// </summary>
+        /// <returns>
+        /// true if a click at the specified point is to be handled by the control; otherwise, false.
+        /// </returns>
+        /// <param name="point">A <see cref="T:System.Drawing.Point"/> indicating the position at which the mouse was clicked, in screen coordinates. </param>
         protected override bool GetHitTest(Point point) {
             // The ListViewDesigner wants to allow column dividers to be resized
             return (bool)this.listViewDesignGetHitTest.Invoke(listViewDesigner, new object[] { point });
         }
 
+        /// <summary>
+        /// Processes Windows messages and optionally routes them to the control.
+        /// </summary>
+        /// <param name="m">The <see cref="T:System.Windows.Forms.Message"/> to process. </param>
         protected override void WndProc(ref Message m) {
             switch (m.Msg) {
                 case 0x4e:

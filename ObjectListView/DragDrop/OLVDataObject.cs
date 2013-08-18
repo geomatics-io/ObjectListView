@@ -122,6 +122,10 @@ namespace BrightIdeasSoftware {
             this.SetText(ConvertToHtmlFragment(exporter.ExportTo(OLVExporter.ExportFormat.HTML)), TextDataFormat.Html);
         }
 
+        /// <summary>
+        /// Create an exporter for the data contained in this object
+        /// </summary>
+        /// <returns></returns>
         protected OLVExporter CreateExporter() {
             OLVExporter exporter = new OLVExporter(this.ListView);
             exporter.IncludeColumnHeaders = this.IncludeColumnHeaders;
@@ -168,7 +172,7 @@ namespace BrightIdeasSoftware {
                 "<HTML><HEAD></HEAD><BODY><!--StartFragment-->{0}<!--EndFragment--></BODY></HTML>";
 
             string html = String.Format(DEFAULT_HTML_BODY, fragment);
-            int startFragment = prefixLength + html.IndexOf(fragment);
+            int startFragment = prefixLength + html.IndexOf(fragment, StringComparison.Ordinal);
             int endFragment = startFragment + fragment.Length;
 
             return String.Format(MARKER_BLOCK, prefixLength, prefixLength + html.Length, startFragment, endFragment, SOURCE, html);
