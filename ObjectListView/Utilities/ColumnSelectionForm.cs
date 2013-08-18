@@ -1,3 +1,13 @@
+/*
+ * ColumnSelectionForm - A utility form that allows columns to be rearranged and/or hidden
+ *
+ * Author: Phillip Piper
+ * Date: 1/04/2011 11:15 AM
+ *
+ * Change log:
+ * 2013-04-21  JPP  - Fixed obscure bug in column re-ordered. Thanks to Edwin Chen.
+ */
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -118,7 +128,7 @@ namespace BrightIdeasSoftware
             if (view == View.Details) {
                 // Of the still visible columns, change DisplayIndex to reflect their position in the rearranged list
                 olv.ChangeToFilteredColumns(view);
-                foreach (ColumnHeader col in olv.Columns) {
+                foreach (ColumnHeader col in visibleColumns) {
                     col.DisplayIndex = visibleColumns.IndexOf((OLVColumn)col);
                 }
             } else {
