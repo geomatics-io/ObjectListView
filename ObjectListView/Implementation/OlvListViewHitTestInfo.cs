@@ -82,9 +82,18 @@ namespace BrightIdeasSoftware {
         Group
     }
 
+    /// <summary>
+    /// A collection of ListViewHitTest constants
+    /// </summary>
     [Flags]
     public enum HitTestLocationEx {
+        /// <summary>
+        /// 
+        /// </summary>
         LVHT_NOWHERE = 0x00000001,
+        /// <summary>
+        /// 
+        /// </summary>
         LVHT_ONITEMICON = 0x00000002,
         LVHT_ONITEMLABEL = 0x00000004,
         LVHT_ONITEMSTATEICON = 0x00000008,

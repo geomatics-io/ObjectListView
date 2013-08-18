@@ -75,12 +75,18 @@ namespace BrightIdeasSoftware {
 
         #region Implementation
 
+        /// <summary>
+        /// Gets the value that will be xor-ed to test for the presence of a particular value.
+        /// </summary>
         public long[] Values {
             get { return this.values; }
             private set { this.values = value; }
         }
         private long[] values;
 
+        /// <summary>
+        /// Gets the labels that will be used when the corresponding Value is XOR present in the data.
+        /// </summary>
         public string[] Labels {
             get { return this.labels; }
             private set { this.labels = value; }
