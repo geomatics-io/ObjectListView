@@ -263,6 +263,24 @@ namespace BrightIdeasSoftware
             this.RebuildIndexMap();
         }
 
+        /// <summary>
+        /// Update/replace the nth object with the given object
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="modelObject"></param>
+        public override void UpdateObject(int index, object modelObject) {
+            if (index < 0 || index >= this.filteredObjectList.Count)
+                return;
+
+            int i = this.fullObjectList.IndexOf(this.filteredObjectList[index]);
+            if (i < 0)
+                return;
+
+            this.fullObjectList[i] = modelObject;
+            this.filteredObjectList[index] = modelObject;
+            this.objectsToIndexMap[modelObject] = index;
+        }
+
         private ArrayList fullObjectList = new ArrayList();
         private ArrayList filteredObjectList = new ArrayList();
         private IModelFilter modelFilter;

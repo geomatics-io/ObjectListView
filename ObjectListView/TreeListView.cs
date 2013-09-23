@@ -5,6 +5,13 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2013-09-23  JPP  - Fixed long standing bug where RefreshObject() would not work on root objects
+ *                    which overrode Equals()/GetHashCode().
+ * 2013-02-23  JPP  - Added HierarchicalCheckboxes. When this is true, the checkedness of a parent
+ *                    is an synopsis of the checkedness of its children. When all children are checked,
+ *                    the parent is checked. When all children are unchecked, the parent is unchecked.
+ *                    If some children are checked and some are not, the parent is indeterminate.
+ * v2.6
  * 2012-10-25  JPP  - Circumvent annoying bug in ListView control where changing
  *                    selection would leave artefacts on the control.
  * 2012-08-10  JPP  - Don't trigger selection changed events during expands
@@ -235,6 +242,30 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Gets or sets whether this tree list view will display hierarchical checkboxes.
+        /// Hierarchical checkboxes is when a parent's "checkedness" is calculated from
+        /// the "checkedness" of its children. If all children are checked, the parent
+        /// will be checked. If all children are unchecked, the parent will also be unchecked.
+        /// If some children are checked and others are not, the parent will be indeterminate.
+        /// </summary>
+        [Category("ObjectListView"),
+         Description("Show hierarchical checkboxes be enabled?"),
+         DefaultValue(false)]
+        public virtual bool HierarchicalCheckboxes {
+            get { return this.hierarchicalCheckboxes; }
+            set {
+                if (this.hierarchicalCheckboxes == value)
+                    return;
+
+                this.hierarchicalCheckboxes = value;
+                this.CheckBoxes = value;
+                if (value)
+                    this.TriStateCheckBoxes = false;
+            }
+        }
+        private bool hierarchicalCheckboxes;
+
+        /// <summary>
         /// Gets or sets the collection of root objects of the tree
         /// </summary>
         [Browsable(false),
@@ -244,6 +275,10 @@ namespace BrightIdeasSoftware
             set { this.Roots = value; }
         }
 
+        /// <summary>
+        /// Gets the collection of objects that will be considered when creating clusters
+        /// (which are used to generate Excel-like column filters)
+        /// </summary>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public override IEnumerable ObjectsForClustering {
@@ -373,7 +408,8 @@ namespace BrightIdeasSoftware
             if (index >= 0) {
                 this.UpdateVirtualListSize();
                 this.SelectedObjects = selection;
-                this.RedrawItems(index, this.GetItemCount() - 1, false);
+                if (index < this.GetItemCount())
+                    this.RedrawItems(index, this.GetItemCount() - 1, false);
             }
         }
 
@@ -538,12 +574,34 @@ namespace BrightIdeasSoftware
             if (this.GetItemCount() == 0)
                 return;
 
+            // Collect any top level objects
+            ArrayList updatedRoots = new ArrayList();
+
             // Remember the selection so we can put it back later
             IList selection = this.SelectedObjects;
 
+            // We actually need to refresh the parents.
+            // Refreshes on root objects have to be handled differently
+            Hashtable modelsAndParents = new Hashtable();
+            foreach (Object model in modelObjects) {
+                if (model == null)
+                    continue;
+                object parent = GetParent(model);
+                if (parent == null) {
+                    updatedRoots.Add(model);
+                } else {
+                    modelsAndParents[model] = true;
+                    modelsAndParents[parent] = true;
+                }
+            }
+
+            // Updates to root level objects are treated like updates on a normal OLV
+            if (updatedRoots.Count > 0)
+                base.RefreshObjects(updatedRoots);
+
             // Refresh each object, remembering where the first update occured
             int firstChange = Int32.MaxValue;
-            foreach (Object model in modelObjects) {
+            foreach (Object model in modelsAndParents.Keys) {
                 if (model != null) {
                     int index = this.TreeModel.RebuildChildren(model);
                     if (index >= 0)
@@ -561,6 +619,74 @@ namespace BrightIdeasSoftware
 
             // Redraw everything from the first update to the end of the list
             this.RedrawItems(firstChange, this.GetItemCount() - 1, false);
+        }
+
+        /// <summary>
+        /// Change the check state of the given object to be the given state.
+        /// </summary>
+        /// <remarks>
+        /// If the given model object isn't in the list, we still try to remember
+        /// its state, in case it is referenced in the future.</remarks>
+        /// <param name="modelObject"></param>
+        /// <param name="state"></param>
+        /// <returns>True if the checkedness of the model changed</returns>
+        protected override bool SetObjectCheckedness(object modelObject, CheckState state) {
+            // If the checkedness of the given model changes AND this tree has 
+            // hierarchical checkboxes, then we need to update the checkedness of 
+            // its children, and recalculate the checkedness of the parent (recursively)
+            if (!base.SetObjectCheckedness(modelObject, state))
+                return false;
+
+            if (!this.HierarchicalCheckboxes)
+                return true;
+
+            // Give each child the same checkedness as the model
+
+            CheckState? checkedness = this.GetCheckState(modelObject);
+            if (!checkedness.HasValue || checkedness.Value == CheckState.Indeterminate)
+                return true;
+
+            foreach (object child in this.GetChildrenWithoutExpanding(modelObject)) {
+                this.SetObjectCheckedness(child, checkedness.Value);
+            }
+
+            this.RecalculateHierarchicalCheckBox(this.GetParent(modelObject));
+
+            return true;
+        }
+
+        private void RecalculateHierarchicalCheckBox(object modelObject) {
+
+            if (modelObject == null)
+                return;
+
+            // Set the checkedness of the given model based on the state of its children.
+            CheckState? aggregate = null;
+            foreach (object child in this.GetChildren(modelObject)) {
+                CheckState? checkedness = this.GetCheckState(child);
+                if (checkedness.HasValue) {
+                    if (aggregate.HasValue) {
+                        if (aggregate.Value != checkedness.Value) {
+                            aggregate = CheckState.Indeterminate;
+                            break;
+                        }
+                    } 
+                    else 
+                        aggregate = checkedness;
+                }
+            }
+
+            base.SetObjectCheckedness(modelObject, aggregate ?? CheckState.Indeterminate);
+
+            this.RecalculateHierarchicalCheckBox(this.GetParent(modelObject));
+        }
+
+        private IEnumerable GetChildrenWithoutExpanding(Object model) {
+            Branch br = this.TreeModel.GetBranch(model);
+            if (br == null || !br.CanExpand)
+                return new ArrayList();
+
+            return br.Children;
         }
 
         /// <summary>
@@ -618,8 +744,8 @@ namespace BrightIdeasSoftware
         /// given model.
         /// </summary>
         /// <param name="model"></param>
-        /// <remarks>The given model must have already been seen in the tree and
-        /// must be expandable</remarks>
+        /// <remarks>If the given model has not already been seen in the tree or
+        /// if it is not expandable, an empty collection will be returned.</remarks>
         public virtual IEnumerable GetChildren(Object model) {
             Branch br = this.TreeModel.GetBranch(model);
             if (br == null || !br.CanExpand)
@@ -1129,9 +1255,12 @@ namespace BrightIdeasSoftware
             protected virtual BranchComparer GetBranchComparer() {
                 if (this.lastSortColumn == null)
                     return null;
-                else
-                    return new BranchComparer(new ModelObjectComparer(this.lastSortColumn, this.lastSortOrder,
-                        this.treeView.GetColumn(0), this.lastSortOrder));
+                
+                return new BranchComparer(new ModelObjectComparer(
+                    this.lastSortColumn, 
+                    this.lastSortOrder,
+                    this.treeView.SecondarySortColumn ?? this.treeView.GetColumn(0), 
+                    this.treeView.SecondarySortColumn == null ? this.lastSortOrder : this.treeView.SecondarySortOrder));
             }
 
             /// <summary>
@@ -1170,6 +1299,18 @@ namespace BrightIdeasSoftware
             public virtual void SetObjects(IEnumerable collection) {
                 // We interpret a SetObjects() call as setting the roots of the tree
                 this.treeView.Roots = collection;
+            }
+
+            /// <summary>
+            /// Update/replace the nth object with the given object
+            /// </summary>
+            /// <param name="index"></param>
+            /// <param name="modelObject"></param>
+            public void UpdateObject(int index, object modelObject) {
+                ArrayList newRoots = ObjectListView.EnumerableToArray(this.treeView.Roots, false);
+                if (index < newRoots.Count)
+                    newRoots[index] = modelObject;
+                SetObjects(newRoots);
             }
 
             #endregion
@@ -1336,8 +1477,19 @@ namespace BrightIdeasSoftware
                 }
                 set {
                     this.ChildBranches.Clear();
-                    foreach (Object x in value)
+
+                    TreeListView treeListView = this.Tree.TreeView;
+                    CheckState? checkedness = null;
+                    if (treeListView != null && treeListView.HierarchicalCheckboxes)
+                        checkedness = treeListView.GetCheckState(this.Model);
+                    foreach (Object x in value) {
                         this.AddChild(x);
+
+                        // If the tree view is showing hierarchical checkboxes, then
+                        // when a child object is first added, it has the same checkedness as this branch
+                        if (checkedness.HasValue && checkedness.Value == CheckState.Checked)
+                            treeListView.SetObjectCheckedness(x, checkedness.Value);
+                    }
                 }
             }
 
@@ -1345,8 +1497,11 @@ namespace BrightIdeasSoftware
                 Branch br = this.Tree.GetBranch(model);
                 if (br == null)
                     br = this.Tree.MakeBranch(this, model);
-                else
+                else {
                     br.ParentBranch = this;
+                    br.Model = model;
+                    br.ClearCachedInfo();
+                }
                 this.ChildBranches.Add(br);
             }
 
