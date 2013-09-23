@@ -5,6 +5,8 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2013-09-24  JPP  - Fixed bug in RefreshObjects() when model objects overrode the Equals()/GetHashCode() methods.
+ *                  - Made sure get state checker were used when they should have been
  * 2013-04-21  JPP  - Clicking on a non-groupable column header when showing groups will now sort
  *                    the group contents by that column.
  * v2.6
@@ -4477,9 +4479,11 @@ namespace BrightIdeasSoftware
                 foreach (object modelObject in modelObjects) {
                     if (modelObject != null) {
 // ReSharper disable PossibleMultipleEnumeration
-                        ourObjects.Remove(modelObject);
+                        int i = ourObjects.IndexOf(modelObject);
+                        if (i >= 0)
+                            ourObjects.RemoveAt(i);
 // ReSharper restore PossibleMultipleEnumeration
-                        int i = this.IndexOf(modelObject);
+                        i = this.IndexOf(modelObject);
                         if (i >= 0)
                             this.Items.RemoveAt(i);
                     }
@@ -4600,6 +4604,77 @@ namespace BrightIdeasSoftware
             // Tell the world that the list has changed
             this.UpdateNotificationSubscriptions(this.objects);
             this.OnItemsChanged(new ItemsChangedEventArgs());
+        }
+
+        /// <summary>
+        /// Update the given model object into the ListView. The model will be added if it doesn't already exist.
+        /// </summary>
+        /// <param name="modelObject">The model to be updated</param>
+        /// <remarks>
+        /// <para>
+        /// See <see cref="RemoveObjects()"/> for more details
+        /// </para>
+        /// <para>This method is thread-safe.</para>
+        /// <para>This method will cause the list to be resorted.</para>
+        /// </remarks>
+        public virtual void UpdateObject(object modelObject) {
+            if (this.InvokeRequired)
+                this.Invoke((MethodInvoker)delegate() { this.UpdateObject(modelObject); });
+            else
+                this.UpdateObjects(new object[] { modelObject });
+        }
+
+        /// <summary>
+        /// Update the pre-existing models that are equal to the given objects. If any of the model doesn't
+        /// already exist in the control, they will be added.
+        /// </summary>
+        /// <param name="modelObjects">Collection of objects to be updated/added</param>
+        /// <remarks>
+        /// <para>This method will cause the list to be resorted.</para>
+        /// <para>Nulls are silently ignored.</para>
+        /// <para>This method is thread-safe.</para>
+        /// <para>This method only works on ObjectListViews and FastObjectListViews.</para>
+        /// </remarks>
+        public virtual void UpdateObjects(ICollection modelObjects) {
+            if (this.InvokeRequired) {
+                this.Invoke((MethodInvoker)delegate() { this.UpdateObjects(modelObjects); });
+                return;
+            }
+            if (modelObjects == null || modelObjects.Count == 0)
+                return;
+
+            this.BeginUpdate();
+            try {
+                this.UnsubscribeNotifications(modelObjects);
+
+                ArrayList objectsToAdd = new ArrayList();
+
+                this.TakeOwnershipOfObjects();
+                ArrayList ourObjects = ObjectListView.EnumerableToArray(this.Objects, false);
+                foreach (object modelObject in modelObjects) {
+                    if (modelObject != null) {
+                        int i = ourObjects.IndexOf(modelObject);
+                        if (i < 0) 
+                            objectsToAdd.Add(modelObject);
+                        else {
+                            ourObjects[i] = modelObject;
+                            OLVListItem olvi = this.ModelToItem(modelObject);
+                            if (olvi != null) {
+                                olvi.RowObject = modelObject;
+                                this.RefreshItem(olvi);
+                            }
+                        }
+                    }
+                }
+                this.PostProcessRows();
+
+                // Tell the world that the list has changed
+                this.SubscribeNotifications(modelObjects);
+                this.OnItemsChanged(new ItemsChangedEventArgs());
+            }
+            finally {
+                this.EndUpdate();
+            }
         }
 
         /// <summary>
@@ -6829,6 +6904,10 @@ namespace BrightIdeasSoftware
         /// <param name="state"></param>
         /// <returns>True if the checkedness of the model changed</returns>
         protected virtual bool SetObjectCheckedness(object modelObject, CheckState state) {
+
+            if (GetCheckState(modelObject) == state)
+                return false;
+
             OLVListItem olvi = this.ModelToItem(modelObject);
 
             // If we didn't find the given, we still try to record the check state.
@@ -6836,9 +6915,6 @@ namespace BrightIdeasSoftware
                 this.PutCheckState(modelObject, state);
                 return true;
             }
-
-            if (olvi.CheckState == state)
-                return false;
 
             // Trigger checkbox changing event. We only need to do this for virtual
             // lists, since setting CheckState triggers these events for non-virtual lists
@@ -7150,7 +7226,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Update the ListViewItem with the data from its associated model.
+        /// Rebuild the given ListViewItem with the data from its associated model.
         /// </summary>
         /// <remarks>This method does not resort or regroup the view. It simply updates
         /// the displayed data of the given item</remarks>
@@ -7162,9 +7238,23 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Update the rows that are showing the given objects
+        /// Rebuild the data on the row that is showing the given object.
         /// </summary>
-        /// <remarks>This method does not resort or regroup the view.</remarks>
+        /// <remarks>
+        /// <para>
+        /// This method does not resort or regroup the view.
+        /// </para>
+        /// <para>
+        /// The given object is *not* used as the source of data for the rebuild.
+        /// It is only used to locate the matching model in the <see cref="Objects"/> collection,
+        /// then that matching model is used as the data source. This distinction is
+        /// only important in model classes that have overridden the Equals() method.
+        /// </para>
+        /// <para>
+        /// If you want the given model object to replace the pre-existing model,
+        /// use <see cref="UpdateObject"/>. 
+        /// </para>
+        /// </remarks>
         public virtual void RefreshObject(object modelObject) {
             this.RefreshObjects(new object[] { modelObject });
         }
@@ -7183,9 +7273,24 @@ namespace BrightIdeasSoftware
             }
             foreach (object modelObject in modelObjects) {
                 OLVListItem olvi = this.ModelToItem(modelObject);
-                if (olvi != null)
+                if (olvi != null) {
+                    this.ReplaceModel(olvi, modelObject);
                     this.RefreshItem(olvi);
+                }
             }
+        }
+
+        private void ReplaceModel(OLVListItem olvi, object newModel) {
+            if (ReferenceEquals(olvi.RowObject, newModel))
+                return;
+
+            this.TakeOwnershipOfObjects();
+            ArrayList array = ObjectListView.EnumerableToArray(this.Objects, false);
+            int i = array.IndexOf(olvi.RowObject);
+            if (i >= 0)
+                array[i] = newModel;
+
+            olvi.RowObject = newModel;
         }
 
         /// <summary>
