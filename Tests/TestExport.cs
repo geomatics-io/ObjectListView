@@ -25,9 +25,7 @@
  * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
  */
 
-using System.Collections;
 using NUnit.Framework;
-using System.Collections.Generic;
 
 namespace BrightIdeasSoftware.Tests
 {
@@ -46,7 +44,7 @@ namespace BrightIdeasSoftware.Tests
             string tabSeparated = exporter.ExportTo(OLVExporter.ExportFormat.TSV);
             Assert.AreEqual(tabSeparated, @"Name	Occupation	Culinary Rating	CanTellJokes	IsActive
 name	occupation	200	True	
-name	occupation	200	True	
+name2	occupation	200	True	
 aaa First Alphabetical Name	occupation3	90	True	
 name4	occupation4	80	True	
 name5	occupation5	140	True	
@@ -67,13 +65,13 @@ zzz Last Alphabetical Name	occupation6	60	True
         }
 
         [Test]
-        public void Test_CSV_Simple() {
+        public void Test_Csv_Simple() {
             this.olv.SetObjects(PersonDb.All);
             OLVExporter exporter = new OLVExporter(this.olv);
             string csv = exporter.ExportTo(OLVExporter.ExportFormat.CSV);
             Assert.AreEqual(csv, @"""Name"",""Occupation"",""Culinary Rating"",""CanTellJokes"",""IsActive""
 ""name"",""occupation"",""200"",""True"",""""
-""name"",""occupation"",""200"",""True"",""""
+""name2"",""occupation"",""200"",""True"",""""
 ""aaa First Alphabetical Name"",""occupation3"",""90"",""True"",""""
 ""name4"",""occupation4"",""80"",""True"",""""
 ""name5"",""occupation5"",""140"",""True"",""""
@@ -83,7 +81,7 @@ zzz Last Alphabetical Name	occupation6	60	True
         }
 
         [Test]
-        public void Test_CSV_EscapedValues() {
+        public void Test_Csv_EscapedValues() {
             PersonDb.All[0].Occupation = @"Some, ""value""";
             this.olv.SetObjects(PersonDb.All);
             this.olv.SelectedObject = PersonDb.All[0];
@@ -95,13 +93,13 @@ zzz Last Alphabetical Name	occupation6	60	True
         }
 
         [Test]
-        public void Test_HTML_Simple() {
+        public void Test_Html_Simple() {
             this.olv.SetObjects(PersonDb.All);
             OLVExporter exporter = new OLVExporter(this.olv);
             string html = exporter.ExportTo(OLVExporter.ExportFormat.HTML);
             Assert.AreEqual(html, @"<table><tr><td>Name</td><td>Occupation</td><td>Culinary Rating</td><td>CanTellJokes</td><td>IsActive</td></tr>
 <tr><td>name</td><td>occupation</td><td>200</td><td>True</td><td></td></tr>
-<tr><td>name</td><td>occupation</td><td>200</td><td>True</td><td></td></tr>
+<tr><td>name2</td><td>occupation</td><td>200</td><td>True</td><td></td></tr>
 <tr><td>aaa First Alphabetical Name</td><td>occupation3</td><td>90</td><td>True</td><td></td></tr>
 <tr><td>name4</td><td>occupation4</td><td>80</td><td>True</td><td></td></tr>
 <tr><td>name5</td><td>occupation5</td><td>140</td><td>True</td><td></td></tr>
@@ -112,7 +110,7 @@ zzz Last Alphabetical Name	occupation6	60	True
         }
 
         [Test]
-        public void Test_HTML_EscapedValues() {
+        public void Test_Html_EscapedValues() {
             PersonDb.All[0].Occupation = @"Complex <T> "" & string";
             this.olv.SetObjects(PersonDb.All);
             this.olv.SelectedObject = PersonDb.All[0];
