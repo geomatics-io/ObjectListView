@@ -535,8 +535,10 @@ namespace BrightIdeasSoftware
                 this.ClearCachedInfo();
                 foreach (object modelObject in modelObjects) {
                     int index = this.VirtualListDataSource.GetObjectIndex(modelObject);
-                    if (index >= 0)
+                    if (index >= 0) {
+                        this.VirtualListDataSource.UpdateObject(index, modelObject);
                         this.RedrawItems(index, index, true);
+                    }
                 }
             }
             finally {
