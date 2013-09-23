@@ -25,6 +25,7 @@
  * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
  */
 
+using System.Drawing;
 using NUnit.Framework;
 using System.Collections.Generic;
 
@@ -33,6 +34,20 @@ namespace BrightIdeasSoftware.Tests
     [TestFixture]
     public class TestNotifications
     {
+        [SetUp]
+        public void InitEachTest() {
+            mainForm = new MainForm();
+            mainForm.Size = new Size();
+            mainForm.Show();
+            this.olv = GetObjectListView();
+        }
+        protected ObjectListView olv;
+        protected MainForm mainForm;
+
+        protected virtual ObjectListView GetObjectListView() {
+            return mainForm.objectListView1;
+        }
+
         [TearDown]
         public void TestTearDown() {
             this.olv.UseNotifyPropertyChanged = false;        
@@ -43,7 +58,7 @@ namespace BrightIdeasSoftware.Tests
         public void Test_UseNotifyPropertyChangedIsTrue_PropertyChange_CellChanges() {
             this.olv.UseNotifyPropertyChanged = true;
             this.olv.SetObjects(PersonDb.All);
-            this.SetAndCheckNameColumnValue(1, "new name 2");
+            this.SetAndCheckOccupationColumnValue(1, "new occupation 2");
         }
 
         [Test]
@@ -56,15 +71,15 @@ namespace BrightIdeasSoftware.Tests
 
             this.olv.UseNotifyPropertyChanged = false;
             this.olv.SetObjects(PersonDb.All);
-            PersonDb.All[1].Name = "new value 2";
+            PersonDb.All[1].Occupation = "new value 2";
             int row = this.olv.IndexOf(PersonDb.All[1]);
-            Assert.AreNotEqual("new value 2", this.olv.Items[row].SubItems[0].Text);
+            Assert.AreNotEqual("new value 2", this.olv.GetItem(row).SubItems[1].Text);
         }
 
-        private void SetAndCheckNameColumnValue(int personIndex, string newNameValue) {
-            PersonDb.All[personIndex].Name = newNameValue;
+        private void SetAndCheckOccupationColumnValue(int personIndex, string newOccupation) {
+            PersonDb.All[personIndex].Occupation = newOccupation;
             int row = this.olv.IndexOf(PersonDb.All[personIndex]);
-            Assert.AreEqual(newNameValue, this.olv.Items[row].SubItems[0].Text);
+            Assert.AreEqual(newOccupation, this.olv.GetItem(row).SubItems[1].Text);
         }
 
         [Test]
@@ -147,8 +162,8 @@ namespace BrightIdeasSoftware.Tests
             this.olv.AddObject(PersonDb.All[0]);
             this.olv.AddObject(PersonDb.All[1]);
             this.olv.AddObject(PersonDb.All[2]);
-            this.SetAndCheckNameColumnValue(0, "new name 2");
-            this.SetAndCheckNameColumnValue(2, "new name 3");
+            this.SetAndCheckOccupationColumnValue(0, "new name 2");
+            this.SetAndCheckOccupationColumnValue(2, "new name 3");
         }
 
         [Test]
@@ -171,29 +186,21 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual(PersonDb.All.Count - toRemove.Count, this.olv.GetItemCount());
         }
 
-        [TestFixtureSetUp]
-        public void Init()
-        {
-            this.olv = MyGlobals.mainForm.objectListView1;
-        }
-        protected ObjectListView olv;
     }
 
     [TestFixture]
     public class TestFastTestNotifications : TestNotifications
     {
-        [TestFixtureSetUp]
-        new public void Init() {
-            this.olv = MyGlobals.mainForm.fastObjectListView1;
+        protected override ObjectListView GetObjectListView() {
+            return mainForm.fastObjectListView1;
         }
     }
 
     [TestFixture]
     public class TestTreeListViewTestNotifications : TestNotifications
     {
-        [TestFixtureSetUp]
-        new public void Init() {
-            this.olv = MyGlobals.mainForm.treeListView1;
+        protected override ObjectListView GetObjectListView() {
+            return mainForm.treeListView1;
         }
     }
 }

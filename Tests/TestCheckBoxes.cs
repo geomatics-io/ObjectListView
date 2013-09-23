@@ -9,6 +9,8 @@
  */
 
 using System.Collections.Generic;
+using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 using NUnit.Framework;
 
@@ -19,6 +21,11 @@ namespace BrightIdeasSoftware.Tests
     {
         [SetUp]
         public void InitEachTest() {
+            mainForm = new MainForm();
+            mainForm.Size = new Size();
+            mainForm.Show();
+            this.olv = GetObjectListView();
+
             if (!this.olv.CheckBoxes)
                 this.olv.CheckBoxes = true;
 
@@ -27,19 +34,21 @@ namespace BrightIdeasSoftware.Tests
             this.olv.TriStateCheckBoxes = false;
         }
 
+        protected virtual ObjectListView GetObjectListView() {
+            return mainForm.objectListView1;
+        }
+
         [TearDown]
         public void TearDownEachTest() {
             this.olv.CheckStateGetter = null;
             this.olv.CheckStatePutter = null;
             this.olv.UseFiltering = false;
             this.olv.ModelFilter = null;
+
+            mainForm.Close();
         }
 
-        [TestFixtureSetUp]
-        public void Init()
-        {
-            this.olv = MyGlobals.mainForm.objectListView1;
-        }
+        protected MainForm mainForm;
         protected ObjectListView olv;
 
         [Test]
@@ -55,6 +64,7 @@ namespace BrightIdeasSoftware.Tests
 
         [Test]
         public void TestCheckIndeterminateObject() {
+            this.olv.TriStateCheckBoxes = true;
             Person p = PersonDb.All[1];
             this.olv.CheckIndeterminateObject(p);
             Assert.IsTrue(this.olv.IsCheckedIndeterminate(p));
@@ -141,6 +151,12 @@ namespace BrightIdeasSoftware.Tests
 
         [Test]
         public void TestCheckStatePutter() {
+            this.olv.CheckStateGetter = delegate(object x) {
+                Person p = (Person) x;
+                if (!p.IsActive.HasValue) 
+                    return CheckState.Indeterminate;
+                return p.IsActive.Value ? CheckState.Checked : CheckState.Unchecked;
+            };
             this.olv.CheckStatePutter = delegate(object x, CheckState state) {
                 Person p = (Person)x;
                 switch (state) {
@@ -156,12 +172,16 @@ namespace BrightIdeasSoftware.Tests
                 }
                 return state;
             };
-            this.olv.CheckObject(PersonDb.All[0]);
-            Assert.IsTrue(PersonDb.All[0].IsActive == true);
-            this.olv.UncheckObject(PersonDb.All[0]);
-            Assert.IsTrue(PersonDb.All[0].IsActive == false);
-            this.olv.CheckIndeterminateObject(PersonDb.All[0]);
-            Assert.IsFalse(PersonDb.All[0].IsActive.HasValue);
+            Person person = PersonDb.All[0];
+            this.olv.CheckObject(person);
+            Assert.IsTrue(person.IsActive.HasValue && person.IsActive.Value);
+
+            this.olv.CheckIndeterminateObject(person);
+            Assert.IsFalse(person.IsActive.HasValue);
+
+            this.olv.UncheckObject(person);
+            Assert.IsTrue(person.IsActive.HasValue);
+            Assert.IsFalse(person.IsActive.Value);
         }
 
         [Test]
@@ -319,18 +339,16 @@ namespace BrightIdeasSoftware.Tests
     [TestFixture]
     public class TestFastOlvCheckBoxes : TestOlvCheckBoxes
     {
-        [TestFixtureSetUp]
-        new public void Init() {
-            this.olv = MyGlobals.mainForm.fastObjectListView1;
+        protected override ObjectListView GetObjectListView() {
+            return mainForm.fastObjectListView1;
         }
     }
 
     [TestFixture]
     public class TestTreeListViewCheckBoxes : TestOlvCheckBoxes
     {
-        [TestFixtureSetUp]
-        new public void Init() {
-            this.olv = MyGlobals.mainForm.treeListView1;
+        protected override ObjectListView GetObjectListView() {
+            return mainForm.treeListView1;
         }
     }
 }

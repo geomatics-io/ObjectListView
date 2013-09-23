@@ -145,6 +145,25 @@ namespace BrightIdeasSoftware.Tests
         }
 
         #endregion
+
+        #region Equality members
+
+        protected bool Equals(Person other) {
+            return string.Equals(name, other.name);
+        }
+
+        public override bool Equals(object obj) {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            var other = obj as Person;
+            return other != null && Equals(other);
+        }
+
+        public override int GetHashCode() {
+            return (name != null ? name.GetHashCode() : 0);
+        }
+
+        #endregion
     }
 
     // Model class for testing virtual and overridden methods
@@ -172,34 +191,34 @@ namespace BrightIdeasSoftware.Tests
     {
         static void InitializeAllPersons()
         {
-            allPersons = new List<Person>(new Person[] {             
+            sAllPersons = new List<Person>(new Person[] {             
                 new Person("name", "occupation", 200, DateTime.Now.AddYears(1), 1.0, true, "  photo  ", "comments"),
-                new Person2("name", "occupation", 100, DateTime.Now, 1.0, true, "  photo  ", "comments"),
+                new Person2("name2", "occupation", 100, DateTime.Now, 1.0, true, "  photo  ", "comments"),
                 new Person(PersonDb.FirstAlphabeticalName, "occupation3", 90, DateTime.Now, 3.0, true, "  photo3  ", "comments3"),
                 new Person("name4", "occupation4", 80, DateTime.Now, 4.0, true, "  photo4  ", "comments4"),
                 new Person2("name5", "occupation5", 70, DateTime.Now, 5.0, true, "  photo5  ", "comments5"),
                 new Person("name6", "occupation6", 65, DateTime.Now, 6.0, true, "  photo6  ", "comments6"),
                 new Person(PersonDb.LastAlphabeticalName, "occupation6", 60, DateTime.Now.AddYears(-1), 6.0, true, "  photo6  ", "comments6"),
             });
-            allPersons[0].Children.Add(allPersons[2]);
-            allPersons[0].Children.Add(allPersons[3]);
-            allPersons[1].Children.Add(allPersons[4]);
-            allPersons[1].Children.Add(allPersons[5]);
-            allPersons[5].Children.Add(allPersons[6]);
+            sAllPersons[0].Children.Add(sAllPersons[2]);
+            sAllPersons[0].Children.Add(sAllPersons[3]);
+            sAllPersons[1].Children.Add(sAllPersons[4]);
+            sAllPersons[1].Children.Add(sAllPersons[5]);
+            sAllPersons[5].Children.Add(sAllPersons[6]);
         }
-        static private List<Person> allPersons;
+        static private List<Person> sAllPersons;
 
         static public List<Person> All
         {
             get {
-                if (allPersons == null)
+                if (sAllPersons == null)
                     InitializeAllPersons();
-                return allPersons;
+                return sAllPersons;
             }
         }
 
         static public void Reset() {
-            allPersons = null;
+            sAllPersons = null;
         }
 
         static public string FirstAlphabeticalName
