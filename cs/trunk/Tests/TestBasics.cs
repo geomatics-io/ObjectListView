@@ -8,6 +8,7 @@
  * 10/25/2008 JPP  Initial Version
  */
 
+using System.Drawing;
 using NUnit.Framework;
 using System.Collections.Generic;
 
@@ -16,6 +17,26 @@ namespace BrightIdeasSoftware.Tests
     [TestFixture]
     public class TestOlvBasics
     {
+        [SetUp]
+        public void SetupTest() {
+            PersonDb.Reset();
+            mainForm = new MainForm();
+            mainForm.Size = new Size();
+            mainForm.Show();
+            this.olv = GetObjectListView();
+        }
+
+        protected virtual ObjectListView GetObjectListView() {
+            return mainForm.objectListView1;
+        }
+
+        [TearDown]
+        public void TearDownTest() {
+            mainForm.Close();
+        }
+        protected ObjectListView olv;
+        protected MainForm mainForm;
+
         [Test]
         public void Test_SetObjects_All() {
             this.olv.SetObjects(PersonDb.All);
@@ -75,7 +96,6 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual(PersonDb.All.Count - toRemove.Count, this.olv.GetItemCount());
         }
 
-
         [Test]
         public void Test_EffectiveRowHeight() {
             this.olv.RowHeight = 32;
@@ -83,81 +103,38 @@ namespace BrightIdeasSoftware.Tests
             this.olv.RowHeight = -1;
         }
 
-        [TestFixtureSetUp]
-        public void Init()
-        {
-            this.olv = MyGlobals.mainForm.objectListView1;
+        [Test]
+        public void Test_RefreshObject() {
+            this.olv.SetObjects(PersonDb.All);
+            Person another = new Person(PersonDb.All[1].Name);
+            another.Occupation = "a new occupation";
+
+            OLVListItem item = this.olv.ModelToItem(another);
+            Assert.IsNotNull(item);
+            Assert.AreNotEqual(another.Occupation, item.SubItems[1].Text);
+
+            this.olv.RefreshObject(another);
+
+            OLVListItem item2 = this.olv.ModelToItem(another);
+            Assert.IsNotNull(item2);
+            Assert.AreEqual(another.Occupation, item2.SubItems[1].Text);
         }
-        protected ObjectListView olv;
+
     }
 
     [TestFixture]
     public class TestFastOlvBasics : TestOlvBasics
     {
-        [TestFixtureSetUp]
-        new public void Init()
-        {
-            this.olv = MyGlobals.mainForm.fastObjectListView1;
+        protected override ObjectListView GetObjectListView() {
+            return mainForm.fastObjectListView1;
         }
     }
 
     [TestFixture]
     public class TestTreeListViewBasics : TestOlvBasics
     {
-        [TestFixtureSetUp]
-        new public void Init()
-        {
-            this.olv = MyGlobals.mainForm.treeListView1;
+        protected override ObjectListView GetObjectListView() {
+            return mainForm.treeListView1;
         }
-    }
-
-    [TestFixture]
-    public class TestTypedListView {
-        [Test]
-        public void Test_Objects_All() {
-            this.tolv.Objects = PersonDb.All;
-            Assert.AreEqual(PersonDb.All.Count, this.tolv.Objects.Count);
-        }
-
-        [Test]
-        public void Test_GenerateAspectGetters_ExtractsData() {
-            this.tolv.GenerateAspectGetters();
-            this.tolv.Objects = PersonDb.All;
-            Person p = this.tolv.ListView.GetItem(0).RowObject as Person;
-            Assert.AreEqual(p.Name, this.tolv.ListView.Items[0].SubItems[0].Text);
-        }
-
-        [Test]
-        public void Test_GenerateAspectGetters_NullDataObject() {
-            this.tolv.GenerateAspectGetters();
-            List<Person> list = new List<Person>();
-            list.Add(null);
-            this.tolv.Objects = list;
-            Assert.AreEqual(list.Count, this.tolv.Objects.Count);
-        }
-
-        [Test]
-        public void Test_GenerateAspectGetters_ClearObjects() {
-            this.tolv.GenerateAspectGetters();
-            this.tolv.Objects = PersonDb.All;
-            this.tolv.ListView.ClearObjects();
-            Assert.AreEqual(0, this.tolv.Objects.Count);
-            this.tolv.Objects = PersonDb.All;
-            Assert.AreEqual(PersonDb.All.Count, this.tolv.Objects.Count);
-        }
-
-        [TearDown]
-        public void TestTearDown() {
-            // Clear any aspect getters that were generated
-            for (int i = 0; i < this.tolv.ListView.Columns.Count; i++)
-                this.tolv.ListView.GetColumn(i).AspectGetter = null;
-        }
-
-        [TestFixtureSetUp]
-        public void Init() {
-            this.tolv = new TypedObjectListView<Person>(MyGlobals.mainForm.objectListView1);
-        }
-
-        protected TypedObjectListView<Person> tolv;
     }
 }

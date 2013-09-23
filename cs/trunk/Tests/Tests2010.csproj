@@ -47,7 +47,9 @@
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
   <ItemGroup>
-    <Reference Include="nunit.framework" />
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -71,14 +73,17 @@
     </Compile>
     <Compile Include="TestCheckBoxes.cs" />
     <Compile Include="TestColumn.cs" />
+    <Compile Include="TestDateClusteringStrategy.cs" />
     <Compile Include="TestExport.cs" />
     <Compile Include="TestFilters.cs" />
+    <Compile Include="TestFlagClusteringStrategy.cs" />
     <Compile Include="TestFormatting.cs" />
     <Compile Include="TestGenerator.cs" />
     <Compile Include="TestNotifications.cs" />
     <Compile Include="TestSelection.cs" />
     <Compile Include="TestSorting.cs" />
     <Compile Include="TestTreeView.cs" />
+    <Compile Include="TestTypedListView.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="MainForm.resx">
@@ -123,5 +128,8 @@
       <Project>{18FEDA0C-D147-4286-B39A-01204808106A}</Project>
       <Name>ObjectListView2010</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

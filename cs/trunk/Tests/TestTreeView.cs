@@ -10,6 +10,8 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Drawing;
 using NUnit.Framework;
 
 namespace BrightIdeasSoftware.Tests
@@ -19,13 +21,33 @@ namespace BrightIdeasSoftware.Tests
     {
         [SetUp]
         public void InitEachTest() {
+            PersonDb.Reset();
+
+            mainForm = new MainForm();
+            mainForm.Size = new Size();
+            mainForm.Show();
+            this.olv = mainForm.treeListView1;
+
+            this.olv.CanExpandGetter = delegate(Object x) {
+                return ((Person)x).Children.Count > 0;
+            };
+            this.olv.ChildrenGetter = delegate(Object x) {
+                return ((Person)x).Children;
+            };
+
+            this.olv.UseFiltering = false;
+            this.olv.ModelFilter = null;
+            this.olv.HierarchicalCheckboxes = false;
             this.olv.Roots = PersonDb.All.GetRange(0, NumberOfRoots);
             this.olv.DiscardAllState();
         }
         private const int NumberOfRoots = 2;
+        protected TreeListView olv;
+        private MainForm mainForm;
 
         [TearDown]
         public void TearDownEachTest() {
+            mainForm.Close();
         }
 
         [Test]
@@ -191,18 +213,145 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual(2, this.olv.GetItemCount());
         }
 
-        [TestFixtureSetUp]
-        public void Init() {
-            this.olv = MyGlobals.mainForm.treeListView1;
-            this.olv.CanExpandGetter = delegate(Object x) {
-                return ((Person)x).Children.Count > 0;
-            };
-            this.olv.ChildrenGetter = delegate(Object x) {
-                return ((Person)x).Children;
-            };
-            this.olv.UseFiltering = false;
-            this.olv.ModelFilter = null;
+
+        [Test]
+        public void TestRefreshWhenModelChanges() {
+            Person firstRoot = PersonDb.All[0];
+            this.olv.CollapseAll();
+            this.olv.Expand(firstRoot);
+            Assert.AreEqual(2, ObjectListView.EnumerableToArray(this.olv.GetChildren(firstRoot), false).Count);
+
+            IList<Person> originalChildren = firstRoot.Children;
+            firstRoot.Children = new List<Person>();
+            firstRoot.Children.Add(originalChildren[0]);
+            Assert.AreEqual(2, ObjectListView.EnumerableToArray(this.olv.GetChildren(firstRoot), false).Count);
+            this.olv.RefreshObject(firstRoot);
+            Assert.AreEqual(1, ObjectListView.EnumerableToArray(this.olv.GetChildren(firstRoot), false).Count);
+
+            firstRoot.Children = originalChildren;
         }
-        protected TreeListView olv;
+
+        [Test]
+        public void TestHierarchicalCheckBoxes_Unrolled_CheckingParent_ChecksChildren() {
+            Person firstRoot = PersonDb.All[0];
+            this.olv.CollapseAll();
+            this.olv.Expand(firstRoot);
+
+            Assert.IsEmpty(this.olv.CheckedObjects);
+
+            this.olv.HierarchicalCheckboxes = true;
+            this.olv.CheckObject(firstRoot);
+
+            foreach (Person child in firstRoot.Children)
+                Assert.IsTrue(this.olv.IsChecked(child));
+
+            this.olv.UncheckObject(firstRoot);
+
+            foreach (Person child in firstRoot.Children)
+                Assert.IsFalse(this.olv.IsChecked(child));
+        }
+
+        [Test]
+        public void TestHierarchicalCheckBoxes_Rolled_CheckingParent_ChecksChildren() {
+            Person firstRoot = PersonDb.All[0];
+            this.olv.CollapseAll();
+
+            this.olv.HierarchicalCheckboxes = true;
+            this.olv.CheckObject(firstRoot);
+            this.olv.Expand(firstRoot);
+
+            foreach (Person child in firstRoot.Children)
+                Assert.IsTrue(this.olv.IsChecked(child));
+
+            this.olv.UncheckObject(firstRoot);
+
+            foreach (Person child in firstRoot.Children)
+                Assert.IsFalse(this.olv.IsChecked(child));
+        }
+
+        [Test]
+        public void TestHierarchicalCheckBoxes_CheckAllChildren_ParentIsChecked() {
+            Person firstRoot = PersonDb.All[0];
+            this.olv.CollapseAll();
+            this.olv.Expand(firstRoot);
+
+            this.olv.HierarchicalCheckboxes = true;
+
+            Assert.IsFalse(this.olv.IsChecked(firstRoot));
+
+            foreach (Person child in firstRoot.Children)
+                this.olv.CheckObject(child);
+
+            Assert.IsTrue(this.olv.IsChecked(firstRoot));
+        }
+
+        [Test]
+        public void TestHierarchicalCheckBoxes_CheckSomeChildren_ParentIsIndeterminate() {
+            Person firstRoot = PersonDb.All[0];
+            this.olv.CollapseAll();
+            this.olv.Expand(firstRoot);
+
+            this.olv.HierarchicalCheckboxes = true;
+
+            Assert.IsFalse(this.olv.IsChecked(firstRoot));
+
+            foreach (Person child in firstRoot.Children)
+                this.olv.CheckObject(child);
+            this.olv.UncheckObject(firstRoot.Children[0]);
+
+            Assert.IsTrue(this.olv.IsCheckedIndeterminate(firstRoot));
+        }
+
+        [Test]
+        public void TestHierarchicalCheckBoxes_UncheckAllChildren_ParentIsUnchecked() {
+            Person firstRoot = PersonDb.All[0];
+            this.olv.CollapseAll();
+            this.olv.Expand(firstRoot);
+
+            this.olv.HierarchicalCheckboxes = true;
+
+            this.olv.CheckObject(firstRoot);
+
+            foreach (Person child in firstRoot.Children)
+                this.olv.UncheckObject(child);
+
+            Assert.IsFalse(this.olv.IsChecked(firstRoot));
+        }
+
+        [Test]
+        public void TestHierarchicalCheckBoxes_ChildrenInheritCheckedness() {
+            Person firstRoot = PersonDb.All[0];
+            this.olv.CollapseAll();
+
+            this.olv.HierarchicalCheckboxes = true;
+
+            this.olv.CheckObject(firstRoot);
+            Assert.IsTrue(this.olv.IsChecked(firstRoot));
+
+            this.olv.Expand(firstRoot);
+            Assert.IsTrue(this.olv.IsChecked(firstRoot));
+
+            foreach (Person child in firstRoot.Children)
+                Assert.IsTrue(this.olv.IsChecked(child));
+        }
+
+        [Test]
+        public void TestHierarchicalCheckBoxes() {
+            Person firstRoot = PersonDb.All[0];
+            this.olv.CollapseAll();
+
+            Assert.IsEmpty(this.olv.CheckedObjects);
+
+            this.olv.HierarchicalCheckboxes = true;
+            this.olv.CheckObject(firstRoot);
+            
+            foreach (Person child in this.olv.GetChildren(firstRoot))
+                Assert.IsTrue(this.olv.IsChecked(child));
+
+            this.olv.UncheckObject(firstRoot);
+
+            foreach (Person child in firstRoot.Children)
+                Assert.IsFalse(this.olv.IsChecked(child));
+        }
     }
 }
