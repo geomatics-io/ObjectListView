@@ -24,10 +24,10 @@ namespace BrightIdeasSoftware.Tests
 			// The InitializeComponent() call is required for Windows Forms designer support.
 			//
 			InitializeComponent();
-			
-			//
-			// TODO: Add constructor code after the InitializeComponent() call.
-			//
+
+		    //
+		    // TODO: Add constructor code after the InitializeComponent() call.
+		    //
 		}
 	}
 }

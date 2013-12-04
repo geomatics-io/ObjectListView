@@ -307,7 +307,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestCheckBoxFiltering()
+        public virtual void TestCheckBoxFiltering()
         {
             // Make sure that persistent check boxes work when we have a filter
 
@@ -350,5 +350,10 @@ namespace BrightIdeasSoftware.Tests
         protected override ObjectListView GetObjectListView() {
             return mainForm.treeListView1;
         }
+
+        public override void TestCheckBoxFiltering() {
+            // CheckBoxes and filtering interact differently on a TreeListView
+        }
+
     }
 }
