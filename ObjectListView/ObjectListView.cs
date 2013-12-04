@@ -621,6 +621,11 @@ namespace BrightIdeasSoftware
 
         #endregion
 
+        public CheckBoxSettings CheckBoxSettings {
+            get { return checkBoxSettings; }
+            private set { checkBoxSettings = value; }
+        }
+
         #region Static properties
 
         /// <summary>
@@ -4668,6 +4673,8 @@ namespace BrightIdeasSoftware
                 }
                 this.PostProcessRows();
 
+                this.AddObjects(objectsToAdd);
+
                 // Tell the world that the list has changed
                 this.SubscribeNotifications(modelObjects);
                 this.OnItemsChanged(new ItemsChangedEventArgs());
@@ -4725,7 +4732,7 @@ namespace BrightIdeasSoftware
         }
         private bool useNotifyPropertyChanged;
 
-        private void SubscribeNotifications(IEnumerable models) {
+        protected void SubscribeNotifications(IEnumerable models) {
             if (!this.UseNotifyPropertyChanged || models == null)
                 return;
             foreach (object x in models) {
@@ -4737,7 +4744,7 @@ namespace BrightIdeasSoftware
             }
         }
 
-        private void UnsubscribeNotifications(IEnumerable models) {
+        protected void UnsubscribeNotifications(IEnumerable models) {
             if (models == null) {
                 foreach (INotifyPropertyChanged notifier in this.subscribedModels.Keys) {
                     notifier.PropertyChanged -= HandleModelOnPropertyChanged;
@@ -6248,7 +6255,7 @@ namespace BrightIdeasSoftware
         protected virtual void HandlePrePaint() {
             // When we get a WM_PAINT msg, remember the rectangle that is being updated.
             // We can't get this information later, since the BeginPaint call wipes it out.
-            this.lastUpdateRectangle = NativeMethods.GetUpdateRect(this);
+            // this.lastUpdateRectangle = NativeMethods.GetUpdateRect(this); // we no longer need this, but keep the code so we can see it later
 
             //// When the list is empty, we want to handle the drawing of the control by ourselves.
             //// Unfortunately, there is no easy way to tell our superclass that we want to do this.
@@ -8117,7 +8124,6 @@ namespace BrightIdeasSoftware
         private ImageList MakeResizedImageList(int width, int height, ImageList source) {
             ImageList il = new ImageList();
             il.ImageSize = new Size(width, height);
-            il.ColorDepth = ColorDepth.Depth32Bit;
 
             // If there's nothing to copy, just return the new list
             if (source == null)
@@ -8165,9 +8171,12 @@ namespace BrightIdeasSoftware
             if (this.DesignMode)
                 return;
 
+            if (!this.CheckBoxes)
+                return;
+
             if (this.StateImageList == null) {
                 this.StateImageList = new ImageList();
-                this.StateImageList.ImageSize = new Size(16, 16);
+                this.StateImageList.ImageSize = new Size(16, this.RowHeight == -1 ? 16 : this.RowHeight);
                 this.StateImageList.ColorDepth = ColorDepth.Depth32Bit;
             }
 
@@ -8178,9 +8187,6 @@ namespace BrightIdeasSoftware
                 this.StateImageList.ImageSize = new Size(16, this.RowHeight);
                 this.StateImageList.ColorDepth = ColorDepth.Depth32Bit;
             }
-
-            if (!this.CheckBoxes)
-                return;
 
             // The internal logic of ListView cycles through the state images when the primary
             // checkbox is clicked. So we have to get exactly the right number of images in the 
@@ -8220,15 +8226,26 @@ namespace BrightIdeasSoftware
         public virtual void SetupSubItemCheckBoxes() {
             this.ShowImagesOnSubItems = true;
             if (this.SmallImageList == null || !this.SmallImageList.Images.ContainsKey(CHECKED_KEY))
-                this.InitializeCheckBoxImages();
+                this.InitializeSubItemCheckBoxImages();
         }
 
         /// <summary>
         /// Make sure the small image list for this control has checkbox images 
         /// (used for sub-item checkboxes).
         /// </summary>
-        /// <remarks>This gives the ListView a small image list, if it doesn't already have one.</remarks>
-        protected virtual void InitializeCheckBoxImages() {
+        /// <remarks>
+        /// <para>
+        /// This gives the ListView a small image list, if it doesn't already have one.
+        /// </para>
+        /// <para>
+        /// ObjectListView has to manage checkboxes on subitems separate from the checkboxes on each row.
+        /// The underlying ListView knows about the per-row checkboxes, and to make them work, OLV has to 
+        /// correctly configure the StateImageList. However, the ListView cannot do checkboxes in subitems,
+        /// so ObjectListView has to handle them in a differnt fashion. So, per-row checkboxes are controlled
+        /// by images in the StateImageList, but per-cell checkboxes are handled by images in the SmallImageList.
+        /// </para>
+        /// </remarks>
+        protected virtual void InitializeSubItemCheckBoxImages() {
             // Don't mess with the image list in design mode
             if (this.DesignMode)
                 return;
@@ -8303,10 +8320,6 @@ namespace BrightIdeasSoftware
 
             // Calculate where the subitem should be drawn
             Rectangle r = e.Bounds;
-
-            // Optimize drawing by only redrawing subitems that touch the area that was damaged
-            //if (!r.IntersectsWith(this.lastUpdateRectangle))
-            //    return;
 
             // Get the special renderer for this column. If there isn't one, use the default draw mechanism.
             OLVColumn column = this.GetColumn(e.ColumnIndex);
@@ -9895,7 +9908,6 @@ namespace BrightIdeasSoftware
 
         #region Implementation variables
 
-        private Rectangle lastUpdateRectangle; // remember the update rect from the last WM_PAINT message
         private bool isOwnerOfObjects; // does this ObjectListView own the Objects collection?
         private bool hasIdleHandler; // has an Idle handler already been installed?
         private bool hasResizeColumnsHandler; // has an idle handler been installed which will handle column resizing?
@@ -9906,6 +9918,7 @@ namespace BrightIdeasSoftware
 
         private List<GlassPanelForm> glassPanels = new List<GlassPanelForm>(); // The transparent panel that draws overlays
         private Dictionary<string, bool> visitedUrlMap = new Dictionary<string, bool>(); // Which urls have been visited?
+        private CheckBoxSettings checkBoxSettings = new CheckBoxSettings();
 
         #endregion
     }
