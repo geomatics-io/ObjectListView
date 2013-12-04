@@ -245,6 +245,8 @@ namespace ObjectListViewDemo
             this.olvColumn32 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.olvColumn33 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.tabPage9 = new System.Windows.Forms.TabPage();
+            this.checkBox11 = new System.Windows.Forms.CheckBox();
+            this.button33 = new System.Windows.Forms.Button();
             this.groupBox12 = new System.Windows.Forms.GroupBox();
             this.textBoxFilterTree = new System.Windows.Forms.TextBox();
             this.button28 = new System.Windows.Forms.Button();
@@ -799,6 +801,7 @@ namespace ObjectListViewDemo
             // 
             this.columnHeader11.AspectName = "Name";
             this.columnHeader11.CellPadding = null;
+            this.columnHeader11.Groupable = false;
             this.columnHeader11.HeaderForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
             this.columnHeader11.MaximumWidth = 200;
             this.columnHeader11.MinimumWidth = 100;
@@ -2972,6 +2975,7 @@ namespace ObjectListViewDemo
             this.olvFast.UseHyperlinks = true;
             this.olvFast.View = System.Windows.Forms.View.Details;
             this.olvFast.VirtualMode = true;
+            this.olvFast.GroupStateChanged += new System.EventHandler<BrightIdeasSoftware.GroupStateChangedEventArgs>(this.olv_GroupStateChanged);
             this.olvFast.HotItemChanged += new System.EventHandler<BrightIdeasSoftware.HotItemChangedEventArgs>(this.olv_HotItemChanged);
             this.olvFast.GroupTaskClicked += new System.EventHandler<BrightIdeasSoftware.GroupTaskClickedEventArgs>(this.olvFastList_GroupTaskClicked);
             this.olvFast.IsHyperlink += new System.EventHandler<BrightIdeasSoftware.IsHyperlinkEventArgs>(this.olvFastList_IsHyperlink);
@@ -3073,6 +3077,8 @@ namespace ObjectListViewDemo
             // 
             // tabPage9
             // 
+            this.tabPage9.Controls.Add(this.checkBox11);
+            this.tabPage9.Controls.Add(this.button33);
             this.tabPage9.Controls.Add(this.groupBox12);
             this.tabPage9.Controls.Add(this.button28);
             this.tabPage9.Controls.Add(this.button25);
@@ -3087,6 +3093,29 @@ namespace ObjectListViewDemo
             this.tabPage9.TabIndex = 8;
             this.tabPage9.Text = "TreeListView";
             this.tabPage9.UseVisualStyleBackColor = true;
+            // 
+            // checkBox11
+            // 
+            this.checkBox11.AutoSize = true;
+            this.checkBox11.Location = new System.Drawing.Point(228, 478);
+            this.checkBox11.Name = "checkBox11";
+            this.checkBox11.Size = new System.Drawing.Size(144, 17);
+            this.checkBox11.TabIndex = 23;
+            this.checkBox11.Text = "Hierarchical Checkboxes";
+            this.checkBox11.UseVisualStyleBackColor = true;
+            this.checkBox11.CheckedChanged += new System.EventHandler(this.checkBox11_CheckedChanged);
+            // 
+            // button33
+            // 
+            this.button33.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.button33.Location = new System.Drawing.Point(117, 474);
+            this.button33.Name = "button33";
+            this.button33.Size = new System.Drawing.Size(105, 23);
+            this.button33.TabIndex = 22;
+            this.button33.Text = "Check selection";
+            this.toolTip1.SetToolTip(this.button33, "Set the selected objects to be the only checked objects");
+            this.button33.UseVisualStyleBackColor = true;
+            this.button33.Click += new System.EventHandler(this.button33_Click);
             // 
             // groupBox12
             // 
@@ -3189,7 +3218,6 @@ namespace ObjectListViewDemo
             this.treeListView.Cursor = System.Windows.Forms.Cursors.Default;
             this.treeListView.EmptyListMsg = "This folder is completely empty!";
             this.treeListView.EmptyListMsgFont = new System.Drawing.Font("Comic Sans MS", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.treeListView.FullRowSelect = true;
             this.treeListView.HeaderUsesThemes = false;
             this.treeListView.HideSelection = false;
             this.treeListView.HotItemStyle = this.hotItemStyle3;
@@ -3199,6 +3227,7 @@ namespace ObjectListViewDemo
             this.treeListView.Name = "treeListView";
             this.treeListView.OverlayImage.Image = global::ObjectListViewDemo.Resource1.limeleaf;
             this.treeListView.OwnerDraw = true;
+            this.treeListView.ParentGetter = null;
             this.treeListView.SelectColumnsOnRightClickBehaviour = BrightIdeasSoftware.ObjectListView.ColumnSelectBehaviour.Submenu;
             this.treeListView.ShowCommandMenuOnRightClick = true;
             this.treeListView.ShowGroups = false;
@@ -3207,6 +3236,7 @@ namespace ObjectListViewDemo
             this.treeListView.Size = new System.Drawing.Size(799, 413);
             this.treeListView.SmallImageList = this.imageList1;
             this.treeListView.TabIndex = 13;
+            this.treeListView.TreeFactory = null;
             this.treeListView.UseCompatibleStateImageBehavior = false;
             this.treeListView.UseFilterIndicator = true;
             this.treeListView.UseFiltering = true;
@@ -3337,6 +3367,7 @@ namespace ObjectListViewDemo
             this.olvDataTree.Location = new System.Drawing.Point(6, 19);
             this.olvDataTree.Name = "olvDataTree";
             this.olvDataTree.OwnerDraw = true;
+            this.olvDataTree.ParentGetter = null;
             this.olvDataTree.ParentKeyAspectName = "ParentId";
             this.olvDataTree.RootKeyValueString = "";
             this.olvDataTree.ShowGroups = false;
@@ -3344,6 +3375,7 @@ namespace ObjectListViewDemo
             this.olvDataTree.Size = new System.Drawing.Size(670, 243);
             this.olvDataTree.SmallImageList = this.imageList1;
             this.olvDataTree.TabIndex = 0;
+            this.olvDataTree.TreeFactory = null;
             this.olvDataTree.UseCompatibleStateImageBehavior = false;
             this.olvDataTree.UseFilterIndicator = true;
             this.olvDataTree.UseFiltering = true;
@@ -4311,6 +4343,7 @@ namespace ObjectListViewDemo
             this.groupBox11.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.olvFast)).EndInit();
             this.tabPage9.ResumeLayout(false);
+            this.tabPage9.PerformLayout();
             this.groupBox12.ResumeLayout(false);
             this.groupBox12.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.treeListView)).EndInit();
@@ -4642,6 +4675,8 @@ namespace ObjectListViewDemo
         private Label label42;
         private DataTreeListView olvDataTree;
         private OLVColumn olvColumn41;
+        private CheckBox checkBox11;
+        private Button button33;
 
 	}
 }

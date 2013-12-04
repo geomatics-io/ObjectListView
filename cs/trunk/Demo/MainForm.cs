@@ -513,7 +513,7 @@ namespace ObjectListViewDemo {
                 IComparable xValue = this.column.GetValue(x) as IComparable;
                 IComparable yValue = this.column.GetValue(y) as IComparable;
 
-                int result = 0;
+                int result;
                 if (xValue == null || yValue == null) {
                     if (xValue == null && yValue == null)
                         result = 0;
@@ -527,8 +527,8 @@ namespace ObjectListViewDemo {
 
                 if (this.sortOrder == SortOrder.Ascending)
                     return result;
-                else
-                    return 0 - result;
+                
+                return 0 - result;
             }
         }
 
@@ -548,7 +548,7 @@ namespace ObjectListViewDemo {
             }
 
             public override object GetNthObject(int n) {
-                Person p = (Person)this.Objects[n % this.Objects.Count];
+                Person p = this.Objects[n % this.Objects.Count];
                 p.serialNumber = n;
                 return p;
             }
@@ -605,10 +605,11 @@ namespace ObjectListViewDemo {
                 // and the second half gets music
                 if ("AEIOU".Contains(((Person)row).Name.Substring(0, 1)))
                     return 0; // star
-                else if (((Person)row).Name.CompareTo("N") < 0)
+
+                if (((Person)row).Name.CompareTo("N") < 0)
                     return 1; // heart
-                else
-                    return 2; // music
+                
+                return 2; // music
             };
             this.olvColumn5.ImageGetter = delegate(object row) { return "user"; }; // user icon
 
@@ -700,6 +701,7 @@ namespace ObjectListViewDemo {
 
 
         void InitializeTreeListExample() {
+            this.treeListView.HierarchicalCheckboxes = true;
             this.treeListView.HideSelection = false;
             this.treeListView.CanExpandGetter = delegate(object x) {
                 return ((MyFileSystemInfo)x).IsDirectory;
@@ -714,6 +716,8 @@ namespace ObjectListViewDemo {
                     return new ArrayList();
                 }
             };
+
+            checkBox11.Checked = this.treeListView.HierarchicalCheckboxes;
 
             //this.treeListView.CheckBoxes = false;
 
@@ -804,7 +808,6 @@ namespace ObjectListViewDemo {
             }
 
             return String.Format("{0} bytes", size);
-            ;
         }
 
         void LoadXmlIntoDataListView() {
@@ -1033,18 +1036,18 @@ namespace ObjectListViewDemo {
             ShowGroupsChecked(this.olvComplex, (CheckBox)sender);
         }
 
-        void CheckBox2CheckedChanged(object sender, System.EventArgs e) {
-            this.olvComplex.UseTranslucentSelection = ((CheckBox)sender).Checked;
-            this.olvComplex.UseTranslucentHotItem = ((CheckBox)sender).Checked;
+        //void CheckBox2CheckedChanged(object sender, System.EventArgs e) {
+        //    this.olvComplex.UseTranslucentSelection = ((CheckBox)sender).Checked;
+        //    this.olvComplex.UseTranslucentHotItem = ((CheckBox)sender).Checked;
 
-            // Make the hot item show an overlay when it changes
-            if (this.olvComplex.UseTranslucentHotItem) {
-                this.olvComplex.HotItemStyle.Overlay = new BusinessCardOverlay();
-                this.olvComplex.HotItemStyle = this.olvComplex.HotItemStyle;
-            }
+        //    // Make the hot item show an overlay when it changes
+        //    if (this.olvComplex.UseTranslucentHotItem) {
+        //        this.olvComplex.HotItemStyle.Overlay = new BusinessCardOverlay();
+        //        this.olvComplex.HotItemStyle = this.olvComplex.HotItemStyle;
+        //    }
 
-            this.olvComplex.Invalidate();
-        }
+        //    this.olvComplex.Invalidate();
+        //}
 
         void Button2Click(object sender, System.EventArgs e) {
             this.TimedRebuildList(this.olvComplex);
@@ -2448,6 +2451,15 @@ namespace ObjectListViewDemo {
         private void olvSimple_BeforeCreatingGroups(object sender, CreateGroupsEventArgs e) {
             e.Parameters.PrimarySort = olvColumn34;
             e.Parameters.PrimarySortOrder = SortOrder.Ascending;
+        }
+
+        private void checkBox11_CheckedChanged(object sender, EventArgs e) {
+            this.treeListView.HierarchicalCheckboxes = checkBox11.Checked;
+            this.treeListView.RebuildAll(true);
+        }
+
+        private void button33_Click(object sender, EventArgs e) {
+            this.treeListView.CheckedObjects = this.treeListView.SelectedObjects;
         }
 
         /*
