@@ -5,6 +5,10 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2013-11-20  JPP  - Moved event triggers into Collapse() and Expand() so that the events are always triggered.
+ *                  - CheckedObjects now includes objects that are in a branch that is currently collapsed
+ *                  - CollapseAll() and ExpandAll() now trigger cancellable events
+ * 2013-09-29  JPP  - Added TreeFactory to allow the underlying Tree to be replaced by another implementation.
  * 2013-09-23  JPP  - Fixed long standing bug where RefreshObject() would not work on root objects
  *                    which overrode Equals()/GetHashCode().
  * 2013-02-23  JPP  - Added HierarchicalCheckboxes. When this is true, the checkedness of a parent
@@ -157,12 +161,14 @@ namespace BrightIdeasSoftware
         /// Make a default TreeListView
         /// </summary>
         public TreeListView() {
-            this.TreeModel = new Tree(this);
             this.OwnerDraw = true;
             this.View = View.Details;
+            this.CheckedObjectsMustStillExistInList = false;
 
-            this.VirtualListDataSource = this.TreeModel;
+// ReSharper disable DoNotCallOverridableMethodsInConstructor
+            this.RegenerateTree();
             this.TreeColumnRenderer = new TreeRenderer();
+// ReSharper restore DoNotCallOverridableMethodsInConstructor
 
             // This improves hit detection even if we don't have any state image
             this.StateImageList = new ImageList();
@@ -201,6 +207,102 @@ namespace BrightIdeasSoftware
         public virtual ChildrenGetterDelegate ChildrenGetter {
             get { return this.TreeModel.ChildrenGetter; }
             set { this.TreeModel.ChildrenGetter = value; }
+        }
+
+        /// <summary>
+        /// This is the delegate that will be used to fetch the parent of a model object
+        /// </summary>
+        /// <remarks>This delegate is only called HierarchicalCheckBoxes is true.</remarks>
+        public ParentGetterDelegate ParentGetter {
+            get { return parentGetter; }
+            set { parentGetter = value; }
+        }
+        private ParentGetterDelegate parentGetter;
+
+        public override IList CheckedObjects {
+            get {
+                return base.CheckedObjects;
+            }
+            set {
+                ArrayList objectsToRecalculate = new ArrayList(this.CheckedObjects);
+                if (value != null)
+                    objectsToRecalculate.AddRange(value);
+
+                base.CheckedObjects = value;
+
+                if (this.HierarchicalCheckboxes)
+                    RecalculateHierarchicalCheckBoxGraph(objectsToRecalculate);
+            }
+        }
+
+        private void RecalculateHierarchicalCheckBoxGraph(IList toCheck) {
+            if (toCheck == null || toCheck.Count == 0)
+                return;
+
+            // Avoid recursive calculations
+            if (isRecalculatingHierarchicalCheckBox)
+                return;
+
+            try {
+                isRecalculatingHierarchicalCheckBox = true;
+                foreach (object ancestor in CalculateDistinctAncestors(toCheck))
+                    this.RecalculateSingleHierarchicalCheckBox(ancestor);
+            }
+            finally {
+                isRecalculatingHierarchicalCheckBox = false;
+            }
+           
+        }
+        private bool isRecalculatingHierarchicalCheckBox;
+
+        private void RecalculateSingleHierarchicalCheckBox(object modelObject) {
+
+            if (modelObject == null)
+                return;
+
+            // Only branches have calculated checkstates. Leaf node checkedness is not calculated
+            if (!this.CanExpand(modelObject))
+                return;
+
+            // Set the checkedness of the given model based on the state of its children.
+            CheckState? aggregate = null;
+            foreach (object child in this.GetChildren(modelObject)) {
+                CheckState? checkedness = this.GetCheckState(child);
+                if (checkedness.HasValue) {
+                    if (aggregate.HasValue) {
+                        if (aggregate.Value != checkedness.Value) {
+                            aggregate = CheckState.Indeterminate;
+                            break;
+                        }
+                    } else
+                        aggregate = checkedness;
+                }
+            }
+
+            base.SetObjectCheckedness(modelObject, aggregate ?? CheckState.Indeterminate);
+        }
+
+        private IEnumerable CalculateDistinctAncestors(IList toCheck) {
+            Hashtable ancestors = new Hashtable();
+
+            foreach (object child in toCheck) {
+                foreach (object ancestor in this.GetAncestors(child)) {
+                   // if (!ancestors.ContainsKey(ancestor)) {
+                        ancestors[ancestor] = true;
+                        yield return ancestor;
+                   // }
+                }
+            }
+        }
+
+        private IEnumerable GetAncestors(object model) {
+            bool hasParentGetter = this.ParentGetter != null;
+
+            object parent = hasParentGetter ? this.ParentGetter(model) : this.GetParent(model);
+            while (parent != null) {
+                yield return parent;
+                parent = hasParentGetter ? this.ParentGetter(parent) : this.GetParent(parent);
+            }
         }
 
         /// <summary>
@@ -357,6 +459,22 @@ namespace BrightIdeasSoftware
         private TreeRenderer treeRenderer;
 
         /// <summary>
+        /// This is the delegate that will be used to create the underlying Tree structure
+        /// that the TreeListView uses to manage the information about the tree.
+        /// </summary>
+        /// <remarks>
+        /// <para>The factory must not return null. </para>
+        /// <para>
+        /// Most users of TreeListView will never have to use this delegate.
+        /// </para>
+        /// </remarks>
+        public TreeFactoryDelegate TreeFactory {
+            get { return treeFactory; }
+            set { treeFactory = value; }
+        }
+        private TreeFactoryDelegate treeFactory;
+
+        /// <summary>
         /// Should a wait cursor be shown when a branch is being expanded?
         /// </summary>
         /// <remarks>When this is true, the wait cursor will be shown whilst the children of the 
@@ -403,6 +521,13 @@ namespace BrightIdeasSoftware
         public virtual void Collapse(Object model) {
             if (this.GetItemCount() == 0)
                 return;
+            
+            OLVListItem item = this.ModelToItem(model);
+            TreeBranchCollapsingEventArgs args = new TreeBranchCollapsingEventArgs(model, item);
+            this.OnCollapsing(args);
+            if (args.Canceled)
+                return;
+
             IList selection = this.SelectedObjects;
             int index = this.TreeModel.Collapse(model);
             if (index >= 0) {
@@ -410,6 +535,7 @@ namespace BrightIdeasSoftware
                 this.SelectedObjects = selection;
                 if (index < this.GetItemCount())
                     this.RedrawItems(index, this.GetItemCount() - 1, false);
+                this.OnCollapsed(new TreeBranchCollapsedEventArgs(model, item));
             }
         }
 
@@ -419,12 +545,19 @@ namespace BrightIdeasSoftware
         public virtual void CollapseAll() {
             if (this.GetItemCount() == 0)
                 return;
+
+            TreeBranchCollapsingEventArgs args = new TreeBranchCollapsingEventArgs(null, null);
+            this.OnCollapsing(args);
+            if (args.Canceled)
+                return;
+
             IList selection = this.SelectedObjects;
             int index = this.TreeModel.CollapseAll();
             if (index >= 0) {
                 this.UpdateVirtualListSize();
                 this.SelectedObjects = selection;
                 this.RedrawItems(index, this.GetItemCount() - 1, false);
+                this.OnCollapsed(new TreeBranchCollapsedEventArgs(null, null));
             }
         }
 
@@ -480,8 +613,7 @@ namespace BrightIdeasSoftware
                 this.BeginUpdate();
 
                 // Give ourselves a new data structure
-                this.TreeModel = new Tree(this);
-                this.VirtualListDataSource = this.TreeModel;
+                this.RegenerateTree();
 
                 // Put back the bits we didn't want to forget
                 this.CanExpandGetter = canExpand;
@@ -507,6 +639,13 @@ namespace BrightIdeasSoftware
             if (this.GetItemCount() == 0)
                 return;
 
+            // Give the world a chance to cancel the expansion
+            OLVListItem item = this.ModelToItem(model);
+            TreeBranchExpandingEventArgs args = new TreeBranchExpandingEventArgs(model, item);
+            this.OnExpanding(args);
+            if (args.Canceled)
+                return;
+
             // Remember the selection so we can put it back later
             IList selection = this.SelectedObjects;
 
@@ -522,6 +661,8 @@ namespace BrightIdeasSoftware
 
             // Redraw the items that were changed by the expand operation
             this.RedrawItems(index, this.GetItemCount() - 1, false);
+
+            this.OnExpanded(new TreeBranchExpandedEventArgs(model, item));
 
             if (this.RevealAfterExpand && index > 0) {
                 // TODO: This should be a separate method
@@ -551,6 +692,13 @@ namespace BrightIdeasSoftware
         public virtual void ExpandAll() {
             if (this.GetItemCount() == 0)
                 return;
+
+            // Give the world a chance to cancel the expansion
+            TreeBranchExpandingEventArgs args = new TreeBranchExpandingEventArgs(null, null);
+            this.OnExpanding(args);
+            if (args.Canceled)
+                return;
+
             IList selection = this.SelectedObjects;
             int index = this.TreeModel.ExpandAll();
             if (index < 0) 
@@ -560,6 +708,7 @@ namespace BrightIdeasSoftware
             using (this.SuspendSelectionEventsDuring())
                 this.SelectedObjects = selection;
             this.RedrawItems(index, this.GetItemCount() - 1, false);
+            this.OnExpanded(new TreeBranchExpandedEventArgs(null, null));
         }
 
         /// <summary>
@@ -650,36 +799,11 @@ namespace BrightIdeasSoftware
                 this.SetObjectCheckedness(child, checkedness.Value);
             }
 
-            this.RecalculateHierarchicalCheckBox(this.GetParent(modelObject));
+            this.RecalculateHierarchicalCheckBoxGraph(new ArrayList { modelObject });
 
             return true;
         }
 
-        private void RecalculateHierarchicalCheckBox(object modelObject) {
-
-            if (modelObject == null)
-                return;
-
-            // Set the checkedness of the given model based on the state of its children.
-            CheckState? aggregate = null;
-            foreach (object child in this.GetChildren(modelObject)) {
-                CheckState? checkedness = this.GetCheckState(child);
-                if (checkedness.HasValue) {
-                    if (aggregate.HasValue) {
-                        if (aggregate.Value != checkedness.Value) {
-                            aggregate = CheckState.Indeterminate;
-                            break;
-                        }
-                    } 
-                    else 
-                        aggregate = checkedness;
-                }
-            }
-
-            base.SetObjectCheckedness(modelObject, aggregate ?? CheckState.Indeterminate);
-
-            this.RecalculateHierarchicalCheckBox(this.GetParent(modelObject));
-        }
 
         private IEnumerable GetChildrenWithoutExpanding(Object model) {
             Branch br = this.TreeModel.GetBranch(model);
@@ -696,12 +820,7 @@ namespace BrightIdeasSoftware
         public virtual void ToggleExpansion(Object model) {
             OLVListItem item = this.ModelToItem(model);
             if (this.IsExpanded(model)) {
-                TreeBranchCollapsingEventArgs args = new TreeBranchCollapsingEventArgs(model, item);
-                this.OnCollapsing(args);
-                if (!args.Canceled) {
-                    this.Collapse(model);
-                    this.OnCollapsed(new TreeBranchCollapsedEventArgs(model, item));
-                }
+                this.Collapse(model);
             } else {
                 TreeBranchExpandingEventArgs args = new TreeBranchExpandingEventArgs(model, item);
                 this.OnExpanding(args);
@@ -733,26 +852,34 @@ namespace BrightIdeasSoftware
         /// <remarks>The given model must have already been seen in the tree.</remarks>
         public virtual Object GetParent(Object model) {
             Branch br = this.TreeModel.GetBranch(model);
-            if (br == null || br.ParentBranch == null)
-                return null;
-            else
-                return br.ParentBranch.Model;
+            return br == null || br.ParentBranch == null ? null : br.ParentBranch.Model;
         }
 
         /// <summary>
         /// Return the collection of model objects that are the children of the 
-        /// given model.
+        /// given model as they exist in the tree at the moment.
         /// </summary>
         /// <param name="model"></param>
-        /// <remarks>If the given model has not already been seen in the tree or
-        /// if it is not expandable, an empty collection will be returned.</remarks>
+        /// <remarks>
+        /// <para>
+        /// This method returns the collection of children as the tree knows them. If the given
+        /// model has never been presented to the user (e.g. it belongs to a parent that has
+        /// never been expanded), then this method will return an empty collection.</para>
+        /// <para>
+        /// Because of this, if you want to traverse the whole tree, this is not the method to use.
+        /// It's better to traverse the your data model directly.
+        /// </para>
+        /// <para>
+        /// If the given model has not already been seen in the tree or
+        /// if it is not expandable, an empty collection will be returned.
+        /// </para>
+        /// </remarks>
         public virtual IEnumerable GetChildren(Object model) {
             Branch br = this.TreeModel.GetBranch(model);
             if (br == null || !br.CanExpand)
                 return new ArrayList();
             
-            if (!br.IsExpanded)
-                br.Expand();
+            br.FetchChildren();
 
             return br.Children;
         }
@@ -773,6 +900,20 @@ namespace BrightIdeasSoftware
         /// <param name="model">The parent whose children should be fetched</param>
         /// <returns>An enumerable over the children</returns>
         public delegate IEnumerable ChildrenGetterDelegate(Object model);
+
+        /// <summary>
+        /// Delegates of this type are used to fetch the parent of the given model object.
+        /// </summary>
+        /// <param name="model">The child whose parent should be fetched</param>
+        /// <returns>The parent of the child or null if the child is a root</returns>
+        public delegate Object ParentGetterDelegate(Object model);
+
+        /// <summary>
+        /// Delegates of this type are used to create a new underlying Tree structure.
+        /// </summary>
+        /// <param name="view">The view for which the Tree is being created</param>
+        /// <returns>A subclass of Tree</returns>
+        public delegate Tree TreeFactoryDelegate(TreeListView view);
 
         //------------------------------------------------------------------------------------------
         #region Implementation
@@ -805,6 +946,15 @@ namespace BrightIdeasSoftware
             if (br != null)
                 olvItem.IndentCount = br.Level - 1;
             return olvItem;
+        }
+
+        /// <summary>
+        /// Reinitialize the Tree structure
+        /// </summary>
+        protected virtual void RegenerateTree() {
+            this.TreeModel = this.TreeFactory == null ? new Tree(this) : this.TreeFactory(this);
+            Trace.Assert(this.TreeModel != null);
+            this.VirtualListDataSource = this.TreeModel;
         }
 
         #endregion
@@ -903,6 +1053,8 @@ namespace BrightIdeasSoftware
         /// A Tree object represents a tree structure data model that supports both 
         /// tree and flat list operations as well as fast access to branches.
         /// </summary>
+        /// <remarks>If you create a subclass of Tree, you must install it in the TreeListView
+        /// via the TreeFactory delegate.</remarks>
         public class Tree : IVirtualListDataSource, IFilterableDataSource
         {
             /// <summary>
@@ -937,6 +1089,7 @@ namespace BrightIdeasSoftware
                 set { childrenGetter = value; }
             }
             private ChildrenGetterDelegate childrenGetter;
+
 
             /// <summary>
             /// Get or return the top level model objects in the tree
@@ -1709,17 +1862,14 @@ namespace BrightIdeasSoftware
                 if (this.Tree.ChildrenGetter == null)
                     return;
 
-                if (this.Tree.TreeView.UseWaitCursorWhenExpanding) {
-                    Cursor previous = Cursor.Current;
-                    try {
+                Cursor previous = Cursor.Current;
+                try {
+                    if (this.Tree.TreeView.UseWaitCursorWhenExpanding)
                         Cursor.Current = Cursors.WaitCursor;
-                        this.Children = this.Tree.ChildrenGetter(this.Model);
-                    }
-                    finally {
-                        Cursor.Current = previous;
-                    }
-                } else {
                     this.Children = this.Tree.ChildrenGetter(this.Model);
+                }
+                finally {
+                    Cursor.Current = previous;
                 }
             }
 
