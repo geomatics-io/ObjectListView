@@ -269,17 +269,17 @@ namespace BrightIdeasSoftware.Tests
         [Test]
         public void TestChaining() {
             DateTime dt = new DateTime(1965, 8, 28);
-            this.ExecuteAspect("Parent.Parent.BirthDate", dt);
-            Assert.AreEqual(dt, this.person1.Parent.Parent.BirthDate);
+            this.ExecuteAspect("Parent.BirthDate", dt);
+            Assert.AreEqual(dt, this.person1.Parent.BirthDate);
         }
 
         [Test]
         public void TestChaining2() {
             this.person2.SetRate(0.0);
             OLVColumn column = new OLVColumn();
-            column.AspectName = "Parent.Parent.SetRate";
-            column.PutValue(this.person2, 10.0);
-            // Person2 doubles the rate
+            column.AspectName = "Parent.SetRate";
+            column.PutValue(this.person1, 10.0); 
+            // Person2 is the parent of person1, and Person2 doubles the rate
             Assert.AreEqual(20.0, this.person2.GetRate());
         }
 
@@ -287,6 +287,7 @@ namespace BrightIdeasSoftware.Tests
         public void Init() {
             this.person1 = new Person("name", "occupation", 100, DateTime.Now, 1.0, true, "  photo  ", "comments");
             this.person2 = new Person2("name", "occupation", 100, DateTime.Now, 1.0, true, "  photo  ", "comments");
+            person2.AddChild(person1);
 
         }
 

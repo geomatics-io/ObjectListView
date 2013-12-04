@@ -49,12 +49,19 @@ namespace BrightIdeasSoftware.Tests
             this.CanTellJokes = other.CanTellJokes;
             this.Photo = other.Photo;
             this.Comments = other.Comments;
+            this.Parent = other.Parent;
         }
 
         public Person Parent
         {
-            get { return this; }
+            get { return parent; }
+            set {
+                if (parent == value) return;
+                parent = value;
+                this.OnPropertyChanged("Parent");
+            }
         }
+        private Person parent;
 
         // Allows tests for properties.
         public string Name
@@ -124,8 +131,12 @@ namespace BrightIdeasSoftware.Tests
             set { children = value; }
         }
         private IList<Person> children = new List<Person>();
-    
-        
+
+        public void AddChild(Person child) {
+            Children.Add(child);
+            child.Parent = this;
+        }
+
         // Allows tests for fields.
         public string Photo;
         public string Comments;
@@ -200,11 +211,11 @@ namespace BrightIdeasSoftware.Tests
                 new Person("name6", "occupation6", 65, DateTime.Now, 6.0, true, "  photo6  ", "comments6"),
                 new Person(PersonDb.LastAlphabeticalName, "occupation6", 60, DateTime.Now.AddYears(-1), 6.0, true, "  photo6  ", "comments6"),
             });
-            sAllPersons[0].Children.Add(sAllPersons[2]);
-            sAllPersons[0].Children.Add(sAllPersons[3]);
-            sAllPersons[1].Children.Add(sAllPersons[4]);
-            sAllPersons[1].Children.Add(sAllPersons[5]);
-            sAllPersons[5].Children.Add(sAllPersons[6]);
+            sAllPersons[0].AddChild(sAllPersons[2]);
+            sAllPersons[0].AddChild(sAllPersons[3]);
+            sAllPersons[1].AddChild(sAllPersons[4]);
+            sAllPersons[1].AddChild(sAllPersons[5]);
+            sAllPersons[5].AddChild(sAllPersons[6]);
         }
         static private List<Person> sAllPersons;
 

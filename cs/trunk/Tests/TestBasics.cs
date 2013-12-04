@@ -120,6 +120,45 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual(another.Occupation, item2.SubItems[1].Text);
         }
 
+        [Test]
+        public void Test_UpdateObject_AddsWhenNew() {
+            List<Person> people = new List<Person>();
+            people.Add(PersonDb.All[0]);
+            people.Add(PersonDb.All[1]);
+            people.Add(PersonDb.All[2]);
+            this.olv.SetObjects(people);
+
+            Person newGuy = PersonDb.All[3];
+            OLVListItem item = this.olv.ModelToItem(newGuy);
+            Assert.IsNull(item);
+
+            this.olv.UpdateObject(newGuy);
+
+            OLVListItem item2 = this.olv.ModelToItem(newGuy);
+            Assert.IsNotNull(item2);
+            Assert.AreEqual(newGuy.Occupation, item2.SubItems[1].Text);
+        }
+
+        [Test]
+        public void Test_UpdateObject_AddsWhenNew_WithFilterInstalled() {
+            List<Person> people = new List<Person>();
+            people.Add(PersonDb.All[0]);
+            people.Add(PersonDb.All[1]);
+            people.Add(PersonDb.All[2]);
+            this.olv.SetObjects(people);
+
+            Person newGuy = PersonDb.All[3];
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new ModelFilter(delegate(object x) { return ((Person) x).Name == newGuy.Name; });
+            Assert.AreEqual(0, this.olv.GetItemCount());
+
+            this.olv.UpdateObject(newGuy);
+
+            OLVListItem item2 = this.olv.ModelToItem(newGuy);
+            Assert.IsNotNull(item2);
+            Assert.AreEqual(newGuy.Occupation, item2.SubItems[1].Text);
+        }
+
     }
 
     [TestFixture]
