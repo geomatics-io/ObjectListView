@@ -202,7 +202,9 @@ namespace BrightIdeasSoftware
                 ArrayList objects = new ArrayList();
                 foreach (KeyValuePair<Object, CheckState> kvp in this.CheckStateMap)
                 {
-                    if (kvp.Value == CheckState.Checked && this.VirtualListDataSource.GetObjectIndex(kvp.Key) >= 0)
+                    if (kvp.Value == CheckState.Checked && 
+                        (!this.CheckedObjectsMustStillExistInList ||
+                         this.VirtualListDataSource.GetObjectIndex(kvp.Key) >= 0))
                         objects.Add(kvp.Key);
                 }
                 return objects;
@@ -231,6 +233,19 @@ namespace BrightIdeasSoftware
                     this.SetObjectCheckedness(x, CheckState.Checked);
             }
         }
+
+        /// <summary>
+        /// Gets or sets whether or not an object will be included in the CheckedObjects
+        /// collection, even if it is not present in the control at the moment
+        /// </summary>
+        /// <remarks>
+        /// This property is an implementation detail and should not be altered.
+        /// </remarks>
+        protected internal bool CheckedObjectsMustStillExistInList {
+            get { return checkedObjectsMustStillExistInList; }
+            set { checkedObjectsMustStillExistInList = value; }
+        }
+        private bool checkedObjectsMustStillExistInList = true;
 
         /// <summary>
         /// Gets the collection of objects that survive any filtering that may be in place.
@@ -581,6 +596,7 @@ namespace BrightIdeasSoftware
                 this.BeginUpdate();
                 this.VirtualListDataSource.RemoveObjects(args.ObjectsToRemove);
                 this.BuildList();
+                this.UnsubscribeNotifications(args.ObjectsToRemove);
             }
             finally {
                 this.EndUpdate();
