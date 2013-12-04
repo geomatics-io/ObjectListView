@@ -40,6 +40,7 @@ namespace BrightIdeasSoftware.Tests
             mainForm.Size = new Size();
             mainForm.Show();
             this.olv = GetObjectListView();
+            this.olv.UseNotifyPropertyChanged = true;
         }
         protected ObjectListView olv;
         protected MainForm mainForm;
@@ -50,13 +51,12 @@ namespace BrightIdeasSoftware.Tests
 
         [TearDown]
         public void TestTearDown() {
-            this.olv.UseNotifyPropertyChanged = false;        
             PersonDb.Reset();
+            mainForm.Close();
         }
 
         [Test]
         public void Test_UseNotifyPropertyChangedIsTrue_PropertyChange_CellChanges() {
-            this.olv.UseNotifyPropertyChanged = true;
             this.olv.SetObjects(PersonDb.All);
             this.SetAndCheckOccupationColumnValue(1, "new occupation 2");
         }
@@ -84,7 +84,6 @@ namespace BrightIdeasSoftware.Tests
 
         [Test]
         public void Test_SetObjects_SubscriptionCountMaintained() {
-            this.olv.UseNotifyPropertyChanged = true;
             this.olv.SetObjects(PersonDb.All);
             foreach (Person x in PersonDb.All)
                 Assert.AreEqual(1, x.CountNotifyPropertyChangedSubscriptions);
@@ -92,7 +91,6 @@ namespace BrightIdeasSoftware.Tests
 
         [Test]
         public void Test_SetObjects_Subset_SubscriptionCountMaintained() {
-            this.olv.UseNotifyPropertyChanged = true;
             this.olv.SetObjects(PersonDb.All);
             List<Person> subset = new List<Person>();
             subset.Add(PersonDb.All[0]);
@@ -111,7 +109,6 @@ namespace BrightIdeasSoftware.Tests
 
         [Test]
         public void Test_SetObjects_Superset_SubscriptionCountMaintained() {
-            this.olv.UseNotifyPropertyChanged = true;
             List<Person> subset = new List<Person>(); 
             subset.Add(PersonDb.All[0]);
             subset.Add(PersonDb.All[2]);
@@ -126,7 +123,6 @@ namespace BrightIdeasSoftware.Tests
 
         [Test]
         public void Test_SetObjects_Multiple_SubscriptionCountMaintained() {
-            this.olv.UseNotifyPropertyChanged = true;
             this.olv.SetObjects(PersonDb.All);
             this.olv.SetObjects(PersonDb.All);
             this.olv.SetObjects(PersonDb.All);
@@ -136,7 +132,6 @@ namespace BrightIdeasSoftware.Tests
 
         [Test]
         public void Test_SetObjects_WithFiltering_SubscriptionCountMaintained() {
-            this.olv.UseNotifyPropertyChanged = true;
             this.olv.UseFiltering = true;
             this.olv.ModelFilter = new ModelFilter(delegate(object x) { return false; });
             this.olv.SetObjects(PersonDb.All);
@@ -148,7 +143,6 @@ namespace BrightIdeasSoftware.Tests
 
         [Test]
         public void Test_SetObjects_Unsubscribes() {
-            this.olv.UseNotifyPropertyChanged = true;
             this.olv.SetObjects(PersonDb.All);
             this.olv.SetObjects(null);
             foreach (Person x in PersonDb.All)
@@ -157,7 +151,6 @@ namespace BrightIdeasSoftware.Tests
 
         [Test]
         public void Test_AddObject_SubscribesToChanges() {
-            this.olv.UseNotifyPropertyChanged = true;
             this.olv.SetObjects(null);
             this.olv.AddObject(PersonDb.All[0]);
             this.olv.AddObject(PersonDb.All[1]);
@@ -169,6 +162,7 @@ namespace BrightIdeasSoftware.Tests
         [Test]
         public void Test_RemoveObject_SubscriptionsRemoved() {
             this.olv.SetObjects(PersonDb.All);
+            Assert.AreNotEqual(0, PersonDb.All[1].CountNotifyPropertyChangedSubscriptions);
             this.olv.RemoveObject(PersonDb.All[1]);
             Assert.AreEqual(0, PersonDb.All[1].CountNotifyPropertyChangedSubscriptions);
         }
