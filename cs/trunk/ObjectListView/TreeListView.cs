@@ -5,6 +5,8 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2014-01-16  JPP  - Corrected an off-by-1 error in hit detection, which meant that clicking in the last 16 pixels
+ *                    of an items label was being ignored.
  * 2013-11-20  JPP  - Moved event triggers into Collapse() and Expand() so that the events are always triggered.
  *                  - CheckedObjects now includes objects that are in a branch that is currently collapsed
  *                  - CollapseAll() and ExpandAll() now trigger cancellable events
@@ -80,14 +82,8 @@
  * 2008-09-23  JPP  Initial version
  *
  * TO DO:
- * 2008-12-10  If the TreeListView doesn't have a small image list, checkboxes do not work.
- *             [Is this still the case? 2009/01/27]
- * 2008-10-19  Can we remove the need to ownerdraw the tree view?
- *             If tree does not have checkboxes, we could use the state image
- *             to show the expand/collapse icon. If the tree has check boxes,
- *             it has to be owner drawn.
  * 
- * Copyright (C) 2006-2012 Phillip Piper
+ * Copyright (C) 2006-2013 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -111,9 +107,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
 
 namespace BrightIdeasSoftware
 {
@@ -140,6 +134,16 @@ namespace BrightIdeasSoftware
     /// This delegate must accept a model object and return an IEnumerable of model
     /// objects that will be displayed as children of the parent model. This delegate will only be called
     /// for a model object if the CanExpandGetter has already returned true for that model.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>
+    /// ParentGetter
+    /// </term> 
+    /// <description>
+    /// This delegate must accept a model object and return the parent model. 
+    /// This delegate will only be called when HierarchicalCheckboxes is true and the CheckedObjects
+    /// property is set. It is not used in any other context.
     /// </description>
     /// </item>
     /// </list>
@@ -172,6 +176,7 @@ namespace BrightIdeasSoftware
 
             // This improves hit detection even if we don't have any state image
             this.StateImageList = new ImageList();
+            this.StateImageList.ImageSize = new Size(16, 16);
         }
 
         //------------------------------------------------------------------------------------------
@@ -799,7 +804,9 @@ namespace BrightIdeasSoftware
                 this.SetObjectCheckedness(child, checkedness.Value);
             }
 
-            this.RecalculateHierarchicalCheckBoxGraph(new ArrayList { modelObject });
+            ArrayList args = new ArrayList();
+            args.Add(modelObject);
+            this.RecalculateHierarchicalCheckBoxGraph(args);
 
             return true;
         }
@@ -944,7 +951,7 @@ namespace BrightIdeasSoftware
             OLVListItem olvItem = base.MakeListViewItem(itemIndex);
             Branch br = this.TreeModel.GetBranch(olvItem.RowObject);
             if (br != null)
-                olvItem.IndentCount = br.Level - 1;
+                olvItem.IndentCount = br.Level;
             return olvItem;
         }
 
