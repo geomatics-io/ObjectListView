@@ -621,10 +621,11 @@ namespace BrightIdeasSoftware
 
         #endregion
 
-        public CheckBoxSettings CheckBoxSettings {
-            get { return checkBoxSettings; }
-            private set { checkBoxSettings = value; }
-        }
+        // TODO
+        //public CheckBoxSettings CheckBoxSettings {
+        //    get { return checkBoxSettings; }
+        //    private set { checkBoxSettings = value; }
+        //}
 
         #region Static properties
 
@@ -9918,7 +9919,9 @@ namespace BrightIdeasSoftware
 
         private List<GlassPanelForm> glassPanels = new List<GlassPanelForm>(); // The transparent panel that draws overlays
         private Dictionary<string, bool> visitedUrlMap = new Dictionary<string, bool>(); // Which urls have been visited?
-        private CheckBoxSettings checkBoxSettings = new CheckBoxSettings();
+        
+        // TODO
+        //private CheckBoxSettings checkBoxSettings = new CheckBoxSettings();
 
         #endregion
     }
