@@ -36,6 +36,34 @@ using System.Diagnostics;
 
 namespace BrightIdeasSoftware {
 
+    // TODO
+    //[TypeConverter(typeof(ExpandableObjectConverter))]
+    //public class CheckBoxSettings
+    //{
+    //    private bool useSettings;
+    //    private Image checkedImage;
+
+    //    public bool UseSettings {
+    //        get { return useSettings; }
+    //        set { useSettings = value; }
+    //    }
+
+    //    public Image CheckedImage {
+    //        get { return checkedImage; }
+    //        set { checkedImage = value; }
+    //    }
+
+    //    public Image UncheckedImage {
+    //        get { return checkedImage; }
+    //        set { checkedImage = value; }
+    //    }
+
+    //    public Image IndeterminateImage {
+    //        get { return checkedImage; }
+    //        set { checkedImage = value; }
+    //    }
+    //}
+
     /// <summary>
     /// An OLVColumn knows which aspect of an object it should present.
     /// </summary>
