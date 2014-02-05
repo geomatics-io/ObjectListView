@@ -1144,7 +1144,7 @@ namespace BrightIdeasSoftware {
             if (this.groupKeyToTitleConverter != null)
                 return this.groupKeyToTitleConverter(value);
 
-            return value == null ? "{null}" : this.ValueToString(value);
+            return value == null ? ObjectListView.GroupTitleDefault : this.ValueToString(value);
         }
 
         /// <summary>
