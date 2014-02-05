@@ -5,6 +5,10 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2014-02-05  JPP  - Fix bug where refreshing a non-root item would collapse all expanded children of that item
+ * 2014-02-01  JPP  - ClearObjects() now actually, you know, clears objects :)
+ *                  - Corrected bug where Expanded event was being raised twice.
+ *                  - RebuildChildren() no longer checks if CanExpand is true before rebuilding.
  * 2014-01-16  JPP  - Corrected an off-by-1 error in hit detection, which meant that clicking in the last 16 pixels
  *                    of an items label was being ignored.
  * 2013-11-20  JPP  - Moved event triggers into Collapse() and Expand() so that the events are always triggered.
@@ -176,7 +180,7 @@ namespace BrightIdeasSoftware
 
             // This improves hit detection even if we don't have any state image
             this.StateImageList = new ImageList();
-            this.StateImageList.ImageSize = new Size(16, 16);
+           // this.StateImageList.ImageSize = new Size(6, 6);
         }
 
         //------------------------------------------------------------------------------------------
@@ -495,11 +499,16 @@ namespace BrightIdeasSoftware
         private bool useWaitCursorWhenExpanding = true;
 
         /// <summary>
-        /// The model that is used to manage the tree structure
+        /// Gets the model that is used to manage the tree structure
         /// </summary>
-        protected Tree TreeModel {
+        /// <remarks>
+        /// Don't mess with this property unless you really know what you are doing.
+        /// If you don't already know what it's for, you don't need it.</remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public Tree TreeModel {
             get { return this.treeModel; }
-            set { this.treeModel = value; } 
+            protected set { this.treeModel = value; } 
         }
         private Tree treeModel;
 
@@ -574,6 +583,7 @@ namespace BrightIdeasSoftware
             if (this.InvokeRequired)
                 this.Invoke(new MethodInvoker(this.ClearObjects));
             else {
+                this.Roots = null;
                 this.DiscardAllState();
             }
         }
@@ -728,14 +738,12 @@ namespace BrightIdeasSoftware
             if (this.GetItemCount() == 0)
                 return;
 
-            // Collect any top level objects
-            ArrayList updatedRoots = new ArrayList();
-
             // Remember the selection so we can put it back later
             IList selection = this.SelectedObjects;
 
             // We actually need to refresh the parents.
             // Refreshes on root objects have to be handled differently
+            ArrayList updatedRoots = new ArrayList();
             Hashtable modelsAndParents = new Hashtable();
             foreach (Object model in modelObjects) {
                 if (model == null)
@@ -829,12 +837,7 @@ namespace BrightIdeasSoftware
             if (this.IsExpanded(model)) {
                 this.Collapse(model);
             } else {
-                TreeBranchExpandingEventArgs args = new TreeBranchExpandingEventArgs(model, item);
-                this.OnExpanding(args);
-                if (!args.Canceled) {
-                    this.Expand(model);
-                    this.OnExpanded(new TreeBranchExpandedEventArgs(model, item));
-                }
+                this.Expand(model);
             }
         }
 
@@ -1231,18 +1234,17 @@ namespace BrightIdeasSoftware
             /// <returns>The index of the model in flat list version of the tree</returns>
             public virtual int RebuildChildren(Object model) {
                 Branch br = this.GetBranch(model);
-                if (br == null || !br.Visible || !br.CanExpand)
+                if (br == null || !br.Visible)
                     return -1;
 
                 int count = br.NumberVisibleDescendents;
-                br.ClearCachedInfo();
 
                 // Remove the visible descendents from after the branch itself
                 int index = this.GetObjectIndex(model);
                 if (count > 0)
                     this.objectList.RemoveRange(index + 1, count);
                 if (br.CanExpand && br.IsExpanded) {
-                    br.FetchChildren();
+                    br.RefreshChildren();
                     this.InsertChildren(br, index + 1);
                 }
                 return index;
@@ -1913,11 +1915,13 @@ namespace BrightIdeasSoftware
             /// Force a refresh of all children recursively
             /// </summary>
             public virtual void RefreshChildren() {
-                if (this.IsExpanded && this.CanExpand) {
-                    this.FetchChildren();
-                    foreach (Branch br in this.ChildBranches)
-                        br.RefreshChildren();
-                }
+                if (!this.IsExpanded || !this.CanExpand) 
+                    return;
+
+                this.ClearCachedInfo();
+                this.FetchChildren();
+                foreach (Branch br in this.ChildBranches)
+                    br.RefreshChildren();
             }
 
             /// <summary>
