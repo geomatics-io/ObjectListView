@@ -62,10 +62,11 @@ namespace BrightIdeasSoftware.Tests
         [Test]
         public void TestSortingByIntColumn()
         {
-            this.olv.Sort(this.olv.GetColumn(2), SortOrder.Ascending);
-            Assert.AreEqual(PersonDb.All[PersonDb.All.Count - 1], this.olv.GetModelObject(0));
-            this.olv.Sort(this.olv.GetColumn(2), SortOrder.Descending);
-            Assert.AreEqual(PersonDb.All[0], this.olv.GetModelObject(0));
+            OLVColumn columnToSort = this.olv.GetColumn(2);
+            this.olv.Sort(columnToSort, SortOrder.Ascending);
+            Assert.AreEqual(PersonDb.All[PersonDb.All.Count - 1].Name, ((Person)this.olv.GetModelObject(0)).Name);
+            this.olv.Sort(columnToSort, SortOrder.Descending);
+            Assert.AreEqual(PersonDb.All[0].Name, ((Person)this.olv.GetModelObject(0)).Name);
         }
 
         [Test]

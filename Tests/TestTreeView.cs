@@ -92,7 +92,13 @@ namespace BrightIdeasSoftware.Tests
             foreach (Person p in PersonDb.All[1].Children)
                 expectedCount2 += p.Children.Count;
             this.olv.Expand(PersonDb.All[1]);
-            Assert.AreEqual(expectedCount2, this.olv.GetItemCount());
+            Assert.AreEqual(expectedCount2, this.olv.GetItemCount()-1);
+        }
+
+        [Test]
+        public void TestClearAll() {
+            this.olv.ClearObjects();
+            Assert.AreEqual(0, this.olv.GetItemCount());
         }
 
         [Test]
@@ -217,7 +223,6 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual(2, this.olv.GetItemCount());
         }
 
-
         [Test]
         public void TestRefreshWhenModelChanges() {
             Person firstRoot = PersonDb.All[0];
@@ -233,6 +238,19 @@ namespace BrightIdeasSoftware.Tests
             Assert.AreEqual(1, ObjectListView.EnumerableToArray(this.olv.GetChildren(firstRoot), false).Count);
 
             firstRoot.Children = originalChildren;
+        }
+
+        [Test]
+        public void TestRefreshObject_ExpansionUnchanged() {
+            this.olv.CollapseAll();
+            this.olv.ExpandAll();
+            int count = this.olv.GetItemCount();
+            ArrayList expanded = ObjectListView.EnumerableToArray(this.olv.ExpandedObjects, false);
+            Person lastExpanded = (Person) expanded[expanded.Count - 1];
+            object parentOfLastExpanded = this.olv.GetParent(lastExpanded);
+            this.olv.RefreshObject(parentOfLastExpanded);
+            Assert.IsTrue(this.olv.IsExpanded(lastExpanded));
+            Assert.AreEqual(count, this.olv.GetItemCount());
         }
 
         [Test]
