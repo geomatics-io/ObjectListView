@@ -166,7 +166,7 @@ namespace BrightIdeasSoftware.Tests
         public override bool Equals(object obj) {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            var other = obj as Person;
+            Person other = obj as Person;
             return other != null && Equals(other);
         }
 
@@ -203,12 +203,13 @@ namespace BrightIdeasSoftware.Tests
         static void InitializeAllPersons()
         {
             sAllPersons = new List<Person>(new Person[] {             
-                new Person("name", "occupation", 200, DateTime.Now.AddYears(1), 1.0, true, "  photo  ", "comments"),
+                new Person("name", "occupation", 300, DateTime.Now.AddYears(1), 1.0, true, "  photo  ", "comments"),
                 new Person2("name2", "occupation", 100, DateTime.Now, 1.0, true, "  photo  ", "comments"),
                 new Person(PersonDb.FirstAlphabeticalName, "occupation3", 90, DateTime.Now, 3.0, true, "  photo3  ", "comments3"),
                 new Person("name4", "occupation4", 80, DateTime.Now, 4.0, true, "  photo4  ", "comments4"),
                 new Person2("name5", "occupation5", 70, DateTime.Now, 5.0, true, "  photo5  ", "comments5"),
                 new Person("name6", "occupation6", 65, DateTime.Now, 6.0, true, "  photo6  ", "comments6"),
+                new Person("name7", "occupation7", 62, DateTime.Now, 7.0, true, "  photo7  ", "comments7"),
                 new Person(PersonDb.LastAlphabeticalName, "occupation6", 60, DateTime.Now.AddYears(-1), 6.0, true, "  photo6  ", "comments6"),
             });
             sAllPersons[0].AddChild(sAllPersons[2]);
@@ -216,6 +217,7 @@ namespace BrightIdeasSoftware.Tests
             sAllPersons[1].AddChild(sAllPersons[4]);
             sAllPersons[1].AddChild(sAllPersons[5]);
             sAllPersons[5].AddChild(sAllPersons[6]);
+            sAllPersons[6].AddChild(sAllPersons[7]);
         }
         static private List<Person> sAllPersons;
 
