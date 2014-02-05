@@ -2207,7 +2207,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Gets the model that is about to expand
+        /// Gets the model that is about to expand. If null, all branches are going to be expanded.
         /// </summary>
         public object Model
         {
@@ -2245,7 +2245,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Gets the model that is was expanded
+        /// Gets the model that is was expanded. If null, all branches were expanded.
         /// </summary>
         public object Model
         {
@@ -2283,7 +2283,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Gets the model that is about to collapse
+        /// Gets the model that is about to collapse. If this is null, all models are going to collapse.
         /// </summary>
         public object Model
         {
@@ -2293,7 +2293,7 @@ namespace BrightIdeasSoftware
         private object model;
 
         /// <summary>
-        /// Gets the OLVListItem that is about to be collapsed
+        /// Gets the OLVListItem that is about to be collapsed. Can be null
         /// </summary>
         public OLVListItem Item
         {
@@ -2321,7 +2321,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Gets the model that is was collapsed
+        /// Gets the model that is was collapsed. If null, all branches were collapsed
         /// </summary>
         public object Model
         {

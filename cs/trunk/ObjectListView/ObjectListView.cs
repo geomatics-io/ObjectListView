@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2014-02-01  JPP  - Added static property ObjectListView.GroupTitleDefault to allow the default group title to be localised.
  * 2013-09-24  JPP  - Fixed bug in RefreshObjects() when model objects overrode the Equals()/GetHashCode() methods.
  *                  - Made sure get state checker were used when they should have been
  * 2013-04-21  JPP  - Clicking on a non-groupable column header when showing groups will now sort
@@ -488,7 +489,7 @@
  * TO DO:
  * - Support undocumented group features: subseted groups, group footer items
  *
- * Copyright (C) 2006-2012 Phillip Piper
+ * Copyright (C) 2006-2013 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -634,47 +635,56 @@ namespace BrightIdeasSoftware
         /// </summary>
         static public bool IsVistaOrLater {
             get {
-                if (!ObjectListView.isVistaOrLater.HasValue)
-                    ObjectListView.isVistaOrLater = Environment.OSVersion.Version.Major >= 6;
-                return ObjectListView.isVistaOrLater.Value;
+                if (!ObjectListView.sIsVistaOrLater.HasValue)
+                    ObjectListView.sIsVistaOrLater = Environment.OSVersion.Version.Major >= 6;
+                return ObjectListView.sIsVistaOrLater.Value;
             }
         }
-        static private bool? isVistaOrLater;
+        static private bool? sIsVistaOrLater;
 
         /// <summary>
         /// Gets whether the program running on Win7 or later?
         /// </summary>
         static public bool IsWin7OrLater {
             get {
-                if (!ObjectListView.isWin7OrLater.HasValue) {
+                if (!ObjectListView.sIsWin7OrLater.HasValue) {
                     // For some reason, Win7 is v6.1, not v7.0
                     Version version = Environment.OSVersion.Version;
-                    ObjectListView.isWin7OrLater = version.Major > 6 || (version.Major == 6 && version.Minor > 0);
+                    ObjectListView.sIsWin7OrLater = version.Major > 6 || (version.Major == 6 && version.Minor > 0);
                 }
-                return ObjectListView.isWin7OrLater.Value;
+                return ObjectListView.sIsWin7OrLater.Value;
             }
         }
-        static private bool? isWin7OrLater;
+        static private bool? sIsWin7OrLater;
 
         /// <summary>
         /// Gets or sets how what smoothing mode will be applied to graphic operations.
         /// </summary>
         static public System.Drawing.Drawing2D.SmoothingMode SmoothingMode {
-            get { return ObjectListView.smoothingMode; }
-            set { ObjectListView.smoothingMode = value; }
+            get { return ObjectListView.sSmoothingMode; }
+            set { ObjectListView.sSmoothingMode = value; }
         }
-        static private System.Drawing.Drawing2D.SmoothingMode smoothingMode =
+        static private System.Drawing.Drawing2D.SmoothingMode sSmoothingMode =
             System.Drawing.Drawing2D.SmoothingMode.HighQuality;
 
         /// <summary>
         /// Gets or sets how should text be renderered.
         /// </summary>
         static public System.Drawing.Text.TextRenderingHint TextRenderingHint {
-            get { return ObjectListView.textRendereringHint; }
-            set { ObjectListView.textRendereringHint = value; }
+            get { return ObjectListView.sTextRendereringHint; }
+            set { ObjectListView.sTextRendereringHint = value; }
         }
-        static private System.Drawing.Text.TextRenderingHint textRendereringHint =
+        static private System.Drawing.Text.TextRenderingHint sTextRendereringHint =
             System.Drawing.Text.TextRenderingHint.SystemDefault;
+
+        /// <summary>
+        /// Gets or sets the string that will be used to title groups when the group key is null.
+        /// Exposed so it can be localized.
+        /// </summary>
+        static public string GroupTitleDefault {
+            get { return ObjectListView.sGroupTitleDefault; }
+            set { ObjectListView.sGroupTitleDefault = value == null ? "{null}" : value; }
+        }static private string sGroupTitleDefault = "{null}";
 
         /// <summary>
         /// Convert the given enumerable into an ArrayList as efficiently as possible
