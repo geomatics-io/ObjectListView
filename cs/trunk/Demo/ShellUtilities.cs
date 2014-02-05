@@ -46,6 +46,25 @@ namespace ObjectListViewDemo
             }
         }
 
+        protected ImageList SmallImageList {
+            get {
+                if (this.listView != null)
+                    return this.listView.SmallImageList;
+                if (this.treeView != null)
+                    return this.treeView.ImageList;
+                return null;
+            }
+        }
+
+        protected ImageList LargeImageList {
+            get {
+                if (this.listView != null)
+                    return this.listView.LargeImageList;
+                return null;
+            }
+        }
+
+
         /// <summary>
         /// Create a SysImageListHelper that will fetch images for the given tree control
         /// </summary>
@@ -106,14 +125,34 @@ namespace ObjectListViewDemo
                 return this.SmallImageCollection.IndexOfKey(path);
 
             try {
-                this.SmallImageCollection.Add(path, ShellUtilities.GetFileIcon(path, true, true));
-                if (this.LargeImageCollection != null)
-                    this.LargeImageCollection.Add(path, ShellUtilities.GetFileIcon(path, false, true));
+                this.AddImageToCollection(path, this.SmallImageList, ShellUtilities.GetFileIcon(path, true, true));
+                this.AddImageToCollection(path, this.LargeImageList, ShellUtilities.GetFileIcon(path, false, true));
             } catch (ArgumentNullException) {
                 return -1;
             }
 
             return this.SmallImageCollection.IndexOfKey(path);
+        }
+
+        private void AddImageToCollection(string key, ImageList imageList, Icon image) {
+            if (imageList == null)
+                return;
+
+            if (imageList.ImageSize == image.Size) {
+                imageList.Images.Add(key, image);
+                return;
+            }
+
+            using (Bitmap imageAsBitmap = image.ToBitmap()) {
+                Bitmap bm = new Bitmap(imageList.ImageSize.Width, imageList.ImageSize.Height);
+                Graphics g = Graphics.FromImage(bm);
+                g.Clear(imageList.TransparentColor);
+                Size size = imageAsBitmap.Size;
+                int x = Math.Max(0, (bm.Size.Width - size.Width) / 2);
+                int y = Math.Max(0, (bm.Size.Height - size.Height) / 2);
+                g.DrawImage(imageAsBitmap, x, y, size.Width, size.Height);
+                imageList.Images.Add(key, bm);
+            }
         }
     }
     
