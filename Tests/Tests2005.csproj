@@ -33,7 +33,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInfo.cs" />
+        <Compile Include="AssemblyInfo.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -44,16 +44,22 @@
     <Compile Include="Program.cs" />
     <Compile Include="SetupTestSuite.cs" />
     <Compile Include="TestAdornments.cs" />
-    <Compile Include="TestBasics.cs" />
+    <Compile Include="TestBasics.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TestCheckBoxes.cs" />
     <Compile Include="TestColumn.cs" />
+    <Compile Include="TestDateClusteringStrategy.cs" />
     <Compile Include="TestExport.cs" />
+    <Compile Include="TestFilters.cs" />
+    <Compile Include="TestFlagClusteringStrategy.cs" />
     <Compile Include="TestFormatting.cs" />
     <Compile Include="TestGenerator.cs" />
     <Compile Include="TestNotifications.cs" />
     <Compile Include="TestSelection.cs" />
     <Compile Include="TestSorting.cs" />
     <Compile Include="TestTreeView.cs" />
+    <Compile Include="TestTypedListView.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ObjectListView\ObjectListView2005.csproj">
