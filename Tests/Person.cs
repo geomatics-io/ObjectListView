@@ -210,7 +210,7 @@ namespace BrightIdeasSoftware.Tests
                 new Person2("name5", "occupation5", 70, DateTime.Now, 5.0, true, "  photo5  ", "comments5"),
                 new Person("name6", "occupation6", 65, DateTime.Now, 6.0, true, "  photo6  ", "comments6"),
                 new Person("name7", "occupation7", 62, DateTime.Now, 7.0, true, "  photo7  ", "comments7"),
-                new Person(PersonDb.LastAlphabeticalName, "occupation6", 60, DateTime.Now.AddYears(-1), 6.0, true, "  photo6  ", "comments6"),
+                new Person(PersonDb.LastAlphabeticalName, "occupation6", 60, DateTime.Now.AddYears(-1), 6.0, true, "  photo6  ", LastComment),
             });
             sAllPersons[0].AddChild(sAllPersons[2]);
             sAllPersons[0].AddChild(sAllPersons[3]);
@@ -239,9 +239,12 @@ namespace BrightIdeasSoftware.Tests
             get { return "aaa First Alphabetical Name"; }
         }
 
-        static public string LastAlphabeticalName
-        {
+        static public string LastAlphabeticalName {
             get { return "zzz Last Alphabetical Name"; }
+        }
+
+        static public string LastComment {
+            get { return "zzz Last Comment"; }
         }
     }
 }
