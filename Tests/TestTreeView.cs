@@ -217,10 +217,34 @@ namespace BrightIdeasSoftware.Tests
             this.olv.ExpandAll();
 
             this.olv.UseFiltering = true;
-            this.olv.ModelFilter = new TextMatchFilter(this.olv, PersonDb.FirstAlphabeticalName.ToLowerInvariant());
+            this.olv.ModelFilter = new TextMatchFilter(this.olv, PersonDb.LastAlphabeticalName.ToLowerInvariant());
 
-            // After filtering the list should contain the one item that matched the filter and its parent
-            Assert.AreEqual(2, this.olv.GetItemCount());
+            // After filtering the list should contain the one item that matched the filter and its ancestors
+            Assert.AreEqual(4, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public void Test_ModelFilter_HandlesColumnChanges() {
+            this.olv.ExpandAll();
+
+            OLVColumn commentColumn = new OLVColumn("Comment field", "Comments");
+            this.olv.AllColumns.Add(commentColumn);
+            this.olv.RebuildColumns();
+
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new TextMatchFilter(this.olv, PersonDb.LastComment);
+
+            // After filtering the list should contain the one item that matched the filter and its ancestors
+            Assert.AreEqual(4, this.olv.GetItemCount());
+
+            commentColumn.IsVisible = false;
+            this.olv.RebuildColumns();
+            Assert.AreEqual(0, this.olv.VirtualListSize);
+
+            commentColumn.IsVisible = true;
+            this.olv.RebuildColumns();
+            Assert.AreEqual(4, this.olv.GetItemCount());
+            Assert.AreEqual(PersonDb.LastComment, ((Person)this.olv.GetItem(3).RowObject).Comments);
         }
 
         [Test]
