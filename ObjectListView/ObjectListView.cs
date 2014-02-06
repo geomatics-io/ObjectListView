@@ -6,6 +6,8 @@
  *
  * Change log
  * 2014-02-06  JPP  - Fix bug on virtual lists where the filter was not correctly reapplied after columns were added or removed.
+ *                  - Made disposing of cell editors optional (defaults to true). This allows controls to be cached and reused.
+ *                  - Bracketed column resizing with BeginUpdate/EndUpdate to smooth redraws (thanks to Davide)
  * 2014-02-01  JPP  - Added static property ObjectListView.GroupTitleDefault to allow the default group title to be localised.
  * 2013-09-24  JPP  - Fixed bug in RefreshObjects() when model objects overrode the Equals()/GetHashCode() methods.
  *                  - Made sure get state checker were used when they should have been
@@ -2990,6 +2992,8 @@ namespace BrightIdeasSoftware
         virtual public bool UseFiltering {
             get { return useFiltering; }
             set {
+                if (useFiltering == value)
+                    return;
                 useFiltering = value;
                 this.UpdateFiltering();
             }
@@ -5221,9 +5225,11 @@ namespace BrightIdeasSoftware
                 try {
                     this.SelectedIndices.Clear();
                     ListViewItem lvi = this.GetNthItemInDisplayOrder(found);
-                    lvi.Selected = true;
-                    lvi.Focused = true;
-                    this.EnsureVisible(lvi.Index);
+                    if (lvi != null) {
+                        lvi.Selected = true;
+                        lvi.Focused = true;
+                        this.EnsureVisible(lvi.Index);
+                    }
                 } finally {
                     this.EndUpdate();
                 }
@@ -6796,8 +6802,14 @@ namespace BrightIdeasSoftware
             }
 
             // Distribute the free space between the columns
-            foreach (OLVColumn col in spaceFillingColumns) {
-                col.Width = (freeSpace * col.FreeSpaceProportion) / totalProportion;
+            try {
+                this.BeginUpdate();
+                foreach (OLVColumn col in spaceFillingColumns) {
+                    col.Width = (freeSpace*col.FreeSpaceProportion)/totalProportion;
+                }
+            }
+            finally {
+                this.EndUpdate();
             }
         }
 
@@ -9094,7 +9106,7 @@ namespace BrightIdeasSoftware
             this.OnCellEditFinishing(this.cellEditEventArgs);
 
             // Now cleanup the editing process
-            this.CleanupCellEdit(false);
+            this.CleanupCellEdit(false, this.cellEditEventArgs.AutoDispose);
         }
 
         /// <summary>
@@ -9167,7 +9179,7 @@ namespace BrightIdeasSoftware
                 this.RefreshItem(this.cellEditEventArgs.ListViewItem);
             }
 
-            this.CleanupCellEdit(expectingCellEdit);
+            this.CleanupCellEdit(expectingCellEdit, this.cellEditEventArgs.AutoDispose);
         }
 
         /// <summary>
@@ -9175,7 +9187,8 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="expectingCellEdit">True if it is likely that another cell is going to be 
         /// edited immediately after this cell finishes editing</param>
-        protected virtual void CleanupCellEdit(bool expectingCellEdit) {
+        /// <param name="disposeOfCellEditor">True if the cell editor should be disposed </param>
+        protected virtual void CleanupCellEdit(bool expectingCellEdit, bool disposeOfCellEditor) {
             if (this.cellEditor == null)
                 return;
 
@@ -9193,10 +9206,13 @@ namespace BrightIdeasSoftware
             toBeRun = delegate(object sender, EventArgs e) {
                 Application.Idle -= toBeRun;
                 this.Controls.Remove(soonToBeOldCellEditor);
+                if (disposeOfCellEditor)
+                    soonToBeOldCellEditor.Dispose();
                 this.Invalidate();
 
                 if (!this.IsCellEditing) {
-                    this.Select();
+                    if (this.Focused)
+                        this.Select();
                     this.PauseAnimations(false);
                 }
             };
