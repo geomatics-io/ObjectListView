@@ -924,6 +924,18 @@ namespace BrightIdeasSoftware
             get { return this.cellBounds; }
         }
         private Rectangle cellBounds;
+
+        /// <summary>
+        /// Gets or sets whether the control used for editing should be auto matically disposed
+        /// when the cell edit operation finishes. Defaults to true
+        /// </summary>
+        /// <remarks>If the control is expensive to create, you might want to cache it and reuse for
+        /// for various cells. If so, you don't want ObjectListView to dispose of the control automatically</remarks>
+        public bool AutoDispose {
+            get { return autoDispose; }
+            set { autoDispose = value; }
+        }
+        private bool autoDispose = true;
     }
 
     /// <summary>
