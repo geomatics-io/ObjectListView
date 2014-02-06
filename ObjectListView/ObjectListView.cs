@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2014-02-06  JPP  - Fix bug on virtual lists where the filter was not correctly reapplied after columns were added or removed.
  * 2014-02-01  JPP  - Added static property ObjectListView.GroupTitleDefault to allow the default group title to be localised.
  * 2013-09-24  JPP  - Fixed bug in RefreshObjects() when model objects overrode the Equals()/GetHashCode() methods.
  *                  - Made sure get state checker were used when they should have been
@@ -3836,7 +3837,7 @@ namespace BrightIdeasSoftware
             this.Columns.AddRange(columns.ToArray());
             if (view == View.Details || this.ShowHeaderInAllViews)
                 this.ShowSortIndicator();
-            this.BuildList();
+            this.UpdateFiltering();
             this.Unfreeze();
 
             // Restore the state
