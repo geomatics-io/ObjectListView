@@ -723,6 +723,27 @@ namespace BrightIdeasSoftware
             return newObjects;
         }
 
+
+        /// <summary>
+        /// Return the count of items in the given enumerable
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <returns></returns>
+        /// <remarks>When we move to .NET 3.5, we can use LINQ and not need this method.</remarks>
+        public static int EnumerableCount(IEnumerable collection) {
+            if (collection == null)
+                return 0;
+
+            ICollection iCollection = collection as ICollection;
+            if (iCollection != null)
+                return iCollection.Count;
+
+            int i = 0;
+            foreach (object x in collection)
+                i++;
+            return i;
+        }
+
         /// <summary>
         /// Return whether or not the given enumerable is empty. A string is regarded as 
         /// an empty collection.
@@ -2649,7 +2670,9 @@ namespace BrightIdeasSoftware
 
                 // If the header is being hidden, we have to recreate the control
                 // to remove the style (not sure why this is)
-                if (!showHeaderInAllViews)
+                if (showHeaderInAllViews) 
+                    this.ApplyExtendedStyles();
+                else 
                     this.RecreateHandle();
 
                 // Still more complications. The change doesn't become visible until the View is changed
@@ -3428,7 +3451,7 @@ namespace BrightIdeasSoftware
         /// <param name="modelObjects">A collection of model objects</param>
         /// <remarks>
         /// <para>The added objects will appear in their correct sort position, if sorting
-        /// is active (i.e. if LastSortColumn is not null). Otherwise, they will appear at the end of the list.</para>
+        /// is active (i.e. if PrimarySortColumn is not null). Otherwise, they will appear at the end of the list.</para>
         /// <para>No check is performed to see if any of the objects are already in the ListView.</para>
         /// <para>Null objects are silently ignored.</para>
         /// </remarks>
@@ -3437,7 +3460,7 @@ namespace BrightIdeasSoftware
                 this.Invoke((MethodInvoker)delegate() { this.AddObjects(modelObjects); });
                 return;
             }
-            this.InsertObjects(this.GetItemCount(), modelObjects);
+            this.InsertObjects(ObjectListView.EnumerableCount(this.Objects), modelObjects);
             this.Sort(this.PrimarySortColumn, this.PrimarySortOrder);
         }
 
@@ -7089,16 +7112,17 @@ namespace BrightIdeasSoftware
             // that property returns -1. So, we track the index of
             // the column header, and always include the first header.
 
-                    int index = 0;
-                    return this.AllColumns.FindAll(delegate(OLVColumn x) {
-                        return (index++ == 0) || x.IsVisible;
-                    });
+            int index = 0;
+            return this.AllColumns.FindAll(delegate(OLVColumn x) {
+                return (index++ == 0) || x.IsVisible;
+            });
         }
 
         /// <summary>
         /// Return the number of items in the list
         /// </summary>
         /// <returns>the number of items in the list</returns>
+        /// <remarks>If a filter is installed, this will return the number of items that match the filter.</remarks>
         public virtual int GetItemCount() {
             return this.Items.Count;
         }
@@ -8630,6 +8654,9 @@ namespace BrightIdeasSoftware
 
             this.RememberDisplayIndicies();
             this.SetGroupSpacing();
+
+            if (this.VirtualMode)
+                this.ApplyExtendedStyles();
         }
 
         #endregion
