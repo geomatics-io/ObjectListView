@@ -1430,9 +1430,7 @@ namespace BrightIdeasSoftware
             /// </summary>
             /// <param name="modelObjects"></param>
             public virtual void AddObjects(ICollection modelObjects) {
-                ArrayList newRoots = new ArrayList();
-                foreach (Object x in this.treeView.Roots)
-                    newRoots.Add(x);
+                ArrayList newRoots = ObjectListView.EnumerableToArray(this.treeView.Roots, true);
                 foreach (Object x in modelObjects)
                     newRoots.Add(x);
                 this.SetObjects(newRoots);
