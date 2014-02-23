@@ -7,6 +7,40 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
+March 2014 - Version 2.7
+------------------------
+
+After a long break, the next release of ObjectListView is available. 
+
+New features
+^^^^^^^^^^^^
+
+* Added `HierarchicalCheckBoxes` to `TreeListView` (so quick to say, but so much work to do)
+* Added `TreeListView.Reveal()` to show deeply nested model objects, by expanding all its ancestors
+
+Other changes
+^^^^^^^^^^^^^
+
+* Added `CellEditEventArgs.AutoDispose` to allow cell editors to be disposed after use. Defaults to `true`. This allows heavy controls to be cached for reuse, and light controls to be disposed without leaks.
+* `ShowHeaderInAllViews` now works on virtual lists
+* Added `TreeListView.TreeFactory` to allow the underlying `Tree` to be replaced by another implementation.
+* `CollapseAll()` and `ExpandAll()` now trigger cancellable events
+* Added static property `ObjectListView.GroupTitleDefault` to allow the default group title to be localised
+* Added Visual Studio 2012 support
+* Clicking on a non-groupable column header when showing groups will now sort the group contents by that column.
+* `TreeListView` now honours `SecondarySortColumn` and `SecondarySortOrder`
+
+
+Bugs fixed
+^^^^^^^^^^
+
+* `ClearObjects()` now actually, you know, clears objects :)
+* Fixed some more issues/bugs/annoyances with `ShowHeaderInAllViews`.
+* Fixed various bugs related to filters and list modifications.
+* Fixed some bugs so that tree expansion events are always triggered, but only once per action.
+* `RebuildChildren()` no longer checks if `CanExpand` is true before rebuilding.
+* Fixed long standing bug in `RefreshObject()` would sometimes not work on objects which overrode `Equals()`
+
 July 2012 - Version 2.6
 -----------------------
 
@@ -26,7 +60,7 @@ New features
 * Added `CellPadding`, `CellHorizontalAlignment` and `CellVerticalAlignment` properties to `ObjectListView` and
   `OLVColumn`. On owner drawn controls, these control the placement of cell contents within the cell.
 
-* Added OLVExporter -- a utility to export data from `ObjectListView`.
+* Added `OLVExporter` -- a utility to export data from `ObjectListView`.
 
 Other changes
 ^^^^^^^^^^^^^
@@ -48,6 +82,9 @@ Other changes
 Bugs fixed
 ^^^^^^^^^^
 
+* Hit detection will no longer report check box hits on columns without checkboxes.
+* Circumvent annoying bug in ListView control where changing selection would leave artefacts on the control.
+* Renderers only create Timer when animating GIFs.
 * Fixed bug with single click cell editing where the cell editing didn’t start until the first mouse move.
   This fixed a number of related bugs concerning cell editing and mouse moves.
 * Fixed bug where removing a column from a LargeIcon or SmallIcon view would crash the control.

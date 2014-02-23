@@ -9,7 +9,8 @@ Change Log
 
 Version Index
 -------------
-* `v2.6 - 17 October 2012`_
+* `v2.7 - 28 February 2014`_
+* `v2.6 - 01 November 2012`_
 * `v2.5.1 - 08 May 2012`_
 * `v2.5 - 06 June 2011`_
 * `v2.4.1 - 15 September 2010`_
@@ -25,8 +26,159 @@ Version Index
 * `Previous versions - 24 July 2008`_
 
 
-v2.6 - 17 October 2012
-----------------------
+v2.7 - 28 February 2014
+-----------------------
+
+2014-02-22 12:50 (#1355) - Demo/MainForm.Designer.cs, , Tests/TestTreeView.cs, docs/changelog.rst, docs/download.rst, ObjectListView/TreeListView.cs, ObjectListView/Properties/AssemblyInfo.cs, docs/recipes.rst, Demo/MainForm.resx
+  - Update version number to 2.7
+  - Small tweaks prior to release
+
+2014-02-14 08:14 (#1353) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Cleaned up demo a little
+
+2014-02-14 08:13 (#1352) - ObjectListView/ObjectListView.cs, ObjectListView/Implementation/NativeMethods.cs
+  - Fixed a bug with ShowHeaderInAllViews (another one!) where setting it to false caused the list to lose its other extended styles, leading to nasty flickering and worse.
+
+2014-02-12 20:55 (#1351) - Tests/TestBasics.cs
+  - Added test for interaction between AddObjects and filters
+
+2014-02-12 20:37 (#1350) - ObjectListView/ObjectListView.cs, ObjectListView/TreeListView.cs
+  - AddObjects() now adds objects to the end of the list even if filtering is turned on
+  - ShowHeaderInAllViews now works on virtual lists
+
+2014-02-07 06:09 (#1349) - ObjectListView/ObjectListView.cs, ObjectListView/Implementation/Events.cs
+  - Added CellEditEventArgs.AutoDispose to allow cell editors to be disposed after use. Defaults to true. This allows heavy controls to be cached for reuse.
+  - Bracketed column resizing with BeginUpdate/EndUpdate to smooth redraws (thanks to Davide)
+  - Check for null when search-by-typing to catch rare/bizarre condition where GetNthItemInDisplayOrder() returns null
+
+2014-02-06 08:40 (#1348) - Tests/TestTreeView.cs, Tests/Person.cs
+  - Added test for column changes and filtering
+
+2014-02-06 08:39 (#1347) - ObjectListView/ObjectListView.cs
+  - Fix bug on virtual lists where the filter was not correctly reapplied after columns were added or removed.
+
+2014-02-05 13:15 (#1346) - Tests/TestTreeView.cs, Tests/TestExport.cs, Tests/TestSorting.cs, Tests/Person.cs
+  - Update unit tests
+
+2014-02-05 13:15 (#1345) - Demo/ShellUtilities.cs
+  - Resize shell images to match current size of images on the control
+
+2014-02-05 13:13 (#1344) - ObjectListView/TreeListView.cs
+  - Fix bug where refreshing a non-root item would collapse all expanded children of that item
+  - ClearObjects() now actually, you know, clears objects :)
+  - Corrected bug where Expanded event was being raised twice.
+  - RebuildChildren() no longer checks if CanExpand is true before rebuilding.
+
+2014-02-05 13:12 (#1343) - ObjectListView/ObjectListView.cs, ObjectListView/OLVColumn.cs
+  - Added static property ObjectListView.GroupTitleDefault to allow the default group title to be localised
+
+2014-01-16 08:34 (#1342) - ObjectListView/TreeListView.cs
+  - Corrected an off-by-1 error in hit detection, which meant that clicking in the last 16 pixels of an items label was being ignored.
+
+2014-01-16 08:33 (#1341) - ObjectListView2012.sln, Tests/Tests2008.csproj, ObjectListView/ObjectListView.cs, ObjectListView/ObjectListView2012.csproj, Demo/ObjectListViewDemo2008.csproj, ObjectListView/OLVColumn.cs, ListViewPrinterDemo/ListViewPrinterDemo2012.csproj, ListViewPrinter/ListViewPrinter2012.csproj, Tests/Tests2012.csproj, Demo/ObjectListViewDemo2012.csproj, Tests/Tests2005.csproj, Demo/ObjectListViewDemo2005.csproj, Tests/Person.cs
+  - Added VS 2012 projects
+
+2013-11-25 08:35 (#1340) - Demo/MainForm.Designer.cs, , Demo/MainForm.cs, Tests/TestTreeView.cs, Tests/TestColumn.cs, ObjectListView/TreeListView.cs, ListViewPrinter, Demo/MainForm.resx, Tests/Person.cs
+  - HierarchicalCheckboxes is now honoured when settings CheckedObjects
+  - Added ParentGetter -- which is (annoyingly) only need for one use case: settings CheckedObjects for objects which have not been shown in the control.
+  - Add hierarchicalCheckboxes to Demo
+  - More unit tests
+
+2013-11-22 07:39 (#1338) - Tests/MainForm.cs, Tests/TestNotifications.cs, Tests/TestTreeView.cs, Tests/TestCheckBoxes.cs, Tests/TestBasics.cs
+  - Added tests for UpdateObject
+  - Fixed subscription tests
+  - Added more tests for hierarchical checkboxes
+
+2013-11-22 07:37 (#1337) - ObjectListView/VirtualObjectListView.cs, ObjectListView/TreeListView.cs, ObjectListView/Implementation/Events.cs
+  - Moved event triggers into Collapse() and Expand() so that the events are always triggered.
+  - CheckedObjects now includes objects that are in a branch that is currently collapsed
+  - CollapseAll() and ExpandAll() now trigger cancellable events
+  - Added TreeFactory to allow the underlying Tree to be replaced by another implementation.
+  - HierarchicalCheckboxes - 80% complete
+
+2013-11-22 07:35 (#1336) - ObjectListView/OLVColumn.cs, ObjectListView/Rendering/Renderers.cs
+  - Added some foundational stuff for custom checkbox images
+
+2013-11-22 07:34 (#1335) - ObjectListView/ObjectListView.cs
+  - Don't create a StateImageList if the OLV isn't using CheckBoxes
+  - Removed some unused code
+
+2013-09-24 00:12 (#1333) - ObjectListView/Implementation/VirtualListDataSource.cs
+  - Added new UpdateObject() method
+
+2013-09-24 00:11 (#1332) - ObjectListView/TreeListView.cs
+  - Fixed long standing bug where RefreshObject() would not work on root objects which overrode Equals()/GetHashCode().
+
+2013-09-24 00:11 (#1331) - ObjectListView/VirtualObjectListView.cs
+  - Use new UpdateObject() method
+
+2013-09-24 00:10 (#1330) - ObjectListView/FastObjectListView.cs
+  - Implement new UpdateObject() method
+
+2013-09-24 00:10 (#1329) - ObjectListView/ObjectListView.cs
+  - Fixed bug in RefreshObjects() when model objects overrode the Equals()/GetHashCode() methods.
+  - Made sure get state checker were used when they should have been
+
+2013-09-23 23:52 (#1328) - ObjectListView/Properties/AssemblyInfo.cs
+  - Updated version number
+
+2013-09-23 23:50 (#1327) - Tests/TestFilters.cs, Tests/TestNotifications.cs, Tests/TestTreeView.cs, Tests/TestFlagClusteringStrategy.cs, Tests/TestTypedListView.cs, Tests/TestCheckBoxes.cs, Tests/TestDateClusteringStrategy.cs, Tests/Tests2010.csproj, Tests/TestExport.cs, Tests/TestBasics.cs, Tests/Person.cs
+  - Added more tests, particularly around RefreshObject()
+  - Separated some tests into new files
+
+2013-08-10 11:07 (#1325) - ObjectListView/ObjectListView.cs, ObjectListView/OLVColumn.cs, ObjectListView/Properties/AssemblyInfo.cs
+  - Clicking on a non-groupable column header when showing groups will now sort the group contents by that column.
+  - Updated version number
+
+2013-05-20 08:22 (#1324) - ObjectListView/Utilities/ColumnSelectionForm.cs
+  - Fixed obscure bug in column re-ordered. Thanks to Edwin Chen.
+
+2013-05-20 08:21 (#1323) - ObjectListView/Rendering/Renderers.cs
+  - Fixed bug in BaseRenderer where Images were not vertically aligned
+
+2013-02-23 22:22 (#1322) - ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/ObjectListView.cs, Demo/MainForm.cs, ObjectListView/Filtering/FlagClusteringStrategy.cs, ObjectListView/DragDrop/OLVDataObject.cs, Tests/packages.config, ObjectListView/ObjectListView.DesignTime.cs, Tests/Tests2010.csproj, ObjectListView/Rendering/Renderers.cs, ObjectListView/TreeListView.cs, Demo/ObjectListViewDemo2010.csproj
+  - Added some new comments
+
+2013-02-23 21:25 (#1321) - ObjectListView/ObjectListView.cs, ObjectListView/Rendering/Renderers.cs, ObjectListView/TreeListView.cs
+  - HierarchicalCheckboxes working but rough
+
+2013-02-22 15:02 (#1320) - ObjectListView/ObjectListView.cs
+  - Fixed some small code issues to keep Resharper happy
+
+2013-02-20 16:49 (#1319) - Demo/MainForm.Designer.cs, Tests/TestTreeView.cs, ObjectListView/TreeListView.cs, Demo/MainForm.resx
+  - TreeListView now honours SecondarySortColumn and SecondarySortOrder
+
+
+
+v2.6 - 01 November 2012
+-----------------------
+
+2012-10-26 17:05 (#1314) - ObjectListView/Rendering/Renderers.cs
+  - Hit detection will no longer report check box hits on columns without checkboxes.
+
+2012-10-26 17:04 (#1313) - ObjectListView/Utilities/TypedObjectListView.cs
+  - Handle rare case where a null model object was passed into aspect getters.
+
+2012-10-26 17:03 (#1312) - ObjectListView/TreeListView.cs
+  - Circumvent annoying bug in ListView control where changing selection would leave artefacts on the control.
+
+2012-10-26 17:02 (#1311) - Tests/TestBasics.cs
+  - Added Tests for TypedListView
+
+2012-10-16 09:23 (#1310) - Tests/TestGenerator.cs
+  - Fix broken tests
+
+2012-10-16 09:22 (#1309) - ObjectListView/ObjectListView.cs
+  - Small comment edits
+
+2012-10-16 09:22 (#1308) - ObjectListView/Utilities/Generator.cs
+  - Correctly mark columns as not editable if they are generated from a property without a setter
+
+2012-10-16 09:20 (#1307) - docs/features.rst, docs/whatsnew.rst, docs/.templates/layout.html, docs/changelog.rst, docs/recipes.rst
+  - Updated docs for 2.6 release
+
+2012-10-16 09:20 (#1306) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
+  - Clear up demo for v2.6 release
 
 2012-10-13 16:50 (#1304) - ObjectListView/Filtering/TextMatchFilter.cs
   - Allow filtering to consider additional columns
