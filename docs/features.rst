@@ -35,6 +35,7 @@ of what's available so that you can use it when the need arises.
 * `Header images`_
 * `Header drawn vertically`_
 * `Header visible in all views`_
+* `Hierarchical checkboxes`_
 * `Hot item tracking`_
 * `In-place modifications of the list`_
 * `INotifyPropertyChanged support`_
@@ -524,3 +525,12 @@ for changes on your model classes, and automatically update the rows when
 properties on the model classes changed.
 
 Obviously, your model objects have to implement `INotifyPropertyChanged`.
+
+Hierarchical checkboxes
+-----------------------
+
+`TreeListView` has hierarchical check boxes, which is where the checkedness of the parent
+summaries the checkedness of the all the subitems. Checking the parent checks all the descendent items.
+Similarly, unchecking the parent unchecks all the descendent items.
+
+See :ref:`recipe-hierarchical-checkboxes` and this blog entry: :ref:`blog-hierarchicalcheckboxes`

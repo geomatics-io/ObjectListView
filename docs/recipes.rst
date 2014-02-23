@@ -2029,7 +2029,58 @@ the user, you can set `ShowKeyColumns` to *false* before binding the control
 to a data source. Setting this after binding has no effect.
 
 Due to the limitations of the Designer in the IDE, `RootKeyValue` can only be
-given a string value through the IDE. If your ParentKey is not of type string,
+given a string value through the IDE. If your `ParentKey` is not of type string,
 you will have to set its value through code.
 
 `null` is a valid value for `RootKeyValue`. 
+
+
+.. _recipe-hierarchical-checkboxes:
+
+48. Can a `TreeListView` calculate checkboxes based on subitems?
+----------------------------------------------------------------
+
+    *I'd like the TreeListView to be able to check everything
+    in a branch if the top of the branch is checked.*
+
+As of v2.7, `TreeListView` has the ability to do hierarchical checkboxes.
+
+Hierarchical checkboxes is that neat ability where the checked-ness of a branch 
+summarizes the checked-ness of all its subitems. If the branch is checked, the user 
+knows that everything under that branch is checked. If the branch is unchecked, 
+then similarly everything under that branch is unchecked. If the branch is indeterminate, 
+the user knows that there is a mix of checked and unchecked items within that branch.
+
+.. image:: images/hierarchical-checkboxes-1.png
+
+In the above screenshot, the "dell" folder is checked because all its contents are checked.
+The "android" folder is indeterminate, since some of its children are checked and some aren't.
+
+To enable this feature, set `HierarchicalCheckBoxes` to `true`. You may need to install a `ParentGetter` 
+delegate, which lets the control calculate the ancestors of any object, even if that object isn't 
+currently in the control.
+
+Once this is true, when the user checks a branch, all items under that branch will be
+checked as well. When an branch is unchecked, all the items under that branch will be
+unchecked too.
+
+`CheckedObjects` will behave somewhat differently. It will return:
+
+* all objects which were specifically checked by the user
+* all objects that were set in the `CheckedObjects` collection, and that have not been unchecked by the user
+* all objects whose ancestor was checked by the user AND that have been made visible in the control
+
+For example, with the above snapshot, `CheckedObjects` would return::
+  
+  {"adb.exe", "fastboot.exe", "dell", "StageEula", "DBRM.ini", "OOBEDONE.flag", "welcome.reg"}
+
+If "StageEula" had been expanded at some point, its contents would also be included in 
+`CheckedObjects` -- even if "StageEula" wasn't expanded at the moment.
+
+If you set `CheckedObjects` *and* any of those objects haven't already been revealed in the
+`TreeListView`, then the control will not know where it fits in the hierarchy, and so won't 
+be able to calculate the check state of its ancestors. To get around this, you have to install
+a `ParentGetter` delegate. If this don't make much sense to you, don't worry about it.
+
+Hierarchical checkboxes don't work with `CheckStateGetters` or `CheckStateSetters`. Just 
+don't use them.
