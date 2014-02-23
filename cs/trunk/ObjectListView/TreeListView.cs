@@ -5,6 +5,7 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2014-02-23  JPP  - Added Reveal() method to show a deeply nested models.
  * 2014-02-05  JPP  - Fix bug where refreshing a non-root item would collapse all expanded children of that item
  * 2014-02-01  JPP  - ClearObjects() now actually, you know, clears objects :)
  *                  - Corrected bug where Expanded event was being raised twice.
@@ -146,8 +147,7 @@ namespace BrightIdeasSoftware
     /// </term> 
     /// <description>
     /// This delegate must accept a model object and return the parent model. 
-    /// This delegate will only be called when HierarchicalCheckboxes is true and the CheckedObjects
-    /// property is set. It is not used in any other context.
+    /// This delegate will only be called when HierarchicalCheckboxes is true OR when Reveal() is called. 
     /// </description>
     /// </item>
     /// </list>
@@ -179,8 +179,7 @@ namespace BrightIdeasSoftware
 // ReSharper restore DoNotCallOverridableMethodsInConstructor
 
             // This improves hit detection even if we don't have any state image
-            this.StateImageList = new ImageList();
-           // this.StateImageList.ImageSize = new Size(6, 6);
+            this.SmallImageList = new ImageList();
         }
 
         //------------------------------------------------------------------------------------------
@@ -221,13 +220,38 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// This is the delegate that will be used to fetch the parent of a model object
         /// </summary>
-        /// <remarks>This delegate is only called HierarchicalCheckBoxes is true.</remarks>
+        /// <returns>The parent of the given model, or null if the model doesn't exist or 
+        /// if the model is a root</returns>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ParentGetterDelegate ParentGetter {
             get { return parentGetter; }
             set { parentGetter = value; }
         }
         private ParentGetterDelegate parentGetter;
 
+        /// <summary>
+        /// Get or set the collection of model objects that are checked.
+        /// When setting this property, any row whose model object isn't
+        /// in the given collection will be unchecked. Setting to null is
+        /// equivilent to unchecking all.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This property returns a simple collection. Changes made to the returned
+        /// collection do NOT affect the list. This is different to the behaviour of
+        /// CheckedIndicies collection.
+        /// </para>
+        /// <para>
+        /// When getting CheckedObjects, the performance of this method is O(n) where n is the number of checked objects.
+        /// When setting CheckedObjects, the performance of this method is O(n) where n is the number of checked objects plus
+        /// the number of objects to be checked.
+        /// </para>
+        /// <para>
+        /// If the ListView is not currently showing CheckBoxes, this property does nothing. It does
+        /// not remember any check box settings made.
+        /// </para>
+        /// </remarks>
         public override IList CheckedObjects {
             get {
                 return base.CheckedObjects;
@@ -241,76 +265,6 @@ namespace BrightIdeasSoftware
 
                 if (this.HierarchicalCheckboxes)
                     RecalculateHierarchicalCheckBoxGraph(objectsToRecalculate);
-            }
-        }
-
-        private void RecalculateHierarchicalCheckBoxGraph(IList toCheck) {
-            if (toCheck == null || toCheck.Count == 0)
-                return;
-
-            // Avoid recursive calculations
-            if (isRecalculatingHierarchicalCheckBox)
-                return;
-
-            try {
-                isRecalculatingHierarchicalCheckBox = true;
-                foreach (object ancestor in CalculateDistinctAncestors(toCheck))
-                    this.RecalculateSingleHierarchicalCheckBox(ancestor);
-            }
-            finally {
-                isRecalculatingHierarchicalCheckBox = false;
-            }
-           
-        }
-        private bool isRecalculatingHierarchicalCheckBox;
-
-        private void RecalculateSingleHierarchicalCheckBox(object modelObject) {
-
-            if (modelObject == null)
-                return;
-
-            // Only branches have calculated checkstates. Leaf node checkedness is not calculated
-            if (!this.CanExpand(modelObject))
-                return;
-
-            // Set the checkedness of the given model based on the state of its children.
-            CheckState? aggregate = null;
-            foreach (object child in this.GetChildren(modelObject)) {
-                CheckState? checkedness = this.GetCheckState(child);
-                if (checkedness.HasValue) {
-                    if (aggregate.HasValue) {
-                        if (aggregate.Value != checkedness.Value) {
-                            aggregate = CheckState.Indeterminate;
-                            break;
-                        }
-                    } else
-                        aggregate = checkedness;
-                }
-            }
-
-            base.SetObjectCheckedness(modelObject, aggregate ?? CheckState.Indeterminate);
-        }
-
-        private IEnumerable CalculateDistinctAncestors(IList toCheck) {
-            Hashtable ancestors = new Hashtable();
-
-            foreach (object child in toCheck) {
-                foreach (object ancestor in this.GetAncestors(child)) {
-                   // if (!ancestors.ContainsKey(ancestor)) {
-                        ancestors[ancestor] = true;
-                        yield return ancestor;
-                   // }
-                }
-            }
-        }
-
-        private IEnumerable GetAncestors(object model) {
-            bool hasParentGetter = this.ParentGetter != null;
-
-            object parent = hasParentGetter ? this.ParentGetter(model) : this.GetParent(model);
-            while (parent != null) {
-                yield return parent;
-                parent = hasParentGetter ? this.ParentGetter(parent) : this.GetParent(parent);
             }
         }
 
@@ -477,6 +431,8 @@ namespace BrightIdeasSoftware
         /// Most users of TreeListView will never have to use this delegate.
         /// </para>
         /// </remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public TreeFactoryDelegate TreeFactory {
             get { return treeFactory; }
             set { treeFactory = value; }
@@ -597,56 +553,6 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Completely rebuild the tree structure
-        /// </summary>
-        /// <param name="preserveState">If true, the control will try to preserve selection and expansion</param>
-        public virtual void RebuildAll(bool preserveState) {
-            int previousTopItemIndex = preserveState ? this.TopItemIndex : -1;
-
-            this.RebuildAll(
-                preserveState ? this.SelectedObjects : null,
-                preserveState ? this.ExpandedObjects : null,
-                preserveState ? this.CheckedObjects : null);
-
-            if (preserveState)
-                this.TopItemIndex = previousTopItemIndex;
-        }
-
-        /// <summary>
-        /// Completely rebuild the tree structure
-        /// </summary>
-        /// <param name="selected">If not null, this list of objects will be selected after the tree is rebuilt</param>
-        /// <param name="expanded">If not null, this collection of objects will be expanded after the tree is rebuilt</param>
-        /// <param name="checkedObjects">If not null, this collection of objects will be checked after the tree is rebuilt</param>
-        protected virtual void RebuildAll(IList selected, IEnumerable expanded, IList checkedObjects) {
-            // Remember the bits of info we don't want to forget (anyone ever see Memento?)
-            IEnumerable roots = this.Roots;
-            CanExpandGetterDelegate canExpand = this.CanExpandGetter;
-            ChildrenGetterDelegate childrenGetter = this.ChildrenGetter;
-
-            try {
-                this.BeginUpdate();
-
-                // Give ourselves a new data structure
-                this.RegenerateTree();
-
-                // Put back the bits we didn't want to forget
-                this.CanExpandGetter = canExpand;
-                this.ChildrenGetter = childrenGetter;
-                if (expanded != null)
-                    this.ExpandedObjects = expanded;
-                this.Roots = roots;
-                if (selected != null)
-                    this.SelectedObjects = selected;
-                if (checkedObjects != null)
-                    this.CheckedObjects = checkedObjects;
-            }
-            finally {
-                this.EndUpdate();
-            }
-        }
-
-        /// <summary>
         /// Expand the subtree underneath the given model object
         /// </summary>
         /// <param name="model"></param>
@@ -724,6 +630,84 @@ namespace BrightIdeasSoftware
                 this.SelectedObjects = selection;
             this.RedrawItems(index, this.GetItemCount() - 1, false);
             this.OnExpanded(new TreeBranchExpandedEventArgs(null, null));
+        }
+
+        /// <summary>
+        /// Completely rebuild the tree structure
+        /// </summary>
+        /// <param name="preserveState">If true, the control will try to preserve selection and expansion</param>
+        public virtual void RebuildAll(bool preserveState) {
+            int previousTopItemIndex = preserveState ? this.TopItemIndex : -1;
+
+            this.RebuildAll(
+                preserveState ? this.SelectedObjects : null,
+                preserveState ? this.ExpandedObjects : null,
+                preserveState ? this.CheckedObjects : null);
+
+            if (preserveState)
+                this.TopItemIndex = previousTopItemIndex;
+        }
+
+        /// <summary>
+        /// Completely rebuild the tree structure
+        /// </summary>
+        /// <param name="selected">If not null, this list of objects will be selected after the tree is rebuilt</param>
+        /// <param name="expanded">If not null, this collection of objects will be expanded after the tree is rebuilt</param>
+        /// <param name="checkedObjects">If not null, this collection of objects will be checked after the tree is rebuilt</param>
+        protected virtual void RebuildAll(IList selected, IEnumerable expanded, IList checkedObjects) {
+            // Remember the bits of info we don't want to forget (anyone ever see Memento?)
+            IEnumerable roots = this.Roots;
+            CanExpandGetterDelegate canExpand = this.CanExpandGetter;
+            ChildrenGetterDelegate childrenGetter = this.ChildrenGetter;
+
+            try {
+                this.BeginUpdate();
+
+                // Give ourselves a new data structure
+                this.RegenerateTree();
+
+                // Put back the bits we didn't want to forget
+                this.CanExpandGetter = canExpand;
+                this.ChildrenGetter = childrenGetter;
+                if (expanded != null)
+                    this.ExpandedObjects = expanded;
+                this.Roots = roots;
+                if (selected != null)
+                    this.SelectedObjects = selected;
+                if (checkedObjects != null)
+                    this.CheckedObjects = checkedObjects;
+            }
+            finally {
+                this.EndUpdate();
+            }
+        }
+
+        /// <summary>
+        /// Unroll all the ancestors of the given model and make sure it is then visible.
+        /// </summary>
+        /// <remarks>This works best when a ParentGetter is installed.</remarks>
+        /// <param name="modelToReveal">The object to be revealed</param>
+        /// <param name="selectAfterReveal">If true, the model will be selected and focused after being revealed</param>
+        /// <returns>True if the object was found and revealed. False if it was not found.</returns>
+        public virtual void Reveal(object modelToReveal, bool selectAfterReveal) {
+            // Collect all the ancestors of the model
+            ArrayList ancestors = new ArrayList();
+            foreach (object ancestor in this.GetAncestors(modelToReveal))
+                ancestors.Add(ancestor);
+
+            // Arrange them from root down to the model's immediate parent
+            ancestors.Reverse();
+            try {
+                this.BeginUpdate();
+                foreach (object ancestor in ancestors)
+                    this.Expand(ancestor);
+                this.EnsureModelVisible(modelToReveal);
+                if (selectAfterReveal)
+                    this.SelectObject(modelToReveal, true);
+            }
+            finally {
+                this.EndUpdate();
+            }
         }
 
         /// <summary>
@@ -965,6 +949,134 @@ namespace BrightIdeasSoftware
             this.TreeModel = this.TreeFactory == null ? new Tree(this) : this.TreeFactory(this);
             Trace.Assert(this.TreeModel != null);
             this.VirtualListDataSource = this.TreeModel;
+        }
+
+        /// <summary>
+        /// Recalculate the state of the checkboxes of all the items in the given list
+        /// and their ancestors.
+        /// </summary>
+        /// <remarks>This only makes sense when HierarchicalCheckboxes is true.</remarks>
+        /// <param name="toCheck"></param>
+        protected virtual void RecalculateHierarchicalCheckBoxGraph(IList toCheck) {
+            if (toCheck == null || toCheck.Count == 0)
+                return;
+
+            // Avoid recursive calculations
+            if (isRecalculatingHierarchicalCheckBox)
+                return;
+
+            try {
+                isRecalculatingHierarchicalCheckBox = true;
+                foreach (object ancestor in CalculateDistinctAncestors(toCheck))
+                    this.RecalculateSingleHierarchicalCheckBox(ancestor);
+            }
+            finally {
+                isRecalculatingHierarchicalCheckBox = false;
+            }
+
+        }
+        private bool isRecalculatingHierarchicalCheckBox;
+
+        /// <summary>
+        /// Recalculate the hierarchy state of the given item and its ancestors
+        /// </summary>
+        /// <remarks>This only makes sense when HierarchicalCheckboxes is true.</remarks>
+        /// <param name="modelObject"></param>
+        protected virtual void RecalculateSingleHierarchicalCheckBox(object modelObject) {
+
+            if (modelObject == null)
+                return;
+
+            // Only branches have calculated checkstates. Leaf node checkedness is not calculated
+            if (!this.CanExpand(modelObject))
+                return;
+
+            // Set the checkedness of the given model based on the state of its children.
+            CheckState? aggregate = null;
+            foreach (object child in this.GetChildren(modelObject)) {
+                CheckState? checkedness = this.GetCheckState(child);
+                if (!checkedness.HasValue)
+                    continue;
+
+                if (aggregate.HasValue) {
+                    if (aggregate.Value != checkedness.Value) {
+                        aggregate = CheckState.Indeterminate;
+                        break;
+                    }
+                } else
+                    aggregate = checkedness;
+            }
+
+            base.SetObjectCheckedness(modelObject, aggregate ?? CheckState.Indeterminate);
+        }
+
+        /// <summary>
+        /// Yield the unique ancestors of the given collection of objects.
+        /// The order of the ancestors is guaranteed to be deeper objects first.
+        /// Roots will always be last.
+        /// </summary>
+        /// <param name="toCheck"></param>
+        /// <returns>Unique ancestors of the given objects</returns>
+        protected virtual IEnumerable CalculateDistinctAncestors(IList toCheck) {
+
+            if (toCheck.Count == 1) {
+                foreach (object ancestor in this.GetAncestors(toCheck[0])) {
+                    yield return ancestor;
+                }
+            } else {
+                // WARNING - Clever code
+
+                // Example: Calculate ancestors of A, B, X and Y
+                // A and B are  children of P, child of GP, child of Root
+                // X and Y are  children of Q, child of GP, child of Root
+
+                // Build a list of all ancestors of all objects we need to check
+                ArrayList allAncestors = new ArrayList();
+                foreach (object child in toCheck) {
+                    foreach (object ancestor in this.GetAncestors(child)) {
+                        allAncestors.Add(ancestor);
+                    }
+                }
+
+                // allAncestors = { P, GP, Root, P, GP, Root, Q, GP, Root, Q, GP, Root }
+
+                ArrayList uniqueAncestors = new ArrayList();
+                Dictionary<object, bool> alreadySeen = new Dictionary<object, bool>();
+                allAncestors.Reverse();
+                foreach (object ancestor in allAncestors) {
+                    if (!alreadySeen.ContainsKey(ancestor)) {
+                        alreadySeen[ancestor] = true;
+                        uniqueAncestors.Add(ancestor);
+                    }
+                }
+
+                // uniqueAncestors = { Root, GP, Q, P }
+
+                uniqueAncestors.Reverse();
+                foreach (object x in uniqueAncestors)
+                    yield return x;
+            }
+        }
+
+        /// <summary>
+        /// Return all the ancestors of the given model
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This uses ParentGetter if possible.
+        /// </para>
+        /// <para>If the given model is a root OR if the model doesn't exist, the collection will be empty</para>
+        /// </remarks>
+        /// <param name="model">The model whose ancestors should be calculated</param>
+        /// <returns>Return a collection of ancestors of the given model.</returns>
+        protected virtual IEnumerable GetAncestors(object model) {
+            ParentGetterDelegate parentGetterDelegate = this.ParentGetter ?? this.GetParent;
+
+            object parent = parentGetterDelegate(model);
+            while (parent != null) {
+                yield return parent;
+                parent = parentGetterDelegate(parent);
+            }
         }
 
         #endregion
