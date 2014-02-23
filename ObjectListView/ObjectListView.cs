@@ -5,6 +5,8 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2014-02-14  JPP  - Fixed a bug with ShowHeaderInAllViews (another one!) where setting it to false caused the list to lose
+ *                    its other extended styles, leading to nasty flickering and worse.
  * 2014-02-06  JPP  - Fix bug on virtual lists where the filter was not correctly reapplied after columns were added or removed.
  *                  - Made disposing of cell editors optional (defaults to true). This allows controls to be cached and reused.
  *                  - Bracketed column resizing with BeginUpdate/EndUpdate to smooth redraws (thanks to Davide)
@@ -4114,6 +4116,7 @@ namespace BrightIdeasSoftware
                 // If we are filtering the list, there is no way to efficiently
                 // insert the objects, so just put them into our collection and rebuild.
                 if (this.IsFiltering) {
+                    index = Math.Max(0, Math.Min(index, ourObjects.Count));
                     ourObjects.InsertRange(index, modelObjects);
                     this.BuildList(true);
                 } else {
