@@ -37,12 +37,12 @@ namespace ObjectListViewDemo
 		{
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            BrightIdeasSoftware.HeaderStateStyle headerStateStyle1 = new BrightIdeasSoftware.HeaderStateStyle();
-            BrightIdeasSoftware.HeaderStateStyle headerStateStyle2 = new BrightIdeasSoftware.HeaderStateStyle();
-            BrightIdeasSoftware.HeaderStateStyle headerStateStyle3 = new BrightIdeasSoftware.HeaderStateStyle();
-            BrightIdeasSoftware.CellStyle cellStyle1 = new BrightIdeasSoftware.CellStyle();
-            BrightIdeasSoftware.CellStyle cellStyle2 = new BrightIdeasSoftware.CellStyle();
-            BrightIdeasSoftware.CellStyle cellStyle3 = new BrightIdeasSoftware.CellStyle();
+            BrightIdeasSoftware.HeaderStateStyle headerStateStyle4 = new BrightIdeasSoftware.HeaderStateStyle();
+            BrightIdeasSoftware.HeaderStateStyle headerStateStyle5 = new BrightIdeasSoftware.HeaderStateStyle();
+            BrightIdeasSoftware.HeaderStateStyle headerStateStyle6 = new BrightIdeasSoftware.HeaderStateStyle();
+            BrightIdeasSoftware.CellStyle cellStyle4 = new BrightIdeasSoftware.CellStyle();
+            BrightIdeasSoftware.CellStyle cellStyle5 = new BrightIdeasSoftware.CellStyle();
+            BrightIdeasSoftware.CellStyle cellStyle6 = new BrightIdeasSoftware.CellStyle();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.command1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.command2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -774,6 +774,7 @@ namespace ObjectListViewDemo
             this.olvSimple.SelectColumnsOnRightClickBehaviour = BrightIdeasSoftware.ObjectListView.ColumnSelectBehaviour.Submenu;
             this.olvSimple.ShowCommandMenuOnRightClick = true;
             this.olvSimple.ShowGroups = false;
+            this.olvSimple.ShowHeaderInAllViews = false;
             this.olvSimple.ShowItemToolTips = true;
             this.olvSimple.Size = new System.Drawing.Size(799, 383);
             this.olvSimple.SortGroupItemsByPrimaryColumn = false;
@@ -801,7 +802,6 @@ namespace ObjectListViewDemo
             // 
             this.columnHeader11.AspectName = "Name";
             this.columnHeader11.CellPadding = null;
-            this.columnHeader11.Groupable = false;
             this.columnHeader11.HeaderForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
             this.columnHeader11.MaximumWidth = 200;
             this.columnHeader11.MinimumWidth = 100;
@@ -1625,17 +1625,17 @@ namespace ObjectListViewDemo
             // 
             // headerFormatStyleData
             // 
-            headerStateStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
-            headerStateStyle1.ForeColor = System.Drawing.Color.White;
-            this.headerFormatStyleData.Hot = headerStateStyle1;
-            headerStateStyle2.BackColor = System.Drawing.Color.Black;
-            headerStateStyle2.ForeColor = System.Drawing.Color.Gainsboro;
-            this.headerFormatStyleData.Normal = headerStateStyle2;
-            headerStateStyle3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            headerStateStyle3.ForeColor = System.Drawing.Color.White;
-            headerStateStyle3.FrameColor = System.Drawing.Color.WhiteSmoke;
-            headerStateStyle3.FrameWidth = 2F;
-            this.headerFormatStyleData.Pressed = headerStateStyle3;
+            headerStateStyle4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            headerStateStyle4.ForeColor = System.Drawing.Color.White;
+            this.headerFormatStyleData.Hot = headerStateStyle4;
+            headerStateStyle5.BackColor = System.Drawing.Color.Black;
+            headerStateStyle5.ForeColor = System.Drawing.Color.Gainsboro;
+            this.headerFormatStyleData.Normal = headerStateStyle5;
+            headerStateStyle6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            headerStateStyle6.ForeColor = System.Drawing.Color.White;
+            headerStateStyle6.FrameColor = System.Drawing.Color.WhiteSmoke;
+            headerStateStyle6.FrameWidth = 2F;
+            this.headerFormatStyleData.Pressed = headerStateStyle6;
             // 
             // checkBox7
             // 
@@ -4089,16 +4089,16 @@ namespace ObjectListViewDemo
             // 
             // hyperlinkStyle1
             // 
-            cellStyle1.Font = null;
-            cellStyle1.ForeColor = System.Drawing.Color.Blue;
-            this.hyperlinkStyle1.Normal = cellStyle1;
-            cellStyle2.Font = null;
-            cellStyle2.FontStyle = System.Drawing.FontStyle.Underline;
-            this.hyperlinkStyle1.Over = cellStyle2;
+            cellStyle4.Font = null;
+            cellStyle4.ForeColor = System.Drawing.Color.Blue;
+            this.hyperlinkStyle1.Normal = cellStyle4;
+            cellStyle5.Font = null;
+            cellStyle5.FontStyle = System.Drawing.FontStyle.Underline;
+            this.hyperlinkStyle1.Over = cellStyle5;
             this.hyperlinkStyle1.OverCursor = System.Windows.Forms.Cursors.Hand;
-            cellStyle3.Font = null;
-            cellStyle3.ForeColor = System.Drawing.Color.Purple;
-            this.hyperlinkStyle1.Visited = cellStyle3;
+            cellStyle6.Font = null;
+            cellStyle6.ForeColor = System.Drawing.Color.Purple;
+            this.hyperlinkStyle1.Visited = cellStyle6;
             // 
             // textWrappingRenderer
             // 

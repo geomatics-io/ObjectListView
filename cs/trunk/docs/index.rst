@@ -1,13 +1,13 @@
 .. -*- coding: UTF-8 -*-
 
-:Subtitle: How I learned to stop worrying and love .NET ListView
+:Subtitle: .NET ListView on caffeine, guarana and steroids. 
 
 ==============
 ObjectListView
 ==============
 
 .. rubric:: ObjectListView is a C# wrapper around a .NET ListView. It makes the ListView
-            much easier to use and provides some neat extra functionality.
+            much easier to use and teaches it some neat new tricks.
 
 Larry Wall, the author of Perl, once wrote that the three essential character flaws of any
 good programmer were sloth, impatience and hubris. Good programmers want to do the minimum
@@ -24,15 +24,15 @@ Here is an example of what your ListView can look like with a few callbacks in p
 
 .. image:: images/fancy-screenshot2.png
 
-On Vista, the groups look even better:
+On Windows 7 (and even Vista), the groups look even better:
 
 .. image:: images/fancy-screenshot3.png
 
-The TreeListView similarly make a tree structure look beautiful:
+The `TreeListView` similarly make a tree structure look beautiful:
 
 .. image:: images/treelistview.png
 
-And this is the report that can be effortlessly produced from the ObjectListView:
+And this is the report that can be effortlessly produced from the `ObjectListView`:
 
 .. image:: images/printpreview.png
 
@@ -75,6 +75,7 @@ OK, here's the bullet point feature list:
 * The `TreeListView` version combines :ref:`an expandable tree structure with the columns of a ListView <recipe-treelistview>`.
 * The `VirtualObjectListView` class allow you to create your own million row `ListView` through ListView's virtual mode.
 * Has :ref:`data binding versions of each control <recipe-databinding>`.
+* `TreeListView` supports :ref:`hierarchical checkboxes <recipe-hierarchical-checkboxes>`.
 
 Seriously, after using an `ObjectListView`, you will never go back to using a plain `ListView`.
 
@@ -115,6 +116,8 @@ Technical details
 
 I've started keeping a :ref:`technical blog <blog>` documenting some of the efforts that were required to
 solve some of the problem encountered within the ObjectListView.
+
+* :ref:`Creating hierarchical checkboxes (26 February 2014)<blog-hierarchicalcheckboxes>`
 
 * :ref:`Flickering on virtual lists and the .NET bug that causes it<blog-virtuallistflickers>`
 
@@ -268,16 +271,14 @@ When thinking about using some new code, it's always interesting to hear what ot
 Future directions
 -----------------
 
-v2.6 will also move towards using `IEnumerable` whenever possible.
+v2.8 will also move towards using `IEnumerable` whenever possible.
 `SelectedObjects`, `CheckedObjects`, `AddObjects()`, `InsertObjects()`
 `RefreshObjects()`, `RemoveObjects()`, and `CopyObjectsToClipboard()` will all be changed to use
 `IEnumerable`. This is with a view to using LINQ in future versions.
 
-It will probably add a data bindable `TreeListView`.
-
 v3.0 will be a big change. Until now, each version has strove to maintain strict backwards compatibility. v3.0 will not have this as a strict goal. It will be backwards compatible where possible, but will drop properties, events and methods where they do not fit within the new scheme. In particular, features that were a moment of design weakness (I'm looking at you *AlwaysGroupByColumn* and your friends) will disappear.
 
-* Support for .NET 2.0 will be dropped. .NET 3.5 will become the minimum.
+* Support for .NET 2.0 will be dropped. .NET 4.0 will become the minimum.
 
 * Most delegates will be replaced by events (events are actually faster than delegates).
 

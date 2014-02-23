@@ -122,7 +122,7 @@ namespace ObjectListViewDemo {
             tcol.AspectPutter = delegate(Person x, object newValue) { x.SetRate((double)newValue); };
 
             // Uncomment this to see a fancy cell highlighting while editing
-            this.olvSimple.AddDecoration(new EditingCellBorderDecoration(true));
+            //this.olvSimple.AddDecoration(new EditingCellBorderDecoration(true));
             
             // An example of how to do per-cell formatting
 
@@ -1480,13 +1480,7 @@ namespace ObjectListViewDemo {
         #endregion
 
         private void InitializeFastListExample(List<Person> list) {
-            //this.olvFast.BooleanCheckStateGetter = delegate(object x) {
-            //    return ((Person)x).IsActive;
-            //};
-            //this.olvFast.BooleanCheckStatePutter = delegate(object x, bool newValue) {
-            //    ((Person)x).IsActive = newValue;
-            //    return newValue;
-            //};
+
             this.olvColumn18.AspectGetter = delegate(object x) { return ((Person)x).Name; };
 
             this.olvColumn18.ImageGetter = delegate(object row) {
@@ -1710,6 +1704,16 @@ namespace ObjectListViewDemo {
             // The easiest way to avoid this is to refresh the parent of the objects in which
             // we are interested.
 
+            // Test Reveal, but it requires my own computer's data
+            //this.treeListView.ParentGetter = delegate(object model) {
+            //    var di = (MyFileSystemInfo) model;
+            //    var parent = di.AsDirectory.Parent;
+            //    return parent == null ? null : new MyFileSystemInfo(di.AsDirectory.Parent);
+            //};
+
+            //var x = new MyFileSystemInfo(new DirectoryInfo(@"C:\jpp\code\cs\ObjectListView\trunk\docs\images"));
+            //this.treeListView.Reveal(x, true);
+
             ArrayList parents = new ArrayList();
             foreach (object x in this.treeListView.SelectedObjects) {
                 object parent = this.treeListView.GetParent(x);
@@ -1717,7 +1721,6 @@ namespace ObjectListViewDemo {
             }
             // Now tell the Tree to update 
             this.treeListView.RefreshObjects(parents);
-            //this.treeListView.RebuildAll(true);
         }
 
         private void listViewComplex_MouseClick(object sender, MouseEventArgs e) {
