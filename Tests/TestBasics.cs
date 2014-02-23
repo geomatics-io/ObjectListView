@@ -8,6 +8,7 @@
  * 10/25/2008 JPP  Initial Version
  */
 
+using System.Collections;
 using System.Drawing;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -73,6 +74,27 @@ namespace BrightIdeasSoftware.Tests
             foreach (object x in PersonDb.All)
                 Assert.AreNotEqual(-1, this.olv.IndexOf(x));
             Assert.AreEqual(PersonDb.All.Count, this.olv.GetItemCount());
+        }
+
+        [Test]
+        public virtual void Test_AddObject_ModelFilter() {
+            ArrayList somePeople = new ArrayList(PersonDb.All);
+            Person first = PersonDb.All[0];
+            somePeople.Remove(first);
+            this.olv.SetObjects(somePeople);
+
+            this.olv.UseFiltering = true;
+            this.olv.ModelFilter = new ModelFilter(delegate(object x) { return false; });
+
+            this.olv.AddObject(first);
+
+            this.olv.UseFiltering = false;
+            ArrayList contents = ObjectListView.EnumerableToArray(this.olv.Objects, false);
+            Assert.AreEqual(somePeople.Count + 1, contents.Count);
+
+            // The added object should have been added at the end of all contents,
+            // not at the end of the filtered contents
+            Assert.AreEqual(somePeople.Count, this.olv.IndexOf(first));
         }
 
         [Test]
