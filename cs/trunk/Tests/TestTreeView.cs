@@ -290,7 +290,7 @@ namespace BrightIdeasSoftware.Tests
             ArrayList checkedObjects = new ArrayList(this.olv.CheckedObjects);
             Assert.AreEqual(firstRoot.Children.Count, checkedObjects.Count);
         }
-
+        
         [Test]
         public void TestCheckedObjects_CheckingHiddenObjects() {
             this.olv.CheckBoxes = true;
@@ -459,6 +459,24 @@ namespace BrightIdeasSoftware.Tests
             Assert.IsTrue(checkedObjects.Contains(firstRoot));
             foreach (Person child in firstRoot.Children)
                 Assert.IsTrue(checkedObjects.Contains(child));
+        }
+
+        [Test]
+        public void TestHierarchicalCheckBoxes_CheckedObjects_Get_IncludesCheckedObjectsNotInControl() {
+            Person firstRoot = PersonDb.All[0];
+            this.olv.CollapseAll();
+
+            Assert.IsEmpty(this.olv.CheckedObjects);
+
+            this.olv.HierarchicalCheckboxes = true;
+            this.olv.Expand(firstRoot);
+
+            Person newGuy = new Person("someone new");
+            this.olv.CheckObject(newGuy);
+
+            ArrayList checkedObjects = new ArrayList(this.olv.CheckedObjects);
+            Assert.AreEqual(1, checkedObjects.Count);
+            Assert.AreEqual(((Person)checkedObjects[0]).Name,  newGuy.Name);
         }
 
         [Test]
