@@ -687,7 +687,7 @@ namespace BrightIdeasSoftware
         /// <param name="style"></param>
         /// <param name="styleMask"></param>
         public static void SetExtendedStyle(ListView list, int style, int styleMask) {
-            SendMessage(list.Handle, LVM_SETEXTENDEDLISTVIEWSTYLE, style, styleMask);
+            SendMessage(list.Handle, LVM_SETEXTENDEDLISTVIEWSTYLE, styleMask, style);
         }
 
         /// <summary>
