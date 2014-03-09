@@ -265,7 +265,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestRefreshObject_ExpansionUnchanged() {
+        public void Test_RefreshObject_ExpansionUnchanged() {
             this.olv.CollapseAll();
             this.olv.ExpandAll();
             int count = this.olv.GetItemCount();
@@ -278,7 +278,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestCheckedObjects_CheckingVisibleObjects() {
+        public void Test_CheckedObjects_CheckingVisibleObjects() {
             this.olv.CheckBoxes = true;
             Person firstRoot = PersonDb.All[0];
             this.olv.CollapseAll();
@@ -292,7 +292,7 @@ namespace BrightIdeasSoftware.Tests
         }
         
         [Test]
-        public void TestCheckedObjects_CheckingHiddenObjects() {
+        public void Test_CheckedObjects_CheckingHiddenObjects() {
             this.olv.CheckBoxes = true;
             Person firstRoot = PersonDb.All[0];
             this.olv.CollapseAll();
@@ -306,7 +306,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestHierarchicalCheckBoxes_Unrolled_CheckingParent_ChecksChildren() {
+        public void Test_HierarchicalCheckBoxes_Unrolled_CheckingParent_ChecksChildren() {
             Person firstRoot = PersonDb.All[0];
             this.olv.CollapseAll();
             this.olv.Expand(firstRoot);
@@ -326,7 +326,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestHierarchicalCheckBoxes_Rolled_CheckingParent_ChecksChildren() {
+        public void Test_HierarchicalCheckBoxes_Rolled_CheckingParent_ChecksChildren() {
             Person firstRoot = PersonDb.All[0];
             this.olv.CollapseAll();
 
@@ -344,7 +344,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestHierarchicalCheckBoxes_CheckAllChildren_ParentIsChecked() {
+        public void Test_HierarchicalCheckBoxes_CheckAllChildren_ParentIsChecked() {
             Person firstRoot = PersonDb.All[0];
             this.olv.CollapseAll();
             this.olv.Expand(firstRoot);
@@ -360,7 +360,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestHierarchicalCheckBoxes_CheckSomeChildren_ParentIsIndeterminate() {
+        public void Test_HierarchicalCheckBoxes_CheckSomeChildren_ParentIsIndeterminate() {
             Person firstRoot = PersonDb.All[0];
             this.olv.CollapseAll();
             this.olv.Expand(firstRoot);
@@ -377,7 +377,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestHierarchicalCheckBoxes_UncheckAllChildren_ParentIsUnchecked() {
+        public void Test_HierarchicalCheckBoxes_UncheckAllChildren_ParentIsUnchecked() {
             Person firstRoot = PersonDb.All[0];
             this.olv.CollapseAll();
             this.olv.Expand(firstRoot);
@@ -393,7 +393,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestHierarchicalCheckBoxes_ChildrenInheritCheckedness() {
+        public void Test_HierarchicalCheckBoxes_ChildrenInheritCheckedness() {
             Person firstRoot = PersonDb.All[0];
             this.olv.CollapseAll();
 
@@ -410,7 +410,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestHierarchicalCheckBoxes() {
+        public void Test_HierarchicalCheckBoxes() {
             Person firstRoot = PersonDb.All[0];
             this.olv.CollapseAll();
 
@@ -429,7 +429,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestHierarchicalCheckBoxes_CheckedObjects_Get() {
+        public void Test_HierarchicalCheckBoxes_CheckedObjects_Get() {
             Person firstRoot = PersonDb.All[0];
             this.olv.CollapseAll();
 
@@ -444,7 +444,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestHierarchicalCheckBoxes_CheckedObjects_Get_IncludesExpandedChildren() {
+        public void Test_HierarchicalCheckBoxes_CheckedObjects_Get_IncludesExpandedChildren() {
             Person firstRoot = PersonDb.All[0];
             this.olv.CollapseAll();
 
@@ -462,7 +462,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestHierarchicalCheckBoxes_CheckedObjects_Get_IncludesCheckedObjectsNotInControl() {
+        public void Test_HierarchicalCheckBoxes_CheckedObjects_Get_IncludesCheckedObjectsNotInControl() {
             Person firstRoot = PersonDb.All[0];
             this.olv.CollapseAll();
 
@@ -480,7 +480,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestHierarchicalCheckBoxes_CheckedObjects_Set_RecalculatesParent() {
+        public void Test_HierarchicalCheckBoxes_CheckedObjects_Set_RecalculatesParent() {
             Person firstRoot = PersonDb.All[0];
             this.olv.CollapseAll();
 
@@ -498,7 +498,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestHierarchicalCheckBoxes_CheckedObjects_Set_ClearsPreviousChecks() {
+        public void Test_HierarchicalCheckBoxes_CheckedObjects_Set_ClearsPreviousChecks() {
             Person firstRoot = PersonDb.All[0];
             Person secondRoot = PersonDb.All[1];
 
@@ -508,6 +508,32 @@ namespace BrightIdeasSoftware.Tests
             this.olv.CheckedObjects = ObjectListView.EnumerableToArray(firstRoot.Children, true);
 
             Assert.IsFalse(this.olv.IsChecked(secondRoot));
+        }
+
+        [Test]
+        public void Test_RefreshObject_NonRoot_AfterRemoveChild() {
+            this.olv.ClearObjects();
+            Assert.AreEqual(0, this.olv.GetItemCount());
+
+            Person root = new Person("root");
+            Person child = new Person("child");
+            Person grandchild = new Person("grandchild");
+
+            root.AddChild(child);
+            child.AddChild(grandchild);
+            grandchild.AddChild(new Person("ggrandchild1"));
+            grandchild.AddChild(new Person("ggrandchild2"));
+            grandchild.AddChild(new Person("ggrandchild3"));
+
+            this.olv.Roots = new ArrayList(new object[] {root});
+            this.olv.ExpandAll();
+
+            Assert.AreEqual(3, ObjectListView.EnumerableCount(this.olv.GetChildren(grandchild)));
+
+            child.Children.RemoveAt(0);
+
+            this.olv.RefreshObject(child);
+            Assert.AreEqual(2, this.olv.GetItemCount());
         }
     }
 }

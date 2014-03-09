@@ -5,6 +5,9 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2014-03-09  JPP  - Fixed bug where removing a branches only child and then calling RefreshObject()
+ *                    could throw an exception.
+ * v2.7
  * 2014-02-23  JPP  - Added Reveal() method to show a deeply nested models.
  * 2014-02-05  JPP  - Fix bug where refreshing a non-root item would collapse all expanded children of that item
  * 2014-02-01  JPP  - ClearObjects() now actually, you know, clears objects :)
@@ -736,8 +739,8 @@ namespace BrightIdeasSoftware
                 if (parent == null) {
                     updatedRoots.Add(model);
                 } else {
-                    modelsAndParents[model] = true;
                     modelsAndParents[parent] = true;
+                    modelsAndParents[model] = true;
                 }
             }
 
@@ -1355,10 +1358,14 @@ namespace BrightIdeasSoftware
                 int index = this.GetObjectIndex(model);
                 if (count > 0)
                     this.objectList.RemoveRange(index + 1, count);
-                if (br.CanExpand && br.IsExpanded) {
-                    br.RefreshChildren();
+
+                // Refresh our knowledge of our children (do this even if CanExpand is false, because
+                // the branch have already collected some children and that information could be stale)
+                br.RefreshChildren();
+
+                // Insert the refreshed children if the branch can expand and is expanded
+                if (br.CanExpand && br.IsExpanded)
                     this.InsertChildren(br, index + 1);
-                }
                 return index;
             }
 
@@ -2025,10 +2032,14 @@ namespace BrightIdeasSoftware
             /// Force a refresh of all children recursively
             /// </summary>
             public virtual void RefreshChildren() {
-                if (!this.IsExpanded || !this.CanExpand) 
+                
+                // Forget any previous children. We always do this so that if
+                // IsExpanded or CanExpand have changed, we aren't left with stale information.
+                this.ClearCachedInfo();
+
+                if (!this.IsExpanded || !this.CanExpand)
                     return;
 
-                this.ClearCachedInfo();
                 this.FetchChildren();
                 foreach (Branch br in this.ChildBranches)
                     br.RefreshChildren();
@@ -2056,7 +2067,7 @@ namespace BrightIdeasSoftware
             //------------------------------------------------------------------------------------------
             // Private instance variables
 
-            private bool alreadyHasChildren = false;
+            private bool alreadyHasChildren;
             private BranchFlags flags;
         }
 
