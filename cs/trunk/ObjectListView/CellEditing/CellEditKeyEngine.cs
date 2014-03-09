@@ -246,7 +246,7 @@ namespace BrightIdeasSoftware {
         /// </summary>
         protected OLVListItem ItemBeingEdited {
             get {
-                return this.ListView.cellEditEventArgs.ListViewItem;
+                return this.ListView.CellEditEventArgs.ListViewItem;
             }
         }
 
@@ -255,7 +255,7 @@ namespace BrightIdeasSoftware {
         /// </summary>
         protected int SubItemIndexBeingEdited {
             get {
-                return this.ListView.cellEditEventArgs.SubItemIndex;
+                return this.ListView.CellEditEventArgs.SubItemIndex;
             }
         }
 
