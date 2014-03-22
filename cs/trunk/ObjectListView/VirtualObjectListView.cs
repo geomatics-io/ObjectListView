@@ -780,10 +780,10 @@ namespace BrightIdeasSoftware
             if (this.CheckStateGetter != null)
                 return base.GetCheckState(modelObject);
 
-            CheckState state = CheckState.Unchecked;
-            if (modelObject != null)
-                this.CheckStateMap.TryGetValue(modelObject, out state);
-            return state;
+            CheckState state;
+            if (modelObject != null && this.CheckStateMap.TryGetValue(modelObject, out state))
+                return state;
+            return CheckState.Unchecked;
         }
 
         /// <summary>

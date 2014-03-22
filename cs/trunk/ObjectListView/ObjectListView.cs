@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2014-03-22  JPP  - Fixed some subtle bugs resulting from misuse of TryGetValue()
  * 2014-03-09  JPP  - Added CollapsedGroups property
  *                  - Several minor Resharper complaints quiesced.
  * v2.7
@@ -9980,10 +9981,10 @@ namespace BrightIdeasSoftware
         /// <param name="model">The model</param>
         /// <returns>The checkedness of the model. Defaults to unchecked.</returns>
         protected virtual CheckState GetPersistentCheckState(object model) {
-            CheckState state = CheckState.Unchecked;
-            if (model != null)
-                this.CheckStateMap.TryGetValue(model, out state);
-            return state;
+            CheckState state;
+            if (model != null && this.CheckStateMap.TryGetValue(model, out state))
+                return state;
+            return CheckState.Unchecked;
         }
 
         /// <summary>
