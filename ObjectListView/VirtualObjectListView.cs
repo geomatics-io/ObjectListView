@@ -706,7 +706,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Clear any cached info this list may have been using
         /// </summary>
-        public virtual void ClearCachedInfo() {
+        public override void ClearCachedInfo() {
             this.lastRetrieveVirtualItemIndex = -1;
         }
 
@@ -833,7 +833,7 @@ namespace BrightIdeasSoftware
         /// <param name="n"></param>
         /// <returns></returns>
         public override OLVListItem GetNthItemInDisplayOrder(int n) {
-            if (!this.ShowGroups)
+            if (!this.ShowGroups || this.OLVGroups == null || this.OLVGroups.Count == 0)
                 return this.GetItem(n);
 
             foreach (OLVGroup group in this.OLVGroups) {

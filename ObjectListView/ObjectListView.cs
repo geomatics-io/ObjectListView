@@ -5,6 +5,8 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2014-04-25  JPP  - Fixed bug where virtual lists containing a single row didn't update hyperlinks on mouse over
+ *                  - Added sanity check before BuildGroups()
  * 2014-03-22  JPP  - Fixed some subtle bugs resulting from misuse of TryGetValue()
  * 2014-03-09  JPP  - Added CollapsedGroups property
  *                  - Several minor Resharper complaints quiesced.
@@ -3168,6 +3170,11 @@ namespace BrightIdeasSoftware
         /// <para>
         /// This will replace any SelectedRowDecoration that has been installed.
         /// </para>
+        /// <para>
+        /// If you don't like the colours used for the selection, ignore this property and 
+        /// just create your own RowBorderDecoration and assigned it to SelectedRowDecoration,
+        /// just like this property setter does.
+        /// </para>
         /// </remarks>
         [Category("ObjectListView"),
          Description("Should the list use a translucent selection mechanism (like Vista)"),
@@ -3192,7 +3199,16 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets or sets if the ObjectListView will use a translucent hot row highlighting mechanism like Vista.
         /// </summary>
-        /// <remarks>Setting this will replace any HotItemStyle that has been </remarks>
+        /// <remarks>
+        /// <para>
+        /// Setting this will replace any HotItemStyle that has been installed.
+        /// </para>
+        /// <para>
+        /// If you don't like the colours used for the hot item, ignore this property and 
+        /// just create your own HotItemStyle, fill in the values you want, and assigned it to HotItemStyle property,
+        /// just like this property setter does.
+        /// </para>
+        /// </remarks>
         [Category("ObjectListView"),
          Description("Should the list use a translucent hot row highlighting mechanism (like Vista)"),
          DefaultValue(false)]
@@ -3564,6 +3580,10 @@ namespace BrightIdeasSoftware
         /// <param name="column">The column whose values should be used for sorting.</param>
         /// <param name="order"></param>
         public virtual void BuildGroups(OLVColumn column, SortOrder order) {
+            // Sanity
+            if (this.GetItemCount() == 0 || this.Columns.Count == 0)
+                return;
+
             BeforeSortingEventArgs args = this.BuildBeforeSortingEventArgs(column, order);
             this.OnBeforeSorting(args);
             if (args.Canceled)
@@ -3822,6 +3842,14 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Clear any cached info this list may have been using
+        /// </summary>
+        public virtual void ClearCachedInfo()
+        {
+            // ObjectListView doesn't currently cache information
+        }
+
+        /// <summary>
         /// Apply all required extended styles to our control.
         /// </summary>
         /// <remarks>
@@ -4055,7 +4083,7 @@ namespace BrightIdeasSoftware
         /// <param name="n"></param>
         /// <returns></returns>
         public virtual OLVListItem GetNthItemInDisplayOrder(int n) {
-            if (!this.ShowGroups)
+            if (!this.ShowGroups || this.Groups.Count == 0)
                 return this.GetItem(n);
 
             foreach (ListViewGroup group in this.Groups) {
@@ -9393,7 +9421,10 @@ namespace BrightIdeasSoftware
                 if (this.HotRowIndex != -1) {
                     // Virtual lists apply hot item style when fetching their rows
                     if (this.VirtualMode)
-                        this.RedrawItems(this.HotRowIndex, this.HotRowIndex, true);
+                    {
+                        this.ClearCachedInfo();
+                        this.RedrawItems(this.HotRowIndex, this.HotRowIndex, false);
+                    }
                     else
                         this.UpdateHotRow(this.HotRowIndex, this.HotColumnIndex, this.HotCellHitLocation, hti.Item);
                 }
