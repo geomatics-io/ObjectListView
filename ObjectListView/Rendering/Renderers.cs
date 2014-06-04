@@ -5,6 +5,9 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log: 
+ * v2.8
+ * 2014-05-20   JPP  - Handle rendering disabled rows
+ * v2.7
  * 2013-04-29   JPP  - Fixed bug where Images were not vertically aligned
  * v2.6
  * 2012-10-26   JPP  - Hit detection will no longer report check box hits on columns without checkboxes.
@@ -67,7 +70,7 @@
  * 2008-10-26   JPP  - Don't owner draw when in Design mode
  * 2008-09-27   JPP  - Separated from ObjectListView.cs
  * 
- * Copyright (C) 2006-2012 Phillip Piper
+ * Copyright (C) 2006-2014 Phillip Piper
  * 
  * TO DO:
  * - Hit detection on renderers doesn't change the controls standard selection behavior
@@ -588,6 +591,26 @@ namespace BrightIdeasSoftware
         }
         private Brush textBrush;
 
+        /// <summary>
+        /// Will this renderer use the custom images from the parent ObjectListView
+        /// to draw the checkbox images.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If this is true, the renderer will use the images from the 
+        /// StateImageList to represent checkboxes. 0 - unchecked, 1 - checked, 2 - indeterminate.
+        /// </para>
+        /// <para>If this is false (the default), then the renderer will use .NET's standard
+        /// CheckBoxRenderer.</para>
+        /// </remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool UseCustomCheckboxImages {
+            get { return useCustomCheckboxImages; }
+            set { useCustomCheckboxImages = value; }
+        }
+        private bool useCustomCheckboxImages;
+
         private void ClearState() {
             this.Event = null;
             this.DrawItemEvent = null;
@@ -699,6 +722,20 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// Calculate the bounds of a checkbox given the cell bounds
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="cellBounds"></param>
+        /// <returns></returns>
+        protected Rectangle CalculateCheckBoxBounds(Graphics g, Rectangle cellBounds) {
+            Size checkBoxSize = (UseCustomCheckboxImages && this.ListView.StateImageList != null)
+                ? this.ListView.StateImageList.ImageSize
+                : CheckBoxRenderer.GetGlyphSize(g, CheckBoxState.CheckedNormal);
+            return this.AlignRectangle(cellBounds,
+                new Rectangle(0, 0, checkBoxSize.Width, checkBoxSize.Height));
+        }
+
+        /// <summary>
         /// How much space will the check box for this cell occupy?
         /// </summary>
         /// <remarks>Only column 0 can have check boxes. Sub item checkboxes are
@@ -706,10 +743,13 @@ namespace BrightIdeasSoftware
         /// <param name="g"></param>
         /// <returns></returns>
         protected virtual int CalculateCheckBoxWidth(Graphics g) {
-            if (this.ListView.CheckBoxes && this.ColumnIsPrimary)
-                return CheckBoxRenderer.GetGlyphSize(g, CheckBoxState.UncheckedNormal).Width + 6;
-            else
+            if (!this.ListView.CheckBoxes || !this.ColumnIsPrimary) 
                 return 0;
+
+            if (UseCustomCheckboxImages && this.ListView.StateImageList != null)
+                return this.ListView.StateImageList.ImageSize.Width;
+
+            return CheckBoxRenderer.GetGlyphSize(g, CheckBoxState.UncheckedNormal).Width + 6;
         }
 
         /// <summary>
@@ -908,7 +948,7 @@ namespace BrightIdeasSoftware
             this.Column = this.ListView.GetColumn(0);
             this.RowObject = rowObject;
             this.Bounds = itemBounds;
-            this.IsItemSelected = this.ListItem.Selected;
+            this.IsItemSelected = this.ListItem.Selected && this.ListItem.Enabled;
 
             return this.OptionalRender(g, itemBounds);
         }
@@ -931,7 +971,7 @@ namespace BrightIdeasSoftware
             this.Column = (OLVColumn)e.Header;
             this.RowObject = rowObject;
             this.Bounds = cellBounds;
-            this.IsItemSelected = this.ListItem.Selected;
+            this.IsItemSelected = this.ListItem.Selected && this.ListItem.Enabled;
 
             return this.OptionalRender(g, cellBounds);
         }
@@ -950,7 +990,7 @@ namespace BrightIdeasSoftware
             this.SubItem = hti.SubItem;
             this.Column = hti.Column;
             this.RowObject = hti.RowObject;
-            this.IsItemSelected = this.ListItem.Selected;
+            this.IsItemSelected = this.ListItem.Selected && this.ListItem.Enabled;
             if (this.SubItem == null)
                 this.Bounds = this.ListItem.Bounds;
             else
@@ -978,7 +1018,7 @@ namespace BrightIdeasSoftware
             this.SubItem = item.GetSubItem(subItemIndex);
             this.Column = this.ListView.GetColumn(subItemIndex);
             this.RowObject = item.RowObject;
-            this.IsItemSelected = this.ListItem.Selected;
+            this.IsItemSelected = this.ListItem.Selected && this.ListItem.Enabled;
             this.Bounds = cellBounds;
 
             return this.HandleGetEditRectangle(g, cellBounds, item, subItemIndex, preferredSize);
@@ -1002,12 +1042,11 @@ namespace BrightIdeasSoftware
         /// If this returns false, the default processing will take over.
         /// </returns>
         public virtual bool OptionalRender(Graphics g, Rectangle r) {
-            if (this.ListView.View == View.Details) {
-                this.Render(g, r);
-                return true;
-            } 
-            
+            if (this.ListView.View != View.Details) 
                 return false;
+
+            this.Render(g, r);
+            return true;
         }
 
         /// <summary>
@@ -1240,7 +1279,11 @@ namespace BrightIdeasSoftware
             }
 
             // Align and draw our (possibly scaled) image
-            g.DrawImage(image, this.AlignRectangle(r, imageBounds));
+            Rectangle alignRectangle = this.AlignRectangle(r, imageBounds);
+            if (this.ListItem.Enabled)
+                g.DrawImage(image, alignRectangle);
+            else
+                ControlPaint.DrawImageDisabled(g, image, alignRectangle.X, alignRectangle.Y, GetBackgroundColor());
         }
 
         /// <summary>
@@ -1277,42 +1320,18 @@ namespace BrightIdeasSoftware
             // TODO: Unify this with CheckStateRenderer
             int imageIndex = this.ListItem.StateImageIndex;
 
-            if (this.IsPrinting) {
+            if (this.IsPrinting || this.UseCustomCheckboxImages) {
                 if (this.ListView.StateImageList == null || imageIndex < 0)
                     return 0;
                 
-                    return this.DrawImage(g, r, this.ListView.StateImageList.Images[imageIndex]) + 4;
+                return this.DrawImage(g, r, this.ListView.StateImageList.Images[imageIndex]) + 4;
             }
-
-            //CheckBoxState boxState = CheckBoxState.UncheckedNormal;
-            //int switchValue = (imageIndex << 4) + (this.IsItemHot ? 1 : 0);
-            //switch (switchValue) {
-            //    case 0x00:
-            //        boxState = CheckBoxState.UncheckedNormal;
-            //        break;
-            //    case 0x01:
-            //        boxState = CheckBoxState.UncheckedHot;
-            //        break;
-            //    case 0x10:
-            //        boxState = CheckBoxState.CheckedNormal;
-            //        break;
-            //    case 0x11:
-            //        boxState = CheckBoxState.CheckedHot;
-            //        break;
-            //    case 0x20:
-            //        boxState = CheckBoxState.MixedNormal;
-            //        break;
-            //    case 0x21:
-            //        boxState = CheckBoxState.MixedHot;
-            //        break;
-            //}
 
             // The odd constants are to match checkbox placement in native mode (on XP at least)
             r = this.CalculateCheckBoxBounds(g, r);
             CheckBoxState boxState = this.GetCheckBoxState(this.ListItem.CheckState);
             CheckBoxRenderer.DrawCheckBox(g, r.Location, boxState);
 
-            //CheckBoxRenderer.DrawCheckBox(g, new Point(r.X + 3, r.Y + (r.Height / 2) - 6), boxState);
             return CheckBoxRenderer.GetGlyphSize(g, boxState).Width + 6;
         }
 
@@ -1356,8 +1375,13 @@ namespace BrightIdeasSoftware
         /// </summary>
         protected virtual bool IsCheckBoxDisabled {
             get {
-                return this.ListView.RenderNonEditableCheckboxesAsDisabled &&
-                       (this.ListView.CellEditActivation == ObjectListView.CellEditActivateMode.None ||
+                if (this.ListItem != null && !this.ListItem.Enabled)
+                    return true;                
+                
+                if (!this.ListView.RenderNonEditableCheckboxesAsDisabled)
+                    return false;
+
+                return (this.ListView.CellEditActivation == ObjectListView.CellEditActivateMode.None ||
                         (this.Column != null && !this.Column.IsEditable));
             }
         }
@@ -1373,18 +1397,6 @@ namespace BrightIdeasSoftware
                        this.ListView.HotColumnIndex == (this.Column == null ? 0 : this.Column.Index) &&
                        this.ListView.HotCellHitLocation == HitTestLocation.CheckBox;
             }
-        }
-
-        /// <summary>
-        /// Calculate the bounds of a checkbox given the cell bounds
-        /// </summary>
-        /// <param name="g"></param>
-        /// <param name="cellBounds"></param>
-        /// <returns></returns>
-        protected Rectangle CalculateCheckBoxBounds(Graphics g, Rectangle cellBounds) {
-            Size checkBoxSize = CheckBoxRenderer.GetGlyphSize(g, CheckBoxState.CheckedNormal);
-            return this.AlignRectangle(cellBounds,
-                new Rectangle(0, 0, checkBoxSize.Width, checkBoxSize.Height));
         }
 
         /// <summary>
@@ -1426,10 +1438,10 @@ namespace BrightIdeasSoftware
                         // This effectively simulates the Translation matrix.
 
                         Rectangle r2 = new Rectangle(r.X - this.Bounds.X, r.Y - this.Bounds.Y, r.Width, r.Height);
-                        il.Draw(g, r2.Location, selectorAsInt);
+                        //il.Draw(g, r2.Location, selectorAsInt);
 
                         // Use this call instead of the above if you want to images to appear blended when selected
-                        //NativeMethods.DrawImageList(g, il, selectorAsInt, r2.X, r2.Y, this.IsItemSelected);
+                        NativeMethods.DrawImageList(g, il, selectorAsInt, r2.X, r2.Y, this.IsItemSelected, !this.ListItem.Enabled);
                         return il.ImageSize.Width;
                     }
                 }
@@ -1441,7 +1453,10 @@ namespace BrightIdeasSoftware
                 if (image.Size.Height < r.Height)
                     r.Y = this.AlignVertically(r, new Rectangle(Point.Empty, image.Size));
 
-                g.DrawImageUnscaled(image, r.X, r.Y);
+                if (this.ListItem.Enabled)
+                    g.DrawImageUnscaled(image, r.X, r.Y);
+                else
+                    ControlPaint.DrawImageDisabled(g, image, r.X, r.Y, GetBackgroundColor());
                 return image.Width;
             }
 
@@ -1495,9 +1510,13 @@ namespace BrightIdeasSoftware
             Rectangle r2 = this.AlignRectangle(r, new Rectangle(0, 0, width, height));
 
             // Finally, draw all the images in their correct location
+            Color backgroundColor = GetBackgroundColor();
             Point pt = r2.Location;
             foreach (Image image in images) {
-                g.DrawImage(image, pt);
+                if (this.ListItem.Enabled)
+                    g.DrawImage(image, pt);
+                else 
+                    ControlPaint.DrawImageDisabled(g, image, pt.X, pt.Y, backgroundColor);
                 pt.X += (image.Width + this.Spacing);
             }
 
@@ -1553,6 +1572,10 @@ namespace BrightIdeasSoftware
             get { return this.Column != null && this.Column.Index == 0; }
         }
 
+        /// <summary>
+        /// Gets the cell's vertical alignment as a TextFormatFlag
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         protected TextFormatFlags CellVerticalAlignmentAsTextFormatFlag {
             get {
                 switch (this.EffectiveCellVerticalAlignment) {
@@ -2092,7 +2115,6 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// This renderer draws just a checkbox to match the check state of our model object.
     /// </summary>
-
     public class CheckStateRenderer : BaseRenderer
     {
         /// <summary>
@@ -3027,8 +3049,13 @@ namespace BrightIdeasSoftware
             imageBounds = this.AlignRectangle(r, imageBounds);
 
             // Finally, draw the images
-            for (int i = 0; i < numberOfImages; i++) {
-                g.DrawImage(image, imageBounds.X, imageBounds.Y, imageScaledWidth, imageScaledHeight);
+            Color backgroundColor = GetBackgroundColor();
+            for (int i = 0; i < numberOfImages; i++)
+            {
+                if (this.ListItem.Enabled)
+                    g.DrawImage(image, imageBounds.X, imageBounds.Y, imageScaledWidth, imageScaledHeight);
+                else 
+                    ControlPaint.DrawImageDisabled(g, image, imageBounds.X, imageBounds.Y, backgroundColor);
                 imageBounds.X += (imageScaledWidth + this.Spacing);
             }
         }

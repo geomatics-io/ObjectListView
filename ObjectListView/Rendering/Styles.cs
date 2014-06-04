@@ -16,7 +16,7 @@
  *       this.olv.GetItem(i).Style = new ItemStyle();
  *       this.olv.GetItem(i).GetSubItem(j).Style = new CellStyle();
  * 
- * Copyright (C) 2009-2012 Phillip Piper
+ * Copyright (C) 2009-2014 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,51 +68,66 @@ namespace BrightIdeasSoftware
     }
 
     /// <summary>
-    /// Instances of this class specify how should "hot items" (non-selected
-    /// rows under the cursor) be renderered.
+    /// Basic implementation of IItemStyle
     /// </summary>
-    public class HotItemStyle : System.ComponentModel.Component, IItemStyle
+    public class SimpleItemStyle : System.ComponentModel.Component, IItemStyle
     {
         /// <summary>
         /// Gets or sets the font that will be applied by this style
         /// </summary>
         [DefaultValue(null)]
-        public Font Font {
+        public Font Font
+        {
             get { return this.font; }
             set { this.font = value; }
         }
+
         private Font font;
 
         /// <summary>
         /// Gets or sets the style of font that will be applied by this style
         /// </summary>
         [DefaultValue(FontStyle.Regular)]
-        public FontStyle FontStyle {
+        public FontStyle FontStyle
+        {
             get { return this.fontStyle; }
             set { this.fontStyle = value; }
         }
+
         private FontStyle fontStyle;
 
         /// <summary>
         /// Gets or sets the color of the text that will be applied by this style
         /// </summary>
-        [DefaultValue(typeof(Color), "")]
-        public Color ForeColor {
+        [DefaultValue(typeof (Color), "")]
+        public Color ForeColor
+        {
             get { return this.foreColor; }
             set { this.foreColor = value; }
         }
+
         private Color foreColor;
 
         /// <summary>
         /// Gets or sets the background color that will be applied by this style
         /// </summary>
-        [DefaultValue(typeof(Color), "")]
-        public Color BackColor {
+        [DefaultValue(typeof (Color), "")]
+        public Color BackColor
+        {
             get { return this.backColor; }
             set { this.backColor = value; }
         }
-        private Color backColor;
 
+        private Color backColor;
+    }
+
+
+    /// <summary>
+    /// Instances of this class specify how should "hot items" (non-selected
+    /// rows under the cursor) be renderered.
+    /// </summary>
+    public class HotItemStyle : SimpleItemStyle
+    {
         /// <summary>
         /// Gets or sets the overlay that should be drawn as part of the hot item
         /// </summary>
