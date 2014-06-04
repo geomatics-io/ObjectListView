@@ -5,9 +5,12 @@
  * Date: 31-March-2011 5:53 pm
  *
  * Change log:
+ * v2.8
+ * 2014-05-06  JPP  - Added OLVListItem.Enabled flag
+ * vOld
  * 2011-03-31  JPP  - Split into its own file
  * 
- * Copyright (C) 2011-2012 Phillip Piper
+ * Copyright (C) 2011-2014 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -200,6 +203,16 @@ namespace BrightIdeasSoftware {
             }
         }
         private IList<IDecoration> decorations;
+
+        /// <summary>
+        /// Gets whether or not this row can be selected and activated
+        /// </summary>
+        public bool Enabled
+        {
+            get { return this.enabled; }
+            internal set { this.enabled = value; }
+        }
+        private bool enabled;
 
         /// <summary>
         /// Get or set the image that should be shown against this item
