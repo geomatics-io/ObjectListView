@@ -13,7 +13,7 @@
  * - Animation wide effects?? Freeze. Fade.
  * - FramesPerSecond setting
  * 
- * Copyright (C) 20009-2010 Phillip Piper
+ * Copyright (C) 20009-2014 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
