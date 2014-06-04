@@ -10,7 +10,7 @@
  * 
  * 2010-09-20  JPP  - Initial version
  * 
- * Copyright (C) 2010-2012 Phillip Piper
+ * Copyright (C) 2010-2014 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,6 +148,10 @@ namespace BrightIdeasSoftware
 
         #region Binding and unbinding
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="olv"></param>
         protected virtual void BindListView(ObjectListView olv) {
             if (olv == null)
                 return;
@@ -157,6 +161,10 @@ namespace BrightIdeasSoftware
             olv.BindingContextChanged += new EventHandler(HandleListViewBindingContextChanged);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="olv"></param>
         protected virtual void UnbindListView(ObjectListView olv) {
             if (olv == null)
                 return;
@@ -166,6 +174,9 @@ namespace BrightIdeasSoftware
             olv.BindingContextChanged -= new EventHandler(HandleListViewBindingContextChanged);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected virtual void BindDataSource() {
             if (this.CurrencyManager == null)
                 return;
@@ -175,6 +186,9 @@ namespace BrightIdeasSoftware
             this.CurrencyManager.ListChanged += new ListChangedEventHandler(CurrencyManagerListChanged);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected virtual void UnbindDataSource() {
             if (this.CurrencyManager == null)
                 return;

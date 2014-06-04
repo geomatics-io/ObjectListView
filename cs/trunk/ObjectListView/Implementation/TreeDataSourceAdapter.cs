@@ -133,15 +133,26 @@ namespace BrightIdeasSoftware
 
         #region Implementation
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected override void InitializeDataSource() {
             base.InitializeDataSource();
             this.TreeListView.RebuildAll(true);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected override void SetListContents() {
             this.TreeListView.Roots = this.CalculateRoots();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
         protected override bool ShouldCreateColumn(PropertyDescriptor property) {
             // If the property is a key column, and we aren't supposed to show keys, don't show it
             if (!this.ShowKeyColumns && (property.Name == this.KeyAspectName || property.Name == this.ParentKeyAspectName))
@@ -150,6 +161,10 @@ namespace BrightIdeasSoftware
             return base.ShouldCreateColumn(property);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected override void HandleListChangedItemChanged(System.ComponentModel.ListChangedEventArgs e) {
             // If the id or the parent id of a row changes, we just rebuild everything.
             // We can't do anything more specific. We don't know what the previous values, so we can't 
@@ -164,6 +179,10 @@ namespace BrightIdeasSoftware
                 base.HandleListChangedItemChanged(e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
         protected override void ChangePosition(int index) {
             // We can't use our base method directly, since the normal position management
             // doesn't know about our tree structure. They treat our dataset as a flat list
