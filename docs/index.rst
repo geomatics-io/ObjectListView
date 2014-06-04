@@ -71,6 +71,7 @@ OK, here's the bullet point feature list:
 * Supports :ref:`column selection <recipe-column-selection>` through right-click on header.
 * Supports :ref:`Excel-like column filtering <column-filtering-label>`.
 * Supports :ref:`native background images <recipe-native-backgrounds>` with all their inherent limitations.
+* Supports :ref:`disabled rows<recipe-disabled-rows>`
 * The `FastObjectListView` version can build a list of 10,000 objects in less than 0.1 seconds.
 * The `TreeListView` version combines :ref:`an expandable tree structure with the columns of a ListView <recipe-treelistview>`.
 * The `VirtualObjectListView` class allow you to create your own million row `ListView` through ListView's virtual mode.
@@ -116,6 +117,8 @@ Technical details
 
 I've started keeping a :ref:`technical blog <blog>` documenting some of the efforts that were required to
 solve some of the problem encountered within the ObjectListView.
+
+* :ref:`Enabling disabling (20 May 2014)<blog-disabledrows>`
 
 * :ref:`Creating hierarchical checkboxes (26 February 2014)<blog-hierarchicalcheckboxes>`
 
