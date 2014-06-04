@@ -21,7 +21,7 @@
  *
  * To do:
  * 
- * Copyright (C) 2009-2012 Phillip Piper
+ * Copyright (C) 2009-2014 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -297,6 +297,15 @@ namespace BrightIdeasSoftware
             return MakeColumn(pd.Name, DisplayNameToColumnTitle(pd.DisplayName), !pd.IsReadOnly, pd.PropertyType, attr);
         }
 
+        /// <summary>
+        /// Create a column with all the given information
+        /// </summary>
+        /// <param name="aspectName"></param>
+        /// <param name="title"></param>
+        /// <param name="editable"></param>
+        /// <param name="propertyType"></param>
+        /// <param name="attr"></param>
+        /// <returns></returns>
         protected virtual OLVColumn MakeColumn(string aspectName, string title, bool editable, Type propertyType, OLVColumnAttribute attr) {
 
             OLVColumn column = this.MakeColumn(aspectName, title, attr);
