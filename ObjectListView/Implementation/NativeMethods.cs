@@ -5,12 +5,15 @@
  * Date: 10/10/2006
  *
  * Change log:
+ * v2.8.0
+ * 2014-05-21   JPP  - Added DeselectOneItem
+ *                   - Added new imagelist drawing
  * v2.3
  * 2006-10-10   JPP  - Initial version
  *
  * To do:
  * 
- * Copyright (C) 2006-2012 Phillip Piper
+ * Copyright (C) 2006-2014 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,6 +77,8 @@ namespace BrightIdeasSoftware
         private const int LVIF_STATE = 0x0008;
         private const int LVIF_INDENT = 0x0010;
         private const int LVIF_NORECOMPUTE = 0x0800;
+
+        private const int LVIS_SELECTED = 2;
 
         private const int LVCF_FMT = 0x0001;
         private const int LVCF_WIDTH = 0x0002;
@@ -193,6 +198,28 @@ namespace BrightIdeasSoftware
         {
             public IntPtr prc;
             public IntPtr pwpos;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct IMAGELISTDRAWPARAMS
+        {
+            public int cbSize;
+            public IntPtr himl;
+            public int i;
+            public IntPtr hdcDst;
+            public int x;
+            public int y;
+            public int cx;
+            public int cy;
+            public int xBitmap;
+            public int yBitmap;
+            public uint rgbBk;
+            public uint rgbFg;
+            public uint fStyle;
+            public uint dwRop;
+            public uint fState;
+            public uint Frame;
+            public uint crEffect;
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
@@ -570,6 +597,9 @@ namespace BrightIdeasSoftware
         [DllImport("comctl32.dll", CharSet = CharSet.Auto)]
         private static extern bool ImageList_Draw(IntPtr himl, int i, IntPtr hdcDst, int x, int y, int fStyle);
 
+        [DllImport("comctl32.dll", CharSet = CharSet.Auto)]
+        private static extern bool ImageList_DrawIndirect(ref IMAGELISTDRAWPARAMS parms);
+
         //[DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         //public static extern bool SetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO scrollInfo, bool fRedraw);
 
@@ -649,13 +679,129 @@ namespace BrightIdeasSoftware
             return (result != IntPtr.Zero);
         }
 
-        public static bool DrawImageList(Graphics g, ImageList il, int index, int x, int y, bool isSelected) {
-            int flags = ILD_TRANSPARENT;
-            if (isSelected)
-                flags |= ILD_BLEND25;
-            bool result = ImageList_Draw(il.Handle, index, g.GetHdc(), x, y, flags);
-            g.ReleaseHdc();
-            return result;
+        public static bool DrawImageList(Graphics g, ImageList il, int index, int x, int y, bool isSelected, bool isDisabled) {
+            ImageListDrawItemConstants flags = (isSelected ? ImageListDrawItemConstants.ILD_SELECTED : ImageListDrawItemConstants.ILD_NORMAL) | ImageListDrawItemConstants.ILD_TRANSPARENT;
+            ImageListDrawStateConstants state = isDisabled ? ImageListDrawStateConstants.ILS_SATURATE : ImageListDrawStateConstants.ILS_NORMAL;
+            try {
+                IntPtr hdc = g.GetHdc();
+                return DrawImage(il, hdc, index, x, y, flags, 0, 0, state);
+            }
+            finally {
+                g.ReleaseHdc();
+            }
+        }
+
+        /// <summary>
+        /// Flags controlling how the Image List item is 
+        /// drawn
+        /// </summary>
+        [Flags]
+        public enum ImageListDrawItemConstants : int
+        {
+            /// <summary>
+            /// Draw item normally.
+            /// </summary>
+            ILD_NORMAL = 0x0,
+            /// <summary>
+            /// Draw item transparently.
+            /// </summary>
+            ILD_TRANSPARENT = 0x1,
+            /// <summary>
+            /// Draw item blended with 25% of the specified foreground colour
+            /// or the Highlight colour if no foreground colour specified.
+            /// </summary>
+            ILD_BLEND25 = 0x2,
+            /// <summary>
+            /// Draw item blended with 50% of the specified foreground colour
+            /// or the Highlight colour if no foreground colour specified.
+            /// </summary>
+            ILD_SELECTED = 0x4,
+            /// <summary>
+            /// Draw the icon's mask
+            /// </summary>
+            ILD_MASK = 0x10,
+            /// <summary>
+            /// Draw the icon image without using the mask
+            /// </summary>
+            ILD_IMAGE = 0x20,
+            /// <summary>
+            /// Draw the icon using the ROP specified.
+            /// </summary>
+            ILD_ROP = 0x40,
+            /// <summary>
+            /// Preserves the alpha channel in dest. XP only.
+            /// </summary>
+            ILD_PRESERVEALPHA = 0x1000,
+            /// <summary>
+            /// Scale the image to cx, cy instead of clipping it. XP only.
+            /// </summary>
+            ILD_SCALE = 0x2000,
+            /// <summary>
+            /// Scale the image to the current DPI of the display. XP only.
+            /// </summary>
+            ILD_DPISCALE = 0x4000
+        }
+
+        /// <summary>
+        /// Enumeration containing XP ImageList Draw State options
+        /// </summary>
+        [Flags]
+        public enum ImageListDrawStateConstants : int
+        {
+            /// <summary>
+            /// The image state is not modified. 
+            /// </summary>
+            ILS_NORMAL = (0x00000000),
+            /// <summary>
+            /// Adds a glow effect to the icon, which causes the icon to appear to glow 
+            /// with a given color around the edges. (Note: does not appear to be implemented)
+            /// </summary>
+            ILS_GLOW = (0x00000001), //The color for the glow effect is passed to the IImageList::Draw method in the crEffect member of IMAGELISTDRAWPARAMS. 
+            /// <summary>
+            /// Adds a drop shadow effect to the icon. (Note: does not appear to be implemented)
+            /// </summary>
+            ILS_SHADOW = (0x00000002), //The color for the drop shadow effect is passed to the IImageList::Draw method in the crEffect member of IMAGELISTDRAWPARAMS. 
+            /// <summary>
+            /// Saturates the icon by increasing each color component 
+            /// of the RGB triplet for each pixel in the icon. (Note: only ever appears to result in a completely unsaturated icon)
+            /// </summary>
+            ILS_SATURATE = (0x00000004), // The amount to increase is indicated by the frame member in the IMAGELISTDRAWPARAMS method. 
+            /// <summary>
+            /// Alpha blends the icon. Alpha blending controls the transparency 
+            /// level of an icon, according to the value of its alpha channel. 
+            /// (Note: does not appear to be implemented).
+            /// </summary>
+            ILS_ALPHA = (0x00000008) //The value of the alpha channel is indicated by the frame member in the IMAGELISTDRAWPARAMS method. The alpha channel can be from 0 to 255, with 0 being completely transparent, and 255 being completely opaque. 
+        }
+
+        private const uint CLR_DEFAULT = 0xFF000000;
+
+        /// <summary>
+        /// Draws an image using the specified flags and state on XP systems.
+        /// </summary>
+        /// <param name="il">The image list from which an item will be drawn</param>
+        /// <param name="hdc">Device context to draw to</param>
+        /// <param name="index">Index of image to draw</param>
+        /// <param name="x">X Position to draw at</param>
+        /// <param name="y">Y Position to draw at</param>
+        /// <param name="flags">Drawing flags</param>
+        /// <param name="cx">Width to draw</param>
+        /// <param name="cy">Height to draw</param>
+        /// <param name="stateFlags">State flags</param>
+        public static bool DrawImage(ImageList il, IntPtr hdc, int index, int x, int y, ImageListDrawItemConstants flags, int cx, int cy, ImageListDrawStateConstants stateFlags) {
+            IMAGELISTDRAWPARAMS pimldp = new IMAGELISTDRAWPARAMS();
+            pimldp.hdcDst = hdc;
+            pimldp.cbSize = Marshal.SizeOf(pimldp.GetType());
+            pimldp.i = index;
+            pimldp.x = x;
+            pimldp.y = y;
+            pimldp.cx = cx;
+            pimldp.cy = cy;
+            pimldp.rgbFg = CLR_DEFAULT;
+            pimldp.fStyle = (uint) flags;
+            pimldp.fState = (uint) stateFlags;
+            pimldp.himl = il.Handle;
+            return ImageList_DrawIndirect(ref pimldp);
         }
 
         /// <summary>
@@ -784,7 +930,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="list">The listview whose items are to be selected</param>
         public static void SelectAllItems(ListView list) {
-            NativeMethods.SetItemState(list, -1, 2, 2);
+            NativeMethods.SetItemState(list, -1, LVIS_SELECTED, LVIS_SELECTED);
         }
 
         /// <summary>
@@ -792,7 +938,16 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="list">The listview whose items are to be deselected</param>
         public static void DeselectAllItems(ListView list) {
-            NativeMethods.SetItemState(list, -1, 2, 0);
+            NativeMethods.SetItemState(list, -1, LVIS_SELECTED, 0);
+        }
+
+        /// <summary>
+        /// Deselect a single row
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="index"></param>
+        public static void DeselectOneItem(ListView list, int index) {
+            NativeMethods.SetItemState(list, index, LVIS_SELECTED, 0);
         }
 
         /// <summary>
