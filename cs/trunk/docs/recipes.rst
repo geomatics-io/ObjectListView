@@ -2084,3 +2084,36 @@ a `ParentGetter` delegate. If this don't make much sense to you, don't worry abo
 
 Hierarchical checkboxes don't work with `CheckStateGetters` or `CheckStateSetters`. Just 
 don't use them.
+
+.. _recipe-disabled-rows:
+
+49. Can rows be disabled?
+----------------------------------------------------------------
+
+As of v2.8, all flavours of `ObjectListView` can have disabled rows.
+
+.. image:: images/blog8-allgrey.png
+
+Disabled rows cannot be selected, activated, edited or checked. They can be focused
+(to know why, see this blog entry: :ref:`blog-disabledrows`).
+They are also visually distinct (often grey text with greyscale images).
+
+To disable some model objects, call `DisableObjects()`. To enable them again,
+call `EnableObjects()`. These both have single object versions. To get or set
+the entire collection of disabled models, use the `DisabledObjects` property.
+
+To change the appearance of disabled rows, make a `SimpleRowStyle` and assign it to `DisabledRowStyle`.
+If we were using a dark theme, this style might be more appropriate (except the font, which is just 
+being silly)::
+
+    this.olv.DisabledItemStyle = new SimpleItemStyle();
+    this.olv.DisabledItemStyle.ForeColor = Color.Gray;
+    this.olv.DisabledItemStyle.BackColor = Color.FromArgb(30, 30, 35);
+    this.olv.DisabledItemStyle.Font = new Font("Stencil", 10);
+
+.. image:: images/blog8-funnyformatting.png
+
+Since this is a feature that the underlying control doesn't actually support, 
+it looks best when owner drawn (the above snapshots are both owner drawn). 
+In non-owner drawn, the images and check boxes are drawn normally 
+and look as if they can be used (but they can't).

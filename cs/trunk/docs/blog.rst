@@ -13,6 +13,7 @@ These articles document some of the difficulties that were encountered while wri
 If you are looking for how to actually use an `ObjectListView`, you want to look
 at the :ref:`Cookbook`.
 
+* :ref:`Enabling disabling (20 May 2014)<blog-disabledrows>`
 * :ref:`Creating hierarchical checkboxes (26 February 2014)<blog-hierarchicalcheckboxes>`
 * :ref:`Flickering on virtual lists and the .NET bug that causes it (5 May 2012)<blog-virtuallistflickers>`
 * :ref:`Lifting up the downtrodden ListViewGroup (20 April 2012)<blog-listviewgroups>`
