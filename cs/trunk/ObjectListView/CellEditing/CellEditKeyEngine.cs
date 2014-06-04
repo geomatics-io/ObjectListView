@@ -5,13 +5,16 @@
  * Date: 3-March-2011 10:53 pm
  *
  * Change log:
+ * v2.8
+ * 2014-05-30  JPP  - When a row is disabled, skip over it when looking for another cell to edit
+ * v2.5
  * 2012-04-14  JPP  - Fixed bug where, on a OLV with only a single editable column, tabbing
  *                    to change rows would edit the cell above rather than the cell below
  *                    the cell being edited.
  * 2.5
  * 2011-03-03  JPP  - First version
  * 
- * Copyright (C) 2011-2012 Phillip Piper
+ * Copyright (C) 2011-2014 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -369,8 +372,9 @@ namespace BrightIdeasSoftware {
             }
 
             // There is no adjacent row in the direction we want, so we must be on an edge.
-            CellEditAtEdgeBehaviour atEdgeBehaviour = CellEditAtEdgeBehaviour.Wrap;
-            this.CellEditKeyAtEdgeBehaviourMap.TryGetValue(keyData, out atEdgeBehaviour);
+            CellEditAtEdgeBehaviour atEdgeBehaviour;
+            if (!this.CellEditKeyAtEdgeBehaviourMap.TryGetValue(keyData, out atEdgeBehaviour))
+                atEdgeBehaviour = CellEditAtEdgeBehaviour.Wrap;
             switch (atEdgeBehaviour) {
             case CellEditAtEdgeBehaviour.Ignore:
                 break;
@@ -403,7 +407,8 @@ namespace BrightIdeasSoftware {
         /// </summary>
         /// <param name="keyData"></param>
         /// <param name="behaviour"></param>
-        protected virtual void HandleColumnChange(Keys keyData, CellEditCharacterBehaviour behaviour) {
+        protected virtual void HandleColumnChange(Keys keyData, CellEditCharacterBehaviour behaviour)
+        {
             // If we couldn't finish editing the current cell, don't try to move it
             if (!this.ListView.PossibleFinishCellEditing())
                 return;
@@ -414,32 +419,38 @@ namespace BrightIdeasSoftware {
 
             List<OLVColumn> editableColumns = this.EditableColumnsInDisplayOrder;
             OLVListItem olvi = this.ItemBeingEdited;
-            int displayIndex = Math.Max(0, editableColumns.IndexOf(this.ListView.GetColumn(this.SubItemIndexBeingEdited)));
+            int displayIndex = Math.Max(0,
+                editableColumns.IndexOf(this.ListView.GetColumn(this.SubItemIndexBeingEdited)));
             bool isGoingLeft = behaviour == CellEditCharacterBehaviour.ChangeColumnLeft;
 
             // Are we trying to continue past one of the edges?
             if ((isGoingLeft && displayIndex == 0) ||
-                (!isGoingLeft && displayIndex == editableColumns.Count - 1)) {
+                (!isGoingLeft && displayIndex == editableColumns.Count - 1))
+            {
                 // Yes, so figure out our at edge behaviour
-                CellEditAtEdgeBehaviour atEdgeBehaviour = CellEditAtEdgeBehaviour.Wrap;
-                this.CellEditKeyAtEdgeBehaviourMap.TryGetValue(keyData, out atEdgeBehaviour);
-                switch (atEdgeBehaviour) {
-                case CellEditAtEdgeBehaviour.Ignore:
-                    return;
-                case CellEditAtEdgeBehaviour.EndEdit:
-                    this.HandleEndEdit();
-                    return;
-                case CellEditAtEdgeBehaviour.ChangeRow:
-                case CellEditAtEdgeBehaviour.Wrap:
-                    if (atEdgeBehaviour == CellEditAtEdgeBehaviour.ChangeRow)
-                        olvi = GetAdjacentItem(olvi, isGoingLeft && displayIndex == 0);
-                    if (isGoingLeft)
-                        displayIndex = editableColumns.Count - 1;
-                    else
-                        displayIndex = 0;
-                    break;
+                CellEditAtEdgeBehaviour atEdgeBehaviour;
+                if (!this.CellEditKeyAtEdgeBehaviourMap.TryGetValue(keyData, out atEdgeBehaviour))
+                    atEdgeBehaviour = CellEditAtEdgeBehaviour.Wrap;
+                switch (atEdgeBehaviour)
+                {
+                    case CellEditAtEdgeBehaviour.Ignore:
+                        return;
+                    case CellEditAtEdgeBehaviour.EndEdit:
+                        this.HandleEndEdit();
+                        return;
+                    case CellEditAtEdgeBehaviour.ChangeRow:
+                    case CellEditAtEdgeBehaviour.Wrap:
+                        if (atEdgeBehaviour == CellEditAtEdgeBehaviour.ChangeRow)
+                            olvi = GetAdjacentItem(olvi, isGoingLeft && displayIndex == 0);
+                        if (isGoingLeft)
+                            displayIndex = editableColumns.Count - 1;
+                        else
+                            displayIndex = 0;
+                        break;
                 }
-            } else {
+            }
+            else
+            {
                 if (isGoingLeft)
                     displayIndex -= 1;
                 else
@@ -468,13 +479,17 @@ namespace BrightIdeasSoftware {
         }
 
         /// <summary>
-        /// Gets the adjacent item to the given item in the given direction
+        /// Gets the adjacent item to the given item in the given direction.
+        /// If that item is disabled, continue in that direction until an enabled item is found.
         /// </summary>
         /// <param name="olvi">The row whose neighbour is sought</param>
         /// <param name="up">The direction of the adjacentness</param>
-        /// <returns>An OLVListView adjacent to the given item, or null if there are no more items in that direction.</returns>
+        /// <returns>An OLVListView adjacent to the given item, or null if there are no more enabled items in that direction.</returns>
         protected OLVListItem GetAdjacentItemOrNull(OLVListItem olvi, bool up) {
-            return up ? this.ListView.GetPreviousItem(olvi) : this.ListView.GetNextItem(olvi);
+            OLVListItem item = up ? this.ListView.GetPreviousItem(olvi) : this.ListView.GetNextItem(olvi);
+            while (item != null && !item.Enabled)
+                item = up ? this.ListView.GetPreviousItem(item) : this.ListView.GetNextItem(item);
+            return item;
         }
 
         /// <summary>
