@@ -15,7 +15,7 @@
  * 2009-01-07   JPP  - Made all public and protected methods virtual 
  * 2008-10-03   JPP  - Separated from ObjectListView.cs
  * 
- * Copyright (C) 2006-2012 Phillip Piper
+ * Copyright (C) 2006-2014 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

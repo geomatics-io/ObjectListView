@@ -7,7 +7,7 @@
  * Change log:
  * 2010-09-22   JPP  - Initial version
  *
- * Copyright (C) 2006-2012 Phillip Piper
+ * Copyright (C) 2006-2014 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

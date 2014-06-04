@@ -16,7 +16,7 @@
  *
  * To do:
  *
- * Copyright (C) 2009-2012 Phillip Piper
+ * Copyright (C) 2009-2014 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,6 +66,10 @@ namespace BrightIdeasSoftware.Design
 
         #region Initialize & Dispose
 
+        /// <summary>
+        /// Initializes the designer with the specified component.
+        /// </summary>
+        /// <param name="component">The <see cref="T:System.ComponentModel.IComponent"/> to associate the designer with. This component must always be an instance of, or derive from, <see cref="T:System.Windows.Forms.Control"/>. </param>
         public override void Initialize(IComponent component) {
             // Debug.WriteLine("ObjectListViewDesigner.Initialize");
 
@@ -102,12 +106,20 @@ namespace BrightIdeasSoftware.Design
             RemoveDuplicateDockingActionList();
         }
 
+        /// <summary>
+        /// Initializes a newly created component.
+        /// </summary>
+        /// <param name="defaultValues">A name/value dictionary of default values to apply to properties. May be null if no default values are specified.</param>
         public override void InitializeNewComponent(IDictionary defaultValues) {
             // Debug.WriteLine("ObjectListViewDesigner.InitializeNewComponent");
             base.InitializeNewComponent(defaultValues);
             this.listViewDesigner.InitializeNewComponent(defaultValues);
         }
 
+        /// <summary>
+        /// Releases the unmanaged resources used by the <see cref="T:System.Windows.Forms.Design.ControlDesigner"/> and optionally releases the managed resources.
+        /// </summary>
+        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources. </param>
         protected override void Dispose(bool disposing) {
             // Debug.WriteLine("ObjectListViewDesigner.Dispose");
             if (disposing) {
@@ -150,6 +162,10 @@ namespace BrightIdeasSoftware.Design
 
         #region IDesignerFilter overrides
 
+        /// <summary>
+        /// Adjusts the set of properties the component exposes through a <see cref="T:System.ComponentModel.TypeDescriptor"/>.
+        /// </summary>
+        /// <param name="properties">An <see cref="T:System.Collections.IDictionary"/> containing the properties for the class of the component. </param>
         protected override void PreFilterProperties(IDictionary properties) {
             // Debug.WriteLine("ObjectListViewDesigner.PreFilterProperties");
 
@@ -200,6 +216,10 @@ namespace BrightIdeasSoftware.Design
             }
         }
 
+        /// <summary>
+        /// Allows a designer to add to the set of events that it exposes through a <see cref="T:System.ComponentModel.TypeDescriptor"/>.
+        /// </summary>
+        /// <param name="events">The events for the class of the component. </param>
         protected override void PreFilterEvents(IDictionary events) {
             // Debug.WriteLine("ObjectListViewDesigner.PreFilterEvents");
             base.PreFilterEvents(events);
@@ -240,12 +260,20 @@ namespace BrightIdeasSoftware.Design
             }
         }
 
+        /// <summary>
+        /// Allows a designer to change or remove items from the set of attributes that it exposes through a <see cref="T:System.ComponentModel.TypeDescriptor"/>.
+        /// </summary>
+        /// <param name="attributes">The attributes for the class of the component. </param>
         protected override void PostFilterAttributes(IDictionary attributes) {
             // Debug.WriteLine("ObjectListViewDesigner.PostFilterAttributes");
             this.designerFilter.PostFilterAttributes(attributes);
             base.PostFilterAttributes(attributes);
         }
 
+        /// <summary>
+        /// Allows a designer to change or remove items from the set of events that it exposes through a <see cref="T:System.ComponentModel.TypeDescriptor"/>.
+        /// </summary>
+        /// <param name="events">The events for the class of the component. </param>
         protected override void PostFilterEvents(IDictionary events) {
             // Debug.WriteLine("ObjectListViewDesigner.PostFilterEvents");
             this.designerFilter.PostFilterEvents(events);
@@ -320,10 +348,10 @@ namespace BrightIdeasSoftware.Design
 
         #region Implementation variables
 
-        protected ControlDesigner listViewDesigner;
-        protected IDesignerFilter designerFilter;
-        protected MethodInfo listViewDesignGetHitTest;
-        protected MethodInfo listViewDesignWndProc;
+        private ControlDesigner listViewDesigner;
+        private IDesignerFilter designerFilter;
+        private MethodInfo listViewDesignGetHitTest;
+        private MethodInfo listViewDesignWndProc;
 
         #endregion
 
