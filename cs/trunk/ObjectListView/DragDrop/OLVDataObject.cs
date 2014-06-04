@@ -5,13 +5,15 @@
  * Date: 2011-03-29 3:34PM
  *
  * Change log:
+ * v2.8
+ * 2014-05-02   JPP  - When the listview is completely empty, don't try to set CSV text in the clipboard.
  * v2.6
  * 2012-08-08   JPP  - Changed to use OLVExporter.
  *                   - Added CSV to formats exported to Clipboard
  * v2.4
  * 2011-03-29   JPP  - Initial version
  * 
- * Copyright (C) 2011-2012 Phillip Piper
+ * Copyright (C) 2011-2014 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -118,7 +120,9 @@ namespace BrightIdeasSoftware {
             // but using SetData() does.
             //this.SetText(sbText.ToString(), TextDataFormat.UnicodeText);
             this.SetData(exporter.ExportTo(OLVExporter.ExportFormat.TabSeparated));
-            this.SetText(exporter.ExportTo(OLVExporter.ExportFormat.CSV), TextDataFormat.CommaSeparatedValue);
+            string exportTo = exporter.ExportTo(OLVExporter.ExportFormat.CSV);
+            if (!String.IsNullOrEmpty(exportTo))
+                this.SetText(exportTo, TextDataFormat.CommaSeparatedValue);
             this.SetText(ConvertToHtmlFragment(exporter.ExportTo(OLVExporter.ExportFormat.HTML)), TextDataFormat.Html);
         }
 
