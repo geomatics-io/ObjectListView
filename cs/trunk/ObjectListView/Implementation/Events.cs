@@ -5,6 +5,9 @@
  * Date: 17/10/2008 9:15 PM
  *
  * Change log:
+ * v2.8.0
+ * 2014-05-20   JPP  - Added IsHyperlinkEventArgs.IsHyperlink 
+ * v2.6
  * 2012-04-17   JPP  - Added group state change and group expansion events
  * v2.5
  * 2010-08-08   JPP  - CellEdit validation and finish events now have NewValue property.
@@ -30,7 +33,7 @@
  * 2008-12-01   JPP  - Added secondary sort information to Before/AfterSorting events
  * 2008-10-17   JPP  - Separated from ObjectListView.cs
  * 
- * Copyright (C) 2006-2012 Phillip Piper
+ * Copyright (C) 2006-2014 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1674,11 +1677,23 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Gets the text of the cell 
         /// </summary>
-        public string Text {
+        public string Text
+        {
             get { return this.text; }
             internal set { this.text = value; }
         }
         private string text;
+
+        /// <summary>
+        /// Gets or sets whether or not this cell is a hyperlink.
+        /// Defaults to true for enabled rows and false for disabled rows. 
+        /// </summary>
+        public bool IsHyperlink
+        {
+            get { return this.isHyperlink; }
+            set { this.isHyperlink = value; }
+        }
+        private bool isHyperlink;
         
         /// <summary>
         /// Gets or sets the url that should be invoked when this cell is clicked.
@@ -1920,6 +1935,13 @@ namespace BrightIdeasSoftware
         }
         private OLVGroup oldHotGroup;
 
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>
+        /// A string that represents the current object.
+        /// </returns>
+        /// <filterpriority>2</filterpriority>
         public override string ToString() {
             return string.Format("NewHotCellHitLocation: {0}, HotCellHitLocationEx: {1}, NewHotColumnIndex: {2}, NewHotRowIndex: {3}, HotGroup: {4}", this.newHotCellHitLocation, this.hotCellHitLocationEx, this.newHotColumnIndex, this.newHotRowIndex, this.hotGroup);
         }
