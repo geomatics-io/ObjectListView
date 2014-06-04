@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Bright Ideas Software")]
 [assembly: AssemblyProduct("ObjectListViewDemo")]
-[assembly: AssemblyCopyright("Copyright 2006-2011 All Rights Reserved")]
+[assembly: AssemblyCopyright("Copyright 2006-2014 All Rights Reserved")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
