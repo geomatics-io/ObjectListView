@@ -28,6 +28,6 @@ using System.Runtime.InteropServices;
 // You can specify all values by your own or you can build default build and revision
 // numbers with the '*' character (the default):
 
-[assembly: AssemblyVersion("2.5.0.*")]
-[assembly: AssemblyFileVersionAttribute("2.5.0.0")]
+[assembly: AssemblyVersion("2.8.0.*")]
+[assembly: AssemblyFileVersionAttribute("2.8.0.0")]
 [assembly: System.CLSCompliant(true)]
