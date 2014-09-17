@@ -7,6 +7,29 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
+September 2014 - Version 2.8
+----------------------------
+
+New features
+^^^^^^^^^^^^
+
+* Added the ability to disable rows. :ref:`[More info] <recipe-disabled-rows>` :ref:`[Implementation details] <blog-disabledrows>` 
+* Added checkboxes in column headers.  :ref:`[More info] <recipe-checkbox-in-header>`
+
+Other changes
+^^^^^^^^^^^^^
+
+* Added `CollapsedGroups` property
+* Extended hit test information to include header components (header, divider, checkbox)
+* `CellOver` events are now raised when the mouse moves over the header. Set `TriggerCellOverEventsWhenOverHeader` to `false` to disable this behaviour 
+* `Freeze/Unfreeze`  now use `BeginUpdate()`/`EndUpdate()` to disable Window level drawing while frozen
+* Changed default value of `ObjectListView.HeaderUsesThemes` from `true` to `false`. Too many people were being confused, trying to make something interesting appear in the header and nothing showing up
+* Final attempt to fix the issue with multiple hyperlink events being raised. This involves turning a `NM_CLICK` notification into a `NM_RCLICK`. Thanks to aaron for the initial report and investigation.
+* Fixed issue where virtual lists containing a single row didn't update hyperlinks on `MouseOver`
+* Added sanity check before `BuildGroups()`
+* Fixed some subtle bugs resulting from misuse of `TryGetValue()`
+* Several minor Resharper complaints quiesced.
+
 March 2014 - Version 2.7
 ------------------------
 

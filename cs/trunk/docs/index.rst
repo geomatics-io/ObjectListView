@@ -63,7 +63,7 @@ OK, here's the bullet point feature list:
 * Supports :ref:`image and text overlays <recipe-overlays>` as well as arbitrary :ref:`decorations <recipe-decorations>`.
 * Supports :ref:`hyperlinks <recipe-hyperlink>`.
 * Supports :ref:`hot tracking <recipe-hottracking>` with text font/color changes and with decorations.
-* Supports :ref:`column header formatting <recipe-headerformatting>` including word wrapping and vertical text.
+* Supports :ref:`column header formatting <recipe-headerformatting>` including :ref:`checkboxes <recipe-checkbox-in-header>`, word wrapping and :ref:`vertical text <recipe-column-header-vertical>`.
 * Supports :ref:`groups on virtual lists <recipe-virtualgroups>` (Vista and later only).
 * Supports :ref:`transluscent hot item and selection <recipe-vistascheme>` like Vista even on XP.
 * Supports :ref:`filtering <recipe-filtering>`, including the very common :ref:`iTunes-like text filtering <recipe-text-filtering>`.
@@ -274,7 +274,7 @@ When thinking about using some new code, it's always interesting to hear what ot
 Future directions
 -----------------
 
-v2.8 will also move towards using `IEnumerable` whenever possible.
+v2.9 will also move towards using `IEnumerable` whenever possible.
 `SelectedObjects`, `CheckedObjects`, `AddObjects()`, `InsertObjects()`
 `RefreshObjects()`, `RemoveObjects()`, and `CopyObjectsToClipboard()` will all be changed to use
 `IEnumerable`. This is with a view to using LINQ in future versions.
