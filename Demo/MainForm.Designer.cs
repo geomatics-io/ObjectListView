@@ -37,12 +37,12 @@ namespace ObjectListViewDemo
 		{
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            BrightIdeasSoftware.HeaderStateStyle headerStateStyle4 = new BrightIdeasSoftware.HeaderStateStyle();
-            BrightIdeasSoftware.HeaderStateStyle headerStateStyle5 = new BrightIdeasSoftware.HeaderStateStyle();
-            BrightIdeasSoftware.HeaderStateStyle headerStateStyle6 = new BrightIdeasSoftware.HeaderStateStyle();
-            BrightIdeasSoftware.CellStyle cellStyle4 = new BrightIdeasSoftware.CellStyle();
-            BrightIdeasSoftware.CellStyle cellStyle5 = new BrightIdeasSoftware.CellStyle();
-            BrightIdeasSoftware.CellStyle cellStyle6 = new BrightIdeasSoftware.CellStyle();
+            BrightIdeasSoftware.HeaderStateStyle headerStateStyle1 = new BrightIdeasSoftware.HeaderStateStyle();
+            BrightIdeasSoftware.HeaderStateStyle headerStateStyle2 = new BrightIdeasSoftware.HeaderStateStyle();
+            BrightIdeasSoftware.HeaderStateStyle headerStateStyle3 = new BrightIdeasSoftware.HeaderStateStyle();
+            BrightIdeasSoftware.CellStyle cellStyle1 = new BrightIdeasSoftware.CellStyle();
+            BrightIdeasSoftware.CellStyle cellStyle2 = new BrightIdeasSoftware.CellStyle();
+            BrightIdeasSoftware.CellStyle cellStyle3 = new BrightIdeasSoftware.CellStyle();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.command1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.command2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -756,7 +756,6 @@ namespace ObjectListViewDemo
             this.olvSimple.ContextMenuStrip = this.contextMenuStrip1;
             this.olvSimple.Cursor = System.Windows.Forms.Cursors.Default;
             this.olvSimple.FullRowSelect = true;
-            this.olvSimple.HeaderUsesThemes = false;
             this.olvSimple.HeaderWordWrap = true;
             this.olvSimple.HideSelection = false;
             this.olvSimple.HotItemStyle = this.hotItemStyle1;
@@ -801,8 +800,7 @@ namespace ObjectListViewDemo
             // columnHeader11
             // 
             this.columnHeader11.AspectName = "Name";
-            this.columnHeader11.CellPadding = null;
-            this.columnHeader11.HeaderForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
+            this.columnHeader11.HeaderCheckBox = true;
             this.columnHeader11.MaximumWidth = 200;
             this.columnHeader11.MinimumWidth = 100;
             this.columnHeader11.Text = "Person";
@@ -814,7 +812,6 @@ namespace ObjectListViewDemo
             // columnHeader12
             // 
             this.columnHeader12.AspectName = "Occupation";
-            this.columnHeader12.CellPadding = null;
             this.columnHeader12.Hyperlink = true;
             this.columnHeader12.MaximumWidth = 180;
             this.columnHeader12.MinimumWidth = 50;
@@ -824,7 +821,6 @@ namespace ObjectListViewDemo
             // olvSimpleCookingColumn
             // 
             this.olvSimpleCookingColumn.AspectName = "CulinaryRating";
-            this.olvSimpleCookingColumn.CellPadding = null;
             this.olvSimpleCookingColumn.HeaderForeColor = System.Drawing.Color.Green;
             this.olvSimpleCookingColumn.Text = "Cooking Skill";
             this.olvSimpleCookingColumn.Width = 74;
@@ -832,7 +828,6 @@ namespace ObjectListViewDemo
             // columnHeader14
             // 
             this.columnHeader14.AspectName = "YearOfBirth";
-            this.columnHeader14.CellPadding = null;
             this.columnHeader14.HeaderForeColor = System.Drawing.Color.Black;
             this.columnHeader14.MaximumWidth = 81;
             this.columnHeader14.MinimumWidth = 81;
@@ -843,7 +838,6 @@ namespace ObjectListViewDemo
             // 
             this.columnHeader15.AspectName = "BirthDate";
             this.columnHeader15.AspectToStringFormat = "{0:d}";
-            this.columnHeader15.CellPadding = null;
             this.columnHeader15.Text = "Birthday";
             this.columnHeader15.Width = 121;
             // 
@@ -851,16 +845,14 @@ namespace ObjectListViewDemo
             // 
             this.columnHeader16.AspectName = "GetRate";
             this.columnHeader16.AspectToStringFormat = "{0:C}";
-            this.columnHeader16.CellPadding = null;
             this.columnHeader16.Text = "Hourly Rate";
             this.columnHeader16.Width = 93;
             // 
             // olvColumn34
             // 
             this.olvColumn34.AspectName = "Comments";
-            this.olvColumn34.CellPadding = null;
             this.olvColumn34.FillsFreeSpace = true;
-            this.olvColumn34.HeaderFont = new System.Drawing.Font("Tempus Sans ITC", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.olvColumn34.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.olvColumn34.HeaderForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
             this.olvColumn34.IsTileViewColumn = true;
             this.olvColumn34.MinimumWidth = 30;
@@ -1124,7 +1116,6 @@ namespace ObjectListViewDemo
             this.olvComplex.GroupImageList = this.groupImageList;
             this.olvComplex.GroupWithItemCountFormat = "{0} ({1} people)";
             this.olvComplex.GroupWithItemCountSingularFormat = "{0} ({1} person)";
-            this.olvComplex.HeaderUsesThemes = false;
             this.olvComplex.HeaderWordWrap = true;
             this.olvComplex.HideSelection = false;
             this.olvComplex.LargeImageList = this.imageList2;
@@ -1177,9 +1168,8 @@ namespace ObjectListViewDemo
             // personColumn
             // 
             this.personColumn.AspectName = "Name";
-            this.personColumn.CellPadding = null;
-            this.personColumn.HeaderImageKey = "(none)";
-            this.personColumn.ImageAspectName = "";
+            this.personColumn.HeaderCheckBox = true;
+            this.personColumn.HeaderCheckState = System.Windows.Forms.CheckState.Checked;
             this.personColumn.Text = "Person";
             this.personColumn.ToolTipText = "Tooltip for Person column. This was configurated in the IDE. (Hold down Control t" +
     "o see a different tooltip)";
@@ -1189,10 +1179,8 @@ namespace ObjectListViewDemo
             // occupationColumn
             // 
             this.occupationColumn.AspectName = "Occupation";
-            this.occupationColumn.CellPadding = null;
             this.occupationColumn.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.occupationColumn.Hyperlink = true;
-            this.occupationColumn.ImageAspectName = "";
             this.occupationColumn.IsTileViewColumn = true;
             this.occupationColumn.Text = "Occupation";
             this.occupationColumn.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -1201,7 +1189,6 @@ namespace ObjectListViewDemo
             // columnCookingSkill
             // 
             this.columnCookingSkill.AspectName = "CulinaryRating";
-            this.columnCookingSkill.CellPadding = null;
             this.columnCookingSkill.GroupWithItemCountFormat = "{0} ({1} candidates)";
             this.columnCookingSkill.GroupWithItemCountSingularFormat = "{0} (only {1} candidate)";
             this.columnCookingSkill.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -1220,7 +1207,6 @@ namespace ObjectListViewDemo
             // yearOfBirthColumn
             // 
             this.yearOfBirthColumn.AspectName = "YearOfBirth";
-            this.yearOfBirthColumn.CellPadding = null;
             this.yearOfBirthColumn.DisplayIndex = 3;
             this.yearOfBirthColumn.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.yearOfBirthColumn.IsVisible = false;
@@ -1232,7 +1218,6 @@ namespace ObjectListViewDemo
             // 
             this.birthdayColumn.AspectName = "BirthDate";
             this.birthdayColumn.AspectToStringFormat = "{0:D}";
-            this.birthdayColumn.CellPadding = null;
             this.birthdayColumn.GroupWithItemCountFormat = "{0} has {1} birthdays";
             this.birthdayColumn.GroupWithItemCountSingularFormat = "{0} has only {1} birthday";
             this.birthdayColumn.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -1245,7 +1230,6 @@ namespace ObjectListViewDemo
             // 
             this.hourlyRateColumn.AspectName = "GetRate";
             this.hourlyRateColumn.AspectToStringFormat = "{0:C}";
-            this.hourlyRateColumn.CellPadding = null;
             this.hourlyRateColumn.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.hourlyRateColumn.IsTileViewColumn = true;
             this.hourlyRateColumn.Text = "Hourly Rate";
@@ -1254,7 +1238,6 @@ namespace ObjectListViewDemo
             // 
             // moneyImageColumn
             // 
-            this.moneyImageColumn.CellPadding = null;
             this.moneyImageColumn.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.moneyImageColumn.IsEditable = false;
             this.moneyImageColumn.Text = "Salary";
@@ -1263,7 +1246,6 @@ namespace ObjectListViewDemo
             // 
             // daysSinceBirthColumn
             // 
-            this.daysSinceBirthColumn.CellPadding = null;
             this.daysSinceBirthColumn.IsEditable = false;
             this.daysSinceBirthColumn.Text = "Days Since Birth";
             this.daysSinceBirthColumn.Width = 81;
@@ -1271,8 +1253,8 @@ namespace ObjectListViewDemo
             // olvJokeColumn
             // 
             this.olvJokeColumn.AspectName = "CanTellJokes";
-            this.olvJokeColumn.CellPadding = null;
             this.olvJokeColumn.CheckBoxes = true;
+            this.olvJokeColumn.HeaderCheckBox = true;
             this.olvJokeColumn.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvJokeColumn.IsHeaderVertical = true;
             this.olvJokeColumn.Text = "Jokes?";
@@ -1283,9 +1265,7 @@ namespace ObjectListViewDemo
             // olvMarriedColumn
             // 
             this.olvMarriedColumn.AspectName = "MaritalStatus";
-            this.olvMarriedColumn.CellPadding = null;
             this.olvMarriedColumn.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.olvMarriedColumn.ImageAspectName = "";
             this.olvMarriedColumn.IsTileViewColumn = true;
             this.olvMarriedColumn.Text = "Married?";
             this.olvMarriedColumn.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -1506,7 +1486,6 @@ namespace ObjectListViewDemo
             this.olvData.GroupWithItemCountFormat = "{0} ({1} people)";
             this.olvData.GroupWithItemCountSingularFormat = "{0} (1 person)";
             this.olvData.HeaderFormatStyle = this.headerFormatStyleData;
-            this.olvData.HeaderUsesThemes = false;
             this.olvData.HideSelection = false;
             this.olvData.HighlightBackgroundColor = System.Drawing.Color.Crimson;
             this.olvData.HighlightForegroundColor = System.Drawing.Color.DarkGreen;
@@ -1536,7 +1515,6 @@ namespace ObjectListViewDemo
             // olvColumn1
             // 
             this.olvColumn1.AspectName = "Name";
-            this.olvColumn1.CellPadding = null;
             this.olvColumn1.IsTileViewColumn = true;
             this.olvColumn1.Renderer = this.highlightTextRenderer1;
             this.olvColumn1.Text = "Name";
@@ -1551,7 +1529,6 @@ namespace ObjectListViewDemo
             // olvColumn2
             // 
             this.olvColumn2.AspectName = "Company";
-            this.olvColumn2.CellPadding = null;
             this.olvColumn2.IsTileViewColumn = true;
             this.olvColumn2.Text = "Company";
             this.olvColumn2.Width = 73;
@@ -1559,7 +1536,6 @@ namespace ObjectListViewDemo
             // olvColumn3
             // 
             this.olvColumn3.AspectName = "Occupation";
-            this.olvColumn3.CellPadding = null;
             this.olvColumn3.IsTileViewColumn = true;
             this.olvColumn3.Text = "Occupation";
             this.olvColumn3.Width = 94;
@@ -1568,7 +1544,6 @@ namespace ObjectListViewDemo
             // 
             this.salaryColumn.AspectName = "Salary";
             this.salaryColumn.AspectToStringFormat = "{0:C}";
-            this.salaryColumn.CellPadding = null;
             this.salaryColumn.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.salaryColumn.Renderer = this.salaryRenderer;
             this.salaryColumn.Text = "Salary";
@@ -1584,7 +1559,6 @@ namespace ObjectListViewDemo
             // heightColumn
             // 
             this.heightColumn.AspectName = "Height";
-            this.heightColumn.CellPadding = null;
             this.heightColumn.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.heightColumn.Renderer = this.heightRenderer;
             this.heightColumn.Text = "Height (m)";
@@ -1600,7 +1574,6 @@ namespace ObjectListViewDemo
             // olvColumn42
             // 
             this.olvColumn42.AspectName = "TellsJokes";
-            this.olvColumn42.CellPadding = null;
             this.olvColumn42.CheckBoxes = true;
             this.olvColumn42.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn42.Text = "Joker?";
@@ -1610,7 +1583,6 @@ namespace ObjectListViewDemo
             // olvColumnGif
             // 
             this.olvColumnGif.AspectName = "GifFileName";
-            this.olvColumnGif.CellPadding = null;
             this.olvColumnGif.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumnGif.Renderer = this.imageRenderer1;
             this.olvColumnGif.Text = "Animated GIF";
@@ -1619,23 +1591,22 @@ namespace ObjectListViewDemo
             // 
             // olvColumnFiller
             // 
-            this.olvColumnFiller.CellPadding = null;
             this.olvColumnFiller.FillsFreeSpace = true;
             this.olvColumnFiller.Text = "";
             // 
             // headerFormatStyleData
             // 
-            headerStateStyle4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
-            headerStateStyle4.ForeColor = System.Drawing.Color.White;
-            this.headerFormatStyleData.Hot = headerStateStyle4;
-            headerStateStyle5.BackColor = System.Drawing.Color.Black;
-            headerStateStyle5.ForeColor = System.Drawing.Color.Gainsboro;
-            this.headerFormatStyleData.Normal = headerStateStyle5;
-            headerStateStyle6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            headerStateStyle6.ForeColor = System.Drawing.Color.White;
-            headerStateStyle6.FrameColor = System.Drawing.Color.WhiteSmoke;
-            headerStateStyle6.FrameWidth = 2F;
-            this.headerFormatStyleData.Pressed = headerStateStyle6;
+            headerStateStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            headerStateStyle1.ForeColor = System.Drawing.Color.White;
+            this.headerFormatStyleData.Hot = headerStateStyle1;
+            headerStateStyle2.BackColor = System.Drawing.Color.Black;
+            headerStateStyle2.ForeColor = System.Drawing.Color.Gainsboro;
+            this.headerFormatStyleData.Normal = headerStateStyle2;
+            headerStateStyle3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            headerStateStyle3.ForeColor = System.Drawing.Color.White;
+            headerStateStyle3.FrameColor = System.Drawing.Color.WhiteSmoke;
+            headerStateStyle3.FrameWidth = 2F;
+            this.headerFormatStyleData.Pressed = headerStateStyle3;
             // 
             // checkBox7
             // 
@@ -1908,7 +1879,6 @@ namespace ObjectListViewDemo
             // olvColumn4
             // 
             this.olvColumn4.AspectName = "Name";
-            this.olvColumn4.CellPadding = null;
             this.olvColumn4.Text = "Person";
             this.olvColumn4.UseInitialLetterForGroup = true;
             this.olvColumn4.Width = 130;
@@ -1916,21 +1886,18 @@ namespace ObjectListViewDemo
             // olvColumn12
             // 
             this.olvColumn12.AspectName = "serialNumber";
-            this.olvColumn12.CellPadding = null;
             this.olvColumn12.IsEditable = false;
             this.olvColumn12.Text = "Serial #";
             // 
             // olvColumn5
             // 
             this.olvColumn5.AspectName = "Occupation";
-            this.olvColumn5.CellPadding = null;
             this.olvColumn5.Text = "Occupation";
             this.olvColumn5.Width = 100;
             // 
             // olvColumn7
             // 
             this.olvColumn7.AspectName = "CulinaryRating";
-            this.olvColumn7.CellPadding = null;
             this.olvColumn7.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn7.Text = "Cooking skill";
             this.olvColumn7.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -1939,7 +1906,6 @@ namespace ObjectListViewDemo
             // olvColumn8
             // 
             this.olvColumn8.AspectName = "YearOfBirth";
-            this.olvColumn8.CellPadding = null;
             this.olvColumn8.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn8.Text = "Year Of Birth";
             this.olvColumn8.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -1949,7 +1915,6 @@ namespace ObjectListViewDemo
             // 
             this.olvColumn9.AspectName = "BirthDate";
             this.olvColumn9.AspectToStringFormat = "{0:D}";
-            this.olvColumn9.CellPadding = null;
             this.olvColumn9.Text = "Birthday";
             this.olvColumn9.Width = 120;
             // 
@@ -1957,7 +1922,6 @@ namespace ObjectListViewDemo
             // 
             this.olvColumn10.AspectName = "GetRate";
             this.olvColumn10.AspectToStringFormat = "{0:C}";
-            this.olvColumn10.CellPadding = null;
             this.olvColumn10.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn10.Text = "Hourly Rate";
             this.olvColumn10.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -2192,7 +2156,6 @@ namespace ObjectListViewDemo
             this.olvFiles.Cursor = System.Windows.Forms.Cursors.Default;
             this.olvFiles.EmptyListMsg = "This folder is completely empty!";
             this.olvFiles.EmptyListMsgFont = new System.Drawing.Font("Comic Sans MS", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.olvFiles.HeaderUsesThemes = false;
             this.olvFiles.HideSelection = false;
             this.olvFiles.LargeImageList = this.imageList2;
             this.olvFiles.Location = new System.Drawing.Point(6, 83);
@@ -2218,7 +2181,6 @@ namespace ObjectListViewDemo
             // olvColumnFileName
             // 
             this.olvColumnFileName.AspectName = "Name";
-            this.olvColumnFileName.CellPadding = null;
             this.olvColumnFileName.IsTileViewColumn = true;
             this.olvColumnFileName.Text = "Name";
             this.olvColumnFileName.UseInitialLetterForGroup = true;
@@ -2227,7 +2189,6 @@ namespace ObjectListViewDemo
             // olvColumnFileCreated
             // 
             this.olvColumnFileCreated.AspectName = "CreationTime";
-            this.olvColumnFileCreated.CellPadding = null;
             this.olvColumnFileCreated.DisplayIndex = 4;
             this.olvColumnFileCreated.Text = "Created";
             this.olvColumnFileCreated.Width = 131;
@@ -2235,7 +2196,6 @@ namespace ObjectListViewDemo
             // olvColumnFileModified
             // 
             this.olvColumnFileModified.AspectName = "LastWriteTime";
-            this.olvColumnFileModified.CellPadding = null;
             this.olvColumnFileModified.DisplayIndex = 1;
             this.olvColumnFileModified.IsTileViewColumn = true;
             this.olvColumnFileModified.Text = "Modified";
@@ -2244,7 +2204,6 @@ namespace ObjectListViewDemo
             // olvColumnSize
             // 
             this.olvColumnSize.AspectName = "Extension";
-            this.olvColumnSize.CellPadding = null;
             this.olvColumnSize.DisplayIndex = 2;
             this.olvColumnSize.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumnSize.Text = "Size";
@@ -2253,7 +2212,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumnFileType
             // 
-            this.olvColumnFileType.CellPadding = null;
             this.olvColumnFileType.DisplayIndex = 3;
             this.olvColumnFileType.IsTileViewColumn = true;
             this.olvColumnFileType.Text = "File Type";
@@ -2261,7 +2219,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumnAttributes
             // 
-            this.olvColumnAttributes.CellPadding = null;
             this.olvColumnAttributes.FillsFreeSpace = true;
             this.olvColumnAttributes.IsEditable = false;
             this.olvColumnAttributes.MinimumWidth = 20;
@@ -2270,7 +2227,6 @@ namespace ObjectListViewDemo
             // treeColumnFileExtension
             // 
             this.treeColumnFileExtension.AspectName = "Extension";
-            this.treeColumnFileExtension.CellPadding = null;
             this.treeColumnFileExtension.IsVisible = false;
             this.treeColumnFileExtension.Text = "Extension";
             // 
@@ -2949,7 +2905,6 @@ namespace ObjectListViewDemo
             this.olvFast.FullRowSelect = true;
             this.olvFast.GridLines = true;
             this.olvFast.GroupImageList = this.groupImageList;
-            this.olvFast.HeaderUsesThemes = false;
             this.olvFast.HideSelection = false;
             this.olvFast.LargeImageList = this.imageList2;
             this.olvFast.Location = new System.Drawing.Point(6, 57);
@@ -2986,7 +2941,6 @@ namespace ObjectListViewDemo
             // olvColumn18
             // 
             this.olvColumn18.AspectName = "Name";
-            this.olvColumn18.CellPadding = null;
             this.olvColumn18.Text = "Person";
             this.olvColumn18.UseInitialLetterForGroup = true;
             this.olvColumn18.Width = 114;
@@ -2994,7 +2948,6 @@ namespace ObjectListViewDemo
             // olvColumn19
             // 
             this.olvColumn19.AspectName = "Occupation";
-            this.olvColumn19.CellPadding = null;
             this.olvColumn19.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn19.Hyperlink = true;
             this.olvColumn19.IsTileViewColumn = true;
@@ -3005,7 +2958,6 @@ namespace ObjectListViewDemo
             // olvColumn26
             // 
             this.olvColumn26.AspectName = "CulinaryRating";
-            this.olvColumn26.CellPadding = null;
             this.olvColumn26.GroupWithItemCountFormat = "{0} ({1} candidates)";
             this.olvColumn26.GroupWithItemCountSingularFormat = "{0} (only {1} candidate)";
             this.olvColumn26.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -3016,7 +2968,6 @@ namespace ObjectListViewDemo
             // olvColumn27
             // 
             this.olvColumn27.AspectName = "YearOfBirth";
-            this.olvColumn27.CellPadding = null;
             this.olvColumn27.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn27.Text = "Year Of Birth";
             this.olvColumn27.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -3026,7 +2977,6 @@ namespace ObjectListViewDemo
             // 
             this.olvColumn28.AspectName = "BirthDate";
             this.olvColumn28.AspectToStringFormat = "{0:D}";
-            this.olvColumn28.CellPadding = null;
             this.olvColumn28.FillsFreeSpace = true;
             this.olvColumn28.GroupWithItemCountFormat = "{0} has {1} birthdays";
             this.olvColumn28.GroupWithItemCountSingularFormat = "{0} has only {1} birthday";
@@ -3040,7 +2990,6 @@ namespace ObjectListViewDemo
             // 
             this.olvColumn29.AspectName = "GetRate";
             this.olvColumn29.AspectToStringFormat = "{0:C}";
-            this.olvColumn29.CellPadding = null;
             this.olvColumn29.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn29.IsTileViewColumn = true;
             this.olvColumn29.Text = "Hourly Rate";
@@ -3049,7 +2998,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumn31
             // 
-            this.olvColumn31.CellPadding = null;
             this.olvColumn31.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn31.IsEditable = false;
             this.olvColumn31.Text = "Salary";
@@ -3058,7 +3006,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumn32
             // 
-            this.olvColumn32.CellPadding = null;
             this.olvColumn32.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn32.IsEditable = false;
             this.olvColumn32.Text = "Days Since Birth";
@@ -3068,7 +3015,6 @@ namespace ObjectListViewDemo
             // olvColumn33
             // 
             this.olvColumn33.AspectName = "CanTellJokes";
-            this.olvColumn33.CellPadding = null;
             this.olvColumn33.CheckBoxes = true;
             this.olvColumn33.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn33.Text = "Tells Jokes?";
@@ -3218,7 +3164,6 @@ namespace ObjectListViewDemo
             this.treeListView.Cursor = System.Windows.Forms.Cursors.Default;
             this.treeListView.EmptyListMsg = "This folder is completely empty!";
             this.treeListView.EmptyListMsgFont = new System.Drawing.Font("Comic Sans MS", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.treeListView.HeaderUsesThemes = false;
             this.treeListView.HideSelection = false;
             this.treeListView.HotItemStyle = this.hotItemStyle3;
             this.treeListView.IsSimpleDragSource = true;
@@ -3227,7 +3172,6 @@ namespace ObjectListViewDemo
             this.treeListView.Name = "treeListView";
             this.treeListView.OverlayImage.Image = global::ObjectListViewDemo.Resource1.limeleaf;
             this.treeListView.OwnerDraw = true;
-            this.treeListView.ParentGetter = null;
             this.treeListView.SelectColumnsOnRightClickBehaviour = BrightIdeasSoftware.ObjectListView.ColumnSelectBehaviour.Submenu;
             this.treeListView.ShowCommandMenuOnRightClick = true;
             this.treeListView.ShowGroups = false;
@@ -3236,7 +3180,6 @@ namespace ObjectListViewDemo
             this.treeListView.Size = new System.Drawing.Size(799, 413);
             this.treeListView.SmallImageList = this.imageList1;
             this.treeListView.TabIndex = 13;
-            this.treeListView.TreeFactory = null;
             this.treeListView.UseCompatibleStateImageBehavior = false;
             this.treeListView.UseFilterIndicator = true;
             this.treeListView.UseFiltering = true;
@@ -3253,7 +3196,6 @@ namespace ObjectListViewDemo
             // treeColumnName
             // 
             this.treeColumnName.AspectName = "Name";
-            this.treeColumnName.CellPadding = null;
             this.treeColumnName.IsTileViewColumn = true;
             this.treeColumnName.Text = "Name";
             this.treeColumnName.UseInitialLetterForGroup = true;
@@ -3263,7 +3205,6 @@ namespace ObjectListViewDemo
             // treeColumnCreated
             // 
             this.treeColumnCreated.AspectName = "CreationTime";
-            this.treeColumnCreated.CellPadding = null;
             this.treeColumnCreated.DisplayIndex = 4;
             this.treeColumnCreated.Text = "Created";
             this.treeColumnCreated.Width = 131;
@@ -3271,7 +3212,6 @@ namespace ObjectListViewDemo
             // treeColumnModified
             // 
             this.treeColumnModified.AspectName = "LastWriteTime";
-            this.treeColumnModified.CellPadding = null;
             this.treeColumnModified.DisplayIndex = 1;
             this.treeColumnModified.IsTileViewColumn = true;
             this.treeColumnModified.Text = "Modified";
@@ -3280,7 +3220,6 @@ namespace ObjectListViewDemo
             // treeColumnSize
             // 
             this.treeColumnSize.AspectName = "Extension";
-            this.treeColumnSize.CellPadding = null;
             this.treeColumnSize.DisplayIndex = 2;
             this.treeColumnSize.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.treeColumnSize.Text = "Size";
@@ -3289,7 +3228,6 @@ namespace ObjectListViewDemo
             // 
             // treeColumnFileType
             // 
-            this.treeColumnFileType.CellPadding = null;
             this.treeColumnFileType.DisplayIndex = 3;
             this.treeColumnFileType.IsTileViewColumn = true;
             this.treeColumnFileType.Text = "File Type";
@@ -3297,7 +3235,6 @@ namespace ObjectListViewDemo
             // 
             // treeColumnAttributes
             // 
-            this.treeColumnAttributes.CellPadding = null;
             this.treeColumnAttributes.FillsFreeSpace = true;
             this.treeColumnAttributes.IsEditable = false;
             this.treeColumnAttributes.MinimumWidth = 20;
@@ -3362,12 +3299,10 @@ namespace ObjectListViewDemo
             this.olvDataTree.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.olvColumn41});
             this.olvDataTree.DataSource = null;
-            this.olvDataTree.HeaderUsesThemes = false;
             this.olvDataTree.KeyAspectName = "Id";
             this.olvDataTree.Location = new System.Drawing.Point(6, 19);
             this.olvDataTree.Name = "olvDataTree";
             this.olvDataTree.OwnerDraw = true;
-            this.olvDataTree.ParentGetter = null;
             this.olvDataTree.ParentKeyAspectName = "ParentId";
             this.olvDataTree.RootKeyValueString = "";
             this.olvDataTree.ShowGroups = false;
@@ -3375,7 +3310,6 @@ namespace ObjectListViewDemo
             this.olvDataTree.Size = new System.Drawing.Size(670, 243);
             this.olvDataTree.SmallImageList = this.imageList1;
             this.olvDataTree.TabIndex = 0;
-            this.olvDataTree.TreeFactory = null;
             this.olvDataTree.UseCompatibleStateImageBehavior = false;
             this.olvDataTree.UseFilterIndicator = true;
             this.olvDataTree.UseFiltering = true;
@@ -3385,7 +3319,6 @@ namespace ObjectListViewDemo
             // olvColumn41
             // 
             this.olvColumn41.AspectName = "Name";
-            this.olvColumn41.CellPadding = null;
             this.olvColumn41.Text = "Person";
             this.olvColumn41.Width = 154;
             // 
@@ -3583,7 +3516,6 @@ namespace ObjectListViewDemo
             // olvColumn43
             // 
             this.olvColumn43.AspectName = "Name";
-            this.olvColumn43.CellPadding = null;
             this.olvColumn43.Text = "Person";
             this.olvColumn43.UseInitialLetterForGroup = true;
             this.olvColumn43.Width = 114;
@@ -3591,7 +3523,6 @@ namespace ObjectListViewDemo
             // olvColumn44
             // 
             this.olvColumn44.AspectName = "Occupation";
-            this.olvColumn44.CellPadding = null;
             this.olvColumn44.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn44.IsTileViewColumn = true;
             this.olvColumn44.Text = "Occupation";
@@ -3601,7 +3532,6 @@ namespace ObjectListViewDemo
             // olvColumn45
             // 
             this.olvColumn45.AspectName = "CulinaryRating";
-            this.olvColumn45.CellPadding = null;
             this.olvColumn45.GroupWithItemCountFormat = "{0} ({1} candidates)";
             this.olvColumn45.GroupWithItemCountSingularFormat = "{0} (only {1} candidate)";
             this.olvColumn45.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -3614,7 +3544,6 @@ namespace ObjectListViewDemo
             // 
             this.olvColumn46.AspectName = "BirthDate";
             this.olvColumn46.AspectToStringFormat = "{0:D}";
-            this.olvColumn46.CellPadding = null;
             this.olvColumn46.GroupWithItemCountFormat = "{0} has {1} birthdays";
             this.olvColumn46.GroupWithItemCountSingularFormat = "{0} has only {1} birthday";
             this.olvColumn46.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -3627,7 +3556,6 @@ namespace ObjectListViewDemo
             // 
             this.olvColumn47.AspectName = "GetRate";
             this.olvColumn47.AspectToStringFormat = "{0:C}";
-            this.olvColumn47.CellPadding = null;
             this.olvColumn47.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn47.IsTileViewColumn = true;
             this.olvColumn47.Text = "Hourly Rate";
@@ -3636,7 +3564,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumn48
             // 
-            this.olvColumn48.CellPadding = null;
             this.olvColumn48.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn48.IsEditable = false;
             this.olvColumn48.Text = "Salary";
@@ -3645,7 +3572,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumn49
             // 
-            this.olvColumn49.CellPadding = null;
             this.olvColumn49.IsEditable = false;
             this.olvColumn49.Text = "Days Since Birth";
             this.olvColumn49.Width = 81;
@@ -3653,7 +3579,6 @@ namespace ObjectListViewDemo
             // olvColumn50
             // 
             this.olvColumn50.AspectName = "CanTellJokes";
-            this.olvColumn50.CellPadding = null;
             this.olvColumn50.CheckBoxes = true;
             this.olvColumn50.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn50.Text = "Tells Jokes?";
@@ -3663,7 +3588,6 @@ namespace ObjectListViewDemo
             // olvColumn51
             // 
             this.olvColumn51.AspectName = "MaritalStatus";
-            this.olvColumn51.CellPadding = null;
             this.olvColumn51.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn51.Text = "Married?";
             this.olvColumn51.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -3728,7 +3652,6 @@ namespace ObjectListViewDemo
             // olvColumn52
             // 
             this.olvColumn52.AspectName = "Name";
-            this.olvColumn52.CellPadding = null;
             this.olvColumn52.Text = "Person";
             this.olvColumn52.UseInitialLetterForGroup = true;
             this.olvColumn52.Width = 114;
@@ -3736,7 +3659,6 @@ namespace ObjectListViewDemo
             // olvColumn53
             // 
             this.olvColumn53.AspectName = "Occupation";
-            this.olvColumn53.CellPadding = null;
             this.olvColumn53.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn53.IsTileViewColumn = true;
             this.olvColumn53.Text = "Occupation";
@@ -3746,7 +3668,6 @@ namespace ObjectListViewDemo
             // olvColumn54
             // 
             this.olvColumn54.AspectName = "CulinaryRating";
-            this.olvColumn54.CellPadding = null;
             this.olvColumn54.GroupWithItemCountFormat = "{0} ({1} candidates)";
             this.olvColumn54.GroupWithItemCountSingularFormat = "{0} (only {1} candidate)";
             this.olvColumn54.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -3759,7 +3680,6 @@ namespace ObjectListViewDemo
             // 
             this.olvColumn55.AspectName = "BirthDate";
             this.olvColumn55.AspectToStringFormat = "{0:D}";
-            this.olvColumn55.CellPadding = null;
             this.olvColumn55.GroupWithItemCountFormat = "{0} has {1} birthdays";
             this.olvColumn55.GroupWithItemCountSingularFormat = "{0} has only {1} birthday";
             this.olvColumn55.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -3772,7 +3692,6 @@ namespace ObjectListViewDemo
             // 
             this.olvColumn56.AspectName = "GetRate";
             this.olvColumn56.AspectToStringFormat = "{0:C}";
-            this.olvColumn56.CellPadding = null;
             this.olvColumn56.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn56.IsTileViewColumn = true;
             this.olvColumn56.Text = "Hourly Rate";
@@ -3781,7 +3700,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumn57
             // 
-            this.olvColumn57.CellPadding = null;
             this.olvColumn57.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn57.IsEditable = false;
             this.olvColumn57.Text = "Salary";
@@ -3790,7 +3708,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumn58
             // 
-            this.olvColumn58.CellPadding = null;
             this.olvColumn58.IsEditable = false;
             this.olvColumn58.Text = "Days Since Birth";
             this.olvColumn58.Width = 81;
@@ -3798,7 +3715,6 @@ namespace ObjectListViewDemo
             // olvColumn59
             // 
             this.olvColumn59.AspectName = "CanTellJokes";
-            this.olvColumn59.CellPadding = null;
             this.olvColumn59.CheckBoxes = true;
             this.olvColumn59.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn59.Text = "Tells Jokes?";
@@ -3808,7 +3724,6 @@ namespace ObjectListViewDemo
             // olvColumn60
             // 
             this.olvColumn60.AspectName = "MaritalStatus";
-            this.olvColumn60.CellPadding = null;
             this.olvColumn60.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn60.Text = "Married?";
             this.olvColumn60.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -4089,16 +4004,16 @@ namespace ObjectListViewDemo
             // 
             // hyperlinkStyle1
             // 
-            cellStyle4.Font = null;
-            cellStyle4.ForeColor = System.Drawing.Color.Blue;
-            this.hyperlinkStyle1.Normal = cellStyle4;
-            cellStyle5.Font = null;
-            cellStyle5.FontStyle = System.Drawing.FontStyle.Underline;
-            this.hyperlinkStyle1.Over = cellStyle5;
+            cellStyle1.Font = null;
+            cellStyle1.ForeColor = System.Drawing.Color.Blue;
+            this.hyperlinkStyle1.Normal = cellStyle1;
+            cellStyle2.Font = null;
+            cellStyle2.FontStyle = System.Drawing.FontStyle.Underline;
+            this.hyperlinkStyle1.Over = cellStyle2;
             this.hyperlinkStyle1.OverCursor = System.Windows.Forms.Cursors.Hand;
-            cellStyle6.Font = null;
-            cellStyle6.ForeColor = System.Drawing.Color.Purple;
-            this.hyperlinkStyle1.Visited = cellStyle6;
+            cellStyle3.Font = null;
+            cellStyle3.ForeColor = System.Drawing.Color.Purple;
+            this.hyperlinkStyle1.Visited = cellStyle3;
             // 
             // textWrappingRenderer
             // 
@@ -4147,7 +4062,6 @@ namespace ObjectListViewDemo
             // olvColumn35
             // 
             this.olvColumn35.AspectName = "Name";
-            this.olvColumn35.CellPadding = null;
             this.olvColumn35.IsTileViewColumn = true;
             this.olvColumn35.Text = "Name";
             this.olvColumn35.UseInitialLetterForGroup = true;
@@ -4156,7 +4070,6 @@ namespace ObjectListViewDemo
             // olvColumn36
             // 
             this.olvColumn36.AspectName = "CreationTime";
-            this.olvColumn36.CellPadding = null;
             this.olvColumn36.DisplayIndex = 4;
             this.olvColumn36.Text = "Created";
             this.olvColumn36.Width = 131;
@@ -4164,7 +4077,6 @@ namespace ObjectListViewDemo
             // olvColumn37
             // 
             this.olvColumn37.AspectName = "LastWriteTime";
-            this.olvColumn37.CellPadding = null;
             this.olvColumn37.DisplayIndex = 1;
             this.olvColumn37.IsTileViewColumn = true;
             this.olvColumn37.Text = "Modified";
@@ -4173,7 +4085,6 @@ namespace ObjectListViewDemo
             // olvColumn38
             // 
             this.olvColumn38.AspectName = "Extension";
-            this.olvColumn38.CellPadding = null;
             this.olvColumn38.DisplayIndex = 2;
             this.olvColumn38.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn38.Text = "Size";
@@ -4182,7 +4093,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumn39
             // 
-            this.olvColumn39.CellPadding = null;
             this.olvColumn39.DisplayIndex = 3;
             this.olvColumn39.IsTileViewColumn = true;
             this.olvColumn39.Text = "File Type";
@@ -4190,7 +4100,6 @@ namespace ObjectListViewDemo
             // 
             // olvColumn40
             // 
-            this.olvColumn40.CellPadding = null;
             this.olvColumn40.FillsFreeSpace = true;
             this.olvColumn40.IsEditable = false;
             this.olvColumn40.MinimumWidth = 20;
@@ -4199,7 +4108,6 @@ namespace ObjectListViewDemo
             // olvColumn21
             // 
             this.olvColumn21.AspectName = "StartTime";
-            this.olvColumn21.CellPadding = null;
             this.olvColumn21.DisplayIndex = 2;
             this.olvColumn21.IsVisible = false;
             this.olvColumn21.Text = "Start Time";
@@ -4207,7 +4115,6 @@ namespace ObjectListViewDemo
             // olvColumn22
             // 
             this.olvColumn22.AspectName = "Threads.Count";
-            this.olvColumn22.CellPadding = null;
             this.olvColumn22.DisplayIndex = 3;
             this.olvColumn22.IsVisible = false;
             this.olvColumn22.Text = "Thread Count";
@@ -4215,7 +4122,6 @@ namespace ObjectListViewDemo
             // olvColumn23
             // 
             this.olvColumn23.AspectName = "TotalProcessorTime";
-            this.olvColumn23.CellPadding = null;
             this.olvColumn23.DisplayIndex = 4;
             this.olvColumn23.IsVisible = false;
             this.olvColumn23.Text = "Processor Time";
@@ -4223,68 +4129,57 @@ namespace ObjectListViewDemo
             // olvColumn30
             // 
             this.olvColumn30.AspectName = "PriorityClass";
-            this.olvColumn30.CellPadding = null;
             this.olvColumn30.DisplayIndex = 9;
             this.olvColumn30.IsVisible = false;
             this.olvColumn30.Text = "Priority Class";
             // 
             // olvColumn24
             // 
-            this.olvColumn24.CellPadding = null;
             this.olvColumn24.DisplayIndex = 5;
             this.olvColumn24.IsVisible = false;
             // 
             // olvColumn25
             // 
-            this.olvColumn25.CellPadding = null;
             this.olvColumn25.DisplayIndex = 6;
             this.olvColumn25.IsVisible = false;
             // 
             // olvColumn20
             // 
-            this.olvColumn20.CellPadding = null;
             this.olvColumn20.DisplayIndex = 2;
             this.olvColumn20.IsVisible = false;
             // 
             // olvColumn17
             // 
-            this.olvColumn17.CellPadding = null;
             this.olvColumn17.DisplayIndex = 0;
             this.olvColumn17.Text = "Zero";
             // 
             // olvColumn13
             // 
-            this.olvColumn13.CellPadding = null;
             this.olvColumn13.DisplayIndex = 1;
             this.olvColumn13.Text = "Two";
             // 
             // olvColumn14
             // 
-            this.olvColumn14.CellPadding = null;
             this.olvColumn14.DisplayIndex = 2;
             this.olvColumn14.Text = "Three";
             // 
             // olvColumn15
             // 
-            this.olvColumn15.CellPadding = null;
             this.olvColumn15.DisplayIndex = 3;
             this.olvColumn15.Text = "Four";
             // 
             // olvColumn6
             // 
-            this.olvColumn6.CellPadding = null;
             this.olvColumn6.DisplayIndex = 0;
             // 
             // olvColumn11
             // 
-            this.olvColumn11.CellPadding = null;
             this.olvColumn11.DisplayIndex = 1;
             this.olvColumn11.IsVisible = false;
             this.olvColumn11.Text = "One";
             // 
             // olvColumn16
             // 
-            this.olvColumn16.CellPadding = null;
             this.olvColumn16.DisplayIndex = 4;
             this.olvColumn16.IsVisible = false;
             this.olvColumn16.Text = "Five";
