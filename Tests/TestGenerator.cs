@@ -158,7 +158,7 @@ namespace BrightIdeasSoftware.Tests
         public string Property2 {
             get { return this.property2; }
         }
-        private string property2;
+        private string property2="value";
 
         [OLVChildren]
         public IList<ClassWithChildren> MyChildren {
@@ -179,7 +179,7 @@ namespace BrightIdeasSoftware.Tests
         public string Property2 {
             get { return this.property2; }
         }
-        private string property2;
+        private string property2 = "property2";
 
         [OLVChildren]
         public ArrayList UntypedChildList {
