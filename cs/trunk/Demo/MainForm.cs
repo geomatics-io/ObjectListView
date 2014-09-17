@@ -115,7 +115,10 @@ namespace ObjectListViewDemo {
         }
 
         void InitializeSimpleExample(List<Person> list) {
+
             this.comboBox6.SelectedIndex = 0;
+
+            //this.olvSimple.UseCellFormatEvents = false;
 
             // Give this column an aspect putter, since it fetches its value using a method rather than a property
             TypedColumn<Person> tcol = new TypedColumn<Person>(this.columnHeader16);
@@ -154,6 +157,18 @@ namespace ObjectListViewDemo {
 
         void InitializeComplexExample(List<Person> list) {
             this.olvComplex.AddDecoration(new EditingCellBorderDecoration(true));
+
+            this.olvComplex.FullRowSelect = false;
+
+            // Uncomment this block to see a darker theme
+            this.olvComplex.UseAlternatingBackColors = false;
+            this.olvComplex.BackColor = Color.FromArgb(20, 20, 25);
+            this.olvComplex.AlternateRowBackColor = Color.FromArgb(40, 40, 45);
+            this.olvComplex.ForeColor = Color.WhiteSmoke;
+            this.olvComplex.DisabledItemStyle = new SimpleItemStyle();
+            this.olvComplex.DisabledItemStyle.ForeColor = Color.Gray;
+            this.olvComplex.DisabledItemStyle.BackColor = Color.FromArgb(30, 30, 35);
+            this.olvComplex.DisabledItemStyle.Font = new Font("Stencil", 10);
 
             // The following line makes getting aspect about 10x faster. Since getting the aspect is
             // the slowest part of building the ListView, it is worthwhile BUT NOT NECESSARY to do.
@@ -569,6 +584,7 @@ namespace ObjectListViewDemo {
         }
 
         void InitializeVirtualListExample() {
+            this.olvVirtual.CheckBoxes = true;
             this.olvVirtual.BooleanCheckStateGetter = delegate(object x) {
                 return ((Person)x).IsActive;
             };
@@ -701,6 +717,7 @@ namespace ObjectListViewDemo {
 
 
         void InitializeTreeListExample() {
+
             this.treeListView.HierarchicalCheckboxes = true;
             this.treeListView.HideSelection = false;
             this.treeListView.CanExpandGetter = delegate(object x) {
@@ -944,6 +961,7 @@ namespace ObjectListViewDemo {
                 msg = listView.SelectedIndices.Count.ToString();
             else
                 msg = String.Format("'{0}'", p.Name);
+            Person focused = listView.FocusedItem == null ? null : (((OLVListItem)listView.FocusedItem).RowObject) as Person;
             this.toolStripStatusLabel1.Text = String.Format("Selected {0} of {1} items", msg, listView.GetItemCount());
         }
 
@@ -1487,9 +1505,10 @@ namespace ObjectListViewDemo {
                 // People whose names start with a vowel get a star,
                 // otherwise the first half of the alphabet gets hearts
                 // and the second half gets music
-                if ("AEIOU".Contains(((Person)row).Name.Substring(0, 1)))
+                Person person = ((Person)row);
+                if ("AEIOU".Contains(person.Name.Substring(0, 1)))
                     return 0; // star
-                else if (((Person)row).Name.CompareTo("N") < 0)
+                else if (person.Name.CompareTo("N") < 0)
                     return 1; // heart
                 else
                     return 2; // music
@@ -2399,7 +2418,7 @@ namespace ObjectListViewDemo {
 
         private void olvComplex_ItemChecked(object sender, ItemCheckedEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("here");
+            //System.Diagnostics.Debug.WriteLine("here");
         }
 
         private void olv_GroupStateChanged(object sender, GroupStateChangedEventArgs e)
@@ -2412,11 +2431,9 @@ namespace ObjectListViewDemo {
                 e.Unselected ? "Unselected" : "",
                 e.Unfocused ? "Unfocused" : "",
                 e.Uncollapsed ? "Uncollapsed" : ""));
-
         }
 
         private void olv_HotItemChanged(object sender, HotItemChangedEventArgs e) {
-            ObjectListView olv = sender as ObjectListView;
             if (sender == null) {
                 this.toolStripStatusLabel3.Text = "";
                 return;
@@ -2424,7 +2441,12 @@ namespace ObjectListViewDemo {
 
             switch (e.HotCellHitLocation) {
                 case HitTestLocation.Nothing:
-                    this.toolStripStatusLabel3.Text = "Over nothing";
+                    this.toolStripStatusLabel3.Text = @"Over nothing";
+                    break;
+                case HitTestLocation.Header:
+                case HitTestLocation.HeaderCheckBox:
+                case HitTestLocation.HeaderDivider:
+                    this.toolStripStatusLabel3.Text = String.Format("Over {0} of column #{1}", e.HotCellHitLocation, e.HotColumnIndex);
                     break;
                 case HitTestLocation.Group:
                     this.toolStripStatusLabel3.Text = String.Format("Over group '{0}', {1}", e.HotGroup.Header, e.HotCellHitLocationEx);
@@ -2463,6 +2485,26 @@ namespace ObjectListViewDemo {
 
         private void button33_Click(object sender, EventArgs e) {
             this.treeListView.CheckedObjects = this.treeListView.SelectedObjects;
+        }
+
+        private void button35_Click(object sender, EventArgs e)
+        {
+            Stopwatch ts = Stopwatch.StartNew();
+            bool isControlKeyDown = ((Control.ModifierKeys & Keys.Control) == Keys.Control);
+            if (isControlKeyDown)
+                this.olvFast.EnableObjects(this.olvFast.DisabledObjects);
+            else
+                this.olvFast.DisableObjects(this.olvFast.SelectedObjects);
+            System.Diagnostics.Debug.WriteLine(String.Format("Disable UI action took {0} ms", ts.Elapsed.TotalMilliseconds));
+        }
+
+        private void button34_Click(object sender, EventArgs e)
+        {
+            bool isControlKeyDown = ((Control.ModifierKeys & Keys.Control) == Keys.Control);
+            if (isControlKeyDown)
+                this.olvComplex.EnableObjects(this.olvComplex.DisabledObjects);
+            else
+                this.olvComplex.DisableObjects(this.olvComplex.SelectedObjects);
         }
 
         /*
