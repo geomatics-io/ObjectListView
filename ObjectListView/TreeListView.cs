@@ -1267,12 +1267,9 @@ namespace BrightIdeasSoftware
             /// <summary>
             /// Collapse all branches in this tree
             /// </summary>
-            /// <returns>Return the index of the first root that was not collapsed</returns>
+            /// <returns>Nothing useful</returns>
             public virtual int CollapseAll() {
-                foreach (Branch br in this.trunk.ChildBranches) {
-                    if (br.IsExpanded)
-                        br.Collapse();
-                }
+                this.trunk.CollapseAll();
                 this.RebuildList();
                 return 0;
             }
@@ -1971,6 +1968,19 @@ namespace BrightIdeasSoftware
                 foreach (Branch br in this.ChildBranches) {
                     if (br.CanExpand)
                         br.ExpandAll();
+                }
+            }
+
+            /// <summary>
+            /// Collapse all branches in this tree
+            /// </summary>
+            /// <returns>Nothing useful</returns>
+            public virtual void CollapseAll()
+            {
+                this.Collapse();
+                foreach (Branch br in this.ChildBranches) {
+                    if (br.IsExpanded)
+                        br.CollapseAll();
                 }
             }
 
