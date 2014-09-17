@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>ObjectListView.Official</id>
+    <version>2.8.0-alpha02</version>
+    <authors>Phillip Piper</authors>
+    <owners>Phillip Piper</owners>
+    <licenseUrl>http://www.gnu.org/licenses/gpl.html</licenseUrl>
+    <projectUrl>http://objectlistview.sourceforge.net</projectUrl>
+    <iconUrl>http://objectlistview.sourceforge.net/cs/_static/objectlistview32.png</iconUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>ObjectListView is a .NET ListView wired on caffeine, guarana and steroids.</description>
+    <releaseNotes>V2.8 added the ability to disable rows</releaseNotes>
+    <copyright>Copyright 2006-2014 Bright Ideas Software</copyright>
+    <tags>.Net WinForms Net20 Net40 ListView Controls</tags>
+  </metadata>
+</package>
