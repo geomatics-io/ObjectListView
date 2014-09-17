@@ -607,6 +607,9 @@ namespace BrightIdeasSoftware
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
             int X, int Y, int cx, int cy, uint uFlags);
 
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern bool GetWindowRect(IntPtr hWnd, ref Rectangle r);
+
         [DllImport("user32.dll", EntryPoint = "GetWindowLong", CharSet = CharSet.Auto)]
         public static extern IntPtr GetWindowLong32(IntPtr hWnd, int nIndex);
 

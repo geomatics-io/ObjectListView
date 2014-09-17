@@ -79,7 +79,22 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// Somewhere on a group
         /// </summary>
-        Group
+        Group,
+
+        /// <summary>
+        /// Somewhere in a column header
+        /// </summary>
+        Header,
+
+        /// <summary>
+        /// Somewhere in a column header checkbox
+        /// </summary>
+        HeaderCheckBox,
+
+        /// <summary>
+        /// Somewhere in a header divider
+        /// </summary>
+        HeaderDivider,
     }
 
     /// <summary>
@@ -178,12 +193,15 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// Create a OlvListViewHitTestInfo
         /// </summary>
-        public OlvListViewHitTestInfo(OLVListItem olvListItem, OLVListSubItem subItem, int flags, OLVGroup group) {
+        public OlvListViewHitTestInfo(OLVListItem olvListItem, OLVListSubItem subItem, int flags, OLVGroup group, int iColumn)
+        {
             this.item = olvListItem;
             this.subItem = subItem;
             this.location = ConvertNativeFlagsToDotNetLocation(olvListItem, flags);
             this.HitTestLocationEx = (HitTestLocationEx)flags;
             this.Group = group;
+            this.ColumnIndex = iColumn;
+            this.ListView = olvListItem == null ? null : (ObjectListView)olvListItem.ListView;
 
             switch (location) {
                 case ListViewHitTestLocations.StateImage:
@@ -204,6 +222,16 @@ namespace BrightIdeasSoftware {
                         this.HitTestLocation = HitTestLocation.Nothing;
                     break;
             }
+        }
+
+        /// <summary>
+        /// Create a OlvListViewHitTestInfo when the header was hit
+        /// </summary>
+        public OlvListViewHitTestInfo(ObjectListView olv, int iColumn, bool isOverCheckBox, int iDivider) {
+            this.ListView = olv;
+            this.ColumnIndex = iColumn;
+            this.HeaderDividerIndex = iDivider;
+            this.HitTestLocation = isOverCheckBox ? HitTestLocation.HeaderCheckBox : (iDivider < 0 ? HitTestLocation.Header : HitTestLocation.HeaderDivider);
         }
 
         private static ListViewHitTestLocations ConvertNativeFlagsToDotNetLocation(OLVListItem hitItem, int flags)
@@ -281,8 +309,10 @@ namespace BrightIdeasSoftware {
         /// Gets the ObjectListView that was tested
         /// </summary>
         public ObjectListView ListView {
-            get { return this.Item == null ? null : (ObjectListView)this.Item.ListView; }
+            get { return listView; }
+            internal set { listView = value; }
         }
+        private ObjectListView listView;
 
         /// <summary>
         /// Gets the model object that was hit
@@ -304,13 +334,19 @@ namespace BrightIdeasSoftware {
         /// Gets the index of the column under the hit point
         /// </summary>
         public int ColumnIndex {
-            get {
-                if (this.Item == null || this.SubItem == null)
-                    return -1;
-                
-                return this.Item.SubItems.IndexOf(this.SubItem);
-            }
+            get { return columnIndex; }
+            internal set { columnIndex = value; }
         }
+        private int columnIndex;
+
+        /// <summary>
+        /// Gets the index of the header divider
+        /// </summary>
+        public int HeaderDividerIndex {
+            get { return headerDividerIndex; }
+            internal set { headerDividerIndex = value; }
+        }
+        private int headerDividerIndex = -1;
 
         /// <summary>
         /// Gets the column that was hit
@@ -318,7 +354,7 @@ namespace BrightIdeasSoftware {
         public OLVColumn Column {
             get {
                 int index = this.ColumnIndex;
-                return index < 0 ? null : this.ListView.GetColumn(index);
+                return index < 0 || this.ListView == null ? null : this.ListView.GetColumn(index);
             }
         }
 
@@ -333,7 +369,15 @@ namespace BrightIdeasSoftware {
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return string.Format("HitTestLocation: {0}, HitTestLocationEx: {1}, Item: {2}, SubItem: {3}, Location: {4}, Group: {5}", this.HitTestLocation, this.HitTestLocationEx, this.item, this.subItem, this.location, this.Group);
+            return string.Format("HitTestLocation: {0}, HitTestLocationEx: {1}, Item: {2}, SubItem: {3}, Location: {4}, Group: {5}, ColumnIndex: {6}", 
+                this.HitTestLocation, this.HitTestLocationEx, this.item, this.subItem, this.location, this.Group, this.ColumnIndex);
+        }
+
+        internal class HeaderHitTestInfo
+        {
+            public int ColumnIndex;
+            public bool IsOverCheckBox;
+            public int OverDividerIndex;
         }
     }
 }
