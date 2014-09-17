@@ -275,6 +275,13 @@ namespace BrightIdeasSoftware
         public event EventHandler<GroupStateChangedEventArgs> GroupStateChanged;
 
         /// <summary>
+        /// This event is triggered when a header checkbox is changing value
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("This event is triggered when a header checkbox changes value.")]
+        public event EventHandler<HeaderCheckBoxChangingEventArgs> HeaderCheckBoxChanging;
+
+        /// <summary>
         /// This event is triggered when a header needs a tool tip.
         /// </summary>
         [Category("ObjectListView"),
@@ -572,6 +579,16 @@ namespace BrightIdeasSoftware
         {
             if (this.GroupStateChanged != null)
                 this.GroupStateChanged(this, args);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
+        protected virtual void OnHeaderCheckBoxChanging(HeaderCheckBoxChangingEventArgs args)
+        {
+            if (this.HeaderCheckBoxChanging != null)
+                this.HeaderCheckBoxChanging(this, args);
         }
 
         /// <summary>
@@ -1823,6 +1840,29 @@ namespace BrightIdeasSoftware
         
     }
 
+    /// <summary>
+    /// The event args when the check box in a column header is changing
+    /// </summary>
+    public class HeaderCheckBoxChangingEventArgs : CancelEventArgs {
+
+        /// <summary>
+        /// Get the column whose checkbox is changing
+        /// </summary>
+        public OLVColumn Column {
+            get { return column; }
+            internal set { column = value; }
+        }
+        private OLVColumn column;
+
+        /// <summary>
+        /// Get or set the new state that should be used by the column
+        /// </summary>
+        public CheckState NewCheckState {
+            get { return newCheckState; }
+            set { newCheckState = value; }
+        }
+        private CheckState newCheckState;
+    }
 
     /// <summary>
     /// The event args when the hot item changed

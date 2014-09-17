@@ -5,6 +5,8 @@
  * Date: 31-March-2011 5:53 pm
  *
  * Change log:
+ * 2014-09-07  JPP  - Added ability to have checkboxes in headers
+ * 
  * 2011-05-27  JPP  - Added Sortable, Hideable, Groupable, Searchable, ShowTextInHeader properties
  * 2011-04-12  JPP  - Added HasFilterIndicator
  * 2011-03-31  JPP  - Split into its own file
@@ -239,7 +241,11 @@ namespace BrightIdeasSoftware {
         /// Gets or sets how many pixels will be left blank around this cells in this column
         /// </summary>
         /// <remarks>This setting only takes effect when the control is owner drawn.</remarks>
-        public Rectangle? CellPadding {
+        [Category("ObjectListView"),
+         Description("How many pixels will be left blank around the cells in this column?"),
+         DefaultValue(null)]
+        public Rectangle? CellPadding
+        {
             get { return this.cellPadding; }
             set { this.cellPadding = value; }
         }
@@ -574,10 +580,11 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// Gets or sets the font in which the header for this column will be drawn
         /// </summary>
-        /// <remarks>This property will be made obsolete in v2.5. Use HeaderFormatStyle instead</remarks>
+        /// <remarks>You should probably use a HeaderFormatStyle instead of this property</remarks>
         /// <remarks>This is only uses when HeaderUsesThemes is false.</remarks>
-        [Browsable(false)]
-        [DefaultValue(null)]
+        [Category("ObjectListView"),
+        Description("How will the header text be aligned?"),
+        DefaultValue(null)]
         public Font HeaderFont {
             get { return this.HeaderFormatStyle == null ? null : this.HeaderFormatStyle.Normal.Font; }
             set {
@@ -594,10 +601,11 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// Gets or sets the color in which the text of the header for this column will be drawn
         /// </summary>
-        /// <remarks>This property will be made obsolete in v2.5. Use HeaderFormatStyle instead</remarks>
+        /// <remarks>You should probably use a HeaderFormatStyle instead of this property</remarks>
         /// <remarks>This is only uses when HeaderUsesThemes is false.</remarks>
-        [Browsable(false)]
-        [DefaultValue(typeof(Color), "")]
+        [Category("ObjectListView"),
+         Description("How will the header text be aligned?"),
+         DefaultValue(typeof(Color), "")]
         public Color HeaderForeColor {
             get { return this.HeaderFormatStyle == null ? Color.Empty : this.HeaderFormatStyle.Normal.ForeColor; }
             set {
@@ -668,6 +676,91 @@ namespace BrightIdeasSoftware {
         }
 
         /// <summary>
+        /// Gets or sets whether this header will place a checkbox in the header
+        /// </summary>
+        [Category("ObjectListView"),
+         Description("Draw a checkbox in the header of this column"),
+         DefaultValue(false)]
+        public bool HeaderCheckBox
+        {
+            get { return headerCheckBox; }
+            set { headerCheckBox = value; }
+        }
+        private bool headerCheckBox;
+
+        /// <summary>
+        /// Gets or sets whether this header will place a tri-state checkbox in the header
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("Draw a tri-state checkbox in the header of this column"),
+         DefaultValue(false)]
+        public bool HeaderTriStateCheckBox
+        {
+            get { return headerTriStateCheckBox; }
+            set { headerTriStateCheckBox = value; }
+        }
+        private bool headerTriStateCheckBox;
+
+        /// <summary>
+        /// Gets or sets the checkedness of the checkbox in the header of this column
+        /// </summary>
+        [Category("ObjectListView"),
+         Description("Checkedness of the header checkbox"),
+         DefaultValue(CheckState.Unchecked)]
+        public CheckState HeaderCheckState
+        {
+            get { return headerCheckState; }
+            set { headerCheckState = value; }
+        }
+        private CheckState headerCheckState = CheckState.Unchecked;
+
+        /// <summary>
+        /// Gets or sets whether the 
+        /// checking/unchecking the value of the header's checkbox will result in the
+        /// checkboxes for all cells in this column being set to the same checked/unchecked.
+        /// Defaults to true.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// There is no reverse of this function that automatically updates the header when the 
+        /// checkedness of a cell changes.
+        /// </para>
+        /// <para>
+        /// This property's behaviour on a TreeListView is probably best describes as undefined 
+        /// and should be avoided.
+        /// </para>
+        /// <para>
+        /// The performance of this action (checking/unchecking all rows) is O(n) where n is the 
+        /// number of rows. It will work on large virtual lists, but it may take some time.
+        /// </para>
+        /// </remarks>
+        [Category("ObjectListView"),
+         Description("Update row checkboxs when the header checkbox is clicked by the user"),
+         DefaultValue(true)]
+        public bool HeaderCheckBoxUpdatesRowCheckBoxes {
+            get { return headerCheckBoxUpdatesRowCheckBoxes; }
+            set { headerCheckBoxUpdatesRowCheckBoxes = value; }
+        }
+        private bool headerCheckBoxUpdatesRowCheckBoxes = true;
+
+        /// <summary>
+        /// Gets or sets whether the checkbox in the header is disabled
+        /// </summary>
+        /// <remarks>
+        /// Clicking on a disabled checkbox does not change its value, though it does raise
+        /// a HeaderCheckBoxChanging event, which allows the programmer the opportunity to do 
+        /// something appropriate.</remarks>
+        [Category("ObjectListView"),
+        Description("Is the checkbox in the header of this column disabled"),
+         DefaultValue(false)]
+        public bool HeaderCheckBoxDisabled
+        {
+            get { return headerCheckBoxDisabled; }
+            set { headerCheckBoxDisabled = value; }
+        }
+        private bool headerCheckBoxDisabled;
+
+        /// <summary>
         /// Gets or sets whether this column can be hidden by the user.
         /// </summary>
         /// <remarks>
@@ -686,7 +779,7 @@ namespace BrightIdeasSoftware {
         /// Gets or sets whether the text values in this column will act like hyperlinks
         /// </summary>
         [Category("ObjectListView"),
-         Description("Will the text values of this column act like hyperlinks?"),
+         Description("Will the text values in the cells of this column act like hyperlinks?"),
          DefaultValue(false)]
         public bool Hyperlink {
             get { return hyperlink; }
@@ -779,12 +872,11 @@ namespace BrightIdeasSoftware {
         private bool isTileViewColumn;
 
         /// <summary>
-        /// Gets or sets whether the text of this header should be
-        /// rendered vertically.
+        /// Gets or sets whether the text of this header should be rendered vertically.
         /// </summary>
         /// <remarks>
         /// <para>If this is true, it is a good idea to set ToolTipText to the name of the column so it's easy to read.</para>
-        /// <para>Currently (2010-08), vertical headers are text only. They do not draw their image.</para>
+        /// <para>Vertical headers are text only. They do not draw their image.</para>
         /// </remarks>
         [Category("ObjectListView"),
          Description("Will the header for this column be drawn vertically?"),
@@ -798,13 +890,20 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// Can this column be seen by the user?
         /// </summary>
-        /// <remarks>After changing this value, you must call RebuildColumns() before the changes will be effected.</remarks>
+        /// <remarks>After changing this value, you must call RebuildColumns() before the changes will take effect.</remarks>
         [Category("ObjectListView"),
          Description("Can this column be seen by the user?"),
          DefaultValue(true)]
         public bool IsVisible {
             get { return isVisible; }
-            set { isVisible = value; }
+            set
+            {
+                if (isVisible == value)
+                    return;
+
+                isVisible = value;
+                OnVisibilityChanged(EventArgs.Empty);
+            }
         }
         private bool isVisible = true;
 
@@ -877,10 +976,8 @@ namespace BrightIdeasSoftware {
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public RenderDelegate RendererDelegate {
             get {
-                if (this.Renderer is Version1Renderer)
-                    return ((Version1Renderer)this.Renderer).RenderDelegate;
-                else
-                    return null;
+                Version1Renderer version1Renderer = this.Renderer as Version1Renderer;
+                return version1Renderer != null ? version1Renderer.RenderDelegate : null;
             }
             set {
                 this.Renderer = value == null ? null : new Version1Renderer(value);
@@ -1201,16 +1298,18 @@ namespace BrightIdeasSoftware {
         /// <param name="rowObject">The row object that is being displayed</param>
         /// <returns>Group key object</returns>
         public object GetGroupKey(object rowObject) {
-            if (this.groupKeyGetter == null) {
-                object key = this.GetValue(rowObject);
-                String keyAsString = key as String;
-                if (keyAsString != null && this.UseInitialLetterForGroup) {
-                    if (keyAsString.Length > 0)
-                        key = keyAsString.Substring(0, 1).ToUpper();
-                }
-                return key;
-            } else
+            if (this.groupKeyGetter != null)
                 return this.groupKeyGetter(rowObject);
+
+            object key = this.GetValue(rowObject);
+
+            if (this.UseInitialLetterForGroup) {
+                String keyAsString = key as String;
+                if (!string.IsNullOrEmpty(keyAsString))
+                    return keyAsString.Substring(0, 1).ToUpper();
+                }
+
+            return key;
         }
 
         /// <summary>
@@ -1376,6 +1475,26 @@ namespace BrightIdeasSoftware {
             }
         }
         private Type dataType;
+
+        #region Events
+
+		/// <summary>
+		/// This event is triggered when the visibility of this column changes.
+		/// </summary>
+		[Category("ObjectListView"),
+        Description("This event is triggered when the visibility of the column changes.")]
+		public event EventHandler<EventArgs> VisibilityChanged;
+
+		/// <summary>
+		/// Tell the world when visibility of a column changes.
+		/// </summary>
+		public virtual void OnVisibilityChanged(EventArgs e)
+		{
+			if (this.VisibilityChanged != null)
+				this.VisibilityChanged(this, e);
+		}
+
+		#endregion
 
         /// <summary>
         /// Create groupies
@@ -1548,5 +1667,6 @@ namespace BrightIdeasSoftware {
         }
 
         #endregion
+
     }
 }

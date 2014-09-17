@@ -213,12 +213,16 @@ namespace BrightIdeasSoftware
                 if (!this.CheckBoxes)
                     return;
 
+                Stopwatch sw = Stopwatch.StartNew();
+
                 // Set up an efficient way of testing for the presence of a particular model
                 Hashtable table = new Hashtable(this.GetItemCount());
                 if (value != null) {
                     foreach (object x in value)
                         table[x] = true;
                 }
+
+                this.BeginUpdate();
 
                 // Uncheck anything that is no longer checked
                 Object[] keys = new Object[this.CheckStateMap.Count];
@@ -231,6 +235,10 @@ namespace BrightIdeasSoftware
                 // Check all the new checked objects
                 foreach (Object x in table.Keys)
                     this.SetObjectCheckedness(x, CheckState.Checked);
+
+                this.EndUpdate();
+
+                Debug.WriteLine(String.Format("PERF - Setting virtual CheckedObjects on {2} objects took {0}ms / {1} ticks", sw.ElapsedMilliseconds, sw.ElapsedTicks, this.GetItemCount()));
             }
         }
 
@@ -685,6 +693,70 @@ namespace BrightIdeasSoftware
 
         #endregion
 
+        #region Check boxes
+//
+//        /// <summary>
+//        /// Check all rows
+//        /// </summary>
+//        /// <remarks>The performance of this method is O(n) where n is the number of rows in the control.</remarks>
+//        public override void CheckAll()
+//        {
+//            if (!this.CheckBoxes)
+//                return;
+//
+//            Stopwatch sw = Stopwatch.StartNew();
+//
+//            this.BeginUpdate();
+//
+//            foreach (Object x in this.Objects)
+//                this.SetObjectCheckedness(x, CheckState.Checked);
+//
+//            this.EndUpdate();
+//
+//            Debug.WriteLine(String.Format("PERF - CheckAll() on {2} objects took {0}ms / {1} ticks", sw.ElapsedMilliseconds, sw.ElapsedTicks, this.GetItemCount()));
+//
+//        }
+//
+//        /// <summary>
+//        /// Uncheck all rows
+//        /// </summary>
+//        /// <remarks>The performance of this method is O(n) where n is the number of rows in the control.</remarks>
+//        public override void UncheckAll()
+//        {
+//            if (!this.CheckBoxes)
+//                return;
+//
+//            Stopwatch sw = Stopwatch.StartNew();
+//
+//            this.BeginUpdate();
+//
+//            foreach (Object x in this.Objects)
+//                this.SetObjectCheckedness(x, CheckState.Unchecked);
+//
+//            this.EndUpdate();
+//
+//            Debug.WriteLine(String.Format("PERF - UncheckAll() on {2} objects took {0}ms / {1} ticks", sw.ElapsedMilliseconds, sw.ElapsedTicks, this.GetItemCount()));
+//        }
+
+        /// <summary>
+        /// Get the checkedness of an object from the model. Returning null means the
+        /// model does know and the value from the control will be used.
+        /// </summary>
+        /// <param name="modelObject"></param>
+        /// <returns></returns>
+        protected override CheckState? GetCheckState(object modelObject)
+        {
+            if (this.CheckStateGetter != null)
+                return base.GetCheckState(modelObject);
+
+            CheckState state;
+            if (modelObject != null && this.CheckStateMap.TryGetValue(modelObject, out state))
+                return state;
+            return CheckState.Unchecked;
+        }
+
+        #endregion
+
         #region Implementation
 
         /// <summary>
@@ -769,22 +841,6 @@ namespace BrightIdeasSoftware
             //System.Diagnostics.Debug.WriteLine(x);
         }
         private OwnerDataCallbackImpl ownerDataCallbackImpl;
-
-        /// <summary>
-        /// Get the checkedness of an object from the model. Returning null means the
-        /// model does know and the value from the control will be used.
-        /// </summary>
-        /// <param name="modelObject"></param>
-        /// <returns></returns>
-        protected override CheckState? GetCheckState(object modelObject) {
-            if (this.CheckStateGetter != null)
-                return base.GetCheckState(modelObject);
-
-            CheckState state;
-            if (modelObject != null && this.CheckStateMap.TryGetValue(modelObject, out state))
-                return state;
-            return CheckState.Unchecked;
-        }
 
         /// <summary>
         /// Return the position of the given itemIndex in the list as it currently shown to the user.

@@ -2240,8 +2240,10 @@ namespace BrightIdeasSoftware
         private bool isPaused = true;
 
         private void StopTickler() {
-            this.Tickler.Change(Timeout.Infinite, Timeout.Infinite);
-            this.Tickler.Dispose();
+            if (this.tickler == null)
+                return;
+
+            this.tickler.Dispose();
             this.tickler = null;
         }
 

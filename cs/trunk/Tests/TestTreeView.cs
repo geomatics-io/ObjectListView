@@ -84,15 +84,13 @@ namespace BrightIdeasSoftware.Tests
             this.olv.CollapseAll();
 
             Assert.AreEqual(NumberOfRoots, this.olv.GetItemCount());
-            int expectedCount = this.olv.GetItemCount() + PersonDb.All[0].Children.Count;
+            int expectedCount = NumberOfRoots + PersonDb.All[0].Children.Count;
             this.olv.Expand(PersonDb.All[0]);
             Assert.AreEqual(expectedCount, this.olv.GetItemCount());
 
-            int expectedCount2 = this.olv.GetItemCount() + PersonDb.All[1].Children.Count;
-            foreach (Person p in PersonDb.All[1].Children)
-                expectedCount2 += p.Children.Count;
+            int expectedCount2 = NumberOfRoots + PersonDb.All[0].Children.Count + PersonDb.All[1].Children.Count;
             this.olv.Expand(PersonDb.All[1]);
-            Assert.AreEqual(expectedCount2, this.olv.GetItemCount()-1);
+            Assert.AreEqual(expectedCount2, this.olv.GetItemCount());
         }
 
         [Test]
