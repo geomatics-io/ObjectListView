@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Bright Ideas Software")]
 [assembly: AssemblyProduct("ListViewPrinter")]
-[assembly: AssemblyCopyright("Copyright ©  2008-2014")]
+[assembly: AssemblyCopyright("Copyright ©  2008-2011")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

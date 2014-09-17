@@ -2117,3 +2117,72 @@ Since this is a feature that the underlying control doesn't actually support,
 it looks best when owner drawn (the above snapshots are both owner drawn). 
 In non-owner drawn, the images and check boxes are drawn normally 
 and look as if they can be used (but they can't).
+
+.. _recipe-checkbox-in-header:
+
+50. How can I put a checkbox in a column header?
+------------------------------------------------
+
+Also as of v2.8, column headers can have a checkbox:
+
+.. image:: images/column-header-checkbox1.png
+
+Configuring
+^^^^^^^^^^^
+
+To enable a checkbox on a header, set `OLVColumn.HeaderCheckBox` to `true`. 
+
+If you want a tri-state checkbox, set  `OLVColumn.HeaderTriStateCheckBox` to `true`. 
+
+You can determine the state of a header checkbox via `OLVColumn.HeaderCheckState`.
+
+Header checkboxes can also be disabled, by setting `OLVColumn.HeaderCheckBoxDisabled` to `true`. 
+
+As with all header customization, you will only see the checkboxes if `ObjectListView.HeaderUsesTheme` is `false`.
+
+In action
+^^^^^^^^^
+
+Once a column has a checkbox in its header, you control it through:
+
+    - `ObjectListView.CheckHeaderCheckBox(OLVColumn col)`
+    - `ObjectListView.CheckIndeterminateHeaderCheckBox(OLVColumn col)`
+    - `ObjectListView.ToggleHeaderCheckBox(OLVColumn col)`
+    - `ObjectListView.UncheckHeaderCheckBox(OLVColumn col)`
+
+When the user clicks on the checkbox (or when you call the above methods), ObjectListView will fire a `HeaderCheckBoxChanging`
+event. This message can be cancelled.
+
+If the header checkbox is disabled and the user clicks on it, an event will still be fired (giving you the chance to
+perhaps explain to the user why the checkbox is disabled), but by default it will not change anything.
+
+Updating cell checkboxes
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+A useful feature is to have the checkbox in the header control the checkboxes in the cells of that column.
+Checking the header will check all the cells under that header. 
+Unsurprisingly, unchecking the header will uncheck all the cells under that header. 
+Of course, this only makes sense if the
+column has checkboxes in its cells. To enabled this feature, set `OLVColumn.HeaderCheckBoxUpdatesRowCheckBoxes`
+to `true`.
+
+This updating is only one way: from the header down to the cells. There is (currently) no feature to do
+the reverse -- recalculate the checkedness of the header based on the checkedness of the cells.
+
+Hit testing and CellOver events
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Hit testing on a ObjectListView has been extended to include information about the header. The hit testing
+logic can now report header locations:
+
+    - `HitTestLocation.Header`
+    - `HitTestLocation.HeaderCheckBox`
+    - `HitTestLocation.HeaderDivider`
+
+On `OlvListViewHitTestInfo`, `ColumnIndex` and `HeaderDividerIndex` tell exactly which column or divider was hit.
+
+Changed in mouse location are primarily reported through `CellOver` events. These events are now also raised
+when the mouse moves over the header.
+
+Since this is different from previous versions, this behaviour can be disabled by setting 
+`ObjectListView.TriggerCellOverEventsWhenOverHeader` to `false`.
