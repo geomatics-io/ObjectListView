@@ -5,6 +5,9 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2014-10-08  JPP  - Fixed an issue where pre-expanded branches would not initially expand properly
+ * 2014-09-29  JPP  - Fixed issue where RefreshObject() on a root object could cause exceptions
+ *                  - Fixed issue where CollapseAll() while filtering could cause exception
  * 2014-03-09  JPP  - Fixed bug where removing a branches only child and then calling RefreshObject()
  *                    could throw an exception.
  * v2.7
@@ -529,7 +532,8 @@ namespace BrightIdeasSoftware
             if (index >= 0) {
                 this.UpdateVirtualListSize();
                 this.SelectedObjects = selection;
-                this.RedrawItems(index, this.GetItemCount() - 1, false);
+                if (index < this.GetItemCount())
+                    this.RedrawItems(index, this.GetItemCount() - 1, false);
                 this.OnCollapsed(new TreeBranchCollapsedEventArgs(null, null));
             }
         }
@@ -718,7 +722,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         public override void RefreshObjects(IList modelObjects) {
             if (this.InvokeRequired) {
-                this.Invoke((MethodInvoker)delegate { this.RefreshObjects(modelObjects); });
+                this.Invoke((MethodInvoker) delegate { this.RefreshObjects(modelObjects); });
                 return;
             }
             // There is no point in refreshing anything if the list is empty
@@ -735,18 +739,29 @@ namespace BrightIdeasSoftware
             foreach (Object model in modelObjects) {
                 if (model == null)
                     continue;
+                modelsAndParents[model] = true;
                 object parent = GetParent(model);
                 if (parent == null) {
                     updatedRoots.Add(model);
                 } else {
                     modelsAndParents[parent] = true;
-                    modelsAndParents[model] = true;
                 }
             }
 
-            // Updates to root level objects are treated like updates on a normal OLV
-            if (updatedRoots.Count > 0)
-                base.RefreshObjects(updatedRoots);
+            // Update any changed roots
+            if (updatedRoots.Count > 0) {
+                ArrayList newRoots = ObjectListView.EnumerableToArray(this.Roots, false);
+                bool changed = false;
+                foreach (Object model in updatedRoots) {
+                    int index = newRoots.IndexOf(model);
+                    if (index >= 0 && !ReferenceEquals(newRoots[index], model)) {
+                        newRoots[index] = model;
+                        changed = true;
+                    }
+                }
+                if (changed)
+                    this.Roots = newRoots;
+            }
 
             // Refresh each object, remembering where the first update occured
             int firstChange = Int32.MaxValue;
@@ -1289,8 +1304,9 @@ namespace BrightIdeasSoftware
                     return -1;
 
                 // Remember that the branch is expanded, even if it's currently not visible
-                if (!br.Visible) {
-                    br.Expand();
+                br.Expand();
+                if (!br.Visible)
+                {
                     return -1;
                 }
 
@@ -1866,7 +1882,7 @@ namespace BrightIdeasSoftware
                     if (this.ParentBranch == null)
                         return 0;
                     
-                        return this.ParentBranch.Level + 1;
+                    return this.ParentBranch.Level + 1;
                 }
             }
 
@@ -1924,7 +1940,7 @@ namespace BrightIdeasSoftware
                     if (this.ParentBranch == null)
                         return true;
                     
-                        return this.ParentBranch.IsExpanded && this.ParentBranch.Visible;
+                    return this.ParentBranch.IsExpanded && this.ParentBranch.Visible;
                 }
             }
 
@@ -2030,8 +2046,10 @@ namespace BrightIdeasSoftware
                     lastBranch = br;
                     br.IsLastChild = false;
                     flatList.Add(br.Model);
-                    if (br.IsExpanded)
+                    if (br.IsExpanded) {
+                        br.FetchChildren(); // make sure we have the branches children
                         br.FlattenOnto(flatList);
+                    }
                 }
                 if (lastBranch != null)
                     lastBranch.IsLastChild = true;
