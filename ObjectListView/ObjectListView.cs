@@ -5,6 +5,9 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2014-09-26  JPP  - Fixed intricate bug involving checkboxes on non-owner-drawn virtual lists.
+ *                  - Fixed long standing (but previously unreported) error on non-details virtual lists where
+ *                    users could not clicked on checkboxes.
  * 2014-09-07  JPP  - (Major) Added ability to have checkboxes in headers
  *                  - CellOver events are raised when the mouse moves over the header. Set TriggerCellOverEventsWhenOverHeader
  *                    to false to disable this behaviour.
@@ -597,7 +600,7 @@ namespace BrightIdeasSoftware
     /// </list>
     /// </remarks>
     [Designer(typeof(BrightIdeasSoftware.Design.ObjectListViewDesigner))]   
-     public partial class ObjectListView : ListView, ISupportInitialize {
+    public partial class ObjectListView : ListView, ISupportInitialize {
         
         #region Life and death
         
@@ -2374,10 +2377,13 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>
         /// <para>
+        /// This property is only useful when you don't explicitly set CheckStateGetter/Putter.
         /// If you use CheckStateGetter/Putter, the checkedness of a row will already be persisted
-        /// by those methods. This property is only useful when you don't explicitly set CheckStateGetter/Putter.
+        /// by those methods. 
         /// </para>
-        /// <para>This defaults to true for virtual lists (Fast, Tree). If you set it to false on virtual lists,
+        /// <para>This defaults to true. If this is false, checkboxes will lose their values when the
+        /// list if rebuild or filtered.
+        ///  If you set it to false on virtual lists,
         /// you have to install CheckStateGetter/Putters.</para>
         /// </remarks>
         [Category("ObjectListView"),
@@ -2978,8 +2984,6 @@ namespace BrightIdeasSoftware
         public virtual bool TriStateCheckBoxes {
             get { return triStateCheckBoxes; }
             set {
-                if (triStateCheckBoxes == value)
-                    return;
                 triStateCheckBoxes = value;
                 if (value && !this.CheckBoxes)
                     this.CheckBoxes = true;
@@ -6066,7 +6070,7 @@ namespace BrightIdeasSoftware
                 return false;
 
             // If they didn't click checkbox, we can just return
-            if (this.View != View.Details || hti.HitTestLocation != HitTestLocation.CheckBox)
+            if (hti.HitTestLocation != HitTestLocation.CheckBox)
                 return false;
 
             // Disabled rows cannot change checkboxes
@@ -6074,7 +6078,7 @@ namespace BrightIdeasSoftware
                 return true;
 
             // Did they click a sub item checkbox?
-            if (hti.Column.Index > 0) {
+            if (hti.Column != null && hti.Column.Index > 0) {
                 if (hti.Column.IsEditable && hti.Item.Enabled)
                     this.ToggleSubItemCheckBox(hti.RowObject, hti.Column);
                 return true;
@@ -6152,7 +6156,7 @@ namespace BrightIdeasSoftware
                 return false;
 
             // Ignore clicks on checkboxes
-            return (this.View == View.Details && hti.HitTestLocation == HitTestLocation.CheckBox);
+            return (hti.HitTestLocation == HitTestLocation.CheckBox);
         }
 
         /// <summary>
@@ -8247,8 +8251,7 @@ namespace BrightIdeasSoftware
             // Set the check state of the row, if we are showing check boxes
             if (this.CheckBoxes) {
                 CheckState? state = this.GetCheckState(lvi.RowObject);
-                if (state.HasValue)
-                    lvi.CheckState = state.Value;
+                lvi.CheckState = state ?? CheckState.Unchecked;
             }
 
             // Give the RowFormatter a chance to mess with the item
