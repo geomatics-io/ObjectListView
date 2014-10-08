@@ -573,8 +573,7 @@ namespace BrightIdeasSoftware
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessageString(IntPtr hWnd, int Msg, int wParam, string lParam);
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
-        public static extern IntPtr SendMessageIUnknown(IntPtr hWnd, int msg,
-            [MarshalAs(UnmanagedType.IUnknown)] object wParam, int lParam);
+        public static extern IntPtr SendMessageIUnknown(IntPtr hWnd, int msg, [MarshalAs(UnmanagedType.IUnknown)] object wParam, int lParam);
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, ref LVGROUP lParam);
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
@@ -592,7 +591,7 @@ namespace BrightIdeasSoftware
         public static extern bool GetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO scrollInfo);
 
         [DllImport("user32.dll", EntryPoint = "GetUpdateRect", CharSet = CharSet.Auto)]
-        private static extern int GetUpdateRectInternal(IntPtr hWnd, ref Rectangle r, bool eraseBackground);
+        private static extern bool GetUpdateRectInternal(IntPtr hWnd, ref Rectangle r, bool eraseBackground);
 
         [DllImport("comctl32.dll", CharSet = CharSet.Auto)]
         private static extern bool ImageList_Draw(IntPtr himl, int i, IntPtr hdcDst, int x, int y, int fStyle);
@@ -600,12 +599,8 @@ namespace BrightIdeasSoftware
         [DllImport("comctl32.dll", CharSet = CharSet.Auto)]
         private static extern bool ImageList_DrawIndirect(ref IMAGELISTDRAWPARAMS parms);
 
-        //[DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
-        //public static extern bool SetScrollInfo(IntPtr hWnd, int fnBar, SCROLLINFO scrollInfo, bool fRedraw);
-
         [DllImport("user32.dll")]
-        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
-            int X, int Y, int cx, int cy, uint uFlags);
+        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern bool GetWindowRect(IntPtr hWnd, ref Rectangle r);
@@ -699,7 +694,7 @@ namespace BrightIdeasSoftware
         /// drawn
         /// </summary>
         [Flags]
-        public enum ImageListDrawItemConstants : int
+        public enum ImageListDrawItemConstants 
         {
             /// <summary>
             /// Draw item normally.
@@ -749,7 +744,7 @@ namespace BrightIdeasSoftware
         /// Enumeration containing XP ImageList Draw State options
         /// </summary>
         [Flags]
-        public enum ImageListDrawStateConstants : int
+        public enum ImageListDrawStateConstants 
         {
             /// <summary>
             /// The image state is not modified. 
@@ -1095,6 +1090,13 @@ namespace BrightIdeasSoftware
             return NativeMethods.SetWindowPos(toBeMoved.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_ZORDERONLY);
         }
 
+        /// <summary>
+        /// Change the size of the window without affecting any other attributes
+        /// </summary>
+        /// <param name="toBeMoved"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
         public static bool ChangeSize(IWin32Window toBeMoved, int width, int height) {
             return NativeMethods.SetWindowPos(toBeMoved.Handle, IntPtr.Zero, 0, 0, width, height, SWP_SIZEONLY);
         }
@@ -1156,10 +1158,10 @@ namespace BrightIdeasSoftware
         }
 
         [DllImport("gdi32.dll", CharSet = CharSet.Auto, SetLastError = true, ExactSpelling = true)]
-        public static extern int SetBkColor(IntPtr hDC, int clr);
+        public static extern IntPtr SetBkColor(IntPtr hDC, int clr);
 
         [DllImport("gdi32.dll", CharSet = CharSet.Auto, SetLastError = true, ExactSpelling = true)]
-        public static extern int SetTextColor(IntPtr hDC, int crColor);
+        public static extern IntPtr SetTextColor(IntPtr hDC, int crColor);
 
         [DllImport("gdi32.dll", CharSet = CharSet.Auto, SetLastError = true, ExactSpelling = true)]
         public static extern IntPtr SelectObject(IntPtr hdc, IntPtr obj);
@@ -1204,16 +1206,16 @@ namespace BrightIdeasSoftware
             return (int)NativeMethods.SendMessage(olv.Handle, LVM_SETGROUPMETRICS, 0, ref metrics);
         }
 
-        public static int ClearGroups(VirtualObjectListView virtualObjectListView) {
-            return (int)NativeMethods.SendMessage(virtualObjectListView.Handle, LVM_REMOVEALLGROUPS, 0, 0);
+        public static void ClearGroups(VirtualObjectListView virtualObjectListView) {
+            NativeMethods.SendMessage(virtualObjectListView.Handle, LVM_REMOVEALLGROUPS, 0, 0);
         }
 
-        public static int SetGroupImageList(ObjectListView olv, ImageList il) {
+        public static void SetGroupImageList(ObjectListView olv, ImageList il) {
             const int LVSIL_GROUPHEADER = 3;
             IntPtr handle = IntPtr.Zero;
             if (il != null)
                 handle = il.Handle;
-            return (int)NativeMethods.SendMessage(olv.Handle, LVM_SETIMAGELIST, LVSIL_GROUPHEADER, handle);
+            NativeMethods.SendMessage(olv.Handle, LVM_SETIMAGELIST, LVSIL_GROUPHEADER, handle);
         }
 
         public static int HitTest(ObjectListView olv, ref LVHITTESTINFO hittest)
