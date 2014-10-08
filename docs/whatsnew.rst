@@ -25,8 +25,15 @@ Other changes
 * `Freeze/Unfreeze`  now use `BeginUpdate()`/`EndUpdate()` to disable Window level drawing while frozen
 * Changed default value of `ObjectListView.HeaderUsesThemes` from `true` to `false`. Too many people were being confused, trying to make something interesting appear in the header and nothing showing up
 * Final attempt to fix the issue with multiple hyperlink events being raised. This involves turning a `NM_CLICK` notification into a `NM_RCLICK`. Thanks to aaron for the initial report and investigation.
+* `TreeListView.CollapseAll()` now actually, you know, collapses all branches
+
+Bug fixes
+^^^^^^^^^
+
+* Fixed various issues where calling `TreeListView.RefreshObject()` could throw an exception
+* Fixed various issues regarding checkboxes on virtual lists
 * Fixed issue where virtual lists containing a single row didn't update hyperlinks on `MouseOver`
-* Added sanity check before `BuildGroups()`
+* Fixed issue where calling `TreeListView.CollapseAll()` when a filter was installed could throw an exception
 * Fixed some subtle bugs resulting from misuse of `TryGetValue()`
 * Several minor Resharper complaints quiesced.
 

@@ -162,6 +162,7 @@ To disable this ability, set `ObjectListView.ShowFilterMenuOnRightClick` to *fal
 
 To hide the 'Filter' menu item for a particular column, set `UsesFiltering` to *false* on that column.
 
+To clear all installed Excel-like filters, use `ObjectListView.ResetColumnFiltering()`.
 
 Changing the clustering
 ^^^^^^^^^^^^^^^^^^^^^^^
