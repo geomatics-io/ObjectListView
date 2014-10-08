@@ -5,6 +5,10 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * v2.8
+ * 2014-09-26   JPP  - Correct an incorrect use of checkStateMap when setting CheckedObjects
+ *                     and a CheckStateGetter is installed
+ * v2.6
  * 2012-06-13   JPP  - Corrected several bugs related to groups on virtual lists.
  *                   - Added EnsureNthGroupVisible() since EnsureGroupVisible() can't work on virtual lists.
  * v2.5.1
@@ -180,6 +184,11 @@ namespace BrightIdeasSoftware
         /// If the ListView is not currently showing CheckBoxes, this property does nothing. It does
         /// not remember any check box settings made.
         /// </para>
+        /// <para>
+        /// This class optimizes the mangement of CheckStates so that it will work efficiently even on
+        /// large lists of item. However, those optimizations are impossible if you install a CheckStateGetter.
+        /// Witha CheckStateGetter installed, the performance of this method is O(n) where n is the size 
+        /// of the list. This could be painfully slow.</para>
         /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -212,6 +221,13 @@ namespace BrightIdeasSoftware
             set {
                 if (!this.CheckBoxes)
                     return;
+
+                // If a custom check state getter is install, we can't use our check state management
+                // We have to use the (slower) base version.
+                if (this.CheckStateGetter != null) {
+                    base.CheckedObjects = value;
+                    return;
+                }
 
                 Stopwatch sw = Stopwatch.StartNew();
 
@@ -807,18 +823,16 @@ namespace BrightIdeasSoftware
         /// Do the plumbing to disable groups on a virtual list
         /// </summary>
         protected void DisableVirtualGroups() {
-            IntPtr x;
-
-            int err = NativeMethods.ClearGroups(this);
+            NativeMethods.ClearGroups(this);
             //System.Diagnostics.Debug.WriteLine(err);
 
             const int LVM_ENABLEGROUPVIEW = 0x1000 + 157;
-            x = NativeMethods.SendMessage(this.Handle, LVM_ENABLEGROUPVIEW, 0, 0);
+            IntPtr x = NativeMethods.SendMessage(this.Handle, LVM_ENABLEGROUPVIEW, 0, 0);
             //System.Diagnostics.Debug.WriteLine(x);
 
             const int LVM_SETOWNERDATACALLBACK = 0x10BB;
-            x = NativeMethods.SendMessage(this.Handle, LVM_SETOWNERDATACALLBACK, 0, 0);
-            //System.Diagnostics.Debug.WriteLine(x);
+            IntPtr x2 = NativeMethods.SendMessage(this.Handle, LVM_SETOWNERDATACALLBACK, 0, 0);
+            //System.Diagnostics.Debug.WriteLine(x2);
         }
 
         /// <summary>
