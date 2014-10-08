@@ -128,8 +128,9 @@ namespace BrightIdeasSoftware
             if (view == View.Details) {
                 // Of the still visible columns, change DisplayIndex to reflect their position in the rearranged list
                 olv.ChangeToFilteredColumns(view);
-                foreach (ColumnHeader col in visibleColumns) {
+                foreach (OLVColumn col in visibleColumns) {
                     col.DisplayIndex = visibleColumns.IndexOf((OLVColumn)col);
+                    col.LastDisplayIndex = col.DisplayIndex;
                 }
             } else {
                 // In Tile view, DisplayOrder does nothing. So to change the display order, we have to change the 
