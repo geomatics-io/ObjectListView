@@ -6,6 +6,7 @@
  *
  * Change log: 
  * v2.8
+ * 2014-09-26   JPP  - Dispose of animation timer in a more robust fashion.
  * 2014-05-20   JPP  - Handle rendering disabled rows
  * v2.7
  * 2013-04-29   JPP  - Fixed bug where Images were not vertically aligned
@@ -1318,10 +1319,10 @@ namespace BrightIdeasSoftware
         /// <param name="r">Bounds of the cell</param>
         protected virtual int DrawCheckBox(Graphics g, Rectangle r) {
             // TODO: Unify this with CheckStateRenderer
-            int imageIndex = this.ListItem.StateImageIndex;
 
             if (this.IsPrinting || this.UseCustomCheckboxImages) {
-                if (this.ListView.StateImageList == null || imageIndex < 0)
+                int imageIndex = this.ListItem.StateImageIndex;
+                if (this.ListView.StateImageList == null || imageIndex < 0 || imageIndex >= this.ListView.StateImageList.Images.Count)
                     return 0;
                 
                 return this.DrawImage(g, r, this.ListView.StateImageList.Images[imageIndex]) + 4;
