@@ -496,11 +496,15 @@ the same property.
 
 You can check all objects like this::
 
-    this.olv1.CheckedObjectsEnumerable = this.olv1.Objects;
+    [in v2.8] this.olv1.CheckAll();
+
+    [earlier versions] this.olv1.CheckedObjectsEnumerable = this.olv1.Objects;
 
 and unchecked all rows like this::
 
-    this.olv1.CheckedObjects = null;
+    [in v2.8] this.olv1.UncheckAll();
+
+    [earlier versions] this.olv1.CheckedObjects = null;
 
 
 Changing `Checked` property programmatically

@@ -1499,6 +1499,9 @@ namespace ObjectListViewDemo {
 
         private void InitializeFastListExample(List<Person> list) {
 
+            this.olvFast.CheckBoxes = true;
+            this.olvFast.TriStateCheckBoxes = true;
+
             this.olvColumn18.AspectGetter = delegate(object x) { return ((Person)x).Name; };
 
             this.olvColumn18.ImageGetter = delegate(object row) {
@@ -1818,7 +1821,7 @@ namespace ObjectListViewDemo {
         }
 
         private void olvFastList_ItemChecked(object sender, ItemCheckedEventArgs e) {
-            //System.Diagnostics.Debug.WriteLine("fast checked");
+            System.Diagnostics.Debug.WriteLine("fast checked: {0}", e.Item);
         }
 
         private void listViewSimple_ItemCheck(object sender, ItemCheckEventArgs e) {
@@ -1826,7 +1829,7 @@ namespace ObjectListViewDemo {
         }
 
         private void olvFastList_ItemCheck(object sender, ItemCheckEventArgs e) {
-            //System.Diagnostics.Debug.WriteLine("fast check");
+            System.Diagnostics.Debug.WriteLine("fast check: {0}->{1}", e.CurrentValue, e.NewValue);
         }
 
         private void checkBox19_CheckedChanged(object sender, EventArgs e) {
