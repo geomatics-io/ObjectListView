@@ -510,7 +510,7 @@ namespace BrightIdeasSoftware
                 this.UpdateVirtualListSize();
                 this.SelectedObjects = selection;
                 if (index < this.GetItemCount())
-                    this.RedrawItems(index, this.GetItemCount() - 1, false);
+                    this.RedrawItems(index, this.GetItemCount() - 1, true);
                 this.OnCollapsed(new TreeBranchCollapsedEventArgs(model, item));
             }
         }
@@ -533,7 +533,7 @@ namespace BrightIdeasSoftware
                 this.UpdateVirtualListSize();
                 this.SelectedObjects = selection;
                 if (index < this.GetItemCount())
-                    this.RedrawItems(index, this.GetItemCount() - 1, false);
+                    this.RedrawItems(index, this.GetItemCount() - 1, true);
                 this.OnCollapsed(new TreeBranchCollapsedEventArgs(null, null));
             }
         }
@@ -588,7 +588,7 @@ namespace BrightIdeasSoftware
                 this.SelectedObjects = selection;
 
             // Redraw the items that were changed by the expand operation
-            this.RedrawItems(index, this.GetItemCount() - 1, false);
+            this.RedrawItems(index, this.GetItemCount() - 1, true);
 
             this.OnExpanded(new TreeBranchExpandedEventArgs(model, item));
 
@@ -635,7 +635,7 @@ namespace BrightIdeasSoftware
             this.UpdateVirtualListSize();
             using (this.SuspendSelectionEventsDuring())
                 this.SelectedObjects = selection;
-            this.RedrawItems(index, this.GetItemCount() - 1, false);
+            this.RedrawItems(index, this.GetItemCount() - 1, true);
             this.OnExpanded(new TreeBranchExpandedEventArgs(null, null));
         }
 
@@ -782,7 +782,7 @@ namespace BrightIdeasSoftware
             this.SelectedObjects = selection;
 
             // Redraw everything from the first update to the end of the list
-            this.RedrawItems(firstChange, this.GetItemCount() - 1, false);
+            this.RedrawItems(firstChange, this.GetItemCount() - 1, true);
         }
 
         /// <summary>

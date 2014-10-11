@@ -5,9 +5,10 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2014-10-11  JPP  - Fixed some XP-only flicker issues
  * 2014-09-26  JPP  - Fixed intricate bug involving checkboxes on non-owner-drawn virtual lists.
  *                  - Fixed long standing (but previously unreported) error on non-details virtual lists where
- *                    users could not clicked on checkboxes.
+ *                    users could not click on checkboxes.
  * 2014-09-07  JPP  - (Major) Added ability to have checkboxes in headers
  *                  - CellOver events are raised when the mouse moves over the header. Set TriggerCellOverEventsWhenOverHeader
  *                    to false to disable this behaviour.
@@ -2846,12 +2847,14 @@ namespace BrightIdeasSoftware
         /// AND recreate the handle. Recreating the handle is a problem 
         /// since it makes our checkbox style disappear. 
         /// </para>
+        /// <para>
+        /// This property doesn't work on XP.</para>
         /// </remarks>
         [Category("ObjectListView"),
         Description("Will the control will show column headers in all views?"),
         DefaultValue(true)]
         public bool ShowHeaderInAllViews {
-            get { return showHeaderInAllViews; }
+            get { return ObjectListView.IsVistaOrLater && showHeaderInAllViews; }
             set {
                 if (showHeaderInAllViews == value)
                     return;
@@ -4609,6 +4612,7 @@ namespace BrightIdeasSoftware
                     if (hti.Item != null)
                     {
                         // We hit something! So, the original point must have been in cell 0
+                        hti.ColumnIndex = 0;
                         hti.SubItem = hti.Item.GetSubItem(0);
                         hti.Location = ListViewHitTestLocations.None;
                         hti.HitTestLocation = HitTestLocation.InCell;
@@ -7139,14 +7143,8 @@ namespace BrightIdeasSoftware
             }
 
             // Distribute the free space between the columns
-            try {
-                this.BeginUpdate();
-                foreach (OLVColumn col in spaceFillingColumns) {
-                    col.Width = (freeSpace*col.FreeSpaceProportion)/totalProportion;
-                }
-            }
-            finally {
-                this.EndUpdate();
+            foreach (OLVColumn col in spaceFillingColumns) {
+                col.Width = (freeSpace*col.FreeSpaceProportion)/totalProportion;
             }
         }
 

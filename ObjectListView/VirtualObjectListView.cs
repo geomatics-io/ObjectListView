@@ -1046,7 +1046,7 @@ namespace BrightIdeasSoftware
         /// <param name="olvi">The item to refresh</param>
         public override void RefreshItem(OLVListItem olvi) {
             this.ClearCachedInfo();
-            this.RedrawItems(olvi.Index, olvi.Index, false);
+            this.RedrawItems(olvi.Index, olvi.Index, true);
         }
 
         /// <summary>
