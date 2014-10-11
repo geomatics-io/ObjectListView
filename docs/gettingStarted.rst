@@ -152,6 +152,8 @@ a `ListView`. An `ObjectListView` needs a different mindset. If you can perform 
 mind-mangling step of changing your thinking, `ObjectListView` will be your best
 friend.
 
+.. _listviewitems-are-evil:
+
 Beware of `ListViewItems`. You never need to add `ListViewItems` to an
 `ObjectListView`. If you find yourself adding things to the `Items` collection,
 creating `ListViewItems`, or adding sub-items to anything, then you need to stop --

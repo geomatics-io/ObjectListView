@@ -412,36 +412,61 @@ The `ListViewReporter` code in ObjectListView project is up-to-date.
 10. How do I use checkboxes in my ObjectListView?
 -------------------------------------------------
 
-NOTE: Please read `Using checkboxes programmatically`_
-
-To uses checkboxes with an ObjectListView, you must set the `CheckBoxes`
+To uses checkboxes with an ObjectListView, you must set the `ObjectListView.CheckBoxes`
 property to  *true*. If you want the user to be able to give check boxes the
-*Indeterminate* value, you should set the `TriStateCheckBoxes` property to
+*Indeterminate* value, you should set the `ObjectListView.TriStateCheckBoxes` property to
 *true*.
 
-Setup
-^^^^^
+Owing to a limitation of the .NET ListView class, you cannot use `CheckBoxes` in `Tile` view.
+It just can't be done.
 
-To make the checkboxes work, you can:
+.. _using-checkboxes-programmatically:
 
-1. Do nothing else
+Using checkboxes programmatically
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-With just `CheckBoxes` set to  *true*, the check boxes act as a more durable
-form of selection.
+The `ObjectListView.CheckObjects` property allows you to get or set the collection of
+model objects that are currently checked. You can also use `ObjectListView.CheckAll()`
+and `ObjectListView.UncheckAll()` to (no surprise) check or uncheck all items.
 
-2. Use CheckedAspectName
+To decide if a particular model is checked, use `IsChecked()` or
+`IsCheckedIndeterminate()`.
 
-If your check box reflects data from your model, `CheckedAspectName` is the next
-possibility.
+To changed the "checked-ness" of a model, you should use:
 
-Specifically, if your model object already has a property that directly matches
+    * `CheckIndeterminateObject()`
+    * `CheckObject(object model)`
+    * `ToggleCheckObject()`
+    * `UncheckObject()`
+
+For sub-item checkboxes, there are the same collection of methods, but they take
+a `OLVColumn` parameter to indicate which subitem should be fetched or set.
+
+    * `CheckSubItem(object model, OLVColumn column)`
+    * `CheckIndeterminateSubItem(object model, OLVColumn column)`
+    * `IsSubItemChecked(object model, OLVColumn column)`
+    * `ToggleSubItem(object model, OLVColumn column)`
+    * `UncheckSubItem(object model, OLVColumn column)`
+
+Data bound checkboxes
+^^^^^^^^^^^^^^^^^^^^^
+
+Without doing anything else, 
+the check boxes act as a more durable form of selection.
+
+If you want the checkboxes to reflect some actual property in your model,
+you can bind the checkbox to a property in two ways: 
+
+1. Use `CheckedAspectName`
+
+If your model object already has a property that directly matches
 whether or not a row should be checked, a `CheckedAspectName` is the simplest
 approach. Simply set the `CheckedAspectName` to the name of your property, and
 the `ObjectListView` will handle everything else, both the getting and the
 setting of this property's value. The property must be of type `bool` (or of type
 `bool?` if you want to use tri-state).
 
-3. Use delegates
+2. Use `CheckStateGetter` and `CheckStatePutter`
 
 If `CheckedAspectName` is too simple for your needs, you can install
 `CheckStateGetter` and `CheckStatePutter` delegates. The first delegate is used to
@@ -469,79 +494,14 @@ Note that the `CheckStatePutter` returns the value that will actually be used.
 This doesn't have to be the same as the value that was given. So your delegate
 can refuse to accept the checking of a particular model if it wants.
 
-.. _using-checkboxes-programmatically:
-
-Using checkboxes programmatically
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Normal .Net `ListViews` support checkboxes -- but not on virtual lists.
-If you try to use `CheckIndicies` or `CheckedItems` on a virtual list,
-.NET will throw an exception.
-
-`ObjectListView` supports checkboxes on both virtual and non-virtual lists,
-but to do so, it has to use its own mechanism. To programmatically
-change checkboxes on an
-`ObjectListView`, you *must* use that mechanism -- trying to use the native
-.NET mechanism will only give you grief.
-
-`ObjectListView` still triggers
-the same `ItemCheck` and `ItemChecked` events know when a check box has changed value.
-You can still read the `Checked` property of a `ListViewItem` to know if that item is checked.
-However to modify a value
-programmatically, you cannot use .NET's normal mechanisms.
-
-To find all model objects that are checked, you use the
-`CheckedObjects` property. Similarly, you can change which rows are checked by setting
-the same property.
-
-You can check all objects like this::
-
-    [in v2.8] this.olv1.CheckAll();
-
-    [earlier versions] this.olv1.CheckedObjectsEnumerable = this.olv1.Objects;
-
-and unchecked all rows like this::
-
-    [in v2.8] this.olv1.UncheckAll();
-
-    [earlier versions] this.olv1.CheckedObjects = null;
-
-
-Changing `Checked` property programmatically
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If you *programmatically* set the `Checked` property on a list view item, you *must* do so through
-the `OLVListItem.Checked` property, NOT through the base class property, `ListViewItem.Checked`.
-If you programmatically set `ListViewItem.Checked`, `ObjectListView` will never know that you have
-set that value, and strange things will happen (specifically, the checkbox on that row will
-stop responding to clicks).
-
-So, this code -- which tries to toggle the checkedness of the
-selected rows -- will cause problems for your `ObjectListView`::
-
-    private void objectListView1_ItemActivate(object sender, EventArgs e) {
-	    foreach (ListViewItem lvi in objectListView1.SelectedItems)
-			lvi.Checked = !lvi.Checked;
-    }
-
-This will work -- once! After that, it will not work again. Worse, the check boxes will
-stop responding to user clicks. To work
-properly, you treat the items as `OLVListItem`::
-
-    private void objectListView1_ItemActivate(object sender, EventArgs e) {
-	    foreach (OLVListItem olvi in objectListView1.SelectedItems)
-			olvi.Checked = !olvi.Checked;
-    }
-
-This will work as expected.
-
-
 Sub-item checkboxes
 ^^^^^^^^^^^^^^^^^^^
 
-As of v2.1, `ObjectListViews` support a limited form of checkboxes on subitems.
-The `ObjectListView` can draw a checkbox in a cell, but not the text to the right of the box.
-To enable this, `UseSubItemCheckBoxes` must be set to true.
+`ObjectListViews` supports checkboxes on subitems.
+To enable this, `ObjectListView.UseSubItemCheckBoxes` must be set to true.
+
+Subitem checkboxes are always data-bound, i.e. they must be linked to a property on 
+your model objects.
 
 If `CheckBoxes` is True on a column, the aspect for that column will be
 interpreted as a boolean value and a check box will be displayed to represent
@@ -561,22 +521,72 @@ Setting either `CheckBoxes` or `TriStateCheckBoxes` on column 0 does nothing sin
 the check box on column 0 is the checkbox for the whole row. It is controlled by
 settings on the `ObjectListView` itself.
 
+Differences from .NET ListView CheckBoxes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Normal .Net `ListViews` support checkboxes -- but not on virtual lists.
+If you try to use the standard `ListView.CheckIndicies` or `ListView.CheckedItems` properties on, say,
+a `FastObjectListView` or a `TreeListView`, .NET will throw an exception.
+
+`ObjectListView` supports checkboxes on both virtual and non-virtual lists,
+but to do so, you *must* use the methods listed above -- trying to use the native
+.NET mechanism will only give you grief.
+
+`ObjectListView` will still trigger 
+the normal `ItemCheck` and `ItemChecked` events know when a check box has changed value.
+
+You can still read the `Checked` property of a `ListViewItem` to know if that item is checked 
+-- but remember that `ListViewItems` are evil and indicate :ref:`a lapse into the Dark Side <listviewitems-are-evil>`.
+
+To modify the `Checked` property programmatically, 
+it's best to use the above listed operations to get and set whether or not an object
+is checked. 
+
+However, if you really *have to* programmatically set the `Checked` property on a list view item, 
+you *must* do so through
+the `OLVListItem.Checked` property, NOT through the base class property, `ListViewItem.Checked`.
+If you programmatically set `ListViewItem.Checked`, `ObjectListView` will never know that you have
+set that value, and strange things will happen (specifically, the checkbox on that row will
+stop responding to clicks).
+
+So, this code -- which tries to toggle the checkedness of the
+selected rows -- will cause problems for your `ObjectListView`::
+
+    private void objectListView1_ItemActivate(object sender, EventArgs e) {
+        foreach (ListViewItem lvi in objectListView1.SelectedItems)
+            lvi.Checked = !lvi.Checked;
+    }
+
+This will work -- once! After that, it will not work again. Worse, the check boxes will
+stop responding to user clicks. To work
+properly, you treat the items as `OLVListItem`::
+
+    private void objectListView1_ItemActivate(object sender, EventArgs e) {
+        foreach (OLVListItem olvi in objectListView1.SelectedItems)
+            olvi.Checked = !olvi.Checked;
+    }
+
+This will work as expected. But much better would be to simply use `ToggleCheckObject()`.
+
 
 CheckBoxes and virtual lists
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The .NET `ListView` cannot have `CheckBoxes` on virtual lists. However,
+The standard .NET `ListView` cannot have `CheckBoxes` on virtual lists. However,
 `VirtualObjectListView` (and thus `FastObjectListView` and `TreeListView`)
-can support checkboxes. So now all flavours of `ObjectListView` support checkboxes equally.
+can support checkboxes. All flavours of `ObjectListView` support checkboxes equally.
 
 The only caveat for using check boxes on virtual lists is that, when a
-`CheckStateGetter` is installed, the control has to iterate the entire list when
+`CheckStateGetter` (or `BooleanCheckStateGetter`) is installed, the control has to iterate the entire list when
 the `CheckedObjects` property is read. Without a `CheckStateGetter`, the control
 assumes that nothing is checked until the user (or the programmer) explicitly
 checks it. So it knows which objects have been checked and can simply return
-them as the value of the `CheckedObjects` property. But when a `CheckStateGetter` is
+them as the value of the `CheckedObjects` property. 
+
+But when a `CheckStateGetter` is
 installed, the only way the control can know whether an object is checked is by
-calling the `CheckStateGetter` delegate. So to return the value of `CheckedObjects`
+calling the `CheckStateGetter` delegate for every object in the list. 
+So to return the value of `CheckedObjects`
 property, the control must iterate the whole list, asking in turn if this object
 is checked. This is fine if the list has only 100 or even 1000 objects, but if
 the list has 10,000,000 objects, your program is going to hang.
@@ -1329,12 +1339,14 @@ event. This event contains the group whose task was clicked.
 
 Funnily enough, yes, you can -- I'm glad you asked.
 
-The basic idea is that you decide which properties of your model class you want
-to display in the `ObjectListView.` You give those properties an `OLVColumn`
-attribute.
+The basic idea is that you give your model class to `Generator` class and it
+create columns for the public properties of your model.
+If you want to have more control over the generated columns,
+you can decorate your model's properties with a
+`OLVColumn` attribute.
 
-The `Generator` class looks at the properties of a class and
-generates columns for all the public properties. So, this line would
+The `Generator` class looks at the public properties of a class and
+generates columns for them. So, this line would
 generate columns in the `this.olv1` ObjectListView for all the public
 properties of `MyModelClass`::
 
@@ -1345,7 +1357,6 @@ looks at the first member of `myListOfObjects`, and based on its type,
 generates the columns of `this.olv1`::
 
     Generator.GenerateColumns(this.olv1, this.myListOfObjects);
-
 
 So, if there was a foreign exchange management application, one of its model classes
 might look like this::
@@ -2115,12 +2126,17 @@ being silly)::
     this.olv.DisabledItemStyle.BackColor = Color.FromArgb(30, 30, 35);
     this.olv.DisabledItemStyle.Font = new Font("Stencil", 10);
 
-.. image:: images/blog8-funnyformatting.png
+Disabled rows when not owner drawn
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Since this is a feature that the underlying control doesn't actually support, 
-it looks best when owner drawn (the above snapshots are both owner drawn). 
-In non-owner drawn, the images and check boxes are drawn normally 
-and look as if they can be used (but they can't).
+Obviously, the underlying ListView control doesn't actually support disabling rows.
+`ObjectListView` has to do a lot of work to make the ListView control look as if it can.
+
+As such, disabled rows look best when owner drawn (the above snapshot is in owner drawn mode). 
+In non-owner drawn mode, the row is disabled, but it doesn't look completely as if it is.
+The images and check boxes are drawn normally and look as if they can be used (but they can't).
+
+.. image:: images/blog8-greytext-colourimages.png
 
 .. _recipe-checkbox-in-header:
 
@@ -2129,7 +2145,7 @@ and look as if they can be used (but they can't).
 
 Also as of v2.8, column headers can have a checkbox:
 
-.. image:: images/column-header-checkbox1.png
+.. image:: images/column-headercheckbox-1.png
 
 Configuring
 ^^^^^^^^^^^
@@ -2186,7 +2202,5 @@ logic can now report header locations:
 On `OlvListViewHitTestInfo`, `ColumnIndex` and `HeaderDividerIndex` tell exactly which column or divider was hit.
 
 Changed in mouse location are primarily reported through `CellOver` events. These events are now also raised
-when the mouse moves over the header.
-
-Since this is different from previous versions, this behaviour can be disabled by setting 
-`ObjectListView.TriggerCellOverEventsWhenOverHeader` to `false`.
+when the mouse moves over the header. Since this is different from previous versions, this behaviour can be 
+disabled by setting `ObjectListView.TriggerCellOverEventsWhenOverHeader` to `false`.
