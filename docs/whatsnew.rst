@@ -7,8 +7,8 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
-September 2014 - Version 2.8
-----------------------------
+October 2014 - Version 2.8
+--------------------------
 
 New features
 ^^^^^^^^^^^^
@@ -26,6 +26,10 @@ Other changes
 * Changed default value of `ObjectListView.HeaderUsesThemes` from `true` to `false`. Too many people were being confused, trying to make something interesting appear in the header and nothing showing up
 * Final attempt to fix the issue with multiple hyperlink events being raised. This involves turning a `NM_CLICK` notification into a `NM_RCLICK`. Thanks to aaron for the initial report and investigation.
 * `TreeListView.CollapseAll()` now actually, you know, collapses all branches
+* The pre-build ObjectListView.dll in the ObjectListView download is now built against .NET 4.0.
+  This will make it able to be used directly in VS 2010 and later. For VS 2008 and 2005, the DLL will have to build
+  from the included source.
+* Added NuGet support. ObjectListView is now available as `ObjectListView.Official`.
 
 Bug fixes
 ^^^^^^^^^

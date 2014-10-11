@@ -9,10 +9,22 @@ Downloads
 
 OK. Now that you're interested, how do you actually get the code?
 
+NuGet Package
+-------------
+
+You can load ObjectListView via NuGet_. The package is named `ObjectListView.Official`.
+
+.. _NuGet: http://www.nuget.org
+
+This includes just `ObjectListView.dll`, not the demo, tests or other projects. For those addition resources, you should
+download the SourceForge package below.
+
+There are a couple of other ObjectListView packages but they are not managed by me. 
+
 Stable releases
 ---------------
 
-v2.8.0 released on 6 October 2014 is the most recent stable release.
+v2.8.0 released in October 2014 is the most recent stable release.
 
 `Click here to download the full package`_, which includes the ObjectListView control, demos, documentation and unit tests (2.9 MB).
 
@@ -41,9 +53,9 @@ Bleeding-edge source
 If you are a very keen developer, you can access the SVN repository directly for this
 project. The following SVN command will fetch the most recent version from the repository::
 
- svn co https://objectlistview.svn.sourceforge.net/svnroot/objectlistview/cs/trunk objectlistview
+ svn checkout svn://svn.code.sf.net/p/objectlistview/code/cs/trunk objectlistview-trunk
 
-There are details on `how to use Subversion here <https://sourceforge.net/p/forge/documentation/svn%20-%20Classic/>`_ on SourceForge.
+There are details on `how to use Subversion here <https://sourceforge.net/p/forge/documentation/svn/>`_ on SourceForge.
 
 Please remember that code within the SVN is bleeding edge. It has not been well-tested and
 is almost certainly full of bugs. If you just want to play with the ObjectListView, it's
