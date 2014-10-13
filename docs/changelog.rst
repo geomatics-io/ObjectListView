@@ -29,6 +29,12 @@ Version Index
 v2.8 - 12 October 2014
 ----------------------
 
+2014-10-11 19:14 (#753) - ObjectListView/VirtualObjectListView.cs, ObjectListView/TreeListView.cs, ObjectListView/ObjectListView.cs
+  - Fixed some XP-only flicker issues
+
+2014-10-11 19:13 (#752) - docs/gettingStarted.rst, docs/recipes.rst, ObjectListView/ObjectListView2012.nuspec, ObjectListView, ObjectListView2012.sln, docs/whatsnew.rst, , docs/.templates/layout.html, docs/conf.py, docs/changelog.rst, docs/download.rst
+  - Update docs ready for v2.8
+
 2014-10-08 22:45 (#751) - ObjectListView/ObjectListView2012.nuspec, ObjectListView2012.sln
   - Small environment changes
 
@@ -57,7 +63,7 @@ v2.8 - 12 October 2014
 2014-10-08 22:03 (#744) - ObjectListView/Implementation/NativeMethods.cs
   - Avoid errors on 64-bit machines caused by dumb casting to int
 
-2014-09-18 02:40 (#743) - ObjectListView/Implementation/Events.cs, Tests/TestGenerator.cs, packages/NUnit.2.6.2/lib/nunit.framework.xml, ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/ObjectListView.cs, ObjectListView/OLVColumn.cs, ObjectListView/Implementation/NativeMethods.cs, Tests/TestTreeView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Rendering/Renderers.cs, ObjectListView/SubControls/HeaderControl.cs, ObjectListView/Properties/AssemblyInfo.cs
+2014-09-18 02:40 (#743) - packages/NUnit.2.6.2/lib/nunit.framework.xml, ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/ObjectListView.cs, ObjectListView/OLVColumn.cs, ObjectListView/Implementation/NativeMethods.cs, Tests/TestTreeView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Rendering/Renderers.cs, ObjectListView/SubControls/HeaderControl.cs, ObjectListView/Properties/AssemblyInfo.cs, ObjectListView/Implementation/Events.cs, Tests/TestGenerator.cs
   - (Major) Added ability to have checkboxes in headers
   - CellOver events are raised when the mouse moves over the header. Set TriggerCellOverEventsWhenOverHeader to false to disable this behaviour.
   - Freeze/Unfreeze now use BeginUpdate/EndUpdate to disable Window level drawing
@@ -74,24 +80,24 @@ v2.8 - 12 October 2014
 2014-09-18 02:23 (#741) - ObjectListView/FastDataListView.cs
   - Exposed FastDataListView.AutoGenerateColumns
 
-2014-09-18 02:21 (#740) - ObjectListView/ObjectListView2010.ncrunchproject, ObjectListView/ObjectListView2012.ncrunchproject, packages/NUnit.2.6.2/lib, ListViewPrinterDemo/ListViewPrinterDemo2010.ncrunchproject, ListViewPrinterDemo/ListViewPrinterDemo2012.ncrunchproject, .nuget/NuGet.targets, ObjectListView/ObjectListView2008.ncrunchproject, ObjectListView/ObjectListView2012.nuspec, ObjectListView2010.ncrunchsolution, SparkleLibrary/SparkleLibrary2012.v2.ncrunchproject, ObjectListView2012.sln, ObjectListView2012.ncrunchsolution, ObjectListView/ObjectListView2012.csproj, packages/NUnit.2.6.2/NUnit.2.6.2.nupkg, SparkleLibrary/SparkleLibrary2010.ncrunchproject, ListViewPrinter/Properties/AssemblyInfo.cs, docs/index.rst, SparkleLibrary/SparkleLibrary2012.ncrunchproject, Demo/ObjectListViewDemo2012.v2.ncrunchproject, docs/images/column-headercheckbox-1.png, packages/repositories.config, Demo/ObjectListViewDemo2010.ncrunchproject, packages/NUnit.2.6.2, SparkleLibrary/SparkleLibrary2012.csproj, Demo/ObjectListViewDemo2012.ncrunchproject, ObjectListView2012.v2.ncrunchsolution, Tests/Tests2012.v2.ncrunchproject, .nuget/NuGet.Config, docs, packages/NUnit.2.6.2/lib/nunit.framework.dll, docs/recipes.rst, Tests/Tests2010.ncrunchproject, Tests/Tests2012.ncrunchproject, docs/whatsnew.rst, , .nuget, ObjectListView2010.sln.DotSettings, ObjectListView2012.sln.DotSettings, ListViewPrinter/ListViewPrinter2012.v2.ncrunchproject, Tests/Tests2012.csproj, ObjectListView/ObjectListView2012.v2.ncrunchproject, packages/NUnit.2.6.2/NUnit.2.6.2.nuspec, ListViewPrinter/ListViewPrinter2010.ncrunchproject, packages, ListViewPrinter/ListViewPrinter2012.ncrunchproject, ListViewPrinterDemo/ListViewPrinterDemo2012.v2.ncrunchproject, packages/NUnit.2.6.2/license.txt
+2014-09-18 02:21 (#740) - SparkleLibrary/SparkleLibrary2010.ncrunchproject, ListViewPrinter/Properties/AssemblyInfo.cs, ListViewPrinter/ListViewPrinter2012.v2.ncrunchproject, docs/index.rst, SparkleLibrary/SparkleLibrary2012.ncrunchproject, packages/repositories.config, ObjectListView/ObjectListView2012.v2.ncrunchproject, packages/NUnit.2.6.2/NUnit.2.6.2.nuspec, Demo/ObjectListViewDemo2010.ncrunchproject, packages/NUnit.2.6.2, ListViewPrinterDemo/ListViewPrinterDemo2012.v2.ncrunchproject, SparkleLibrary/SparkleLibrary2012.csproj, Demo/ObjectListViewDemo2012.ncrunchproject, docs, packages/NUnit.2.6.2/lib/nunit.framework.dll, docs/recipes.rst, Tests/Tests2010.ncrunchproject, SparkleLibrary/SparkleLibrary2012.v2.ncrunchproject, Tests/Tests2012.ncrunchproject, .nuget, ObjectListView2010.sln.DotSettings, ObjectListView2012.sln.DotSettings, Demo/ObjectListViewDemo2012.v2.ncrunchproject, docs/images/column-headercheckbox-1.png, Tests/Tests2012.csproj, ListViewPrinter/ListViewPrinter2010.ncrunchproject, packages, ListViewPrinter/ListViewPrinter2012.ncrunchproject, packages/NUnit.2.6.2/license.txt, ObjectListView/ObjectListView2010.ncrunchproject, ObjectListView2012.v2.ncrunchsolution, Tests/Tests2012.v2.ncrunchproject, ObjectListView/ObjectListView2012.ncrunchproject, packages/NUnit.2.6.2/lib, .nuget/NuGet.Config, ListViewPrinterDemo/ListViewPrinterDemo2010.ncrunchproject, ListViewPrinterDemo/ListViewPrinterDemo2012.ncrunchproject, .nuget/NuGet.targets, ObjectListView/ObjectListView2008.ncrunchproject, ObjectListView/ObjectListView2012.nuspec, ObjectListView2010.ncrunchsolution, ObjectListView2012.sln, ObjectListView2012.ncrunchsolution, ObjectListView/ObjectListView2012.csproj, docs/whatsnew.rst, , packages/NUnit.2.6.2/NUnit.2.6.2.nupkg
   - Added VS 2012
   - Added support for NCrunch
   - Added Nuget
 
-2014-09-18 02:16 (#739) - Demo/AssemblyInfo.cs, Demo/MainForm.resx, Demo/MainForm.Designer.cs, Demo/MainForm.cs
+2014-09-18 02:16 (#739) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/AssemblyInfo.cs, Demo/MainForm.resx
   - Small tweaks prior to v2.8
 
 2014-06-04 20:53 (#738) - Demo/AssemblyInfo.cs
   - Update copyright
 
-2014-06-04 20:35 (#737) - ObjectListView/Utilities/Generator.cs, ObjectListView/CellEditing/EditorRegistry.cs, ObjectListView/Implementation/Groups.cs, ObjectListView/Filtering/Cluster.cs, ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/SubControls/ToolTipControl.cs, ObjectListView/Implementation/NullableDictionary.cs, ObjectListView/Implementation/Attributes.cs, ObjectListView/Implementation/Enums.cs, ObjectListView/Utilities/TypedObjectListView.cs, ObjectListView/Rendering/Overlays.cs, ObjectListView/Implementation/VirtualListDataSource.cs, ObjectListView/ObjectListView.DesignTime.cs, ObjectListView/Filtering/ClusteringStrategy.cs, ObjectListView/Rendering/Adornments.cs, ObjectListView/SubControls/ToolStripCheckedListBox.cs, ObjectListView/Filtering/TextMatchFilter.cs, ObjectListView/SubControls/GlassPanelForm.cs, ObjectListView/ObjectListView2012.csproj, ObjectListView/Filtering/ClustersFromGroupsStrategy.cs, ObjectListView/Filtering/IClusteringStrategy.cs, ObjectListView/Implementation/TreeDataSourceAdapter.cs, ObjectListView/DragDrop/DragSource.cs, ObjectListView/Filtering/DateTimeClusteringStrategy.cs, ObjectListView/Implementation/GroupingParameters.cs, ObjectListView/SubControls/HeaderControl.cs, ObjectListView/Implementation/OLVListSubItem.cs, ObjectListView/Implementation/VirtualGroups.cs, ObjectListView/FastObjectListView.cs, ObjectListView/Filtering/ICluster.cs, ObjectListView/OLVColumn.cs, ObjectListView/FastDataListView.cs, ObjectListView/Implementation/DataSourceAdapter.cs, ObjectListView/Implementation/Comparers.cs, ObjectListView/Implementation/Munger.cs, ObjectListView/Implementation/Delegates.cs, ObjectListView/TreeListView.cs, ObjectListView/Rendering/Decorations.cs, ObjectListView/DragDrop/DropSink.cs, ObjectListView/Filtering/Filters.cs, ObjectListView/CellEditing/CellEditors.cs, ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/DataListView.cs
+2014-06-04 20:35 (#737) - ObjectListView/Filtering/ICluster.cs, ObjectListView/FastDataListView.cs, ObjectListView/Utilities/TypedObjectListView.cs, ObjectListView/Implementation/DataSourceAdapter.cs, ObjectListView/Implementation/Comparers.cs, ObjectListView/Implementation/Delegates.cs, ObjectListView/ObjectListView.DesignTime.cs, ObjectListView/TreeListView.cs, ObjectListView/SubControls/ToolStripCheckedListBox.cs, ObjectListView/Filtering/TextMatchFilter.cs, ObjectListView/Filtering/IClusteringStrategy.cs, ObjectListView/DataListView.cs, ObjectListView/DragDrop/DragSource.cs, ObjectListView/CellEditing/EditorRegistry.cs, ObjectListView/Implementation/GroupingParameters.cs, ObjectListView/SubControls/HeaderControl.cs, ObjectListView/SubControls/ToolTipControl.cs, ObjectListView/Implementation/OLVListSubItem.cs, ObjectListView/Implementation/Enums.cs, ObjectListView/OLVColumn.cs, ObjectListView/Rendering/Overlays.cs, ObjectListView/Implementation/Munger.cs, ObjectListView/Implementation/VirtualListDataSource.cs, ObjectListView/Filtering/ClusteringStrategy.cs, ObjectListView/Rendering/Decorations.cs, ObjectListView/Rendering/Adornments.cs, ObjectListView/SubControls/GlassPanelForm.cs, ObjectListView/DragDrop/DropSink.cs, ObjectListView/Filtering/Filters.cs, ObjectListView/CellEditing/CellEditors.cs, ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/ObjectListView2012.csproj, ObjectListView/Filtering/ClustersFromGroupsStrategy.cs, ObjectListView/Implementation/TreeDataSourceAdapter.cs, ObjectListView/Utilities/Generator.cs, ObjectListView/Filtering/DateTimeClusteringStrategy.cs, ObjectListView/Implementation/Groups.cs, ObjectListView/Filtering/Cluster.cs, ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Implementation/NullableDictionary.cs, ObjectListView/Implementation/VirtualGroups.cs, ObjectListView/FastObjectListView.cs, ObjectListView/Implementation/Attributes.cs
   - Update copyright
 
 2014-06-04 20:34 (#736) - ObjectListView/ObjectListView.cs
   - Added ability to disable rows. DisabledObjects, DisableObjects(), DisabledItemStyle
 
-2014-06-04 20:32 (#735) - ObjectListView/Rendering/Renderers.cs, ObjectListView/Rendering/Styles.cs
+2014-06-04 20:32 (#735) - ObjectListView/Rendering/Styles.cs, ObjectListView/Rendering/Renderers.cs
   - Added support for disabled rows
 
 2014-06-04 20:30 (#734) - ObjectListView/Implementation/Events.cs
@@ -113,13 +119,13 @@ v2.8 - 12 October 2014
 2014-06-04 20:26 (#729) - ListViewPrinter/Properties/AssemblyInfo.cs
   - Update copyright
 
-2014-06-04 20:26 (#728) - docs/.static/objectlistview32.png, docs/blog.rst, docs/images/blog8-funnyformatting.png, docs/.templates/layout.html, docs/index.rst, docs/images/blog8-allgrey.png, docs/recipes.rst, docs/blog8.rst, docs/images/blog8-greytext-colourimages.png, docs/.static/blog8-icon.png
+2014-06-04 20:26 (#728) - docs/blog8.rst, docs/images/blog8-greytext-colourimages.png, docs/.static/blog8-icon.png, docs/.static/objectlistview32.png, docs/blog.rst, docs/images/blog8-funnyformatting.png, docs/.templates/layout.html, docs/index.rst, docs/images/blog8-allgrey.png, docs/recipes.rst
   - Added documentation on disable rows
 
-2014-06-04 20:23 (#727) - SparkleLibrary/Sprites/ShapeSprite.cs, SparkleLibrary/Locators/Locators.cs, SparkleLibrary/Animation/Animation.cs, SparkleLibrary/Sprites/Sprite.cs
+2014-06-04 20:23 (#727) - SparkleLibrary/Locators/Locators.cs, SparkleLibrary/Animation/Animation.cs, SparkleLibrary/Sprites/Sprite.cs, SparkleLibrary/Sprites/ShapeSprite.cs
   - Update copyright
 
-2014-04-26 00:39 (#726) - ObjectListView/ObjectListView.cs, ObjectListView/VirtualObjectListView.cs, Tests/Tests2012.csproj
+2014-04-26 00:39 (#726) - ObjectListView/VirtualObjectListView.cs, Tests/Tests2012.csproj, ObjectListView/ObjectListView.cs
   - Fixed bug where virtual lists containing a single row didn't update hyperlinks on mouse over
   - Added sanity check before BuildGroups()
 
@@ -147,13 +153,13 @@ v2.7 - 28 February 2014
 2014-02-23 17:51 (#719) - ObjectListView/ObjectListView.cs, ObjectListView/Implementation/NativeMethods.cs
   - Fixed a bug with ShowHeaderInAllViews (another one!) where setting it to false caused the list to lose its other extended styles, leading to nasty flickering and worse.
 
-2014-02-23 16:59 (#718) - Demo/MainForm.resx, docs/features.rst, docs/.static/blog7-icon.png, docs/blog.rst, docs/olv-sandcastle.shfbproj, docs/.templates/layout.html, docs/changelog.rst, docs/recipes.rst, Demo/MainForm.Designer.cs, docs/whatsnew.rst, Demo/MainForm.cs, docs/conf.py, Demo/Resources/coffee.jpg, docs/index.rst, docs/download.rst, docs/images/hierarchical-checkboxes-1.png, docs/blog7.rst
+2014-02-23 16:59 (#718) - docs/blog.rst, docs/olv-sandcastle.shfbproj, docs/.templates/layout.html, docs/changelog.rst, docs/recipes.rst, Demo/MainForm.Designer.cs, docs/whatsnew.rst, Demo/MainForm.cs, docs/conf.py, Demo/Resources/coffee.jpg, docs/index.rst, docs/download.rst, docs/images/hierarchical-checkboxes-1.png, docs/blog7.rst, Demo/MainForm.resx, docs/features.rst, docs/.static/blog7-icon.png
   - Update docs and demo for v2.7
 
 2014-02-23 16:51 (#717) - Tests/TestBasics.cs, Tests/TestTreeView.cs, Tests/packages.config
   - More tests :)
 
-2014-02-12 20:39 (#716) - ObjectListView/TreeListView.cs, ObjectListView/ObjectListView.cs
+2014-02-12 20:39 (#716) - ObjectListView/ObjectListView.cs, ObjectListView/TreeListView.cs
   - AddObjects() now adds objects to the end of the list even if filtering is turned on
   - ShowHeaderInAllViews now works on virtual lists
 
@@ -181,7 +187,7 @@ v2.7 - 28 February 2014
 2014-02-05 13:19 (#710) - Demo/ShellUtilities.cs
   - Resize shell images to match the current image size on the control
 
-2014-02-05 13:18 (#709) - ListViewPrinterDemo/ListViewPrinterDemo2012.csproj, ListViewPrinter/ListViewPrinter2012.csproj, Tests/Tests2012.csproj, Demo/ObjectListViewDemo2012.csproj, Tests/Tests2005.csproj, Demo/ObjectListViewDemo2005.csproj, ObjectListView2012.sln, Tests/Tests2008.csproj, ObjectListView/ObjectListView2012.csproj, Demo/ObjectListViewDemo2008.csproj
+2014-02-05 13:18 (#709) - Demo/ObjectListViewDemo2012.csproj, Tests/Tests2005.csproj, Demo/ObjectListViewDemo2005.csproj, ObjectListView2012.sln, Tests/Tests2008.csproj, ObjectListView/ObjectListView2012.csproj, Demo/ObjectListViewDemo2008.csproj, ListViewPrinterDemo/ListViewPrinterDemo2012.csproj, ListViewPrinter/ListViewPrinter2012.csproj, Tests/Tests2012.csproj
   - Added VS 2012 solution
 
 2014-02-05 13:17 (#708) - ObjectListView/Implementation/Events.cs, ObjectListView/ObjectListView.cs, ObjectListView/OLVColumn.cs
@@ -196,17 +202,17 @@ v2.7 - 28 February 2014
 2014-01-28 06:46 (#705) - ObjectListView/ObjectListView.cs
   - Remove experimental CheckBoxSettings (which somehow escaped into the wild)
 
-2013-12-04 21:54 (#704) - ObjectListView/VirtualObjectListView.cs, ObjectListView/TreeListView.cs, ObjectListView/ObjectListView.cs
+2013-12-04 21:54 (#704) - ObjectListView/ObjectListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/TreeListView.cs
   - Moved event triggers into Collapse() and Expand() so that the events are always triggered.
   - CheckedObjects now includes objects that are in a branch that is currently collapsed
   - CollapseAll() and ExpandAll() now trigger cancellable events
   - Added TreeFactory to allow the underlying Tree to be replaced by another implementation.
   - HierarchicalCheckboxes now seems to work in all cases
 
-2013-12-04 21:50 (#703) - Tests/TestTreeView.cs, Tests/TestColumn.cs, Tests/TestCheckBoxes.cs, Tests/TestBasics.cs, Tests/Person.cs, Tests/MainForm.cs, Tests/TestNotifications.cs
+2013-12-04 21:50 (#703) - Tests/TestBasics.cs, Tests/Person.cs, Tests/MainForm.cs, Tests/TestNotifications.cs, Tests/TestTreeView.cs, Tests/TestColumn.cs, Tests/TestCheckBoxes.cs
   - Added lots more unit tests
 
-2013-12-04 21:49 (#702) - Demo/MainForm.cs, Demo/MainForm.resx, Demo/MainForm.Designer.cs
+2013-12-04 21:49 (#702) - Demo/MainForm.resx, Demo/MainForm.Designer.cs, Demo/MainForm.cs
   - Minor changes to test HierarchicalCheckboxes
 
 2013-11-24 13:31 (#701) - Tests/TestFlagClusteringStrategy.cs, Tests/TestTypedListView.cs, Tests/TestDateClusteringStrategy.cs
@@ -222,14 +228,14 @@ v2.7 - 28 February 2014
   - Fixed bug in RefreshObjects() when model objects overrode the Equals()/GetHashCode() methods.
   - Made sure get state checker were used when they should have been
 
-2013-09-24 00:16 (#697) - ObjectListView/VirtualObjectListView.cs, ObjectListView/TreeListView.cs, ObjectListView/FastObjectListView.cs
+2013-09-24 00:16 (#697) - ObjectListView/FastObjectListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/TreeListView.cs
   - Added support for new UpdateObject() method
   - Fixed bugs in existing RefreshObjects()
 
-2013-09-24 00:15 (#696) - Tests/TestBasics.cs, Tests/Person.cs, Tests/TestFilters.cs, Tests/TestNotifications.cs, Tests/TestTreeView.cs, Tests/TestCheckBoxes.cs, Tests/Tests2010.csproj, Tests/TestExport.cs
+2013-09-24 00:15 (#696) - Tests/TestCheckBoxes.cs, Tests/Tests2010.csproj, Tests/TestExport.cs, Tests/TestBasics.cs, Tests/Person.cs, Tests/TestFilters.cs, Tests/TestNotifications.cs, Tests/TestTreeView.cs
   - Added more tests, especially around RefreshObject()
 
-2013-08-18 16:49 (#695) - ObjectListView/Filtering/FlagClusteringStrategy.cs, ObjectListView/DragDrop/OLVDataObject.cs, ObjectListView/ObjectListView.DesignTime.cs, ObjectListView/Properties/AssemblyInfo.cs, ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/ObjectListView.cs, ObjectListView/OLVColumn.cs
+2013-08-18 16:49 (#695) - ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/ObjectListView.cs, ObjectListView/OLVColumn.cs, ObjectListView/Filtering/FlagClusteringStrategy.cs, ObjectListView/DragDrop/OLVDataObject.cs, ObjectListView/ObjectListView.DesignTime.cs, ObjectListView/Properties/AssemblyInfo.cs
   - Clicking on a non-groupable column header when showing groups will now sort the group contents by that column.
   - Added more docs
 
@@ -259,7 +265,7 @@ v2.6 - 01 November 2012
 2012-10-30 20:13 (#687) - ObjectListView/TreeListView.cs
   - Circumvent annoying bug in ListView control where changing selection would leave artefacts on the control.
 
-2012-10-16 09:28 (#686) - docs/recipes.rst, Demo/MainForm.resx, Tests/TestGenerator.cs, docs/features.rst, ObjectListView/ObjectListView.cs, Demo/MainForm.Designer.cs, docs/whatsnew.rst, Demo/MainForm.cs, ObjectListView/Utilities/Generator.cs, docs/.templates/layout.html, docs/changelog.rst
+2012-10-16 09:28 (#686) - ObjectListView/Utilities/Generator.cs, docs/.templates/layout.html, docs/changelog.rst, docs/recipes.rst, Demo/MainForm.resx, Tests/TestGenerator.cs, docs/features.rst, ObjectListView/ObjectListView.cs, Demo/MainForm.Designer.cs, docs/whatsnew.rst, Demo/MainForm.cs
   - Small changes preparing for v2.6 release
 
 2012-10-13 17:11 (#685) - ObjectListView/TreeListView.cs
@@ -288,10 +294,10 @@ v2.6 - 01 November 2012
 2012-10-13 16:57 (#680) - ObjectListView/Filtering/TextMatchFilter.cs
   - Allow filtering to consider additional columns
 
-2012-10-13 16:56 (#679) - Demo/MainForm.cs, Demo/MainForm.resx, Demo/ObjectListViewDemo2005.csproj, Demo/MainForm.Designer.cs
+2012-10-13 16:56 (#679) - Demo/MainForm.resx, Demo/ObjectListViewDemo2005.csproj, Demo/MainForm.Designer.cs, Demo/MainForm.cs
   - Show off treeview data binding
 
-2012-08-22 21:53 (#678) - Tests/TestBasics.cs, Tests/TestSelection.cs, Tests/TestGenerator.cs, Tests/TestColumn.cs
+2012-08-22 21:53 (#678) - Tests/TestColumn.cs, Tests/TestBasics.cs, Tests/TestSelection.cs, Tests/TestGenerator.cs
   - Added tests for EffectiveRowHeight, IgnoreMissingAspects
   - Added tests for not raising selection events whilst rebuilding the list
   - Added tests for [OLVChildren] and [OLVIgnore]
@@ -336,10 +342,10 @@ v2.6 - 01 November 2012
   - Added [OLVChildren] and [OLVIgnore]
   - OLV attributes can now only be set on properties
 
-2012-08-08 22:41 (#667) - docs/features.rst, docs/whatsnew.rst, docs/.templates/layout.html, docs/conf.py, docs/changelog.rst, docs/download.rst, docs/index.rst, docs/recipes.rst
+2012-08-08 22:41 (#667) - docs/recipes.rst, docs/features.rst, docs/whatsnew.rst, docs/.templates/layout.html, docs/conf.py, docs/changelog.rst, docs/download.rst, docs/index.rst
   - Updated docs in preparation for v2.6 release
 
-2012-08-08 22:40 (#666) - Tests/Tests2010.csproj, Tests/TestExport.cs, Tests/Tests2005.csproj, Tests/TestGenerator.cs, Tests/Tests2008.csproj
+2012-08-08 22:40 (#666) - Tests/Tests2005.csproj, Tests/TestGenerator.cs, Tests/Tests2008.csproj, Tests/Tests2010.csproj, Tests/TestExport.cs
   - Added tests for OLVExporter
   - Added tests for Generator without [OLVColumn] attributes
 
@@ -368,7 +374,7 @@ v2.6 - 01 November 2012
   - Added CellPadding to various places. Replaced DescribedTaskRenderer.CellPadding.
   - Added CellVerticalAlignment to various places allow cell contents to be vertically aligned (rather than always being centered)
 
-2012-08-06 10:27 (#659) - ObjectListView/Implementation/OLVListSubItem.cs, ObjectListView/Implementation/OLVListItem.cs
+2012-08-06 10:27 (#659) - ObjectListView/Implementation/OLVListItem.cs, ObjectListView/Implementation/OLVListSubItem.cs
   - Added CellPadding and CellVerticalAlignment properties
 
 2012-08-06 10:27 (#658) - ObjectListView/Implementation/NullableDictionary.cs
@@ -419,7 +425,7 @@ v2.6 - 01 November 2012
 2012-06-11 14:31 (#643) - Demo/MainForm.resx, Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/FamilyTree.xml, Demo/ObjectListViewDemo2010.csproj
   - Added Data-bound tree list view
 
-2012-06-11 14:30 (#642) - Tests/TestBasics.cs, Tests/Tests2005.csproj, Tests/TestSorting.cs, Tests/Person.cs, Tests/Tests2008.csproj, Tests/TestFilters.cs, Tests/TestNotifications.cs, Tests/Tests2010.csproj
+2012-06-11 14:30 (#642) - Tests/Tests2010.csproj, Tests/TestBasics.cs, Tests/Tests2005.csproj, Tests/TestSorting.cs, Tests/Person.cs, Tests/Tests2008.csproj, Tests/TestFilters.cs, Tests/TestNotifications.cs
   - Added new clustering tests
   - Added notification tests
 
@@ -459,7 +465,7 @@ v2.6 - 01 November 2012
 2012-06-11 13:55 (#632) - ObjectListView/DragDrop/DropSink.cs
   - Added UseDefaultCursors which allows the user to choose if default cursors will be used during drag and drop operations
 
-2012-06-11 13:55 (#631) - ObjectListView/Filtering/DateTimeClusteringStrategy.cs, ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/Filtering/ClusteringStrategy.cs, ObjectListView/Filtering/Filters.cs, ObjectListView/Filtering/IClusteringStrategy.cs, ObjectListView/Filtering/FlagClusteringStrategy.cs
+2012-06-11 13:55 (#631) - ObjectListView/Filtering/Filters.cs, ObjectListView/Filtering/IClusteringStrategy.cs, ObjectListView/Filtering/FlagClusteringStrategy.cs, ObjectListView/Filtering/DateTimeClusteringStrategy.cs, ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/Filtering/ClusteringStrategy.cs
   - Allow the same model object to be in multiple clusters. Useful for xor'ed flag fields, and multi-value strings (e.g. hobbies that are stored as comma separated values).
   - Added CreateFilter to IClusteringStrategy interface
   - Added FlagClusteringStrategy, which groups model objects based on an xor-ed collection of bit flags
@@ -480,16 +486,16 @@ v2.6 - 01 November 2012
 2012-05-07 16:14 (#626) - ObjectListView/Rendering/Overlays.cs
   - Don't draw a text overlay if it has no text
 
-2012-05-07 16:14 (#625) - docs/whatsnew.rst, docs/blog.rst, docs/.templates/layout.html, docs/changelog.rst, docs/index.rst, docs/blog6.rst
+2012-05-07 16:14 (#625) - docs/.templates/layout.html, docs/changelog.rst, docs/index.rst, docs/blog6.rst, docs/whatsnew.rst, docs/blog.rst
   - Ready for 2.5.1 release
 
 2012-05-04 23:38 (#624) - ObjectListView/ObjectListView.cs
   - Added ObjectListView.IgnoreMissingAspects static property
 
-2012-05-04 23:37 (#623) - ObjectListView/DragDrop/DropSink.cs, ObjectListView/Filtering/Filters.cs, ObjectListView/CellEditing/CellEditors.cs, ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/Implementation/NativeMethods.cs, ObjectListView/DataListView.cs, ObjectListView/Utilities/Generator.cs, ObjectListView/CellEditing/EditorRegistry.cs, ObjectListView/Filtering/Cluster.cs, ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/SubControls/ToolTipControl.cs, ObjectListView/Implementation/NullableDictionary.cs, ObjectListView/Implementation/Attributes.cs, ObjectListView/Implementation/Enums.cs, ObjectListView/Utilities/TypedObjectListView.cs, ObjectListView/Rendering/Overlays.cs, ObjectListView/Implementation/VirtualListDataSource.cs, ObjectListView/DragDrop/OLVDataObject.cs, ObjectListView/Filtering/ClusteringStrategy.cs, ObjectListView/Properties/AssemblyInfo.cs, ObjectListView/Rendering/Adornments.cs, ObjectListView/SubControls/ToolStripCheckedListBox.cs, ObjectListView/Filtering/TextMatchFilter.cs, ObjectListView/SubControls/GlassPanelForm.cs, ObjectListView/ObjectListView2010.csproj, ObjectListView/Filtering/IClusteringStrategy.cs, ObjectListView/Filtering/ClustersFromGroupsStrategy.cs, docs/.static/flicker-gone.swf, ObjectListView/Implementation/OLVListItem.cs, ObjectListView/DragDrop/DragSource.cs, ObjectListView/Rendering/Styles.cs, ObjectListView/Filtering/DateTimeClusteringStrategy.cs, ObjectListView/Implementation/GroupingParameters.cs, ObjectListView/Rendering/Renderers.cs, ObjectListView/SubControls/HeaderControl.cs, docs/blog6.rst, ObjectListView/CellEditing/CellEditKeyEngine.cs, docs/.static/flicker.swf, ObjectListView/Implementation/OLVListSubItem.cs, ObjectListView/FastObjectListView.cs, ObjectListView/Implementation/VirtualGroups.cs, ObjectListView/Filtering/ICluster.cs, docs/.static/blog6-icon.png, ObjectListView/OLVColumn.cs, ObjectListView/FastDataListView.cs, ObjectListView/Implementation/Comparers.cs, ObjectListView/Implementation/DataSourceAdapter.cs, docs/olv-sandcastle.shfbproj, ObjectListView/Implementation/Delegates.cs, ObjectListView/Implementation/Munger.cs, ObjectListView/TreeListView.cs, ObjectListView/Rendering/Decorations.cs, docs/recipes.rst
+2012-05-04 23:37 (#623) - ObjectListView/FastObjectListView.cs, ObjectListView/Implementation/VirtualGroups.cs, ObjectListView/Implementation/Attributes.cs, ObjectListView/Filtering/ICluster.cs, ObjectListView/FastDataListView.cs, ObjectListView/Utilities/TypedObjectListView.cs, ObjectListView/Implementation/Comparers.cs, ObjectListView/Implementation/DataSourceAdapter.cs, docs/olv-sandcastle.shfbproj, ObjectListView/Implementation/Delegates.cs, ObjectListView/TreeListView.cs, ObjectListView/Properties/AssemblyInfo.cs, ObjectListView/SubControls/ToolStripCheckedListBox.cs, docs/recipes.rst, ObjectListView/Filtering/TextMatchFilter.cs, ObjectListView/Filtering/IClusteringStrategy.cs, docs/.static/flicker-gone.swf, ObjectListView/Implementation/NativeMethods.cs, ObjectListView/DragDrop/DragSource.cs, ObjectListView/DataListView.cs, ObjectListView/CellEditing/EditorRegistry.cs, ObjectListView/Implementation/GroupingParameters.cs, ObjectListView/Rendering/Renderers.cs, ObjectListView/SubControls/HeaderControl.cs, ObjectListView/CellEditing/CellEditKeyEngine.cs, ObjectListView/SubControls/ToolTipControl.cs, ObjectListView/Implementation/OLVListSubItem.cs, ObjectListView/Implementation/Enums.cs, docs/.static/blog6-icon.png, ObjectListView/OLVColumn.cs, ObjectListView/Rendering/Overlays.cs, ObjectListView/Implementation/Munger.cs, ObjectListView/Implementation/VirtualListDataSource.cs, ObjectListView/DragDrop/OLVDataObject.cs, ObjectListView/Filtering/ClusteringStrategy.cs, ObjectListView/Rendering/Adornments.cs, ObjectListView/Rendering/Decorations.cs, ObjectListView/SubControls/GlassPanelForm.cs, ObjectListView/ObjectListView2010.csproj, ObjectListView/DragDrop/DropSink.cs, ObjectListView/Filtering/Filters.cs, ObjectListView/CellEditing/CellEditors.cs, ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/Filtering/ClustersFromGroupsStrategy.cs, ObjectListView/Implementation/OLVListItem.cs, ObjectListView/Rendering/Styles.cs, ObjectListView/Utilities/Generator.cs, ObjectListView/Filtering/DateTimeClusteringStrategy.cs, ObjectListView/Filtering/Cluster.cs, ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/VirtualObjectListView.cs, docs/blog6.rst, docs/.static/flicker.swf, ObjectListView/Implementation/NullableDictionary.cs
   - Avoid bug/feature in ListView.VirtalListSize setter that causes flickering when the size of the list changes.
 
-2012-04-30 23:48 (#622) - Tests/TestCheckBoxes.cs, Tests/TestFilters.cs, Tests/TestTreeView.cs
+2012-04-30 23:48 (#622) - Tests/TestFilters.cs, Tests/TestTreeView.cs, Tests/TestCheckBoxes.cs
   - Exercised a few more code paths through TreeListView
 
 2012-04-30 23:48 (#621) - ObjectListView/TreeListView.cs
@@ -500,7 +506,7 @@ v2.6 - 01 November 2012
 2012-04-30 23:47 (#620) - ObjectListView/ObjectListView.cs, ObjectListView/VirtualObjectListView.cs
   - Updated some doc comments
 
-2012-04-30 23:47 (#619) - docs/blog.rst, docs/filtering.rst, docs/conf.py, docs/changelog.rst, docs/index.rst, docs/blog5.rst, docs/recipes.rst, docs/images/setbkimage.png, docs/images/setbkimage2.png, docs/whatsnew.rst
+2012-04-30 23:47 (#619) - docs/conf.py, docs/changelog.rst, docs/index.rst, docs/blog5.rst, docs/recipes.rst, docs/images/setbkimage.png, docs/images/setbkimage2.png, docs/whatsnew.rst, docs/blog.rst, docs/filtering.rst
   - Major update to blog about listview groups
   - Add new docs about native background images
   - Updated ready for 2.5.1 release
@@ -512,13 +518,13 @@ v2.6 - 01 November 2012
   - Correctly categorize properties and events for the Designer
   - Hide group related properties and events on TreeListViews in designer.
 
-2012-04-25 20:21 (#616) - docs/blog.rst, docs/.templates/layout.html, docs/conf.py, docs/blog4.rst, docs/faq.rst, docs/index.rst, docs/blog5.rst, docs/images/ClassDiagram-VirtualList.png, docs/images/ClassDiagram.png, docs/.static/blog5-icon.png, docs/ClassDiagram.dia, docs/dragdrop.rst
+2012-04-25 20:21 (#616) - docs/dragdrop.rst, docs/blog.rst, docs/.templates/layout.html, docs/conf.py, docs/blog4.rst, docs/faq.rst, docs/index.rst, docs/blog5.rst, docs/images/ClassDiagram-VirtualList.png, docs/images/ClassDiagram.png, docs/.static/blog5-icon.png, docs/ClassDiagram.dia
   - Added new blog about improving ListViewGroups
 
-2012-04-25 20:19 (#615) - Demo/MainForm.resx, Demo/MainForm.Designer.cs, Demo/MainForm.cs
+2012-04-25 20:19 (#615) - Demo/MainForm.cs, Demo/MainForm.resx, Demo/MainForm.Designer.cs
   - Show what is under the mouse in the status bar
 
-2012-04-25 20:18 (#614) - ObjectListView/Implementation/Groups.cs, ObjectListView/Implementation/Events.cs, ObjectListView/DragDrop/DropSink.cs, ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/Implementation/NativeMethods.cs, ObjectListView/Implementation/OLVListItem.cs
+2012-04-25 20:18 (#614) - ObjectListView/Implementation/Events.cs, ObjectListView/DragDrop/DropSink.cs, ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/Implementation/NativeMethods.cs, ObjectListView/Implementation/OLVListItem.cs, ObjectListView/Implementation/Groups.cs
   - Added group state change and group expansion events
   - Improved hit testing to include groups
 
@@ -544,22 +550,22 @@ v2.6 - 01 November 2012
 2012-04-14 16:05 (#608) - ObjectListView/CellEditing/CellEditKeyEngine.cs
   - Fixed bug where, on a OLV with only a single editable column, tabbing to change rows would edit the cell above rather than the cell below the cell being edited.
 
-2012-04-14 15:41 (#607) - ObjectListView/Implementation/Groups.cs, ObjectListView/Implementation/Events.cs, ObjectListView/ObjectListView.cs, ObjectListView/Implementation/NativeMethods.cs
+2012-04-14 15:41 (#607) - ObjectListView/Implementation/Events.cs, ObjectListView/ObjectListView.cs, ObjectListView/Implementation/NativeMethods.cs, ObjectListView/Implementation/Groups.cs
   - Added GroupStateChanged event. Useful for knowing when a group is collapsed/expanded.
 
-2012-04-12 14:15 (#606) - Tests/MainForm.resx, Tests/MainForm.Designer.cs, Tests/SetupTestSuite.cs, Tests/TestCheckBoxes.cs
+2012-04-12 14:15 (#606) - Tests/SetupTestSuite.cs, Tests/TestCheckBoxes.cs, Tests/MainForm.resx, Tests/MainForm.Designer.cs
   - Added tests for PersistentCheckBoxes
 
-2012-04-12 14:14 (#605) - ObjectListView/Filtering/Filters.cs, ObjectListView/Resources/coffee.jpg, ObjectListView/ObjectListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Rendering/Renderers.cs, ObjectListView/SubControls/HeaderControl.cs
+2012-04-12 14:14 (#605) - ObjectListView/ObjectListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Rendering/Renderers.cs, ObjectListView/SubControls/HeaderControl.cs, ObjectListView/Filtering/Filters.cs, ObjectListView/Resources/coffee.jpg
   - Added PersistentCheckBoxes property
 
-2012-04-12 14:14 (#604) - ListViewPrinterDemo/Properties/Resources.resx, ListViewPrinterDemo/Properties/Resources.Designer.cs
+2012-04-12 14:14 (#604) - ListViewPrinterDemo/Properties/Resources.Designer.cs, ListViewPrinterDemo/Properties/Resources.resx
   - Removed unused resource compass16
 
 2012-04-12 14:13 (#603) - docs/recipes.rst
   - Added docs about PersistentCheckBoxes
 
-2012-04-12 14:12 (#602) - Demo/MainForm.resx, Demo/MainForm.Designer.cs, Demo/MainForm.cs
+2012-04-12 14:12 (#602) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
   - Changed demo to use additionalFilter rather than ModelFilter
 
 2012-04-07 15:40 (#601) - ObjectListView/ObjectListView.cs, ObjectListView/TreeListView.cs
@@ -574,7 +580,7 @@ v2.6 - 01 November 2012
 2012-04-07 15:19 (#598) - ObjectListView/Implementation/Munger.cs
   - Fix bug that appears when a class has an Item() method with zero parameters
 
-2012-04-07 15:17 (#597) - Demo/MainForm.resx, Demo/MainForm.Designer.cs, Demo/MainForm.cs
+2012-04-07 15:17 (#597) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/MainForm.resx
   - Exercise a few more code paths in the demo
 
 2012-04-07 15:14 (#596) - ObjectListView/ObjectListView.cs
@@ -624,7 +630,7 @@ v2.5 - 06 June 2011
   - Made setting CheckedObjects more efficient on large collections
   - Deprecated GetSelectedObject() and GetSelectedObjects()
 
-2011-06-04 22:26 (#579) - ObjectListView/ObjectListView2008.csproj, ObjectListView/ObjectListView2010.csproj, ObjectListView/ObjectListView2005.csproj
+2011-06-04 22:26 (#579) - ObjectListView/ObjectListView2010.csproj, ObjectListView/ObjectListView2005.csproj, ObjectListView/ObjectListView2008.csproj
   - Added columnselectionform.resx to projects
 
 2011-06-04 22:26 (#578) - ObjectListView/Utilities/TypedObjectListView.cs
@@ -636,7 +642,7 @@ v2.5 - 06 June 2011
 2011-06-04 22:24 (#576) - ObjectListView/Implementation/OLVListItem.cs
   - Added Checked property
 
-2011-06-04 22:24 (#575) - docs/faq.rst, docs/index.rst, docs/recipes.rst, docs/images/column-selection-modaldialog.png, docs/images/column-selection-inline.png, docs/images/column-selection-submenu.png, docs/whatsnew.rst
+2011-06-04 22:24 (#575) - docs/images/column-selection-inline.png, docs/images/column-selection-submenu.png, docs/whatsnew.rst, docs/faq.rst, docs/index.rst, docs/recipes.rst, docs/images/column-selection-modaldialog.png
   - Added new section about column selection
   - Improved section about checkboxes
   - Added more FAQs
@@ -647,7 +653,7 @@ v2.5 - 06 June 2011
 2011-05-31 23:04 (#573) - ObjectListView/Filtering/TextMatchFilter.cs, ObjectListView/Filtering/Filters.cs
   - Moved TextMatchFilter to its own file
 
-2011-05-31 23:04 (#572) - docs/images/excel-filtering.png, docs/olv-sandcastle.shfbproj, docs/.templates/layout.html, docs/conf.py, docs/changelog.rst, docs/index.rst, docs/recipes.rst, docs/features.rst, docs/whatsnew.rst
+2011-05-31 23:04 (#572) - docs/features.rst, docs/whatsnew.rst, docs/images/excel-filtering.png, docs/olv-sandcastle.shfbproj, docs/.templates/layout.html, docs/conf.py, docs/changelog.rst, docs/index.rst, docs/recipes.rst
   - v2.5 docs almost done
 
 2011-05-31 23:03 (#571) - ObjectListView/VirtualObjectListView.cs
@@ -710,13 +716,13 @@ v2.5 - 06 June 2011
 2011-05-18 22:52 (#554) - ObjectListView/Filtering/Cluster.cs, ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Filtering/ClusteringStrategy.cs, ObjectListView/TreeListView.cs, ObjectListView/CellEditing/CellEditKeyEngine.cs, ObjectListView/Rendering/Decorations.cs, ObjectListView/SubControls/ToolStripCheckedListBox.cs, ObjectListView/Implementation/Events.cs, ObjectListView/Filtering/Filters.cs, ObjectListView/Implementation/Enums.cs, ObjectListView/FastDataListView.cs, ObjectListView/Filtering/ClustersFromGroupsStrategy.cs, ObjectListView/ObjectListView2008.csproj
   - Added/corrected documentation comments
 
-2011-05-18 22:48 (#553) - docs/whatsnew.rst, docs/dragdrop.rst, docs/samples.rst, docs/images/blog4-dropbetween.png, docs/conf.py, docs/blog4.rst, docs/images/blog4-emptyform.png, docs/.static/blog4-icon.png, docs/blog.rst, docs/olv-sandcastle.shfbproj, docs/images/blog4-infomessage.png, docs/images/dragdrop-tlv.png, docs/images/blog4-nodrop.png, docs/changelog.rst, docs/images/chili-smoothie.jpg, docs/recipes.rst, docs/images/blog4-basicform.png, docs/images/dragdrop-tlv-small.png
+2011-05-18 22:48 (#553) - docs/.static/blog4-icon.png, docs/blog.rst, docs/olv-sandcastle.shfbproj, docs/images/blog4-infomessage.png, docs/images/dragdrop-tlv.png, docs/images/blog4-nodrop.png, docs/changelog.rst, docs/images/chili-smoothie.jpg, docs/recipes.rst, docs/images/blog4-basicform.png, docs/images/dragdrop-tlv-small.png, docs/whatsnew.rst, docs/dragdrop.rst, docs/samples.rst, docs/images/blog4-dropbetween.png, docs/conf.py, docs/blog4.rst, docs/images/blog4-emptyform.png
   - Ready documentation for v2.5
 
 2011-04-27 14:56 (#552) - ObjectListView/OLVColumn.cs
   - OLVColumn has its own file
 
-2011-04-27 14:55 (#551) - ObjectListView/Properties/Resources.Designer.cs, ObjectListView/ObjectListView.csproj, ObjectListView/ObjectListView2010.csproj, ObjectListView/Utilities/ColumnSelectionForm.resx, ObjectListView/ObjectListView2005.csproj, ObjectListView/Utilities/ColumnSelectionForm.Designer.cs, ObjectListView/ObjectListView2008.csproj, ObjectListView/Properties/Resources.resx, ObjectListView/Utilities/ColumnSelectionForm.cs
+2011-04-27 14:55 (#551) - ObjectListView/ObjectListView2010.csproj, ObjectListView/Utilities/ColumnSelectionForm.resx, ObjectListView/ObjectListView2005.csproj, ObjectListView/Utilities/ColumnSelectionForm.Designer.cs, ObjectListView/ObjectListView2008.csproj, ObjectListView/Properties/Resources.resx, ObjectListView/Utilities/ColumnSelectionForm.cs, ObjectListView/Properties/Resources.Designer.cs, ObjectListView/ObjectListView.csproj
   - VS2005 project now has 2005 suffix
   - Updated projects for 2.5b
 
@@ -755,11 +761,11 @@ v2.5 - 06 June 2011
 2011-04-27 14:43 (#544) - ObjectListView/Properties/AssemblyInfo.cs
   - Updated version info
 
-2011-04-27 14:43 (#543) - ObjectListView/Implementation/Enums.cs, ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/Implementation/OLVListItem.cs, ObjectListView/Implementation/Delegates.cs, ObjectListView/Implementation/GroupingParameters.cs, ObjectListView/Implementation/Events.cs, ObjectListView/Implementation/NullableDictionary.cs, ObjectListView/Implementation/OLVListSubItem.cs
+2011-04-27 14:43 (#543) - ObjectListView/Implementation/Events.cs, ObjectListView/Implementation/NullableDictionary.cs, ObjectListView/Implementation/OLVListSubItem.cs, ObjectListView/Implementation/Enums.cs, ObjectListView/Implementation/OlvListViewHitTestInfo.cs, ObjectListView/Implementation/OLVListItem.cs, ObjectListView/Implementation/Delegates.cs, ObjectListView/Implementation/GroupingParameters.cs
   - Added new tree events
   - Separated many utility classes into their own files
 
-2011-04-27 14:42 (#542) - ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/Filtering/ClusteringStrategy.cs, ObjectListView/Filtering/FirstLetterClusteringStrategy.cs, ObjectListView/Filtering/ClustersFromGroupsStrategy.cs, ObjectListView/Filtering/IClusteringStrategy.cs, ObjectListView/Filtering/DateTimeClusteringStrategy.cs
+2011-04-27 14:42 (#542) - ObjectListView/Filtering/FirstLetterClusteringStrategy.cs, ObjectListView/Filtering/ClustersFromGroupsStrategy.cs, ObjectListView/Filtering/IClusteringStrategy.cs, ObjectListView/Filtering/DateTimeClusteringStrategy.cs, ObjectListView/Filtering/FilterMenuBuilder.cs, ObjectListView/Filtering/ClusteringStrategy.cs
   - Formalized creating clusters from groups
   - Added some images to filter menu
 
@@ -772,7 +778,7 @@ v2.5 - 06 June 2011
 2011-04-27 14:38 (#539) - ObjectListView/CellEditing/EditorRegistry.cs
   - Use OLVColumn.DataType if the value to be edited is null
 
-2011-04-27 14:36 (#538) - Tests/TestBasics.cs, Tests/Tests2005.csproj, Tests/Program.cs, Tests/Tests.csproj
+2011-04-27 14:36 (#538) - Tests/Program.cs, Tests/Tests.csproj, Tests/TestBasics.cs, Tests/Tests2005.csproj
   - Updated for v2.5b
 
 2011-04-27 14:35 (#537) - ListViewPrinterDemo/ListViewPrinterDemo.csproj, ListViewPrinterDemo/ListViewPrinterDemo2005.csproj, ListViewPrinterDemo/Resources/compass16.png
@@ -781,14 +787,14 @@ v2.5 - 06 June 2011
 2011-04-27 14:34 (#536) - ListViewPrinter/ListViewPrinter.csproj, ListViewPrinter/Properties/AssemblyInfo.cs, ListViewPrinter/ListViewPrinter2005.csproj
   - Updated for v2.5b
 
-2011-04-27 14:33 (#535) - Demo/Resources/down16.png, Demo/Photos/sj.png, Demo/Resources/fav32.png, Demo/Resources/folder16.png, Demo/Photos/sp.png, Demo/Resources/goldstart-32.png, Demo/Resources/movie16.png, Demo/Resources/music16.png, Demo/Photos/gab.png, Demo/MainForm.resx, Demo/Resources/goldstar3.png, Demo/ObjectListViewDemo.csproj, Demo/ObjectListViewDemo2010.csproj, Demo/Photos/jp.png, Demo/Resources/redback1.png, Demo/Photos/jr.png, Demo/ObjectListViewDemo2008.csproj, Demo/Resources/limeleaf.png, Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/Photos/np.png, Demo/Resources/star16.png, Demo/Photos/ns.png, Demo/Resources/redbull.png, Demo/Photos/ak.png, Demo/Photos/mb.png, Demo/Resources/tick16.png, Demo/AssemblyInfo.cs, Demo/Photos/cp.png, Demo/Photos/cr.png, Demo/Photos/gp.png, Demo/Photos/es.png, Demo/ObjectListViewDemo2005.csproj
+2011-04-27 14:33 (#535) - Demo/Resources/redback1.png, Demo/Photos/jr.png, Demo/ObjectListViewDemo2008.csproj, Demo/Resources/limeleaf.png, Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/Photos/np.png, Demo/Resources/star16.png, Demo/Photos/ns.png, Demo/Resources/redbull.png, Demo/Photos/ak.png, Demo/Photos/mb.png, Demo/Resources/tick16.png, Demo/AssemblyInfo.cs, Demo/Photos/cp.png, Demo/Photos/cr.png, Demo/Photos/gp.png, Demo/Photos/es.png, Demo/ObjectListViewDemo2005.csproj, Demo/Resources/down16.png, Demo/Photos/sj.png, Demo/Resources/fav32.png, Demo/Resources/folder16.png, Demo/Photos/sp.png, Demo/Resources/goldstart-32.png, Demo/Resources/movie16.png, Demo/Resources/music16.png, Demo/Photos/gab.png, Demo/MainForm.resx, Demo/Resources/goldstar3.png, Demo/ObjectListViewDemo.csproj, Demo/ObjectListViewDemo2010.csproj, Demo/Photos/jp.png
   - Added WITHOUT_ANIMATION compile time switch so that the demo can work with VS 2005
   - Updated for v2.5b
 
-2011-04-27 14:31 (#534) - docs/images/dark-blue-800x1600.png, docs/images/text-filter-highlighting.png, docs/images/ClassDiagram-VirtualList.png, docs/.static/dark-blue-800x1600.png, docs/images/task-list.png, docs/images/mappedimage-renderer.png, docs/.static/gettingStarted-icon.png, docs/whatsnew.rst, docs/.static/orange-800x1600.png, docs/images/orange-800x1600.png, docs/images/foobar-lookalike.png, docs/images/coffee.jpg, docs/images/foobar-lookalike-small.png, docs/.static/listCtrlPrinter-icon.png, docs/.static/blog1-icon.png, docs/images/chili-smoothie2.jpg, docs/images/blog3-listview1a.png, docs/images/blog-setbkimage.png, docs/.static/faq-icon.png, docs/images/dragdrop-dropsubitem.png, docs/images/printpreview.png, docs/images/header-formatting.png, docs/images/ownerdrawn-example1.png, docs/images/group-formatting.png, docs/images/bar-renderer.png, docs/images/limeleaf.jpg, docs/images/cell-editing-border.png, docs/.static/recipes-icon.png, docs/overlays.rst, docs/images/blog-badscroll.png, docs/.static/whatsnew-icon.png, docs/.static/animations-icon.png, docs/images/hyperlinks.png, docs/.static/search-icon.png, docs/.static/blog2-icon.png, docs/.static/ownerDraw-icon.png, docs/images/flags-renderer.png, docs/images/gettingstarted-example1.png, docs/filtering.rst, docs/images/gettingstarted-example2.png, docs/images/gettingstarted-example3.png, docs/images/gettingstarted-example4.png, docs/images/gettingstarted-example5.png, docs/changelog.rst, docs/images/gettingstarted-example6.png, docs/.static/groupListView-icon.png, docs/.static/cellEditing-icon.png, docs/images/blog2-balloon1.png, docs/images/fancy-screenshot.png, docs/images/blog2-balloon2.png, docs/.static/majorClasses-icon.png, docs/images/dragdrop-dropbetween.png, docs/images/task-list-small.png, docs/images/tileview-example.png, docs/conf.py, docs/images/redbull.jpg, docs/index.rst, docs/images/image-renderer.png, docs/images/ReportModernExample.jpg, docs/.static/dragdrop-icon.png, docs/.static/overlays-icon.png, docs/images/ClassDiagram.png, docs/.static/samples-icon.png, docs/images/blog3-listview1.png, docs/.static/blog3-icon.png, docs/images/blog3-listview2.png, docs/images/blog3-listview3.png, docs/images/fancy-screenshot2.png, docs/images/blog3-listview4.png, docs/images/fancy-screenshot3.png, docs/images/ModelToScreenProcess.png, docs/images/right-arrow.png, docs/images/blog-overlayimage.png, docs/images/images-renderer.png, docs/.static/filtering-icon.png, docs/.static/blog-icon.png, docs/recipes.rst, docs/.static/dialog2-blue-800x1600.png, docs/images/dialog2-blue-800x1600.png, docs/images/tileview-ownerdrawn.png, docs/images/dragdrop-example1.png, docs/.static/changelog-icon.png, docs/images/header-with-image.png, docs/images/excel-filtering.png, docs/images/overlay.png, docs/images/dragdrop-feedbackcolor.png, docs/download.rst, docs/images/treelistview.png, docs/images/icecream3.jpg, docs/images/ObjectListView.jpg, docs/images/emptylistmsg-example.png, docs/.static/download-icon.png, docs/.static/index-icon.png, docs/images/vertical-header.png, docs/images/light-blue-800x1600.png, docs/.static/light-blue-800x1600.png, docs/images/multiimage-renderer.png, docs/images/dragdrop-infomsg.png, docs/images/decorations-example.png, docs/.static/features-icon.png, docs/images/dragdrop-dropbackground.png, docs/images/smoothie2.jpg
+2011-04-27 14:31 (#534) - docs/images/coffee.jpg, docs/images/foobar-lookalike-small.png, docs/.static/listCtrlPrinter-icon.png, docs/.static/blog1-icon.png, docs/images/chili-smoothie2.jpg, docs/images/blog3-listview1a.png, docs/images/blog-setbkimage.png, docs/.static/faq-icon.png, docs/images/dragdrop-dropsubitem.png, docs/images/printpreview.png, docs/images/header-formatting.png, docs/images/ownerdrawn-example1.png, docs/images/group-formatting.png, docs/images/bar-renderer.png, docs/images/limeleaf.jpg, docs/images/cell-editing-border.png, docs/.static/recipes-icon.png, docs/overlays.rst, docs/images/blog-badscroll.png, docs/.static/whatsnew-icon.png, docs/.static/animations-icon.png, docs/images/hyperlinks.png, docs/.static/search-icon.png, docs/.static/blog2-icon.png, docs/.static/ownerDraw-icon.png, docs/images/flags-renderer.png, docs/images/gettingstarted-example1.png, docs/filtering.rst, docs/images/gettingstarted-example2.png, docs/images/gettingstarted-example3.png, docs/images/gettingstarted-example4.png, docs/images/gettingstarted-example5.png, docs/changelog.rst, docs/images/gettingstarted-example6.png, docs/.static/groupListView-icon.png, docs/.static/cellEditing-icon.png, docs/images/blog2-balloon1.png, docs/images/fancy-screenshot.png, docs/images/blog2-balloon2.png, docs/.static/majorClasses-icon.png, docs/images/dragdrop-dropbetween.png, docs/images/task-list-small.png, docs/images/tileview-example.png, docs/conf.py, docs/images/redbull.jpg, docs/index.rst, docs/images/image-renderer.png, docs/images/ReportModernExample.jpg, docs/.static/dragdrop-icon.png, docs/.static/overlays-icon.png, docs/images/ClassDiagram.png, docs/.static/samples-icon.png, docs/images/blog3-listview1.png, docs/.static/blog3-icon.png, docs/images/blog3-listview2.png, docs/images/blog3-listview3.png, docs/images/fancy-screenshot2.png, docs/images/blog3-listview4.png, docs/images/fancy-screenshot3.png, docs/images/ModelToScreenProcess.png, docs/images/right-arrow.png, docs/images/blog-overlayimage.png, docs/images/images-renderer.png, docs/.static/filtering-icon.png, docs/.static/blog-icon.png, docs/recipes.rst, docs/.static/dialog2-blue-800x1600.png, docs/images/dialog2-blue-800x1600.png, docs/images/tileview-ownerdrawn.png, docs/images/dragdrop-example1.png, docs/.static/changelog-icon.png, docs/images/header-with-image.png, docs/images/excel-filtering.png, docs/images/overlay.png, docs/images/dragdrop-feedbackcolor.png, docs/download.rst, docs/images/treelistview.png, docs/images/icecream3.jpg, docs/images/ObjectListView.jpg, docs/images/emptylistmsg-example.png, docs/.static/download-icon.png, docs/.static/index-icon.png, docs/images/vertical-header.png, docs/images/light-blue-800x1600.png, docs/.static/light-blue-800x1600.png, docs/images/multiimage-renderer.png, docs/images/dragdrop-infomsg.png, docs/images/decorations-example.png, docs/.static/features-icon.png, docs/images/dragdrop-dropbackground.png, docs/images/smoothie2.jpg, docs/images/dark-blue-800x1600.png, docs/images/text-filter-highlighting.png, docs/images/ClassDiagram-VirtualList.png, docs/.static/dark-blue-800x1600.png, docs/images/task-list.png, docs/images/mappedimage-renderer.png, docs/.static/gettingStarted-icon.png, docs/whatsnew.rst, docs/.static/orange-800x1600.png, docs/images/orange-800x1600.png, docs/images/foobar-lookalike.png
   - Updated docs for v2.5b
 
-2011-03-21 22:34 (#533) - SparkleLibrary/keyfile.pfx, SparkleLibrary/SparkleLibrary2010.csproj, ListViewPrinterDemo/ListViewPrinterDemo2010.csproj, ListViewPrinter/ListViewPrinter2010.csproj, Tests/Tests2010.csproj, Demo/ObjectListViewDemo2010.csproj
+2011-03-21 22:34 (#533) - ListViewPrinter/ListViewPrinter2010.csproj, Tests/Tests2010.csproj, Demo/ObjectListViewDemo2010.csproj, SparkleLibrary/keyfile.pfx, SparkleLibrary/SparkleLibrary2010.csproj, ListViewPrinterDemo/ListViewPrinterDemo2010.csproj
   - Added VS 2010 support
 
 2011-03-21 22:33 (#532) - Demo/ShellUtilities.cs, Demo/MainForm.resx, Demo/MainForm.Designer.cs, Demo/MainForm.cs
@@ -803,7 +809,7 @@ v2.5 - 06 June 2011
 2011-03-21 22:21 (#526) - ObjectListView/Implementation/DataSourceAdapter.cs
   - Initial version
 
-2011-03-21 21:34 (#521) - ObjectListView/CellEditing/CellEditKeyEngine.cs, ObjectListView/CellEditing/CellEditors.cs, ObjectListView/CellEditing/EditorRegistry.cs
+2011-03-21 21:34 (#521) - ObjectListView/CellEditing/EditorRegistry.cs, ObjectListView/CellEditing/CellEditKeyEngine.cs, ObjectListView/CellEditing/CellEditors.cs
   - Initial version of CellEditKeyEngine.cs
   - Separated EditorRegistry from CellEditors
 
@@ -857,7 +863,7 @@ v2.5 - 06 June 2011
   - Preserve word wrapping on tree column
   - [SMALL CHANGE] Renderer for tree column must now be a subclass of TreeRenderer
 
-2011-03-21 20:59 (#508) - ObjectListView/ObjectListView.csproj, ObjectListView/ObjectListView2010.csproj, ObjectListView/ObjectListView2008.csproj
+2011-03-21 20:59 (#508) - ObjectListView/ObjectListView2008.csproj, ObjectListView/ObjectListView.csproj, ObjectListView/ObjectListView2010.csproj
   - Reorganized files
   - Added VS 2010 project
   - Updated VS 2005 project
@@ -894,10 +900,10 @@ v2.5 - 06 June 2011
 2010-11-10 05:20 (#493) - Demo/MainForm.resx, Demo/MainForm.Designer.cs, Demo/MainForm.cs
   - Tweaked slightly
 
-2010-11-10 05:19 (#492) - docs/.static/initial.css, docs/whatsnew.rst, docs/Help, docs/olv-sandcastle.shfbproj, docs/.static/structure.css, docs/.templates/layout.html, docs/changelog.rst, docs/download.rst, docs/index.rst, docs/gettingStarted.rst, docs/recipes.rst, docs/Help/ObjectListView-Documentation.chm
+2010-11-10 05:19 (#492) - docs/changelog.rst, docs/download.rst, docs/index.rst, docs/gettingStarted.rst, docs/recipes.rst, docs/Help/ObjectListView-Documentation.chm, docs/.static/initial.css, docs/whatsnew.rst, docs/Help, docs/olv-sandcastle.shfbproj, docs/.static/structure.css, docs/.templates/layout.html
   - Updated docs for v2.4.1
 
-2010-11-10 05:17 (#491) - ObjectListView/Decorations.cs, ObjectListView/Adornments.cs, ObjectListView/NativeMethods.cs, ObjectListView/FastObjectListView.cs, ObjectListView/GlassPanelForm.cs, ObjectListView/Groups.cs, ObjectListView/Styles.cs, ObjectListView/ObjectListView.DesignTime.cs, ObjectListView/Generator.cs, ObjectListView/Attributes.cs, ObjectListView/TreeListView.cs, ObjectListView/VirtualGroups.cs, ObjectListView/Renderers.cs, ObjectListView/DropSink.cs, ObjectListView/HeaderControl.cs, ObjectListView/ToolTipControl.cs, ObjectListView/Comparers.cs, ObjectListView/VirtualListDataSource.cs, ObjectListView/Munger.cs, ObjectListView/DragSource.cs, ObjectListView/DataListView.cs, ObjectListView/ObjectListView2008.csproj, ObjectListView/TypedObjectListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Overlays.cs, ObjectListView/Events.cs, ObjectListView/Filters.cs, ObjectListView/CellEditors.cs
+2010-11-10 05:17 (#491) - ObjectListView/ToolTipControl.cs, ObjectListView/Comparers.cs, ObjectListView/VirtualListDataSource.cs, ObjectListView/Munger.cs, ObjectListView/DragSource.cs, ObjectListView/DataListView.cs, ObjectListView/ObjectListView2008.csproj, ObjectListView/TypedObjectListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Overlays.cs, ObjectListView/Events.cs, ObjectListView/Filters.cs, ObjectListView/CellEditors.cs, ObjectListView/Decorations.cs, ObjectListView/Adornments.cs, ObjectListView/NativeMethods.cs, ObjectListView/FastObjectListView.cs, ObjectListView/GlassPanelForm.cs, ObjectListView/Groups.cs, ObjectListView/Styles.cs, ObjectListView/ObjectListView.DesignTime.cs, ObjectListView/Generator.cs, ObjectListView/Attributes.cs, ObjectListView/TreeListView.cs, ObjectListView/VirtualGroups.cs, ObjectListView/Renderers.cs, ObjectListView/DropSink.cs, ObjectListView/HeaderControl.cs
   - Added lots of documentation comments
 
 
@@ -911,7 +917,7 @@ v2.4.1 - 15 September 2010
 2010-08-31 23:06 (#488) - ObjectListView/Properties/AssemblyInfo.cs
   - Changed version number to 2.4.1
 
-2010-08-31 23:06 (#487) - Demo/AssemblyInfo.cs, Demo/MainForm.resx, Demo/MainForm.Designer.cs, Demo/MainForm.cs
+2010-08-31 23:06 (#487) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/AssemblyInfo.cs, Demo/MainForm.resx
   - Update some group images
 
 2010-08-28 15:32 (#486) - ObjectListView/TreeListView.cs
@@ -936,7 +942,7 @@ v2.4.1 - 15 September 2010
   - Update ready for v2.4.1
   - SysImageListHelper now uses 32 bit images by default
 
-2010-08-28 15:26 (#480) - docs/.templates/layout.html, docs/conf.py, docs/changelog.rst, docs/recipes.rst, docs/images/cell-editing-border.png, docs/features.rst, docs/images/vertical-header.png, docs/whatsnew.rst, docs/images/header-with-image.png
+2010-08-28 15:26 (#480) - docs/changelog.rst, docs/recipes.rst, docs/images/cell-editing-border.png, docs/features.rst, docs/images/vertical-header.png, docs/whatsnew.rst, docs/images/header-with-image.png, docs/.templates/layout.html, docs/conf.py
   - Update ready for v2.4.1
 
 2010-08-24 21:23 (#479) - ObjectListView/Renderers.cs
@@ -968,7 +974,7 @@ v2.4.1 - 15 September 2010
   - Added IncludeAllColumnsInDataObject property
   - Improved BuildList(bool) so that it preserves scroll position even when the listview is grouped.
 
-2010-08-18 20:19 (#471) - SparkleLibrary/SparkleLibrary.csproj, SparkleLibrary/Sprites/TextSprite.cs, SparkleLibrary/sparkle-keyfile.snk
+2010-08-18 20:19 (#471) - SparkleLibrary/sparkle-keyfile.snk, SparkleLibrary/SparkleLibrary.csproj, SparkleLibrary/Sprites/TextSprite.cs
   - Use strong named key to sign the assembly
 
 2010-08-12 11:51 (#470) - ObjectListView/ObjectListView.cs
@@ -985,7 +991,7 @@ v2.4.1 - 15 September 2010
   - Added ObjectListView.SmoothingMode to control the smoothing of all graphics operations
   - Columns now cache their group item format strings so that they still work as  grouping columns after they have been removed from the listview. This cached value is only used when the column is not part of the listview.
 
-2010-08-12 11:44 (#467) - ObjectListView/ObjectListView2008.csproj, ObjectListView/keyfile.pfx
+2010-08-12 11:44 (#467) - ObjectListView/keyfile.pfx, ObjectListView/ObjectListView2008.csproj
   - Signed DLL
 
 2010-08-12 11:43 (#466) - ObjectListView/Munger.cs
@@ -1012,13 +1018,13 @@ v2.4.1 - 15 September 2010
 2010-07-25 18:53 (#459) - ObjectListView/Decorations.cs
   - Added EditingCellBorderDecoration
 
-2010-07-25 18:52 (#458) - ObjectListView/FastObjectListView.cs, ObjectListView/ObjectListView.cs, ObjectListView/VirtualObjectListView.cs
+2010-07-25 18:52 (#458) - ObjectListView/ObjectListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/FastObjectListView.cs
   - Added Unsort method
   - Correctly trigger a Click event when the mouse is clicked.
   - Invalidate the control before and after cell editing to make sure it looks right
   - Right mouse clicks on checkboxes no longer confuse them
 
-2010-07-25 18:50 (#457) - ObjectListView/DropSink.cs, ObjectListView/Adornments.cs, ObjectListView/NativeMethods.cs, ObjectListView/CustomDictionary.xml, ObjectListView/ToolTipControl.cs, ObjectListView/Styles.cs, ObjectListView/ObjectListView.DesignTime.cs, ObjectListView/Overlays.cs, ObjectListView/TreeListView.cs, ObjectListView/VirtualGroups.cs, ObjectListView/ObjectListView.FxCop
+2010-07-25 18:50 (#457) - ObjectListView/ObjectListView.DesignTime.cs, ObjectListView/Overlays.cs, ObjectListView/TreeListView.cs, ObjectListView/VirtualGroups.cs, ObjectListView/ObjectListView.FxCop, ObjectListView/DropSink.cs, ObjectListView/Adornments.cs, ObjectListView/NativeMethods.cs, ObjectListView/CustomDictionary.xml, ObjectListView/ToolTipControl.cs, ObjectListView/Styles.cs
   - Corrected a few FxCop annoyances
 
 2010-07-25 18:47 (#456) - Tests/TestSorting.cs
@@ -1055,21 +1061,21 @@ v2.4.1 - 15 September 2010
 2010-06-23 22:01 (#447) - Demo/MainForm.resx, Demo/MainForm.Designer.cs, Demo/MainForm.cs
   - Gave filter on Fast tab the ability to use regex, prefix or normal matching
 
-2010-06-23 22:00 (#446) - Tests/TestBasics.cs, Tests/TestFilters.cs, Tests/TestFormatting.cs
+2010-06-23 22:00 (#446) - Tests/TestFilters.cs, Tests/TestFormatting.cs, Tests/TestBasics.cs
   - Added tests for AddObjects and RemoveObjects
   - Added Filter FindAll tests
 
-2010-06-10 23:16 (#445) - ObjectListView/Filters.cs, Tests/Program.cs, ObjectListView/ObjectListView.cs, Tests/TestFilters.cs
+2010-06-10 23:16 (#445) - Tests/Program.cs, ObjectListView/ObjectListView.cs, Tests/TestFilters.cs, ObjectListView/Filters.cs
   - Upgrade TextMatchFilter. Now handles prefix matching and regex's
   - OLVColumn.ValueToString() always returns a String (as it always should have)
 
-2010-05-17 20:09 (#444) - ObjectListView/Renderers.cs, ObjectListView/ObjectListView.cs, docs/changelog.rst, docs/.static/animations-icon.png
+2010-05-17 20:09 (#444) - docs/changelog.rst, docs/.static/animations-icon.png, ObjectListView/Renderers.cs, ObjectListView/ObjectListView.cs
   - Added OLVColumn.WordWrap, which should always have been there
 
 2010-04-26 07:52 (#442) - Tests/TestGenerator.cs
   - Added test for new attributes
 
-2010-04-25 20:06 (#441) - docs/.templates/layout.html, docs/changelog.rst, docs/recipes.rst, docs/.static/objectListView-simple-animation.swf, docs/.static/objectlistview-animations.html, docs/.static/swfobject_modified.js, docs/whatsnew.rst, docs/.static/sparkle-garish-example.swf, docs/.static/sparkle-animations.html, docs/animations.rst, docs/.static/objectListView-animation.swf, docs/download.rst, docs/faq.rst, docs/index.rst, docs/.static/expressInstall.swf, docs/.static/sparkle-simple-example.swf, docs/features.rst
+2010-04-25 20:06 (#441) - docs/recipes.rst, docs/.static/objectListView-simple-animation.swf, docs/.static/objectlistview-animations.html, docs/.static/swfobject_modified.js, docs/whatsnew.rst, docs/.static/sparkle-garish-example.swf, docs/.static/sparkle-animations.html, docs/animations.rst, docs/.static/objectListView-animation.swf, docs/download.rst, docs/faq.rst, docs/index.rst, docs/.static/expressInstall.swf, docs/.static/sparkle-simple-example.swf, docs/features.rst, docs/.templates/layout.html, docs/changelog.rst
   - Ready for v2.4 release
 
 2010-04-25 20:02 (#440) - Demo/MainForm.resx, Demo/MainForm.Designer.cs, Demo/MainForm.cs
@@ -1088,7 +1094,7 @@ v2.4 - 17 April 2010
   - Space filling columns correctly resize upon initial display
   - ShowHeaderInAllViews is better but still not working reliably.
 
-2010-04-16 23:07 (#438) - ObjectListView/Filters.cs, ObjectListView/HeaderControl.cs, ObjectListView/Renderers.cs, ObjectListView/FastObjectListView.cs, ObjectListView/VirtualListDataSource.cs, ObjectListView/Styles.cs, ObjectListView/Events.cs
+2010-04-16 23:07 (#438) - ObjectListView/Styles.cs, ObjectListView/Events.cs, ObjectListView/Filters.cs, ObjectListView/HeaderControl.cs, ObjectListView/Renderers.cs, ObjectListView/FastObjectListView.cs, ObjectListView/VirtualListDataSource.cs
   - Added v2.4 tag
 
 2010-04-16 23:06 (#437) - ObjectListView/VirtualObjectListView.cs
@@ -1110,7 +1116,7 @@ v2.4 - 17 April 2010
 2010-04-16 23:00 (#432) - ObjectListView/Properties/AssemblyInfo.cs
   - Updated to v2.4
 
-2010-04-16 22:58 (#431) - SparkleLibrary/Sprites/Sprite.cs, SparkleLibrary/Sprites/ShapeSprite.cs, SparkleLibrary/Animation/Animateable.cs, SparkleLibrary/Sprites/ImageSprite.cs, SparkleLibrary/Adapters/AnimationAdapter.cs, SparkleLibrary/Animation/Events.cs, SparkleLibrary/Locators/PointLocator.cs, SparkleLibrary/Sprites/TextSprite.cs, SparkleLibrary/Sprites/ISprite.cs, SparkleLibrary/Sprites/Audio.cs, SparkleLibrary/Effects/Effect.cs, SparkleLibrary/Locators/Locators.cs, SparkleLibrary/Animation/Animation.cs, SparkleLibrary/Effects/Effects.cs, SparkleLibrary/Locators/RectangleLocator.cs
+2010-04-16 22:58 (#431) - SparkleLibrary/Animation/Animation.cs, SparkleLibrary/Effects/Effects.cs, SparkleLibrary/Locators/RectangleLocator.cs, SparkleLibrary/Sprites/Sprite.cs, SparkleLibrary/Sprites/ShapeSprite.cs, SparkleLibrary/Animation/Animateable.cs, SparkleLibrary/Sprites/ImageSprite.cs, SparkleLibrary/Adapters/AnimationAdapter.cs, SparkleLibrary/Animation/Events.cs, SparkleLibrary/Locators/PointLocator.cs, SparkleLibrary/Sprites/TextSprite.cs, SparkleLibrary/Sprites/ISprite.cs, SparkleLibrary/Sprites/Audio.cs, SparkleLibrary/Effects/Effect.cs, SparkleLibrary/Locators/Locators.cs
   - Improved documentation
   - Improved (?) compatibility with VS 2005
 
@@ -1120,7 +1126,7 @@ v2.4 - 17 April 2010
 2010-03-24 23:56 (#429) - SparkleLibrary/Locators/RectangleLocator.cs, SparkleLibrary/Sprites/ShapeSprite.cs, SparkleLibrary/SparkleLibrary.csproj, SparkleLibrary/Animation/Animateable.cs, SparkleLibrary/Locators, SparkleLibrary/Animation/Events.cs, SparkleLibrary/Adapters/AnimationAdapter.cs, SparkleLibrary/Sprites, SparkleLibrary/Properties/AssemblyInfo.cs, SparkleLibrary/Properties, SparkleLibrary/Sprites/Audio.cs, SparkleLibrary, SparkleLibrary/Animation/Animation.cs, SparkleLibrary/Effects/Effects.cs, SparkleLibrary/Sprites/Sprite.cs, SparkleLibrary/Adapters, SparkleLibrary/Sprites/ImageSprite.cs, SparkleLibrary/Locators/PointLocator.cs, SparkleLibrary/Sprites/TextSprite.cs, SparkleLibrary/Sprites/ISprite.cs, SparkleLibrary/Animation, SparkleLibrary/Effects, SparkleLibrary/Effects/Effect.cs, SparkleLibrary/Locators/Locators.cs
   - v2.4 beta
 
-2010-03-24 23:53 (#428) - ObjectListView/Filters.cs, ObjectListView/Adornments.cs, Demo/Resource1.resx, Tests/Tests2008.csproj, ObjectListView/GlassPanelForm.cs, Demo/AnimatedDecoration.cs, ObjectListView/Styles.cs, docs/images/text-filter-highlighting.png, ObjectListView/VirtualListDataSource.cs, Demo/MainForm.Designer.cs, ObjectListView/ObjectListView2008.csproj, docs/conf.py, docs/index.rst, docs/download.rst, Demo/MainForm.resx, ObjectListView/FastObjectListView.cs, Tests/TestFilters.cs, docs/.templates/layout.html, ObjectListView/VirtualGroups.cs, ObjectListView/TreeListView.cs, ListViewPrinter/ListViewPrinter.cs, docs/recipes.rst, ObjectListView/HeaderControl.cs, ObjectListView/Renderers.cs, ObjectListView/ObjectListView.cs, Demo/Resource1.Designer.cs, Demo/ObjectListViewDemo2008.csproj, Demo/MainForm.cs, docs/animations.rst, ObjectListView2008.sln, ObjectListView/Events.cs, ObjectListView/VirtualObjectListView.cs, docs/faq.rst
+2010-03-24 23:53 (#428) - ObjectListView/Filters.cs, Demo/Resource1.resx, Demo/MainForm.resx, ObjectListView/FastObjectListView.cs, Tests/TestFilters.cs, ObjectListView/TreeListView.cs, ListViewPrinter/ListViewPrinter.cs, docs/recipes.rst, ObjectListView/ObjectListView.cs, ObjectListView/VirtualListDataSource.cs, Demo/Resource1.Designer.cs, Demo/ObjectListViewDemo2008.csproj, Demo/MainForm.Designer.cs, Demo/MainForm.cs, ObjectListView2008.sln, ObjectListView/Events.cs, docs/faq.rst, docs/download.rst, ObjectListView/Adornments.cs, Tests/Tests2008.csproj, ObjectListView/GlassPanelForm.cs, Demo/AnimatedDecoration.cs, docs/.templates/layout.html, ObjectListView/Styles.cs, ObjectListView/VirtualGroups.cs, ObjectListView/HeaderControl.cs, docs/images/text-filter-highlighting.png, ObjectListView/Renderers.cs, docs/animations.rst, ObjectListView/ObjectListView2008.csproj, docs/conf.py, ObjectListView/VirtualObjectListView.cs, docs/index.rst
   - v2.4 beta
 
 2010-01-19 23:14 (#427) - ObjectListView/ObjectListView.cs
@@ -1142,7 +1148,7 @@ v2.4 - 17 April 2010
 2009-10-31 06:58 (#422) - ObjectListView/GlassPanelForm.cs
   - Use FindForm() rather than TopMostControl, since the latter doesn't work as I expected when the OLV is part of an MDI child window. Thanks to wvd_vegt who tracked this down.
 
-2009-10-31 06:34 (#421) - ObjectListView/Groups.cs, ObjectListView/Styles.cs, docs/.templates/layout.html, ObjectListView/ObjectListView.DesignTime.cs, docs/changelog.rst, ObjectListView/Generator.cs, ObjectListView/Attributes.cs, ObjectListView/TreeListView.cs, ObjectListView/VirtualGroups.cs, ObjectListView/Renderers.cs, ObjectListView/DropSink.cs, ObjectListView/HeaderControl.cs, ObjectListView/ToolTipControl.cs, ObjectListView/Comparers.cs, ObjectListView/VirtualListDataSource.cs, ObjectListView/Munger.cs, ObjectListView/DragSource.cs, ObjectListView/DataListView.cs, docs/samples.rst, ObjectListView/TypedObjectListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Overlays.cs, ObjectListView/Events.cs, docs/index.rst, ObjectListView/CellEditors.cs, ObjectListView/NativeMethods.cs, ObjectListView/Decorations.cs, ObjectListView/Adornments.cs, ObjectListView/FastObjectListView.cs, docs/images/fancy-screenshot2.png
+2009-10-31 06:34 (#421) - ObjectListView/DragSource.cs, ObjectListView/DataListView.cs, docs/samples.rst, ObjectListView/TypedObjectListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/Overlays.cs, ObjectListView/Events.cs, docs/index.rst, ObjectListView/CellEditors.cs, ObjectListView/NativeMethods.cs, ObjectListView/Decorations.cs, ObjectListView/Adornments.cs, ObjectListView/FastObjectListView.cs, docs/images/fancy-screenshot2.png, ObjectListView/Groups.cs, ObjectListView/Styles.cs, docs/.templates/layout.html, ObjectListView/ObjectListView.DesignTime.cs, docs/changelog.rst, ObjectListView/Generator.cs, ObjectListView/Attributes.cs, ObjectListView/TreeListView.cs, ObjectListView/VirtualGroups.cs, ObjectListView/Renderers.cs, ObjectListView/DropSink.cs, ObjectListView/HeaderControl.cs, ObjectListView/ToolTipControl.cs, ObjectListView/Comparers.cs, ObjectListView/VirtualListDataSource.cs, ObjectListView/Munger.cs
   - Added "v2.3" tag
 
 
@@ -1150,7 +1156,7 @@ v2.4 - 17 April 2010
 v2.3 - 14 October 2009
 ----------------------
 
-2009-10-14 07:48 (#419) - Tests/TestFormatting.cs, Tests/TestAdornments.cs, Demo/AssemblyInfo.cs, Tests/TestCheckBoxes.cs, ObjectListView/Styles.cs, ObjectListView/ObjectListView.DesignTime.cs, Demo/Photos/cp.png, Demo/Photos/cr.png, docs/gettingStarted.rst, ListViewPrinterDemo/Properties/Resources.Designer.cs, ObjectListView/Properties/AssemblyInfo.cs, Demo/Photos/gp.png, ObjectListView/ObjectListView.csproj, ObjectListView/VirtualListDataSource.cs, Demo/Photos/sj.png, Demo/MainForm.Designer.cs, docs/images/foobar-lookalike.png, docs/dragdrop.rst, Demo/Photos/sp.png, docs/index.rst, docs/download.rst, Tests/TestBasics.cs, ObjectListView/FastObjectListView.cs, Demo/MainForm.resx, Tests/Program.cs, docs/.templates/layout.html, docs/images/group-formatting.png, Demo/ObjectListViewDemo.csproj, ObjectListView/VirtualGroups.cs, ObjectListView/Generator.cs, ObjectListView/Attributes.cs, ListViewPrinter/ListViewPrinter.cs, ObjectListView/Renderers.cs, docs/images/task-list.png, docs/whatsnew.rst, Tests/TestTreeView.cs, Demo/MainForm.cs, docs/images/task-list-small.png, ObjectListView/TypedObjectListView.cs, ObjectListView/VirtualObjectListView.cs, docs/faq.rst, ObjectListView/Adornments.cs, Demo/Photos/gab.png, docs/features.rst, Tests/Tests2008.csproj, Demo/Photos/ak.png, docs/images/header-formatting.png, Demo/Photos/mb.png, Demo/Photos/es.png, Tests/TestSelection.cs, Tests/TestSorting.cs, Tests/TestGenerator.cs, Demo/Resources/fav32.png, docs/samples.rst, ObjectListView/ObjectListView2008.csproj, Tests/TestColumn.cs, docs/conf.py, docs/images/foobar-lookalike-small.png, ObjectListView/CellEditors.cs, ListViewPrinterDemo/Properties/Settings.Designer.cs, Tests/MainForm.cs, ObjectListView/Groups.cs, Tests/SetupTestSuite.cs, docs/images/decorations-example.png, ObjectListView/TreeListView.cs, docs/recipes.rst, ObjectListView/HeaderControl.cs, ObjectListView/Comparers.cs, Demo/Photos/jp.png, ObjectListView/ToolTipControl.cs, Demo/Photos/jr.png, ObjectListView/ObjectListView.cs, Demo/ObjectListViewDemo2008.csproj, Demo/Resource1.Designer.cs, Demo/Photos/np.png, Demo/Photos/ns.png, Tests/Tests.csproj, ObjectListView/Overlays.cs, ObjectListView/Events.cs, docs/images/hyperlinks.png, docs/.static/samples-icon.png, ObjectListView/NativeMethods.cs, ObjectListView/Decorations.cs, Demo/Resource1.resx, Tests/MainForm.Designer.cs, docs/images/fancy-screenshot2.png, ObjectListView/GlassPanelForm.cs, docs/images/fancy-screenshot3.png
+2009-10-14 07:48 (#419) - docs/images/hyperlinks.png, ObjectListView/Adornments.cs, Tests/MainForm.Designer.cs, ListViewPrinterDemo/Properties/Settings.Designer.cs, Tests/SetupTestSuite.cs, docs/images/decorations-example.png, Demo/Photos/cp.png, Demo/Photos/cr.png, Demo/Photos/gp.png, ObjectListView/HeaderControl.cs, Tests/TestSorting.cs, docs/images/task-list.png, ObjectListView/Comparers.cs, Demo/Photos/sj.png, docs/whatsnew.rst, Tests/TestTreeView.cs, Demo/Resources/fav32.png, docs/samples.rst, ObjectListView/ObjectListView2008.csproj, docs/conf.py, ObjectListView/TypedObjectListView.cs, Demo/Photos/sp.png, docs/index.rst, ObjectListView/NativeMethods.cs, Demo/MainForm.resx, Demo/Resource1.resx, docs/features.rst, ObjectListView/Groups.cs, docs/images/header-formatting.png, Tests/TestFormatting.cs, Tests/TestAdornments.cs, Tests/TestCheckBoxes.cs, Demo/ObjectListViewDemo.csproj, ObjectListView/ObjectListView.DesignTime.cs, docs/gettingStarted.rst, ListViewPrinter/ListViewPrinter.cs, docs/recipes.rst, ObjectListView/ToolTipControl.cs, ObjectListView/ObjectListView.cs, ObjectListView/VirtualListDataSource.cs, ObjectListView/Events.cs, ObjectListView/CellEditors.cs, Tests/TestBasics.cs, Tests/Tests2008.csproj, Tests/MainForm.cs, Demo/Photos/ak.png, ObjectListView/GlassPanelForm.cs, Demo/Photos/mb.png, Demo/AssemblyInfo.cs, docs/.templates/layout.html, ObjectListView/Styles.cs, ObjectListView/VirtualGroups.cs, ObjectListView/Generator.cs, ListViewPrinterDemo/Properties/Resources.Designer.cs, ObjectListView/ObjectListView.csproj, Demo/Photos/es.png, ObjectListView/Renderers.cs, Tests/TestSelection.cs, Tests/TestGenerator.cs, docs/images/foobar-lookalike.png, docs/images/task-list-small.png, ObjectListView/VirtualObjectListView.cs, docs/images/foobar-lookalike-small.png, docs/.static/samples-icon.png, ObjectListView/Decorations.cs, Demo/Photos/gab.png, ObjectListView/FastObjectListView.cs, Tests/Program.cs, docs/images/fancy-screenshot2.png, docs/images/fancy-screenshot3.png, docs/images/group-formatting.png, ObjectListView/TreeListView.cs, ObjectListView/Attributes.cs, ObjectListView/Properties/AssemblyInfo.cs, Demo/Photos/jp.png, Demo/Photos/jr.png, Demo/ObjectListViewDemo2008.csproj, Demo/MainForm.Designer.cs, Demo/Resource1.Designer.cs, Demo/MainForm.cs, Demo/Photos/np.png, docs/dragdrop.rst, Tests/TestColumn.cs, Demo/Photos/ns.png, Tests/Tests.csproj, ObjectListView/Overlays.cs, docs/download.rst, docs/faq.rst
   - v2.3 release
 
 2009-09-03 00:49 (#399) - ObjectListView/DropSink.cs
@@ -1190,7 +1196,7 @@ v2.2.1 - 08 August 2009
   - Updated for v2.2.1
   - ShellUtilities no longer caches the image lists
 
-2009-08-07 18:43 (#364) - docs/changelog.rst, docs/recipes.rst, docs/Sitemap.xml, docs/images/blog2-balloon1.png, docs/images/blog2-balloon2.png, docs/whatsnew.rst, docs/blog1.rst, docs/blog2.rst, docs/conf.py, docs/blog3.rst, docs/index.rst, docs/download.rst, docs/ownerDraw.rst, docs/.static/blog1-icon.png, docs/.static/overlays-icon.png, docs/images/blog3-listview1.png, docs/.static/blog2-icon.png, docs/.static/blog3-icon.png, docs/images/blog3-listview1a.png, docs/images/blog3-listview2.png, docs/features.rst, docs/images/blog3-listview3.png, docs/images/blog3-listview4.png, docs/blog.rst, docs/.templates/layout.html
+2009-08-07 18:43 (#364) - docs/.templates/layout.html, docs/changelog.rst, docs/recipes.rst, docs/Sitemap.xml, docs/images/blog2-balloon1.png, docs/images/blog2-balloon2.png, docs/whatsnew.rst, docs/blog1.rst, docs/blog2.rst, docs/conf.py, docs/blog3.rst, docs/index.rst, docs/download.rst, docs/ownerDraw.rst, docs/.static/blog1-icon.png, docs/.static/overlays-icon.png, docs/images/blog3-listview1.png, docs/.static/blog2-icon.png, docs/.static/blog3-icon.png, docs/images/blog3-listview1a.png, docs/images/blog3-listview2.png, docs/features.rst, docs/images/blog3-listview3.png, docs/images/blog3-listview4.png, docs/blog.rst
   - Update docs for v2.2.1
   - Added new blog entries
 
@@ -1260,7 +1266,7 @@ v2.2.1 - 08 August 2009
 v2.2 - 08 June 2009
 -------------------
 
-2009-06-08 03:53 (#343) - docs/faq.rst, docs/index.rst, docs/recipes.rst, docs/features.rst
+2009-06-08 03:53 (#343) - docs/features.rst, docs/faq.rst, docs/index.rst, docs/recipes.rst
   - Added two more recipes
   - Add info about collapsible groups
 
@@ -1285,7 +1291,7 @@ v2.2 - 08 June 2009
 2009-06-06 00:57 (#336) - ObjectListView/NativeMethods.cs, ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs
   - Overlays and tooltips now work when the OLV is on a TopMost form
 
-2009-06-04 01:29 (#335) - docs/whatsnew.rst, docs/blog.rst, docs/overlays.rst, docs/.templates/layout.html, docs/conf.py, docs/changelog.rst, docs/recipes.rst, docs/features.rst
+2009-06-04 01:29 (#335) - docs/features.rst, docs/whatsnew.rst, docs/blog.rst, docs/overlays.rst, docs/.templates/layout.html, docs/conf.py, docs/changelog.rst, docs/recipes.rst
   - v2.2 documentations ready
 
 2009-06-04 01:27 (#334) - Demo/MainForm.resx, Demo/MainForm.Designer.cs, Demo/MainForm.cs
@@ -1310,7 +1316,7 @@ v2.2 - 08 June 2009
 2009-06-04 01:19 (#329) - ObjectListView/NativeMethods.cs
   - Added methods to support custom tooltips
 
-2009-06-04 01:18 (#328) - ObjectListView/ObjectListView.csproj, ObjectListView/ObjectListView2008.csproj
+2009-06-04 01:18 (#328) - ObjectListView/ObjectListView2008.csproj, ObjectListView/ObjectListView.csproj
   - Added ToolTipControl.cs
 
 2009-06-04 01:17 (#327) - ObjectListView/HeaderControl.cs
@@ -1333,17 +1339,17 @@ v2.2 - 08 June 2009
 v2.2 beta - 15 May 2009
 -----------------------
 
-2009-05-15 22:42 (#322) - ObjectListView/ObjectListView2008.csproj, ObjectListView/GlassPanelForm.resx, ObjectListView/GlassPanelForm.Designer.cs, ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs
+2009-05-15 22:42 (#322) - ObjectListView/GlassPanelForm.resx, ObjectListView/GlassPanelForm.Designer.cs, ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs, ObjectListView/ObjectListView2008.csproj
   - Simplified GlassPanelForm
   - Add subitems to custom draw
 
 2009-05-15 22:40 (#321) - Demo/MainForm.Designer.cs, Demo/MainForm.cs
   - Fixed problem with attribute renderer
 
-2009-05-13 06:14 (#320) - docs/blog.rst, docs/overlays.rst, docs/.templates/layout.html, docs/changelog.rst, docs/download.rst, docs/index.rst, docs/.static/download-icon.png, docs/whatsnew.rst
+2009-05-13 06:14 (#320) - docs/.static/download-icon.png, docs/whatsnew.rst, docs/blog.rst, docs/overlays.rst, docs/.templates/layout.html, docs/changelog.rst, docs/download.rst, docs/index.rst
   - v2.2 documentation - Take II
 
-2009-05-13 06:13 (#319) - Tests/Program.cs, Tests/TestTreeView.cs
+2009-05-13 06:13 (#319) - Tests/TestTreeView.cs, Tests/Program.cs
   - Added tests for tree traversal
   - Use DiscardAllState() between tests
 
@@ -1385,16 +1391,16 @@ v2.2 beta - 15 May 2009
 2009-05-09 08:23 (#306) - ObjectListView/TreeListView.cs
   - Fixed bug where RefreshObjects() would fail when none of the given objects were present/visible.
 
-2009-05-08 07:12 (#305) - docs/recipes.rst, docs/images/overlay.png, docs/overlays.rst, docs/.templates/layout.html, docs/conf.py, docs/changelog.rst, docs/index.rst
+2009-05-08 07:12 (#305) - docs/images/overlay.png, docs/overlays.rst, docs/.templates/layout.html, docs/conf.py, docs/changelog.rst, docs/index.rst, docs/recipes.rst
   - Added some more overlays docs
 
 2009-05-08 07:09 (#304) - ObjectListView/HeaderControl.cs, ObjectListView/NativeMethods.cs, ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs
   - Don't use glass panel for overlays in Design Mode
 
-2009-05-07 00:33 (#303) - docs/blog.rst, docs/images/dragdrop-infomsg.png, docs/images/dragdrop-dropbackground.png, docs/.templates/layout.html, docs/images/blog-overlayimage.png, docs/changelog.rst, docs/recipes.rst, docs/.static/blog-icon.png, docs/images/ClassDiagram-VirtualList.png, docs/images/dragdrop-example1.png, docs/images/dragdrop-dropbetween.png, docs/whatsnew.rst, docs/dragdrop.rst, docs/images/dragdrop-feedbackcolor.png, docs/conf.py, docs/index.rst, docs/images/blog-badscroll.png, docs/.static/dragdrop-icon.png, docs/images/emptylistmsg-example.png, docs/images/ClassDiagram.png, docs/images/blog-setbkimage.png, docs/images/dragdrop-dropsubitem.png
+2009-05-07 00:33 (#303) - docs/whatsnew.rst, docs/dragdrop.rst, docs/images/dragdrop-feedbackcolor.png, docs/conf.py, docs/index.rst, docs/images/blog-badscroll.png, docs/.static/dragdrop-icon.png, docs/images/emptylistmsg-example.png, docs/images/ClassDiagram.png, docs/images/blog-setbkimage.png, docs/images/dragdrop-dropsubitem.png, docs/blog.rst, docs/images/dragdrop-infomsg.png, docs/images/dragdrop-dropbackground.png, docs/.templates/layout.html, docs/images/blog-overlayimage.png, docs/changelog.rst, docs/recipes.rst, docs/.static/blog-icon.png, docs/images/ClassDiagram-VirtualList.png, docs/images/dragdrop-example1.png, docs/images/dragdrop-dropbetween.png
   - v2.2 documentation - Take I
 
-2009-05-07 00:27 (#302) - Demo/ObjectListViewDemo.csproj, Demo/MainForm.resx, Demo/MainForm.Designer.cs, Demo/MainForm.cs
+2009-05-07 00:27 (#302) - Demo/MainForm.Designer.cs, Demo/MainForm.cs, Demo/ObjectListViewDemo.csproj, Demo/MainForm.resx
   - Added Nag level combo box to Virtual tab, so show various possibilities with text overlays
 
 2009-05-07 00:25 (#301) - ObjectListView/ObjectListView.csproj
@@ -1433,7 +1439,7 @@ v2.2 beta - 15 May 2009
 2009-05-07 00:01 (#294) - ObjectListView/DropSink.cs
   - Removed transparency parameter from IOverlay interface
 
-2009-04-29 08:29 (#293) - ObjectListView/ObjectListView2008.csproj, ObjectListView/Events.cs, ObjectListView/Overlays.cs, ObjectListView/GlassPanelForm.resx, ObjectListView/NativeMethods.cs, ObjectListView/GlassPanelForm.Designer.cs, ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs
+2009-04-29 08:29 (#293) - ObjectListView/GlassPanelForm.resx, ObjectListView/NativeMethods.cs, ObjectListView/GlassPanelForm.Designer.cs, ObjectListView/GlassPanelForm.cs, ObjectListView/ObjectListView.cs, ObjectListView/ObjectListView2008.csproj, ObjectListView/Events.cs, ObjectListView/Overlays.cs
   - Use GlassPanelForm to show overlays when scrolling
   - Correctly refresh overlays when marque selecting
   - Fixed bug where DoubleClick events were not triggered when CheckBoxes was true
@@ -1481,7 +1487,7 @@ v2.2 beta - 15 May 2009
   - Fixed SF#2499313 - Calling Expand() on an already expand branch causes a confused display of the branches children
   - Calculate edit rectangle on column 0 more accurately
 
-2009-04-22 00:33 (#279) - ObjectListView/ObjectListView2008.csproj, ObjectListView/ObjectListView.csproj
+2009-04-22 00:33 (#279) - ObjectListView/ObjectListView.csproj, ObjectListView/ObjectListView2008.csproj
   - Added new files for v2.2
 
 2009-04-22 00:31 (#278) - ObjectListView/ObjectListView.cs
@@ -1583,7 +1589,7 @@ v2.1a - 07 February 2009
 2009-02-03 09:28 (#257) - ObjectListView/ObjectListView.cs
   - Fixed bug with AlwaysGroupByColumn where column header clicks would not resort groups.
 
-2009-02-03 09:27 (#256) - docs/.templates/layout.html, docs/changelog.rst, docs/faq.rst, docs/whatsnew.rst
+2009-02-03 09:27 (#256) - docs/whatsnew.rst, docs/.templates/layout.html, docs/changelog.rst, docs/faq.rst
   - Updated fixed bug descriptions
   - Generated change log
   - Fixed links to download and discussion in template
@@ -1591,10 +1597,10 @@ v2.1a - 07 February 2009
 2009-02-03 09:26 (#255) - Demo/MainForm.resx, Demo/MainForm.Designer.cs, Demo/MainForm.cs
   - Simple tab "Lock group" now locks sort order too
 
-2009-02-02 09:35 (#254) - docs/images/coffee.jpg, docs/listCtrlPrinter.rst, docs/.templates, docs/images/redbull.jpg, docs/.static/reset.css, docs/images/ReportModernExample.jpg, docs/images/printpreview.png, docs/images/right-arrow.png, docs/majorClasses.rst, docs/images/bar-renderer.png, docs/images/images-renderer.png, docs/images/dialog2-blue-800x1600.png, docs/images/limeleaf.jpg, docs/images/tileview-ownerdrawn.png, docs/.static/changelog-icon.png, docs/.static/icon.ico, docs/images/right-arrow.gif, docs/faq.rst, docs/.static/whatsnew-icon.png, docs/images/icecream3.jpg, docs/.static/search-icon.png, docs/.static/index-icon.png, docs/.static/initial.css, docs/.static/master.css, docs/images/light-blue-800x1600.png, docs/images/flags-renderer.png, docs/images/multiimage-renderer.png, docs/.static/Thumbs.db, docs/.static/structure.css, docs/images/smoothie2.jpg, docs/changelog.rst, docs/.static/dark-blue-800x1600.png, docs/images/fancy-screenshot.png, docs/.static/majorClasses-icon.png, docs/.static, docs/images/orange-800x1600.png, docs/whatsnew.rst, docs/images/tileview-example.png, docs/conf.py, docs/index.rst, docs/images/image-renderer.png, docs/images/dialog2-blue.gif, docs/.static/listCtrlPrinter-icon.png, docs/.static/faq-icon.png, docs/features.rst, docs/images/ownerdrawn-example1.png, docs/cellEditing.rst, docs/images/ModelToScreenProcess.png, docs/.static/global.css, docs/gettingStarted.rst, docs, docs/recipes.rst, docs/.static/dialog2-blue-800x1600.png, docs/.static/recipes-icon.png, docs/images/treelistview.png, docs/ownerDraw.rst, docs/images/ObjectListView.jpg, docs/.static/ownerDraw-icon.png, docs/.static/light-blue-800x1600.png, docs/images/gettingstarted-example1.png, docs/.static/dialog.css, docs/images/gettingstarted-example2.png, docs/.static/features-icon.png, docs/images/gettingstarted-example3.png, docs/.templates/layout.html, docs/images/gettingstarted-example4.png, docs/images/gettingstarted-example5.png, docs/images/gettingstarted-example6.png, docs/.static/cellEditing-icon.png, docs/.static/groupListView-icon.png, docs/images/dark-blue-800x1600.png, docs/images/mappedimage-renderer.png, docs/images, docs/.static/gettingStarted-icon.png, docs/.static/orange-800x1600.png
+2009-02-02 09:35 (#254) - docs/.static/index-icon.png, docs/.static/master.css, docs/images/light-blue-800x1600.png, docs/.static/light-blue-800x1600.png, docs/images/multiimage-renderer.png, docs/.static/features-icon.png, docs/images/smoothie2.jpg, docs/.static/dark-blue-800x1600.png, docs/images/dark-blue-800x1600.png, docs/images/mappedimage-renderer.png, docs/.static/gettingStarted-icon.png, docs/images/orange-800x1600.png, docs/.static/orange-800x1600.png, docs/whatsnew.rst, docs/images/coffee.jpg, docs/listCtrlPrinter.rst, docs/.static/reset.css, docs/.static/listCtrlPrinter-icon.png, docs/.static/faq-icon.png, docs/features.rst, docs/images/printpreview.png, docs/images/ownerdrawn-example1.png, docs/.static/global.css, docs/gettingStarted.rst, docs/images/bar-renderer.png, docs/images/limeleaf.jpg, docs/.static/recipes-icon.png, docs/faq.rst, docs/.static/whatsnew-icon.png, docs/.static/search-icon.png, docs/.static/initial.css, docs/.static/ownerDraw-icon.png, docs/images/flags-renderer.png, docs/images/gettingstarted-example1.png, docs/.static/dialog.css, docs/images/gettingstarted-example2.png, docs/.static/Thumbs.db, docs/images/gettingstarted-example3.png, docs/.templates/layout.html, docs/.static/structure.css, docs/images/gettingstarted-example4.png, docs/images/gettingstarted-example5.png, docs/changelog.rst, docs/images/gettingstarted-example6.png, docs/.static/cellEditing-icon.png, docs/.static/groupListView-icon.png, docs/images/fancy-screenshot.png, docs/.static/majorClasses-icon.png, docs/.static, docs/images, docs/images/tileview-example.png, docs/conf.py, docs/.templates, docs/images/redbull.jpg, docs/index.rst, docs/images/image-renderer.png, docs/images/dialog2-blue.gif, docs/images/ReportModernExample.jpg, docs/cellEditing.rst, docs/images/ModelToScreenProcess.png, docs/images/right-arrow.png, docs/majorClasses.rst, docs, docs/recipes.rst, docs/images/images-renderer.png, docs/images/dialog2-blue-800x1600.png, docs/.static/dialog2-blue-800x1600.png, docs/images/tileview-ownerdrawn.png, docs/.static/changelog-icon.png, docs/.static/icon.ico, docs/images/right-arrow.gif, docs/images/treelistview.png, docs/images/icecream3.jpg, docs/ownerDraw.rst, docs/images/ObjectListView.jpg
   - New style docs using Sphinx system
 
-2009-02-02 09:11 (#253) - ObjectListView/ObjectListView2008.csproj, ListViewPrinterDemo/ListViewPrinterDemo2008.csproj, ListViewPrinter/ListViewPrinter2008.csproj, Tests/Tests2008.csproj, Demo/ObjectListViewDemo2008.csproj, ObjectListView2008.sln
+2009-02-02 09:11 (#253) - ListViewPrinter/ListViewPrinter2008.csproj, Tests/Tests2008.csproj, Demo/ObjectListViewDemo2008.csproj, ObjectListView2008.sln, ObjectListView/ObjectListView2008.csproj, ListViewPrinterDemo/ListViewPrinterDemo2008.csproj
   - Added VS2008 solution and projects
 
 2009-02-02 09:09 (#252) - ObjectListView/ObjectListView.csproj
@@ -1649,7 +1655,7 @@ v2.1a - 07 February 2009
 2009-01-21 09:39 (#242) - Tests/TestColumn.cs
   - Added new test for Munger being used to indexer access
 
-2009-01-21 09:38 (#241) - Demo/ObjectListViewDemo.csproj, Demo/MainForm.resx, Demo/Persons.xml, Demo/MainForm.Designer.cs, Demo/Resource1.Designer.cs, Demo/MainForm.cs
+2009-01-21 09:38 (#241) - Demo/MainForm.resx, Demo/Persons.xml, Demo/MainForm.Designer.cs, Demo/Resource1.Designer.cs, Demo/MainForm.cs, Demo/ObjectListViewDemo.csproj
   - Updated demo to show some new features
 
 2009-01-21 09:36 (#240) - Demo/ShellUtilities.cs
@@ -1942,7 +1948,7 @@ v2.0 - 30 November 2008
 2008-11-20 09:03 (#170) - Tests/TestTreeView.cs
   - Added test for preserving selection after expand/collapse
 
-2008-11-19 10:01 (#169) - ListViewPrinterDemo/Properties/Resources.resx, ListViewPrinterDemo/Form1.Designer.cs, ListViewPrinterDemo/Form1.cs, ListViewPrinterDemo/Persons.xml, ListViewPrinterDemo/Properties/Settings.settings, ListViewPrinterDemo/Properties/AssemblyInfo.cs, ListViewPrinterDemo/Properties, Demo/MainForm.resx, ListViewPrinterDemo/Properties/Settings.Designer.cs, Demo/ColumnSelectionForm.cs, ListViewPrinterDemo/Form1.resx, Demo/ObjectListViewDemo.csproj, ObjectListView.sln, ListViewPrinterDemo/Resources/compass16.png, ListViewPrinterDemo/Properties/Resources.Designer.cs, ListViewPrinterDemo/Resources, ListViewPrinterDemo/Program.cs, Demo/ShellUtilities.cs, ListViewPrinterDemo/ListViewPrinterDemo.csproj, Demo/MainForm.Designer.cs, Demo/Resource1.Designer.cs, Demo/MainForm.cs
+2008-11-19 10:01 (#169) - Demo/MainForm.Designer.cs, Demo/Resource1.Designer.cs, Demo/MainForm.cs, ListViewPrinterDemo/Properties/Resources.resx, ListViewPrinterDemo/Form1.Designer.cs, ListViewPrinterDemo/Form1.cs, ListViewPrinterDemo/Persons.xml, ListViewPrinterDemo/Properties/Settings.settings, ListViewPrinterDemo/Properties/AssemblyInfo.cs, ListViewPrinterDemo/Properties, Demo/MainForm.resx, ListViewPrinterDemo/Properties/Settings.Designer.cs, Demo/ColumnSelectionForm.cs, ListViewPrinterDemo/Form1.resx, Demo/ObjectListViewDemo.csproj, ObjectListView.sln, ListViewPrinterDemo/Resources/compass16.png, ListViewPrinterDemo/Properties/Resources.Designer.cs, ListViewPrinterDemo/Resources, ListViewPrinterDemo/Program.cs, Demo/ShellUtilities.cs, ListViewPrinterDemo/ListViewPrinterDemo.csproj
   - Changed to accomodate v2.0 changes
 
 2008-11-19 09:54 (#168) - ObjectListView/ObjectListView.cs
@@ -1960,20 +1966,20 @@ v2.0 - 30 November 2008
   - If LastSortOrder is None when adding objects, don't force a resort.
   - In the right-click column select menu, columns are now sorted by display order, rather than alphabetically
 
-2008-11-19 09:46 (#167) - ObjectListView/TypedObjectListView.cs, ObjectListView/VirtualObjectListView.cs, ObjectListView/TreeListView.cs, ObjectListView/ObjectListView.csproj
+2008-11-19 09:46 (#167) - ObjectListView/TreeListView.cs, ObjectListView/ObjectListView.csproj, ObjectListView/TypedObjectListView.cs, ObjectListView/VirtualObjectListView.cs
   - new versions for v2.0
 
-2008-11-19 09:43 (#166) - ObjectListView/ObjectListView.shfb, ObjectListView/CustomDictionary.xml, ObjectListView/ObjectListView.FxCop
+2008-11-19 09:43 (#166) - ObjectListView/ObjectListView.FxCop, ObjectListView/ObjectListView.shfb, ObjectListView/CustomDictionary.xml
   - Added FxCop project and settings
 
-2008-11-19 09:40 (#165) - ObjectListView/Events.cs, ObjectListView/Properties/AssemblyInfo.cs, ObjectListView/Properties, ObjectListView/CellEditors.cs, ObjectListView/Renderers.cs, ObjectListView/NativeMethods.cs, ObjectListView/DataListView.cs
+2008-11-19 09:40 (#165) - ObjectListView/DataListView.cs, ObjectListView/Events.cs, ObjectListView/Properties/AssemblyInfo.cs, ObjectListView/Properties, ObjectListView/CellEditors.cs, ObjectListView/Renderers.cs, ObjectListView/NativeMethods.cs
   - Split out from ObjectListView.cs
   - Minor changes to calm down FxCop
 
-2008-11-19 09:34 (#164) - Tests/TestColumn.cs, Tests/Tests.csproj, Tests/TestCheckBoxes.cs, Tests/MainForm.resx, Tests/TestBasics.cs, Tests/TestSelection.cs, Tests/Person.cs, Tests/MainForm.Designer.cs, Tests/Program.cs, Tests/MainForm.cs, Tests/SetupTestSuite.cs, Tests/TestTreeView.cs, Tests/AssemblyInfo.cs, Tests/OLVTests.nunit
+2008-11-19 09:34 (#164) - Tests/SetupTestSuite.cs, Tests/TestTreeView.cs, Tests/AssemblyInfo.cs, Tests/OLVTests.nunit, Tests/TestColumn.cs, Tests/Tests.csproj, Tests/TestCheckBoxes.cs, Tests/MainForm.resx, Tests/TestBasics.cs, Tests/TestSelection.cs, Tests/Person.cs, Tests/MainForm.Designer.cs, Tests/Program.cs, Tests/MainForm.cs
   - Added tests
 
-2008-11-19 08:36 (#163) - ListViewPrinter/ListViewPrinter.csproj, ListViewPrinter/BrushForm.Designer.cs, ListViewPrinter/BrushForm.cs, ListViewPrinter/Properties/AssemblyInfo.cs, ListViewPrinter/Properties, ListViewPrinter/ListViewPrinter.cs, ListViewPrinter/BrushPen.DesignTime.cs, ListViewPrinter/BrushPenData.cs, ListViewPrinter/BrushForm.resx
+2008-11-19 08:36 (#163) - ListViewPrinter/BrushForm.resx, ListViewPrinter/ListViewPrinter.csproj, ListViewPrinter/BrushForm.Designer.cs, ListViewPrinter/BrushForm.cs, ListViewPrinter/Properties/AssemblyInfo.cs, ListViewPrinter/Properties, ListViewPrinter/ListViewPrinter.cs, ListViewPrinter/BrushPen.DesignTime.cs, ListViewPrinter/BrushPenData.cs
   - Changed the way the BlockFormats are edited within the IDE
 
 2008-11-19 02:10 (#162) - ObjectListView/FastObjectListView.cs
@@ -1983,13 +1989,13 @@ v2.0 - 30 November 2008
 2008-11-19 00:19 (#161) - ObjectListView.sln, ObjectListViewDemo.sln
   - New project structure for v2.0
 
-2008-11-19 00:14 (#160) - Resources, AnimatedGifs, Photos, Demo/Resources, Demo/AnimatedGifs, Demo/Photos
+2008-11-19 00:14 (#160) - Demo/AnimatedGifs, Demo/Photos, Resources, AnimatedGifs, Photos, Demo/Resources
   - New project structure for v2.0
 
-2008-11-18 23:54 (#159) - Resource1.Designer.cs, MainForm.Designer.cs, Demo/Resource1.resx, Demo/Persons.xml, Demo/MainForm.resx, MainForm.cs, Demo/ColumnSelectionForm.Designer.cs, Demo/ColumnSelectionForm.cs, Demo/AssemblyInfo.cs, Demo/ObjectListViewDemo.csproj, Resource1.resx, Persons.xml, MainForm.resx, ColumnSelectionForm.Designer.cs, ColumnSelectionForm.cs, Demo/ColumnSelectionForm.resx, Demo/ShellUtilities.cs, AssemblyInfo.cs, Demo/MainForm.Designer.cs, Demo/Resource1.Designer.cs, Demo/MainForm.cs, ObjectListViewDemo.csproj, ShellUtilities.cs, ColumnSelectionForm.resx
+2008-11-18 23:54 (#159) - Demo/ColumnSelectionForm.cs, Demo/AssemblyInfo.cs, Demo/ObjectListViewDemo.csproj, Resource1.resx, Persons.xml, MainForm.resx, ColumnSelectionForm.Designer.cs, ColumnSelectionForm.cs, Demo/ColumnSelectionForm.resx, Demo/ShellUtilities.cs, AssemblyInfo.cs, Demo/MainForm.Designer.cs, Demo/Resource1.Designer.cs, Demo/MainForm.cs, ObjectListViewDemo.csproj, ShellUtilities.cs, ColumnSelectionForm.resx, Resource1.Designer.cs, MainForm.Designer.cs, Demo/Resource1.resx, Demo/Persons.xml, Demo/MainForm.resx, MainForm.cs, Demo/ColumnSelectionForm.Designer.cs
   - New project structure for v2.0
 
-2008-11-18 23:33 (#158) - ObjectListView/ObjectListView.cs, ObjectListView.cs
+2008-11-18 23:33 (#158) - ObjectListView.cs, ObjectListView/ObjectListView.cs
   - New project structure for v2.0
 
 2008-11-18 23:27 (#157) - ListViewPrinter/ListViewPrinter.cs, ListViewPrinter.cs
@@ -2016,7 +2022,7 @@ v1.13 - 24 July 2008
   - Fixed a bug involving GetItem() on virtual lists
   - Consistently use copy-on-write semantics with Add/RemoveObject methods
 
-2008-07-11 16:40 (#73) - MainForm.cs, MainForm.resx, MainForm.Designer.cs
+2008-07-11 16:40 (#73) - MainForm.resx, MainForm.Designer.cs, MainForm.cs
   - Added code for cell validating on complex tab
 
 2008-07-11 16:38 (#72) - ObjectListView.cs
@@ -2025,7 +2031,7 @@ v1.13 - 24 July 2008
   - Added LastSortColumn and LastSortOrder properties
   - Made SORT_INDICATOR_UP_KEY and SORT_INDICATOR_DOWN_KEY public
 
-2008-06-24 08:15 (#68) - MainForm.cs, MainForm.resx, MainForm.Designer.cs
+2008-06-24 08:15 (#68) - MainForm.resx, MainForm.Designer.cs, MainForm.cs
   - Added examples of checkboxes
   - Added "Lock Groups" checkbox
 
