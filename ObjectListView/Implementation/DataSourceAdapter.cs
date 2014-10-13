@@ -540,7 +540,7 @@ namespace BrightIdeasSoftware
 
         /// <summary>
         /// Change the control's position (which is it's currently selected row)
-        /// to the n'th row in the dataset
+        /// to the nth row in the dataset
         /// </summary>
         /// <param name="index">The index of the row to be selected</param>
         protected virtual void ChangePosition(int index) {
@@ -567,7 +567,7 @@ namespace BrightIdeasSoftware
             if (this.isChangingIndex)
                 return;
 
-            // If we are bound to a datasource, and only one item is selected,
+            // If we are bound to a data source, and only one item is selected,
             // tell the currency manager which item is selected.
             if (this.ListView.SelectedIndices.Count == 1 && this.CurrencyManager != null) {
                 try {

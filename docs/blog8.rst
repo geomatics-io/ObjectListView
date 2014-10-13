@@ -54,7 +54,7 @@ Better still, `LVN_ITEMCHANGING` is cancellable, so we just have to set the `m.R
 
 Oh yeah! Half an hour and the most difficult part was done! Except... this worked fine for plain `ObjectListView` but didn't work at all for virtual listviews (`FastObjectListView` and `TreeListView`). `LVN_ITEMCHANGING` is never triggered for virtual lists :( The documentation even says so.
 
-`LVN_ITEMCHANGED` (note the -ED) is triggered for both normal and virtual listviews, *but* it can't be cancelled. It is simply saying, "Hey. This row have changed, and there's nothing you can do about it!" I tried various ways of tweaking the notification, changing its data, skipping base processing, cancelling the event, but nothing worked reliably.
+`LVN_ITEMCHANGED` (note the -ED) is triggered for both normal and virtual listviews, *but* it can't be cancelled. It is simply saying, "Hey. This row has changed, and there's nothing you can do about it!" I tried various ways of tweaking the notification, changing its data, skipping base processing, cancelling the event, but nothing worked reliably.
 
 If the neat solution doesn't work, we can always use the sledgehammer! When we receive notification that a row has been selected AND we want that row to be disabled, we could just forcibly reverse the selection::
 
@@ -71,7 +71,7 @@ Virtual lists are the problem child of the ListView family. They take delight in
 
 On virtual lists, selecting a range via Shift-Click or selecting all items via Ctrl-A present problems.
 
-The problem is that for both Shift-Click and Ctrl-A the listview receives a single notification but multiple rows are selected. The notification can only indicate a single item `nmlistviewPtr.iItem` but we need to know the other rows that were selected.
+The problem is that for both Shift-Click and Ctrl-A the listview receives a single notification but multiple rows have been selected. The notification can only indicate a single item `nmlistviewPtr.iItem` but we need to know the other rows that were selected.
 We can solve the Ctrl-A problem. When all items are selected via Ctrl-A, the notification has a special value -1 in `nmlistviewPtr.iItem`. When we see this value, we know that all rows have been selected, so we can loop through all our disabled objects and explicitly deselect them again::
 
     // -1 indicates that all rows are to be selected -- in fact, they already have been.
@@ -144,32 +144,28 @@ Making it available
 
 The last piece in the puzzle is to make these features available to the programmer.
 
-`DisabledObjects`
+`ObjectListView.DisabledObjects`
     Gets or sets the entire collection of model objects whose rows should be disabled.
 
-`DisableObject()`, `DisableObjects()`
-    Disables all the model objects that are passed in. 
+`ObjectListView.DisableObject()`, `ObjectListView.DisableObjects()`
+    Disables all the model objects that are passed in. If the given model objects are not currently in the list, the control still remembers that they are disabled.
 
-    If the given model objects are not currently in the list, the control still remembers that they are disabled.
+`ObjectListView.EnableObject()`, `ObjectListView.EnableObjects()`
+    Enables one or more models objects, reversing the effects of `DisableObject()`. Does nothing if the given models are not currently disabled. 
 
-`EnableObject()`, `EnableObjects()`
-    Enables one or more models objects, reversing the effects of `DisableObject()`.
-
-    Does nothing if the given models are not currently disabled. 
-
-`IsDisabled()`
+`ObjectListView.IsDisabled()`
     Is the given model object disabled?
 
-`Reset()`
+`ObjectListView.Reset()`
     This existing method now also resets which objects are disabled.
 
 `OLVListItem.Enabled`
     Is this given item disabled? This can be read safely, but 
     like all `ListItem` stuff, you shouldn't mess with this. If you don't understand this, see :ref:`unlearn`.
 
-`DisabledItemStyle`
-    Gets or sets the styling that will be used for format disabled rows.
+`ObjectListView.DisabledItemStyle`
+    Gets or sets the styling that will be used for formatting disabled rows.
 
 `ObjectListView.DefaultDisabledItemStyle` (static property)
     Gets or sets the default disabled item style that will be used when nothing else has been given.
-    Gets or sets the styling that will be used for format disabled rows.
+    Gets or sets the styling that will be used for formatting disabled rows.

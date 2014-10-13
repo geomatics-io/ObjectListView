@@ -8,13 +8,13 @@
  * 2014-10-08  JPP  - Fixed an issue where pre-expanded branches would not initially expand properly
  * 2014-09-29  JPP  - Fixed issue where RefreshObject() on a root object could cause exceptions
  *                  - Fixed issue where CollapseAll() while filtering could cause exception
- * 2014-03-09  JPP  - Fixed bug where removing a branches only child and then calling RefreshObject()
+ * 2014-03-09  JPP  - Fixed issue where removing a branches only child and then calling RefreshObject()
  *                    could throw an exception.
  * v2.7
  * 2014-02-23  JPP  - Added Reveal() method to show a deeply nested models.
- * 2014-02-05  JPP  - Fix bug where refreshing a non-root item would collapse all expanded children of that item
+ * 2014-02-05  JPP  - Fix issue where refreshing a non-root item would collapse all expanded children of that item
  * 2014-02-01  JPP  - ClearObjects() now actually, you know, clears objects :)
- *                  - Corrected bug where Expanded event was being raised twice.
+ *                  - Corrected issue where Expanded event was being raised twice.
  *                  - RebuildChildren() no longer checks if CanExpand is true before rebuilding.
  * 2014-01-16  JPP  - Corrected an off-by-1 error in hit detection, which meant that clicking in the last 16 pixels
  *                    of an items label was being ignored.
@@ -22,19 +22,19 @@
  *                  - CheckedObjects now includes objects that are in a branch that is currently collapsed
  *                  - CollapseAll() and ExpandAll() now trigger cancellable events
  * 2013-09-29  JPP  - Added TreeFactory to allow the underlying Tree to be replaced by another implementation.
- * 2013-09-23  JPP  - Fixed long standing bug where RefreshObject() would not work on root objects
+ * 2013-09-23  JPP  - Fixed long standing issue where RefreshObject() would not work on root objects
  *                    which overrode Equals()/GetHashCode().
  * 2013-02-23  JPP  - Added HierarchicalCheckboxes. When this is true, the checkedness of a parent
  *                    is an synopsis of the checkedness of its children. When all children are checked,
  *                    the parent is checked. When all children are unchecked, the parent is unchecked.
  *                    If some children are checked and some are not, the parent is indeterminate.
  * v2.6
- * 2012-10-25  JPP  - Circumvent annoying bug in ListView control where changing
- *                    selection would leave artefacts on the control.
+ * 2012-10-25  JPP  - Circumvent annoying issue in ListView control where changing
+ *                    selection would leave artifacts on the control.
  * 2012-08-10  JPP  - Don't trigger selection changed events during expands
  * 
  * v2.5.1
- * 2012-04-30  JPP  - Fixed bug where CheckedObjects would return model objects that had been filtered out.
+ * 2012-04-30  JPP  - Fixed issue where CheckedObjects would return model objects that had been filtered out.
  *                  - Allow any column to render the tree, not just column 0 (still not sure about this one)
  * v2.5.0
  * 2011-04-20  JPP  - Added ExpandedObjects property and RebuildAll() method.
@@ -42,23 +42,23 @@
  *                    The ..ing events are cancellable. These are only fired in response
  *                    to user actions.
  * v2.4.1
- * 2010-06-15  JPP  - Fixed bug in Tree.RemoveObjects() which resulted in removed objects
+ * 2010-06-15  JPP  - Fixed issue in Tree.RemoveObjects() which resulted in removed objects
  *                    being reported as still existing.
  * v2.3
  * 2009-09-01  JPP  - Fixed off-by-one error that was messing up hit detection
- * 2009-08-27  JPP  - Fixed bug when dragging a node from one place to another in the tree
+ * 2009-08-27  JPP  - Fixed issue when dragging a node from one place to another in the tree
  * v2.2.1
  * 2009-07-14  JPP  - Clicks to the left of the expander in tree cells are now ignored.
  * v2.2
  * 2009-05-12  JPP  - Added tree traverse operations: GetParent and GetChildren.
  *                  - Added DiscardAllState() to completely reset the TreeListView.
  * 2009-05-10  JPP  - Removed all unsafe code
- * 2009-05-09  JPP  - Fixed bug where any command (Expand/Collapse/Refresh) on a model
+ * 2009-05-09  JPP  - Fixed issue where any command (Expand/Collapse/Refresh) on a model
  *                    object that was once visible but that is currently in a collapsed branch
  *                    would cause the control to crash.
- * 2009-05-07  JPP  - Fixed bug where RefreshObjects() would fail when none of the given
+ * 2009-05-07  JPP  - Fixed issue where RefreshObjects() would fail when none of the given
  *                    objects were present/visible.
- * 2009-04-20  JPP  - Fixed bug where calling Expand() on an already expanded branch confused
+ * 2009-04-20  JPP  - Fixed issue where calling Expand() on an already expanded branch confused
  *                    the display of the children (SF#2499313)
  * 2009-03-06  JPP  - Calculate edit rectangle on column 0 more accurately
  * v2.1
@@ -202,7 +202,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Gets whether or not this listview is capabale of showing groups
+        /// Gets whether or not this listview is capable of showing groups
         /// </summary>
         [Browsable(false)]
         public override bool CanShowGroups {
@@ -240,7 +240,7 @@ namespace BrightIdeasSoftware
         /// Get or set the collection of model objects that are checked.
         /// When setting this property, any row whose model object isn't
         /// in the given collection will be unchecked. Setting to null is
-        /// equivilent to unchecking all.
+        /// equivalent to unchecking all.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -452,7 +452,7 @@ namespace BrightIdeasSoftware
         /// branch are being fetched. If the children of the branch have already been cached, 
         /// the cursor will not change.</remarks>
         [Category("ObjectListView"),
-        Description("Should a wait cursor be shown when a branch is being expaned?"),
+        Description("Should a wait cursor be shown when a branch is being expanded?"),
         DefaultValue(true)]
         public virtual bool UseWaitCursorWhenExpanding {
             get { return useWaitCursorWhenExpanding; }
@@ -763,7 +763,7 @@ namespace BrightIdeasSoftware
                     this.Roots = newRoots;
             }
 
-            // Refresh each object, remembering where the first update occured
+            // Refresh each object, remembering where the first update occurred
             int firstChange = Int32.MaxValue;
             foreach (Object model in modelsAndParents.Keys) {
                 if (model != null) {
@@ -1003,7 +1003,7 @@ namespace BrightIdeasSoftware
             if (modelObject == null)
                 return;
 
-            // Only branches have calculated checkstates. Leaf node checkedness is not calculated
+            // Only branches have calculated check states. Leaf node checkedness is not calculated
             if (!this.CanExpand(modelObject))
                 return;
 
@@ -1108,10 +1108,10 @@ namespace BrightIdeasSoftware
         protected override void HandleApplicationIdle(object sender, EventArgs e) {
             base.HandleApplicationIdle(sender, e);
 
-            // There is an annoying redraw bug on ListViews that use indentation and
+            // There is an annoying redraw issue on ListViews that use indentation and
             // that have full row select enabled. When the selection reduces to a subset
             // of previously selected rows, or when the selection is extended using
-            // shift-pageup/down, then the space occupied by the identation is not
+            // shift-pageup/down, then the space occupied by the indentation is not
             // invalidated, and hence remains highlighted.
             // Ideally we'd want to know exactly which rows were selected or deselected
             // and then invalidate just the indentation region of those rows,
