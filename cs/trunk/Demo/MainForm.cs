@@ -156,19 +156,21 @@ namespace ObjectListViewDemo {
         }
 
         void InitializeComplexExample(List<Person> list) {
-            this.olvComplex.AddDecoration(new EditingCellBorderDecoration(true));
 
             this.olvComplex.FullRowSelect = false;
 
+            // Add a more interesting focus for editing operations
+            this.olvComplex.AddDecoration(new EditingCellBorderDecoration(true));
+
             // Uncomment this block to see a darker theme
-            this.olvComplex.UseAlternatingBackColors = false;
-            this.olvComplex.BackColor = Color.FromArgb(20, 20, 25);
-            this.olvComplex.AlternateRowBackColor = Color.FromArgb(40, 40, 45);
-            this.olvComplex.ForeColor = Color.WhiteSmoke;
-            this.olvComplex.DisabledItemStyle = new SimpleItemStyle();
-            this.olvComplex.DisabledItemStyle.ForeColor = Color.Gray;
-            this.olvComplex.DisabledItemStyle.BackColor = Color.FromArgb(30, 30, 35);
-            this.olvComplex.DisabledItemStyle.Font = new Font("Stencil", 10);
+//            this.olvComplex.UseAlternatingBackColors = false;
+//            this.olvComplex.BackColor = Color.FromArgb(20, 20, 25);
+//            this.olvComplex.AlternateRowBackColor = Color.FromArgb(40, 40, 45);
+//            this.olvComplex.ForeColor = Color.WhiteSmoke;
+//            this.olvComplex.DisabledItemStyle = new SimpleItemStyle();
+//            this.olvComplex.DisabledItemStyle.ForeColor = Color.Gray;
+//            this.olvComplex.DisabledItemStyle.BackColor = Color.FromArgb(30, 30, 35);
+//            this.olvComplex.DisabledItemStyle.Font = new Font("Stencil", 10);
 
             // The following line makes getting aspect about 10x faster. Since getting the aspect is
             // the slowest part of building the ListView, it is worthwhile BUT NOT NECESSARY to do.
@@ -1736,13 +1738,7 @@ namespace ObjectListViewDemo {
             //var x = new MyFileSystemInfo(new DirectoryInfo(@"C:\jpp\code\cs\ObjectListView\trunk\docs\images"));
             //this.treeListView.Reveal(x, true);
 
-            ArrayList parents = new ArrayList();
-            foreach (object x in this.treeListView.SelectedObjects) {
-                object parent = this.treeListView.GetParent(x);
-                parents.Add(parent ?? x);
-            }
-            // Now tell the Tree to update 
-            this.treeListView.RefreshObjects(parents);
+            this.treeListView.RefreshObjects(this.treeListView.SelectedObjects);
         }
 
         private void listViewComplex_MouseClick(object sender, MouseEventArgs e) {
@@ -1821,7 +1817,7 @@ namespace ObjectListViewDemo {
         }
 
         private void olvFastList_ItemChecked(object sender, ItemCheckedEventArgs e) {
-            System.Diagnostics.Debug.WriteLine("fast checked: {0}", e.Item);
+            // System.Diagnostics.Debug.WriteLine("fast checked: {0}", e.Item);
         }
 
         private void listViewSimple_ItemCheck(object sender, ItemCheckEventArgs e) {
@@ -1829,7 +1825,7 @@ namespace ObjectListViewDemo {
         }
 
         private void olvFastList_ItemCheck(object sender, ItemCheckEventArgs e) {
-            System.Diagnostics.Debug.WriteLine("fast check: {0}->{1}", e.CurrentValue, e.NewValue);
+            // System.Diagnostics.Debug.WriteLine("fast check: {0}->{1}", e.CurrentValue, e.NewValue);
         }
 
         private void checkBox19_CheckedChanged(object sender, EventArgs e) {

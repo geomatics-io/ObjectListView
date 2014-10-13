@@ -708,8 +708,8 @@ namespace BrightIdeasSoftware {
         /// <param name="m"></param>
         /// <returns></returns>
         protected bool HandleDestroy(ref Message m) {
-            if (this.ToolTip != null) {
-                this.ToolTip.Showing -= new EventHandler<ToolTipShowingEventArgs>(this.ListView.HeaderToolTipShowingCallback);
+            if (this.toolTip != null) {
+                this.toolTip.Showing -= new EventHandler<ToolTipShowingEventArgs>(this.ListView.HeaderToolTipShowingCallback);
             }
             return false;
         }
