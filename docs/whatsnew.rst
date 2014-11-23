@@ -7,6 +7,18 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
+November 2014 - Version 2.8.1
+-----------------------------
+
+Bug fixes
+^^^^^^^^^
+
+* Fixed issue that prevented single click editing from working
+* Added `ClickOnceAlways` edit mode
+* Trigger `Filter` events properly
+* Fixed a couple of issues related to data-bound lists and `CurrencyManager.Position`
+
+
 October 2014 - Version 2.8
 --------------------------
 
