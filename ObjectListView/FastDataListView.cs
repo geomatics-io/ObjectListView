@@ -48,6 +48,16 @@ namespace BrightIdeasSoftware
     /// </remarks>
     public class FastDataListView : FastObjectListView
     {
+        protected override void Dispose(bool disposing)
+        {
+            if (this.adapter != null) {
+                this.adapter.Dispose();
+                this.adapter = null;
+            }
+
+            base.Dispose(disposing);
+        }
+
         #region Public Properties
 
         /// <summary>
@@ -129,7 +139,7 @@ namespace BrightIdeasSoftware
         /// Create the DataSourceAdapter that this control will use.
         /// </summary>
         /// <returns>A DataSourceAdapter configured for this list</returns>
-        /// <remarks>Subclasses should overrride this to create their
+        /// <remarks>Subclasses should override this to create their
         /// own specialized adapters</remarks>
         protected virtual DataSourceAdapter CreateDataSourceAdapter() {
             return new DataSourceAdapter(this);
