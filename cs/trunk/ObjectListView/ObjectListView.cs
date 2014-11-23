@@ -5,6 +5,10 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2014-10-15  JPP  - Added CellEditActivateMode.SingleClickAlways mode
+ *                  - Fire Filter event event if ModelFilter and ListFilter are null (SF #126)
+ *                  - Fixed issue where single-click editing didn't work (SF #128)
+ * v2.8.0
  * 2014-10-11  JPP  - Fixed some XP-only flicker issues
  * 2014-09-26  JPP  - Fixed intricate bug involving checkboxes on non-owner-drawn virtual lists.
  *                  - Fixed long standing (but previously unreported) error on non-details virtual lists where
@@ -35,7 +39,7 @@
  * 2013-04-21  JPP  - Clicking on a non-groupable column header when showing groups will now sort
  *                    the group contents by that column.
  * v2.6
- * 2012-08-16  JPP  - Added ObjectListView.EditModel() -- a convienence method to start an edit operation on a model
+ * 2012-08-16  JPP  - Added ObjectListView.EditModel() -- a convenience method to start an edit operation on a model
  * 2012-08-10  JPP  - Don't trigger selection changed events during sorting/grouping or add/removing columns
  * 2012-08-06  JPP  - Don't start a cell edit operation when the user clicks on the background of a checkbox cell.
  *                  - Honor values from the BeforeSorting event when calling a CustomSorter
@@ -132,7 +136,7 @@
  *                    the listview is grouped.
  * 2010-08-08  JPP  - Added OLVColumn.HeaderImageKey to allow column headers to have an image.
  *                  - CellEdit validation and finish events now have NewValue property.
- * 2010-08-03  JPP  - Subitem checkboxes improvments: obey IsEditable, can be hot, can be disabled.
+ * 2010-08-03  JPP  - Subitem checkboxes improvements: obey IsEditable, can be hot, can be disabled.
  *                  - No more flickering of selection when tabbing between cells
  *                  - Added EditingCellBorderDecoration to make it clearer which cell is being edited.
  * 2010-08-01  JPP  - Added ObjectListView.SmoothingMode to control the smoothing of all graphics
@@ -144,7 +148,7 @@
  * 2010-07-16  JPP  - Invalidate the control before and after cell editing to make sure it looks right
  * 2010-06-23  JPP  - Right mouse clicks on checkboxes no longer confuse them
  * 2010-06-21  JPP  - Avoid bug in underlying ListView control where virtual lists in SmallIcon view
- *                    generate GETTOOLINFO msgs with invalid item indicies.
+ *                    generate GETTOOLINFO msgs with invalid item indices.
  *                  - Fixed bug where FastObjectListView would throw an exception when showing hyperlinks
  *                    in any view except Details.
  * 2010-06-15  JPP  - Fixed bug in ChangeToFilteredColumns() that resulted in column display order
@@ -299,7 +303,7 @@
  * 2008-12-19  JPP  - Fixed bug with space filling columns and layout events
  *                  - Fixed RowHeight so that it only changes the row height, not the width of the images.
  * v2.0
- * 2008-12-10  JPP  - Handle Backspace key. Resets the seach-by-typing state without delay
+ * 2008-12-10  JPP  - Handle Backspace key. Resets the search-by-typing state without delay
  *                  - Made some changes to the column collection editor to try and avoid
  *                    the multiple column generation problem.
  *                  - Updated some documentation
@@ -1581,7 +1585,7 @@ namespace BrightIdeasSoftware
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         virtual public IEnumerable FilteredObjects {
             get {
-                if (this.IsFiltering)
+                if (this.UseFiltering)
                     return this.FilterObjects(this.Objects, this.ModelFilter, this.ListFilter);
                 
                 return this.Objects;
@@ -9122,13 +9126,15 @@ namespace BrightIdeasSoftware
             if (this.IsCellEditing)
                 return false;
 
-            if (e.Button != MouseButtons.Left && !(e.Button == MouseButtons.Right && this.fakeRightClick))
+            if (e.Button != MouseButtons.Left && e.Button != MouseButtons.Right)
                 return false;
 
             if ((Control.ModifierKeys & (Keys.Shift | Keys.Control | Keys.Alt)) != 0)
                 return false;
 
-            if (this.lastMouseDownClickCount == 1 && this.CellEditActivation == CellEditActivateMode.SingleClick)
+            if (this.lastMouseDownClickCount == 1 && (
+                this.CellEditActivation == CellEditActivateMode.SingleClick ||
+                this.CellEditActivation == CellEditActivateMode.SingleClickAlways))
                 return true;
 
             return (this.lastMouseDownClickCount == 2 && this.CellEditActivation == CellEditActivateMode.DoubleClick);

@@ -185,9 +185,9 @@ namespace BrightIdeasSoftware
         /// not remember any check box settings made.
         /// </para>
         /// <para>
-        /// This class optimizes the mangement of CheckStates so that it will work efficiently even on
+        /// This class optimizes the management of CheckStates so that it will work efficiently even on
         /// large lists of item. However, those optimizations are impossible if you install a CheckStateGetter.
-        /// Witha CheckStateGetter installed, the performance of this method is O(n) where n is the size 
+        /// With a CheckStateGetter installed, the performance of this method is O(n) where n is the size 
         /// of the list. This could be painfully slow.</para>
         /// </remarks>
         [Browsable(false),
@@ -327,15 +327,16 @@ namespace BrightIdeasSoftware
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public override IEnumerable Objects {
             get {
+                IFilterableDataSource filterable = this.VirtualListDataSource as IFilterableDataSource;
                 try {
                     // If we are filtering, we have to temporarily disable filtering so we get
                     // the whole collection
-                    if (this.IsFiltering)
-                        ((IFilterableDataSource)this.VirtualListDataSource).ApplyFilters(null, null);
+                    if (filterable != null && this.UseFiltering)
+                        filterable.ApplyFilters(null, null);
                     return this.FilteredObjects;
                 } finally {
-                    if (this.IsFiltering)
-                        ((IFilterableDataSource)this.VirtualListDataSource).ApplyFilters(this.ModelFilter, this.ListFilter);
+                    if (filterable != null && this.UseFiltering)
+                        filterable.ApplyFilters(this.ModelFilter, this.ListFilter);
                 }
             }
             set { base.Objects = value; }
@@ -649,7 +650,7 @@ namespace BrightIdeasSoftware
             // Finally, select the row
             this.SelectedIndices.Clear();
             this.SelectedIndices.Add(index);
-            if (setFocus)
+            if (setFocus && this.SelectedItem != null)
                 this.SelectedItem.Focused = true;
         }
 
