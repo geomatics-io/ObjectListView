@@ -649,7 +649,7 @@ namespace BrightIdeasSoftware
 
         /// <summary>
         /// Calculate the left edge of the rectangle that aligns the outer rectangle with the inner one 
-        /// according to this renderer's horizontal alignement
+        /// according to this renderer's horizontal alignment
         /// </summary>
         /// <param name="outer"></param>
         /// <param name="inner"></param>
@@ -1039,7 +1039,7 @@ namespace BrightIdeasSoftware
         /// <para>Subclasses should override this method.</para></remarks>
         /// <param name="g">The graphics context that should be used for drawing</param>
         /// <param name="r">The bounds of the subitem cell</param>
-        /// <returns>Returns whether the renderering has already taken place.
+        /// <returns>Returns whether the rendering has already taken place.
         /// If this returns false, the default processing will take over.
         /// </returns>
         public virtual bool OptionalRender(Graphics g, Rectangle r) {
@@ -1338,7 +1338,7 @@ namespace BrightIdeasSoftware
 
 
         /// <summary>
-        /// Calculate the renderer checkboxstate we need to correctly draw the given state
+        /// Calculate the CheckBoxState we need to correctly draw the given state
         /// </summary>
         /// <param name="checkState"></param>
         /// <returns></returns>
@@ -1628,7 +1628,7 @@ namespace BrightIdeasSoftware
                 g.DrawString(txt, f, this.TextBrush, rf, fmt);
             }
 
-            // We should put a focus rectange around the column 0 text if it's selected --
+            // We should put a focus rectangle around the column 0 text if it's selected --
             // but we don't because:
             // - I really dislike this UI convention
             // - we are using buffered graphics, so the DrawFocusRecatangle method of the event doesn't work
@@ -1922,7 +1922,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Return a GraphicPath that is a round cornered rectangle
         /// </summary>
-        /// <returns>A round cornered rectagle path</returns>
+        /// <returns>A round cornered rectangle path</returns>
         /// <remarks>If I could rely on people using C# 3.0+, this should be
         /// an extension method of GraphicsPath.</remarks>        
         /// <param name="x"></param>
@@ -1939,7 +1939,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rect">The rectangle</param>
         /// <param name="diameter">The diameter of the corners</param>
-        /// <returns>A round cornered rectagle path</returns>
+        /// <returns>A round cornered rectangle path</returns>
         /// <remarks>If I could rely on people using C# 3.0+, this should be
         /// an extension method of GraphicsPath.</remarks>
         protected GraphicsPath GetRoundedRect(RectangleF rect, float diameter) {
@@ -2908,7 +2908,7 @@ namespace BrightIdeasSoftware
     public class MultiImageRenderer : BaseRenderer
     {
         /// <summary>
-        /// Make a quiet rendererer
+        /// Make a quiet renderer
         /// </summary>
         public MultiImageRenderer()
             : base() {
@@ -3158,7 +3158,7 @@ namespace BrightIdeasSoftware
     }
 
     /// <summary>
-    /// This renderer draws an image, a single line title, and then multi-line descrition
+    /// This renderer draws an image, a single line title, and then multi-line description
     /// under the title.
     /// </summary>
     /// <remarks>
