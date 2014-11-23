@@ -5,6 +5,8 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2014-10-15   JPP  - Fire Filter event when applying filters
+ * v2.8
  * 2012-06-11   JPP  - Added more efficient version of FilteredObjects
  * v2.5.1
  * 2011-04-25   JPP  - Fixed problem with removing objects from filtered or sorted list
@@ -334,8 +336,19 @@ namespace BrightIdeasSoftware
         /// Build our filtered list from our full list.
         /// </summary>
         protected void FilterObjects() {
-            if (!this.listView.UseFiltering || (this.modelFilter == null && this.listFilter == null)) {
+
+            // If this list isn't filtered, we don't need to do anything else
+            if (!this.listView.UseFiltering) {
                 this.filteredObjectList = new ArrayList(this.fullObjectList);
+                return;
+            }
+
+            // Tell the world to filter the objects. If they do so, don't do anything else
+            // ReSharper disable PossibleMultipleEnumeration
+            FilterEventArgs args = new FilterEventArgs(this.fullObjectList);
+            this.listView.OnFilter(args);
+            if (args.FilteredObjects != null) {
+                this.filteredObjectList = ObjectListView.EnumerableToArray(args.FilteredObjects, false);
                 return;
             }
 

@@ -529,7 +529,7 @@ namespace BrightIdeasSoftware
         /// 
         /// </summary>
         /// <param name="e"></param>
-        protected virtual void OnFilter(FilterEventArgs e) {
+        internal protected virtual void OnFilter(FilterEventArgs e) {
             if (this.Filter != null)
                 this.Filter(this, e);
         }
