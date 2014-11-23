@@ -133,7 +133,7 @@ conditions.
    which would require all the parents to also be hidden or revealed, again breaking the contracts.
 
 If you make a change to model objects and want filters to be reconsidered for them, you have
-to call `BuildList(true)` or reapply the filters. `RefreshObject()` will not work.
+to reapply the filters (you can just assign the same filter again). `RefreshObject()` will not work.
 
 .. _column-filtering-label:
 

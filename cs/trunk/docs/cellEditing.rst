@@ -19,19 +19,23 @@ Starting a cell edit
 The "editability" of an ObjectListView is controlled by the `CellEditActivation`
 property. This property can be set to one of the following values:
 
-* `ObjectListView.CELLEDIT_NONE`
+* `CellEditActivateMode.None`
    Cell editing is not allowed on the control This is the default.
 
-* `ObjectListView.CELLEDIT_SINGLECLICK`
+* `CellEditActivateMode.SingleClick`
    Single clicking on any subitem cell begins an edit operation on that cell.
    Single clicking on the primary cell does *not* start an edit operation.
    It simply selects the row. Pressing :kbd:`F2` edits the primary cell.
 
-* `ObjectListView.CELLEDIT_DOUBLECLICK`
+* `CellEditActivateMode.SingleClickAlways`
+   Single clicking on any cell begins an edit operation on that cell,
+   even the primary cell (unlike this mode above).
+
+* `CellEditActivateMode.DoubleClick`
    Double clicking any cell starts an edit operation on that cell, including
    the primary cell. Pressing :kbd:`F2` edits the primary cell.
 
-* `ObjectListView.CELLEDIT_F2ONLY`
+* `CellEditActivateMode.F2Only`
    Pressing :kbd:`F2` edits the primary cell. :kbd:`Tab`/:kbd:`Shift-Tab` can be used to
    edit other cells. Clicking does not start any editing.
 
