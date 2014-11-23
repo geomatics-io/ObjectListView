@@ -62,6 +62,8 @@ namespace BrightIdeasSoftware
     /// </remarks>
     public class DataListView : ObjectListView
     {
+        #region Life and death
+
         /// <summary>
         /// Make a DataListView
         /// </summary>
@@ -69,6 +71,13 @@ namespace BrightIdeasSoftware
         {
             this.Adapter = new DataSourceAdapter(this);
         }
+
+        protected override void Dispose(bool disposing) {
+            this.Adapter.Dispose();
+            base.Dispose(disposing);
+        }
+
+        #endregion
 
         #region Public Properties
 
@@ -139,6 +148,9 @@ namespace BrightIdeasSoftware
         /// Gets or sets the DataSourceAdaptor that does the bulk of the work needed
         /// for data binding.
         /// </summary>
+        /// <remarks>
+        /// Adaptors cannot be shared between controls. Each DataListView needs its own adapter.
+        /// </remarks>
         protected DataSourceAdapter Adapter {
             get {
                 Debug.Assert(adapter != null, "Data adapter should not be null");
@@ -157,17 +169,28 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="modelObjects">A collection of model objects</param>
         /// <remarks>This is a no-op for data lists, since the data
-        /// is controlled by the VirtualListDataSource. Manipulate the data source
+        /// is controlled by the DataSource. Manipulate the data source
         /// rather than this view of the data source.</remarks>
         public override void AddObjects(ICollection modelObjects)
         {
         }
 
         /// <summary>
+        /// Insert the given collection of objects before the given position
+        /// </summary>
+        /// <param name="index">Where to insert the objects</param>
+        /// <param name="modelObjects">The objects to be inserted</param>
+        /// <remarks>This is a no-op for data lists, since the data
+        /// is controlled by the DataSource. Manipulate the data source
+        /// rather than this view of the data source.</remarks>
+        public override void InsertObjects(int index, ICollection modelObjects) {
+        }
+
+        /// <summary>
         /// Remove the given collection of model objects from this control.
         /// </summary>
         /// <remarks>This is a no-op for data lists, since the data
-        /// is controlled by the VirtualListDataSource. Manipulate the data source
+        /// is controlled by the DataSource. Manipulate the data source
         /// rather than this view of the data source.</remarks>
         public override void RemoveObjects(ICollection modelObjects)
         {
