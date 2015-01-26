@@ -147,5 +147,11 @@ namespace BrightIdeasSoftware {
     /// </summary>
     public delegate void SortDelegate(OLVColumn column, SortOrder sortOrder);
 
+    /// <summary>
+    /// These delegates are used to order two strings.
+    /// x cannot be null. y can be null.
+    /// </summary>
+    public delegate int StringCompareDelegate(string x, string y);
+
     #endregion
 }
