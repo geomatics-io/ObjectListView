@@ -5,6 +5,8 @@
  * Date: 25/11/2008 17:15 
  *
  * Change log:
+ * v2.8.1
+ * 2014-12-03  JPP  - Added StringComparer
  * v2.3
  * 2009-08-24  JPP  - Added OLVGroupComparer
  * 2009-06-01  JPP  - ModelObjectComparer would crash if secondary sort column was null.
@@ -44,9 +46,23 @@ namespace BrightIdeasSoftware
     /// a case insensitive string compare of the string representations of the values.
     /// </summary>
     /// <remarks><para>This class inherits from both IComparer and its generic counterpart
-    /// so that it can be used on untyped and typed collections.</para></remarks>
+    /// so that it can be used on untyped and typed collections.</para>
+    /// <para>This is used by normal (non-virtual) ObjectListViews. Virtual lists use
+    /// ModelObjectComparer</para>
+    /// </remarks>
     public class ColumnComparer : IComparer, IComparer<OLVListItem>
     {
+        /// <summary>
+        /// Gets or sets the method that will be used to compare two strings.
+        /// The default is to compare on the current culture, case-insensitive
+        /// </summary>
+        public static StringCompareDelegate StringComparer
+        {
+            get { return stringComparer; }
+            set { stringComparer = value; }
+        }
+        private static StringCompareDelegate stringComparer;
+
         /// <summary>
         /// Create a ColumnComparer that will order the rows in a list view according
         /// to the values in a given column
@@ -135,14 +151,18 @@ namespace BrightIdeasSoftware
             // Force case insensitive compares on strings
             String xAsString = x as String;
             if (xAsString != null)
-                return String.Compare(xAsString, (String)y, StringComparison.CurrentCultureIgnoreCase);
-            else {
-                IComparable comparable = x as IComparable;
-                if (comparable != null)
-                    return comparable.CompareTo(y);
-                else
-                    return 0;
-            }
+                return CompareStrings(xAsString, y as String);
+            
+            IComparable comparable = x as IComparable;
+            return comparable != null ? comparable.CompareTo(y) : 0;
+        }
+
+        private static int CompareStrings(string x, string y)
+        {
+            if (StringComparer == null)
+                return String.Compare(x, y, StringComparison.CurrentCultureIgnoreCase);
+            else
+                return StringComparer(x, y);
         }
 
         private OLVColumn column;
@@ -193,8 +213,23 @@ namespace BrightIdeasSoftware
     /// <summary>
     /// This comparer can be used to sort a collection of model objects by a given column
     /// </summary>
+    /// <remarks>
+    /// <para>This is used by virtual ObjectListViews. Non-virtual lists use
+    /// ColumnComparer</para>
+    /// </remarks>
     public class ModelObjectComparer : IComparer, IComparer<object>
     {
+        /// <summary>
+        /// Gets or sets the method that will be used to compare two strings.
+        /// The default is to compare on the current culture, case-insensitive
+        /// </summary>
+        public static StringCompareDelegate StringComparer
+        {
+            get { return stringComparer; }
+            set { stringComparer = value; }
+        }
+        private static StringCompareDelegate stringComparer;
+
         /// <summary>
         /// Create a model object comparer
         /// </summary>
@@ -269,14 +304,18 @@ namespace BrightIdeasSoftware
             // Force case insensitive compares on strings
             String xStr = x as String;
             if (xStr != null)
-                return String.Compare(xStr, (String)y, StringComparison.CurrentCultureIgnoreCase);
-            else {
-                IComparable comparable = x as IComparable;
-                if (comparable != null)
-                    return comparable.CompareTo(y);
-                else
-                    return 0;
-            }
+                return CompareStrings(xStr, y as String);
+            
+            IComparable comparable = x as IComparable;
+            return comparable != null ? comparable.CompareTo(y) : 0;
+        }
+
+        private static int CompareStrings(string x, string y)
+        {
+            if (StringComparer == null)
+                return String.Compare(x, y, StringComparison.CurrentCultureIgnoreCase);
+            else
+                return StringComparer(x, y);
         }
 
         private OLVColumn column;
