@@ -6,6 +6,8 @@
  *
  * Change log:
  * v2.8.1
+ * 2014-11-28  JPP  - Fixed issue in RefreshObject() where a model with less children than previous that could not
+ *                    longer be expanded would cause an exception.
  * 2014-11-23  JPP  - Fixed an issue where collapsing a branch could leave the internal object->index map out of date.
  * v2.8
  * 2014-10-08  JPP  - Fixed an issue where pre-expanded branches would not initially expand properly
@@ -1378,6 +1380,9 @@ namespace BrightIdeasSoftware
                 // Insert the refreshed children if the branch can expand and is expanded
                 if (br.CanExpand && br.IsExpanded)
                     this.InsertChildren(br, index + 1);
+                else
+                    this.RebuildObjectMap(index);
+
                 return index;
             }
 
