@@ -10,6 +10,11 @@ For the (mostly) complete change log, :ref:`see here <changelog>`.
 November 2014 - Version 2.8.1
 -----------------------------
 
+New features
+^^^^^^^^^^^^
+
+* Allow string comparisons to be replaced via static properties `ModelObjectComparer.StringComparer` and `ColumnComparer.StringComparer`
+
 Bug fixes
 ^^^^^^^^^
 
@@ -17,7 +22,7 @@ Bug fixes
 * Added `ClickOnceAlways` edit mode
 * Trigger `Filter` events properly
 * Fixed a couple of issues related to data-bound lists and `CurrencyManager.Position`
-
+* Fixed some bugs in `TreeListView` where `RefreshObject()` or collapsing a branch could corrupt the internal state of the control.
 
 October 2014 - Version 2.8
 --------------------------
