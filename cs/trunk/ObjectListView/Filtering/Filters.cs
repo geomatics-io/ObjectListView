@@ -147,6 +147,19 @@ namespace BrightIdeasSoftware
         private IList<IModelFilter> filters = new List<IModelFilter>();
 
         /// <summary>
+        /// Get the sub filters that are text match filters
+        /// </summary>
+        public IEnumerable<TextMatchFilter> TextFilters {
+            get {
+                foreach (IModelFilter filter in this.Filters) {
+                    TextMatchFilter textFilter = filter as TextMatchFilter;
+                    if (textFilter != null)
+                        yield return textFilter;
+                }
+            }
+        }
+
+        /// <summary>
         /// Decide whether or not the given model should be included by the filter
         /// </summary>
         /// <param name="modelObject"></param>

@@ -305,10 +305,16 @@ namespace BrightIdeasSoftware {
 
             foreach (OLVColumn column in this.IterateColumns()) {
                 if (column.IsVisible && column.Searchable) {
-                    string cellText = column.GetStringValue(modelObject);
-                    foreach (TextMatchingStrategy filter in this.MatchingStrategies) {
-                        if (String.IsNullOrEmpty(filter.Text) || filter.MatchesText(cellText))
-                            return true;
+                    string[] cellTexts = column.GetSearchValues(modelObject);
+                    if (cellTexts != null && cellTexts.Length > 0) {
+                        foreach (TextMatchingStrategy filter in this.MatchingStrategies) {
+                            if (String.IsNullOrEmpty(filter.Text))
+                                return true;
+                            foreach (string cellText in cellTexts) {
+                                if (filter.MatchesText(cellText))
+                                    return true;
+                            }
+                        }
                     }
                 }
             }
