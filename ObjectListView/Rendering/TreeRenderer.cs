@@ -208,7 +208,7 @@ namespace BrightIdeasSoftware {
             protected override void HandleHitTest(Graphics g, OlvListViewHitTestInfo hti, int x, int y) {
                 Branch br = this.Branch;
 
-                Rectangle r = this.Bounds;
+                Rectangle r = this.ApplyCellPadding(this.Bounds);
                 if (br.CanExpand) {
                     r.Offset((br.Level - 1) * PIXELS_PER_LEVEL, 0);
                     r.Width = PIXELS_PER_LEVEL;
