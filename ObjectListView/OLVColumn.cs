@@ -5,6 +5,7 @@
  * Date: 31-March-2011 5:53 pm
  *
  * Change log:
+ * 2015-06-12  JPP  - HeaderTextAlignment became nullable so that it can be "not set" (this was always the intent)
  * 2014-09-07  JPP  - Added ability to have checkboxes in headers
  * 
  * 2011-05-27  JPP  - Added Sortable, Hideable, Groupable, Searchable, ShowTextInHeader properties
@@ -238,6 +239,46 @@ namespace BrightIdeasSoftware {
         }
 
         /// <summary>
+        /// When a cell is edited, should the whole cell be used (minus any space used by checkbox or image)?
+        /// </summary>
+        /// <remarks>
+        /// <para>This is always treated as true when the control is NOT owner drawn.</para>
+        /// <para>
+        /// When this is false (the default) and the control is owner drawn, 
+        /// ObjectListView will try to calculate the width of the cell's
+        /// actual contents, and then size the editing control to be just the right width. If this is true,
+        /// the whole width of the cell will be used, regardless of the cell's contents.
+        /// </para>
+        /// <para>If this property is not set on the column, the value from the control will be used
+        /// </para>
+        /// <para>This value is only used when the control is in Details view.</para>
+        /// <para>Regardless of this setting, developers can specify the exact size of the editing control
+        /// by listening for the CellEditStarting event.</para>
+        /// </remarks>
+        [Category("ObjectListView"),
+         Description("When a cell is edited, should the whole cell be used?"),
+         DefaultValue(null)]
+        public virtual bool? CellEditUseWholeCell
+        {
+            get { return cellEditUseWholeCell; }
+            set { cellEditUseWholeCell = value; }
+        }
+        private bool? cellEditUseWholeCell;
+
+        /// <summary>
+        /// Get whether the whole cell should be used when editing a cell in this column
+        /// </summary>
+        /// <remarks>This calculates the current effective value, which may be different to CellEditUseWholeCell</remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual bool CellEditUseWholeCellEffective {
+            get {
+                bool? columnSpecificValue = this.ListView.View == View.Details ? this.CellEditUseWholeCell : (bool?) null;
+                return (columnSpecificValue ?? ((ObjectListView) this.ListView).CellEditUseWholeCell);
+            }
+        }
+
+        /// <summary>
         /// Gets or sets how many pixels will be left blank around this cells in this column
         /// </summary>
         /// <remarks>This setting only takes effect when the control is owner drawn.</remarks>
@@ -330,6 +371,20 @@ namespace BrightIdeasSoftware {
             }
         }
         private IClusteringStrategy clusteringStrategy;
+
+        /// <summary>
+        /// Gets or sets whether the button in this column (if this column is drawing buttons) will be enabled
+        /// even if the row itself is disabled
+        /// </summary>
+        [Category("ObjectListView"),
+         Description("If this column contains a button, should the button be enabled even if the row is disabled?"),
+         DefaultValue(false)]
+        public bool EnableButtonWhenItemIsDisabled
+        {
+            get { return this.enableButtonWhenItemIsDisabled; }
+            set { this.enableButtonWhenItemIsDisabled = value; }
+        }
+        private bool enableButtonWhenItemIsDisabled;
 
         /// <summary>
         /// Should this column resize to fill the free space in the listview?
@@ -640,13 +695,23 @@ namespace BrightIdeasSoftware {
         /// Gets or sets how the text of the header will be drawn?
         /// </summary>
         [Category("ObjectListView"),
-         Description("How will the header text be aligned?"),
-         DefaultValue(HorizontalAlignment.Left)]
-        public HorizontalAlignment HeaderTextAlign {
-            get { return headerTextAlign.HasValue ? headerTextAlign.Value : this.TextAlign; }
+         Description("How will the header text be aligned? If this is not set, the alignment of the header will follow the alignment of the column"),
+         DefaultValue(null)]
+        public HorizontalAlignment? HeaderTextAlign {
+            get { return headerTextAlign; }
             set { headerTextAlign = value; }
         }
         private HorizontalAlignment? headerTextAlign;
+
+        /// <summary>
+        /// Return the text alignment of the header. This will either have been set explicitly,
+        /// or will follow the alignment of the text in the column
+        /// </summary>
+        [Browsable(false)]
+        public HorizontalAlignment HeaderTextAlignOrDefault
+        {
+            get { return headerTextAlign.HasValue ? headerTextAlign.Value : this.TextAlign; }
+        }
 
         /// <summary>
         /// Gets the header alignment converted to a StringAlignment
@@ -654,11 +719,11 @@ namespace BrightIdeasSoftware {
         [Browsable(false)]
         public StringAlignment HeaderTextAlignAsStringAlignment {
             get {
-                switch (this.HeaderTextAlign) {
-                case HorizontalAlignment.Left: return StringAlignment.Near;
-                case HorizontalAlignment.Center: return StringAlignment.Center;
-                case HorizontalAlignment.Right: return StringAlignment.Far;
-                default: return StringAlignment.Near;
+                switch (this.HeaderTextAlignOrDefault) {
+                    case HorizontalAlignment.Left: return StringAlignment.Near;
+                    case HorizontalAlignment.Center: return StringAlignment.Center;
+                    case HorizontalAlignment.Right: return StringAlignment.Far;
+                    default: return StringAlignment.Near;
                 }
             }
         }
@@ -926,7 +991,7 @@ namespace BrightIdeasSoftware {
         /// </summary>
         /// <remarks>-1 means there is no maximum width. Give this the same value as MinimumWidth to make a fixed width column.</remarks>
         [Category("ObjectListView"),
-         Description("What is the maximum width to which the user can resize this column?"),
+         Description("What is the maximum width to which the user can resize this column? -1 means no limit"),
          DefaultValue(-1)]
         public int MaximumWidth {
             get { return maxWidth; }
@@ -943,7 +1008,7 @@ namespace BrightIdeasSoftware {
         /// </summary>
         /// <remarks>-1 means there is no minimum width. Give this the same value as MaximumWidth to make a fixed width column.</remarks>
         [Category("ObjectListView"),
-         Description("What is the minimum width to which the user can resize this column?"),
+         Description("What is the minimum width to which the user can resize this column? -1 means no limit"),
          DefaultValue(-1)]
         public int MinimumWidth {
             get { return minWidth; }
@@ -1000,6 +1065,18 @@ namespace BrightIdeasSoftware {
             set { searchable = value; }
         }
         private bool searchable = true;
+
+        /// <summary>
+        /// Gets or sets a delegate which will return the array of text values that should be 
+        /// considered for text matching when using a text based filter.
+        /// </summary>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public SearchValueGetterDelegate SearchValueGetter {
+            get { return searchValueGetter; }
+            set { searchValueGetter = value; }
+        }
+        private SearchValueGetterDelegate searchValueGetter;
 
         /// <summary>
         /// Gets or sets whether the header for this column will include the column's Text.
@@ -1357,6 +1434,20 @@ namespace BrightIdeasSoftware {
         }
 
         /// <summary>
+        /// For a given row object, return the strings that will be searched when trying to filter by string.
+        /// </summary>
+        /// <remarks>
+        /// This will normally be the simple GetStringValue result, but if this column is non-textual (e.g. image)
+        /// you might want to install a SearchValueGetter delegate which can return something that could be used
+        /// for text filtering.
+        /// </remarks>
+        /// <param name="rowObject"></param>
+        /// <returns>The array of texts to be searched. If this returns null, search will not match that object.</returns>
+        public string[] GetSearchValues(object rowObject) {
+            return this.SearchValueGetter == null ? new string[] { this.GetStringValue(rowObject) } : this.SearchValueGetter(rowObject);
+        }
+
+        /// <summary>
         /// For a given row object, return the string representation of the value shown in this column.
         /// </summary>
         /// <remarks>
@@ -1365,7 +1456,8 @@ namespace BrightIdeasSoftware {
         /// </remarks>
         /// <param name="rowObject"></param>
         /// <returns></returns>
-        public string GetStringValue(object rowObject) {
+        public string GetStringValue(object rowObject)
+        {
             return this.ValueToString(this.GetValue(rowObject));
         }
 
