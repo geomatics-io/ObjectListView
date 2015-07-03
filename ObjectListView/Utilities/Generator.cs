@@ -5,6 +5,7 @@
  * Date: 15/08/2009 22:37
  *
  * Change log:
+ * 2015-06-17  JPP  - Columns without [OLVColumn] now auto size
  * 2012-08-16  JPP  - Generator now considers [OLVChildren] and [OLVIgnore] attributes.
  * 2012-06-14  JPP  - Allow columns to be generated even if they are not marked with [OLVColumn]
  *                  - Converted class from static to instance to allow it to be subclassed.
@@ -314,6 +315,7 @@ namespace BrightIdeasSoftware
 
             if (attr == null) {
                 column.IsEditable = editable;
+                column.Width = -1; // Auto size
                 return column;                
             }
 
