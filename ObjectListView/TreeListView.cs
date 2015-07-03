@@ -5,6 +5,7 @@
  * Date: 23/09/2008 11:15 AM
  *
  * Change log:
+ * 2015-06-27  JPP  - Corrected small UI glitch when focus was lost and HideSelection was false. SF #135.
  * v2.8.1
  * 2014-11-28  JPP  - Fixed issue in RefreshObject() where a model with less children than previous that could not
  *                    longer be expanded would cause an exception.
@@ -324,6 +325,13 @@ namespace BrightIdeasSoftware
         /// will be checked. If all children are unchecked, the parent will also be unchecked.
         /// If some children are checked and others are not, the parent will be indeterminate.
         /// </summary>
+        /// <remarks>
+        /// Hierarchical checkboxes don't work with either CheckStateGetters or CheckedAspectName
+        /// (which is basically the same thing). This is because it is too expensive to build the 
+        /// initial state of the control if these are installed, since the control would have to walk
+        /// *every* branch recursively since a single bottom level leaf could change the checkedness
+        /// of the top root.
+        /// </remarks>
         [Category("ObjectListView"),
          Description("Show hierarchical checkboxes be enabled?"),
          DefaultValue(false)]
@@ -1047,9 +1055,13 @@ namespace BrightIdeasSoftware
             } else {
                 // WARNING - Clever code
 
-                // Example: Calculate ancestors of A, B, X and Y
-                // A and B are  children of P, child of GP, child of Root
-                // X and Y are  children of Q, child of GP, child of Root
+                // Example:  Root --> GP +--> P +--> A
+                //                       |      +--> B
+                //                       |
+                //                       +--> Q +--> X
+                //                              +--> Y
+                //
+                // Calculate ancestors of A, B, X and Y
 
                 // Build a list of all ancestors of all objects we need to check
                 ArrayList allAncestors = new ArrayList();
@@ -1061,9 +1073,13 @@ namespace BrightIdeasSoftware
 
                 // allAncestors = { P, GP, Root, P, GP, Root, Q, GP, Root, Q, GP, Root }
 
+                // Reverse them so "higher" ancestors come first
+                allAncestors.Reverse();
+
+                // allAncestors = { Root, GP, Q, Root, GP, Q, Root, GP, P, Root, GP, P  }
+
                 ArrayList uniqueAncestors = new ArrayList();
                 Dictionary<object, bool> alreadySeen = new Dictionary<object, bool>();
-                allAncestors.Reverse();
                 foreach (object ancestor in allAncestors) {
                     if (!alreadySeen.ContainsKey(ancestor)) {
                         alreadySeen[ancestor] = true;
@@ -1139,6 +1155,22 @@ namespace BrightIdeasSoftware
                 return true;
             
             return base.IsInputKey(keyData);
+        }
+
+        /// <summary>
+        /// Handle focus being lost, including making sure that the whole control is redrawn.
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnLostFocus(EventArgs e)
+        {
+            // When this focus is lost, the normal invalidation logic doesn't invalid the region
+            // of the control created by the IndentLevel on each row. This makes the control 
+            // look wrong when HideSelection is false, since part of the selected row's background
+            // correctly changes colour to the "inactive" colour, but the left part of the row
+            // created by IndentLevel doesn't change colour.
+            // SF #135.
+
+            this.Invalidate();
         }
 
         /// <summary>
