@@ -5,6 +5,8 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2015-02-02   JPP  - Made Unfreezing more efficient by removing a redundant BuildList() call
+ * v2.6
  * 2011-02-27   JPP  - Moved most of the logic to DataSourceAdapter (where it
  *                     can be used by FastDataListView too)
  * v2.3
@@ -15,7 +17,7 @@
  * 2009-01-07   JPP  - Made all public and protected methods virtual 
  * 2008-10-03   JPP  - Separated from ObjectListView.cs
  * 
- * Copyright (C) 2006-2014 Phillip Piper
+ * Copyright (C) 2006-2015 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -199,6 +201,18 @@ namespace BrightIdeasSoftware
         #endregion
 
         #region Event Handlers
+
+        /// <summary>
+        /// Change the Unfreeze behaviour 
+        /// </summary>
+        protected override void DoUnfreeze() {
+
+            // Copied from base method, but we don't need to BuildList() since we know that our
+            // data adaptor is going to do that immediately after this method exits.
+            this.EndUpdate();
+            this.ResizeFreeSpaceFillingColumns();
+           // this.BuildList();
+        }
 
         /// <summary>
         /// Handles parent binding context changes
