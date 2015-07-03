@@ -5,6 +5,7 @@
  * Date: 20/09/2010 7:42 AM
  *
  * Change log:
+ * 2015-02-02  JPP  - Made CreateColumnsFromSource() only rebuild columns when new ones were added
  * v2.8.1
  * 2014-11-23  JPP  - Honour initial CurrencyManager.Position when setting DataSource.
  * 2014-10-27  JPP  - Fix issue where SelectedObject was not sync'ed with CurrencyManager.Position (SF #129)
@@ -282,6 +283,7 @@ namespace BrightIdeasSoftware
             if (properties.Count == 0)
                 return;
 
+            bool wereColumnsAdded = false;
             foreach (PropertyDescriptor property in properties) {
 
                 if (!this.ShouldCreateColumn(property))
@@ -293,9 +295,11 @@ namespace BrightIdeasSoftware
 
                 // Add it to our list
                 this.ListView.AllColumns.Add(column);
+                wereColumnsAdded = true;
             }
 
-            generator.PostCreateColumns(this.ListView);
+            if (wereColumnsAdded)
+                generator.PostCreateColumns(this.ListView);
         }
 
         /// <summary>
