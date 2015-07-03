@@ -119,32 +119,111 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void TestHyperlinks() {
+        public void TestFormatRowAndCell_CellTakesPriority() {
+            Color formatCellForeground = Color.PaleGoldenrod;
+            Color formatRowForeground = Color.Pink;
+            Color formatRowBackground = Color.Fuchsia;
+
+            EventHandler<FormatRowEventArgs> olvOnFormatRow = delegate(object sender, FormatRowEventArgs args) {
+                args.Item.ForeColor = formatRowForeground;
+                args.Item.BackColor = formatRowBackground;
+                args.UseCellFormatEvents = true;
+            };
+            EventHandler<FormatCellEventArgs> olvOnFormatCell = delegate(object sender, FormatCellEventArgs args) {
+                args.SubItem.ForeColor = formatCellForeground;
+            };
+
+            this.olv.FormatRow += olvOnFormatRow;
+            this.olv.FormatCell += olvOnFormatCell;
+
+            this.olv.SetObjects(PersonDb.All);
+
+            for (int i = 0; i < this.olv.GetItemCount(); i++) {
+                for (int j = 0; j < this.olv.Columns.Count; j++) {
+                    Assert.AreEqual(formatCellForeground, this.olv.GetItem(i).SubItems[j].ForeColor);
+                    Assert.AreEqual(formatRowBackground, this.olv.GetItem(i).SubItems[j].BackColor);
+                }
+            }
+            this.olv.FormatRow -= olvOnFormatRow;
+            this.olv.FormatCell -= olvOnFormatCell;
+        }
+
+
+        [Test]
+        public void TestHyperlinks()
+        {
             this.olv.UseHyperlinks = true;
             this.olv.HyperlinkStyle = new HyperlinkStyle();
             this.olv.HyperlinkStyle.Normal.ForeColor = Color.Thistle;
             this.olv.HyperlinkStyle.Normal.BackColor = Color.SpringGreen;
             this.olv.HyperlinkStyle.Normal.FontStyle = FontStyle.Bold;
 
-            foreach (OLVColumn column in this.olv.Columns) {
+            foreach (OLVColumn column in this.olv.Columns)
+            {
                 column.Hyperlink = (column.Index < 2);
             }
 
             this.olv.SetObjects(PersonDb.All);
-            for (int j = 0; j < this.olv.GetItemCount(); j++) {
+            for (int j = 0; j < this.olv.GetItemCount(); j++)
+            {
                 OLVListItem item = this.olv.GetItem(j);
-                for (int i = 0; i < this.olv.Columns.Count; i++) {
+                for (int i = 0; i < this.olv.Columns.Count; i++)
+                {
                     OLVColumn column = this.olv.GetColumn(i);
-                    if (column.Hyperlink) {
+                    if (column.Hyperlink)
+                    {
                         Assert.AreEqual(this.olv.HyperlinkStyle.Normal.ForeColor, item.SubItems[i].ForeColor);
                         Assert.AreEqual(this.olv.HyperlinkStyle.Normal.BackColor, item.SubItems[i].BackColor);
                         Assert.IsTrue(item.SubItems[i].Font.Bold);
-                    } else {
+                    }
+                    else
+                    {
                         Assert.AreEqual(this.olv.ForeColor, item.SubItems[i].ForeColor);
                         Assert.AreEqual(this.olv.BackColor, item.SubItems[i].BackColor);
                         Assert.IsFalse(item.SubItems[i].Font.Bold);
                     }
                 }
+            }
+        }
+
+        [Test]
+        public void TestHyperlinksAndFormatCell_HyperlinkHasPriority() {
+            Color hyperlinkForeground = Color.Thistle;
+            Color formatCellForeground = Color.PaleGoldenrod;
+            Color formatCellBackground = Color.DarkKhaki;
+
+            this.olv.UseCellFormatEvents = true;
+            EventHandler<FormatCellEventArgs> olvOnFormatCell = delegate(object sender, FormatCellEventArgs args) {
+                args.SubItem.ForeColor = formatCellForeground;
+                args.SubItem.BackColor = formatCellBackground;
+            };
+            this.olv.FormatCell += olvOnFormatCell;
+
+            this.olv.UseHyperlinks = true;
+            this.olv.HyperlinkStyle = new HyperlinkStyle();
+            this.olv.HyperlinkStyle.Normal.ForeColor = hyperlinkForeground;
+
+            foreach (OLVColumn column in this.olv.Columns) 
+                column.Hyperlink = column.Index < 2;
+
+            this.olv.SetObjects(PersonDb.All);
+
+            try {
+                for (int j = 0; j < this.olv.GetItemCount(); j++) {
+                    OLVListItem item = this.olv.GetItem(j);
+                    for (int i = 0; i < this.olv.Columns.Count; i++) {
+                        OLVColumn column = this.olv.GetColumn(i);
+                        if (column.Hyperlink) {
+                            Assert.AreEqual(hyperlinkForeground, item.SubItems[i].ForeColor);
+                        } else {
+                            Assert.AreEqual(formatCellForeground, item.SubItems[i].ForeColor);
+                        }
+                        Assert.AreEqual(formatCellBackground, item.SubItems[i].BackColor);
+                    }
+                }
+            }
+            finally {
+                this.olv.FormatCell -= olvOnFormatCell;
             }
         }
 
