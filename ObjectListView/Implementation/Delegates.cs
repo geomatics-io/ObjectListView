@@ -143,6 +143,11 @@ namespace BrightIdeasSoftware {
     public delegate void RowFormatterDelegate(OLVListItem olvItem);
 
     /// <summary>
+    /// These delegates can be used to return the array of texts that should be searched for text filtering
+    /// </summary>
+    public delegate string[] SearchValueGetterDelegate(Object value);
+
+    /// <summary>
     /// These delegates are used to sort the listview in some custom fashion
     /// </summary>
     public delegate void SortDelegate(OLVColumn column, SortOrder sortOrder);
