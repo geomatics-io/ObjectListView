@@ -92,29 +92,139 @@
     <Reference Include="System.Design" />
     <Reference Include="System.XML" />
   </ItemGroup>
-  <ItemGroup>
+ <ItemGroup>
+    <Compile Include="BusinessCardOverlay.cs" />
+    <Compile Include="BusinessCardRenderer.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="AnimatedDecoration.cs" />
-    <Compile Include="Resource1.Designer.cs">
+    <Compile Include="Models\MaritalStatus.cs" />
+    <Compile Include="Models\MyFileSystemInfo.cs" />
+    <Compile Include="Models\Person.cs" />
+    <Compile Include="OLVDemoCoordinator.cs" />
+    <Compile Include="OlvDemoTab.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Properties\Resource1.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resource1.resx</DependentUpon>
     </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="ShellUtilities.cs" />
+    <Compile Include="TabComplexExample.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TabComplexExample.Designer.cs">
+      <DependentUpon>TabComplexExample.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TabDataSet.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TabDataSet.Designer.cs">
+      <DependentUpon>TabDataSet.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TabDataTreeListView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TabDataTreeListView.Designer.cs">
+      <DependentUpon>TabDataTreeListView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TabDescribedTask.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TabDescribedTask.Designer.cs">
+      <DependentUpon>TabDescribedTask.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TabDragAndDrop.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TabDragAndDrop.Designer.cs">
+      <DependentUpon>TabDragAndDrop.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TabFastList.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TabFastList.Designer.cs">
+      <DependentUpon>TabFastList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TabFileExplorer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TabFileExplorer.Designer.cs">
+      <DependentUpon>TabFileExplorer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TabPrinting.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TabPrinting.Designer.cs">
+      <DependentUpon>TabPrinting.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TabSimpleExample.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TabSimpleExample.Designer.cs">
+      <DependentUpon>TabSimpleExample.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TabTreeListView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TabTreeListView.Designer.cs">
+      <DependentUpon>TabTreeListView.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.Designer.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resource1.resx">
+    <EmbeddedResource Include="Properties\Resource1.resx">
       <SubType>Designer</SubType>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resource1.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabComplexExample.resx">
+      <DependentUpon>TabComplexExample.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabDataSet.resx">
+      <DependentUpon>TabDataSet.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabDataTreeListView.resx">
+      <DependentUpon>TabDataTreeListView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabDescribedTask.resx">
+      <DependentUpon>TabDescribedTask.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabDragAndDrop.resx">
+      <DependentUpon>TabDragAndDrop.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabFastList.resx">
+      <DependentUpon>TabFastList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabFileExplorer.resx">
+      <DependentUpon>TabFileExplorer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabPrinting.resx">
+      <DependentUpon>TabPrinting.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabSimpleExample.resx">
+      <DependentUpon>TabSimpleExample.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabTreeListView.resx">
+      <DependentUpon>TabTreeListView.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -148,7 +258,7 @@
     <Content Include="AnimatedGifs\new5.gif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="FamilyTree.xml">
+    <Content Include="Data\FamilyTree.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Photos\ak.png">
@@ -191,7 +301,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\Espresso Maker.ico" />
-    <Content Include="Persons.xml">
+    <Content Include="Data\Persons.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="Resources\goldstar3.png" />

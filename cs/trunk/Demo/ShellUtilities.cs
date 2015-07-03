@@ -10,9 +10,9 @@
 
 using System;
 using System.Drawing;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using BrightIdeasSoftware;
 
 namespace ObjectListViewDemo
 {
@@ -87,7 +87,7 @@ namespace ObjectListViewDemo
         /// This means that the image for an item must occur at the same index in the two lists. 
         /// SysImageListHelper instances handle this requirement. However, if the listview already
         /// has image lists installed, they <b>must</b> be of the same length.</remarks>
-        public SysImageListHelper(ListView listView)
+        public SysImageListHelper(ObjectListView listView)
         {
             if (listView.SmallImageList == null) {
                 listView.SmallImageList = new ImageList();
@@ -106,7 +106,7 @@ namespace ObjectListViewDemo
 
             this.listView = listView;
         }
-        protected ListView listView;
+        protected ObjectListView listView;
 
         /// <summary>
         /// Return the index of the image that has the Shell Icon for the given file/directory.
