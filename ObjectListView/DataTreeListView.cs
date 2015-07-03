@@ -66,6 +66,20 @@ namespace BrightIdeasSoftware
         #region Public Properties
 
         /// <summary>
+        /// Gets or sets whether or not columns will be automatically generated to show the
+        /// columns when the DataSource is set. 
+        /// </summary>
+        /// <remarks>This must be set before the DataSource is set. It has no effect afterwards.</remarks>
+        [Category("Data"),
+         Description("Should the control automatically generate columns from the DataSource"),
+         DefaultValue(true)]
+        public bool AutoGenerateColumns
+        {
+            get { return this.Adapter.AutoGenerateColumns; }
+            set { this.Adapter.AutoGenerateColumns = value; }
+        }
+
+        /// <summary>
         /// Get or set the DataSource that will be displayed in this list view.
         /// </summary>
         /// <remarks>The DataSource should implement either <see cref="IList"/>, <see cref="IBindingList"/>,
