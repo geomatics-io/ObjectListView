@@ -62,6 +62,11 @@ namespace BrightIdeasSoftware {
         ExpandButton,
 
         /// <summary>
+        /// in a button (cell must have ButtonRenderer)
+        /// </summary>
+        Button,
+
+        /// <summary>
         /// in the cell but not in any more specific location
         /// </summary>
         InCell,

@@ -139,6 +139,13 @@ namespace BrightIdeasSoftware
         public event EventHandler<CreateGroupsEventArgs> AboutToCreateGroups;
 
         /// <summary>
+        /// Triggered when a button in a cell is left clicked.
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("This event is triggered when the user left clicks a button.")]
+        public event EventHandler<CellClickEventArgs> ButtonClick;
+
+        /// <summary>
         /// This event is triggered when the user moves a drag over an ObjectListView that
         /// has a SimpleDropSink installed as the drop handler.
         /// </summary>
@@ -451,6 +458,16 @@ namespace BrightIdeasSoftware
         protected virtual void OnBeforeSorting(BeforeSortingEventArgs e) {
             if (this.BeforeSorting != null)
                 this.BeforeSorting(this, e);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
+        protected virtual void OnButtonClick(CellClickEventArgs args)
+        {
+            if (this.ButtonClick != null)
+                this.ButtonClick(this, args);
         }
 
         /// <summary>
@@ -853,13 +870,13 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="column"></param>
         /// <param name="control"></param>
-        /// <param name="r"></param>
+        /// <param name="cellBounds"></param>
         /// <param name="item"></param>
         /// <param name="subItemIndex"></param>
-        public CellEditEventArgs(OLVColumn column, Control control, Rectangle r, OLVListItem item, int subItemIndex) {
+        public CellEditEventArgs(OLVColumn column, Control control, Rectangle cellBounds, OLVListItem item, int subItemIndex) {
             this.Control = control;
             this.column = column;
-            this.cellBounds = r;
+            this.cellBounds = cellBounds;
             this.listViewItem = item;
             this.rowObject = item.RowObject;
             this.subItemIndex = subItemIndex;
