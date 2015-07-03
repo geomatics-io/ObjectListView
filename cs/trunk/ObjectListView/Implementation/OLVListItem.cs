@@ -5,13 +5,14 @@
  * Date: 31-March-2011 5:53 pm
  *
  * Change log:
+ * 2015-06-09  JPP  - Added HasAnyHyperlinks property
  * v2.8
  * 2014-09-27  JPP  - Remove faulty caching of CheckState
  * 2014-05-06  JPP  - Added OLVListItem.Enabled flag
  * vOld
  * 2011-03-31  JPP  - Split into its own file
  * 
- * Copyright (C) 2011-2014 Phillip Piper
+ * Copyright (C) 2011-2015 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +32,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
@@ -61,9 +63,17 @@ namespace BrightIdeasSoftware {
             this.imageSelector = image;
         }
 
-        #endregion
+        #endregion.
 
         #region Properties
+//
+//        public new Color BackColor {
+//            get { return base.BackColor; }
+//            set {
+//                Debug.WriteLine("BackCOlor = " + value);
+//                base.BackColor = value;
+//            }
+//        }
 
         /// <summary>
         /// Gets the bounding rectangle of the item, including all subitems
@@ -106,7 +116,7 @@ namespace BrightIdeasSoftware {
         /// <remarks>
         /// Virtual lists don't handle checkboxes well, so we have to intercept attempts to change them
         /// through the items, and change them into something that will work.
-        /// Unfortuneately, this won't work if this property is set through the base class, since
+        /// Unfortunately, this won't work if this property is set through the base class, since
         /// the property is not declared as virtual.
         /// </remarks>
         new public bool Checked {
@@ -205,6 +215,18 @@ namespace BrightIdeasSoftware {
         }
         private bool enabled;
 
+        /// <summary>
+        /// Gets whether any cell on this item is showing a hyperlink
+        /// </summary>
+        public bool HasAnyHyperlinks {
+            get {
+                foreach (OLVListSubItem subItem in this.SubItems) {
+                    if (!String.IsNullOrEmpty(subItem.Url))
+                        return true;
+                }
+                return false;
+            }
+        }
         /// <summary>
         /// Get or set the image that should be shown against this item
         /// </summary>
