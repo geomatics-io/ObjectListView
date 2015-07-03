@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2015-06-28   JPP  - Fix issue with RemoveObjects() where objects were removed too early
  * 2014-10-15   JPP  - Fire Filter event when applying filters
  * v2.8
  * 2012-06-11   JPP  - Added more efficient version of FilteredObjects
@@ -230,14 +231,13 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="modelObjects"></param>
         public override void RemoveObjects(ICollection modelObjects) {
+
+            // We have to unselect any object that is about to be deleted
             List<int> indicesToRemove = new List<int>();
             foreach (object modelObject in modelObjects) {
                 int i = this.GetObjectIndex(modelObject);
                 if (i >= 0)
                     indicesToRemove.Add(i);
-
-                // Remove the objects from the unfiltered list
-                this.fullObjectList.Remove(modelObject);
             }
 
             // Sort the indices from highest to lowest so that we
@@ -248,6 +248,10 @@ namespace BrightIdeasSoftware
 
             foreach (int i in indicesToRemove) 
                 this.listView.SelectedIndices.Remove(i);
+
+            // Remove the objects from the unfiltered list
+            foreach (object modelObject in modelObjects)
+                this.fullObjectList.Remove(modelObject);
 
             this.FilterObjects();
             this.RebuildIndexMap();
