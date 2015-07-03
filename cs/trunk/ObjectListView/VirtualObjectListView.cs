@@ -5,6 +5,9 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2015-06-14   JPP  - Moved handling of CheckBoxes on virtual lists into base class (ObjectListView).
+ *                     This allows the property to be set correctly, even when set via an upcast reference.
+ * 2015-03-25   JPP  - Subscribe to change notifications when objects are added
  * v2.8
  * 2014-09-26   JPP  - Correct an incorrect use of checkStateMap when setting CheckedObjects
  *                     and a CheckStateGetter is installed
@@ -134,32 +137,6 @@ namespace BrightIdeasSoftware
             get {
                 // Virtual lists need Vista and a grouping strategy to show groups
                 return (ObjectListView.IsVistaOrLater && this.GroupingStrategy != null);
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets whether this ObjectListView will show checkboxes in the primary column
-        /// </summary>
-        /// <remarks>Due to code in the base ListView class, turning off CheckBoxes on a virtual
-        /// list always throws an InvalidOperationException. This implementation codes around
-        /// that limitation.</remarks>
-        [Category("Appearance"),
-         Description("Should the list view show checkboxes?"),
-         DefaultValue(false)]
-        new public bool CheckBoxes {
-            get { return base.CheckBoxes;  }
-            set {
-                try {
-                    base.CheckBoxes = value;
-                }
-                catch (InvalidOperationException) {
-                    this.StateImageList = null;
-                    this.VirtualMode = false;
-                    base.CheckBoxes = value;
-                    this.VirtualMode = true;
-                    this.ShowGroups = this.ShowGroups;
-                    this.BuildList(true);
-                }
             }
         }
 
@@ -506,6 +483,7 @@ namespace BrightIdeasSoftware
                 this.BeginUpdate();
                 this.VirtualListDataSource.AddObjects(args.ObjectsToAdd);
                 this.BuildList();
+                this.SubscribeNotifications(args.ObjectsToAdd);
             }
             finally {
                 this.EndUpdate();
