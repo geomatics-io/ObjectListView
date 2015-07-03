@@ -5,9 +5,11 @@
  * Date: 22/09/2010 8:11 AM
  *
  * Change log:
+ * 2015-02-02   JPP  - Made Unfreezing more efficient by removing a redundant BuildList() call
+ * v2.6
  * 2010-09-22   JPP  - Initial version
  *
- * Copyright (C) 2006-2014 Phillip Piper
+ * Copyright (C) 2006-2015 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -143,6 +145,19 @@ namespace BrightIdeasSoftware
         /// own specialized adapters</remarks>
         protected virtual DataSourceAdapter CreateDataSourceAdapter() {
             return new DataSourceAdapter(this);
+        }
+
+        /// <summary>
+        /// Change the Unfreeze behaviour 
+        /// </summary>
+        protected override void DoUnfreeze()
+        {
+
+            // Copied from base method, but we don't need to BuildList() since we know that our
+            // data adaptor is going to do that immediately after this method exits.
+            this.EndUpdate();
+            this.ResizeFreeSpaceFillingColumns();
+            // this.BuildList();
         }
 
         #endregion
