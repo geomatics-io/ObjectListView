@@ -42,7 +42,6 @@
             this.comboBoxEditable = new System.Windows.Forms.ComboBox();
             this.label25 = new System.Windows.Forms.Label();
             this.comboBoxView = new System.Windows.Forms.ComboBox();
-            this.checkBoxOwnerDraw = new System.Windows.Forms.CheckBox();
             this.buttonDisable = new System.Windows.Forms.Button();
             this.buttonAdd = new System.Windows.Forms.Button();
             this.olvFast = new BrightIdeasSoftware.FastObjectListView();
@@ -67,7 +66,7 @@
             // 
             this.label24.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(230, 478);
+            this.label24.Location = new System.Drawing.Point(211, 478);
             this.label24.Name = "label24";
             this.label24.Size = new System.Drawing.Size(48, 13);
             this.label24.TabIndex = 24;
@@ -78,7 +77,7 @@
             this.checkBoxCheckboxes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.checkBoxCheckboxes.Checked = true;
             this.checkBoxCheckboxes.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxCheckboxes.Location = new System.Drawing.Point(148, 474);
+            this.checkBoxCheckboxes.Location = new System.Drawing.Point(73, 474);
             this.checkBoxCheckboxes.Name = "checkBoxCheckboxes";
             this.checkBoxCheckboxes.Size = new System.Drawing.Size(87, 21);
             this.checkBoxCheckboxes.TabIndex = 35;
@@ -177,7 +176,7 @@
             "Single Click",
             "Double Click",
             "F2 Only"});
-            this.comboBoxEditable.Location = new System.Drawing.Point(279, 473);
+            this.comboBoxEditable.Location = new System.Drawing.Point(260, 473);
             this.comboBoxEditable.Name = "comboBoxEditable";
             this.comboBoxEditable.Size = new System.Drawing.Size(83, 21);
             this.comboBoxEditable.TabIndex = 25;
@@ -187,7 +186,7 @@
             // 
             this.label25.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(364, 478);
+            this.label25.Location = new System.Drawing.Point(357, 478);
             this.label25.Name = "label25";
             this.label25.Size = new System.Drawing.Size(33, 13);
             this.label25.TabIndex = 26;
@@ -204,24 +203,11 @@
             "List",
             "Tile",
             "Details"});
-            this.comboBoxView.Location = new System.Drawing.Point(399, 473);
+            this.comboBoxView.Location = new System.Drawing.Point(392, 473);
             this.comboBoxView.Name = "comboBoxView";
             this.comboBoxView.Size = new System.Drawing.Size(83, 21);
             this.comboBoxView.TabIndex = 27;
             this.comboBoxView.SelectedIndexChanged += new System.EventHandler(this.comboBoxView_SelectedIndexChanged);
-            // 
-            // checkBoxOwnerDraw
-            // 
-            this.checkBoxOwnerDraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.checkBoxOwnerDraw.Checked = true;
-            this.checkBoxOwnerDraw.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxOwnerDraw.Location = new System.Drawing.Point(64, 474);
-            this.checkBoxOwnerDraw.Name = "checkBoxOwnerDraw";
-            this.checkBoxOwnerDraw.Size = new System.Drawing.Size(87, 21);
-            this.checkBoxOwnerDraw.TabIndex = 23;
-            this.checkBoxOwnerDraw.Text = "Owner &Draw";
-            this.checkBoxOwnerDraw.UseVisualStyleBackColor = true;
-            this.checkBoxOwnerDraw.CheckedChanged += new System.EventHandler(this.checkBoxOwnerDraw_CheckedChanged);
             // 
             // buttonDisable
             // 
@@ -268,6 +254,7 @@
             this.olvFast.CellEditActivation = BrightIdeasSoftware.ObjectListView.CellEditActivateMode.DoubleClick;
             this.olvFast.CellEditEnterChangesRows = true;
             this.olvFast.CellEditTabChangesRows = true;
+            this.olvFast.CellEditUseWholeCell = false;
             this.olvFast.CheckBoxes = true;
             this.olvFast.CheckedAspectName = "";
             this.olvFast.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
@@ -283,13 +270,11 @@
             this.olvFast.Cursor = System.Windows.Forms.Cursors.Default;
             this.olvFast.EmptyListMsg = "This fast list is empty";
             this.olvFast.FullRowSelect = true;
-            this.olvFast.GridLines = true;
             this.olvFast.GroupImageList = this.groupImageList;
             this.olvFast.HideSelection = false;
             this.olvFast.LargeImageList = this.imageListLarge;
             this.olvFast.Location = new System.Drawing.Point(3, 55);
             this.olvFast.Name = "olvFast";
-            this.olvFast.OwnerDraw = true;
             this.olvFast.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.olvFast.SelectColumnsOnRightClickBehaviour = BrightIdeasSoftware.ObjectListView.ColumnSelectBehaviour.Submenu;
             this.olvFast.SelectedColumnTint = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))), ((int)(((byte)(0)))));
@@ -314,6 +299,7 @@
             // olvColumn18
             // 
             this.olvColumn18.AspectName = "Name";
+            this.olvColumn18.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn18.Text = "Person";
             this.olvColumn18.UseInitialLetterForGroup = true;
             this.olvColumn18.Width = 132;
@@ -321,6 +307,7 @@
             // olvColumn19
             // 
             this.olvColumn19.AspectName = "Occupation";
+            this.olvColumn19.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn19.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn19.Hyperlink = true;
             this.olvColumn19.IsTileViewColumn = true;
@@ -331,6 +318,7 @@
             // olvColumn26
             // 
             this.olvColumn26.AspectName = "CulinaryRating";
+            this.olvColumn26.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn26.GroupWithItemCountFormat = "{0} ({1} candidates)";
             this.olvColumn26.GroupWithItemCountSingularFormat = "{0} (only {1} candidate)";
             this.olvColumn26.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -341,6 +329,7 @@
             // olvColumn27
             // 
             this.olvColumn27.AspectName = "YearOfBirth";
+            this.olvColumn27.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn27.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn27.Text = "Year Of Birth";
             this.olvColumn27.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -350,6 +339,7 @@
             // 
             this.olvColumn28.AspectName = "BirthDate";
             this.olvColumn28.AspectToStringFormat = "{0:D}";
+            this.olvColumn28.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn28.GroupWithItemCountFormat = "{0} has {1} birthdays";
             this.olvColumn28.GroupWithItemCountSingularFormat = "{0} has only {1} birthday";
             this.olvColumn28.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -361,6 +351,7 @@
             // 
             this.olvColumn29.AspectName = "GetRate";
             this.olvColumn29.AspectToStringFormat = "{0:C}";
+            this.olvColumn29.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn29.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn29.IsTileViewColumn = true;
             this.olvColumn29.Text = "Hourly Rate";
@@ -369,6 +360,7 @@
             // 
             // olvColumn31
             // 
+            this.olvColumn31.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn31.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn31.IsEditable = false;
             this.olvColumn31.Text = "Salary";
@@ -378,6 +370,7 @@
             // olvColumn32
             // 
             this.olvColumn32.AspectToStringFormat = "{0:#,##0}";
+            this.olvColumn32.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn32.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.olvColumn32.IsEditable = false;
             this.olvColumn32.Text = "Days Since Birth";
@@ -387,6 +380,7 @@
             // olvColumn33
             // 
             this.olvColumn33.AspectName = "CanTellJokes";
+            this.olvColumn33.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn33.CheckBoxes = true;
             this.olvColumn33.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn33.Text = "Tells Jokes?";
@@ -463,7 +457,6 @@
             this.Controls.Add(this.comboBoxEditable);
             this.Controls.Add(this.label25);
             this.Controls.Add(this.comboBoxView);
-            this.Controls.Add(this.checkBoxOwnerDraw);
             this.Controls.Add(this.buttonDisable);
             this.Controls.Add(this.buttonAdd);
             this.Controls.Add(this.olvFast);
@@ -492,7 +485,6 @@
         private System.Windows.Forms.ComboBox comboBoxEditable;
         private System.Windows.Forms.Label label25;
         private System.Windows.Forms.ComboBox comboBoxView;
-        private System.Windows.Forms.CheckBox checkBoxOwnerDraw;
         private System.Windows.Forms.Button buttonDisable;
         private System.Windows.Forms.Button buttonAdd;
         private BrightIdeasSoftware.FastObjectListView olvFast;

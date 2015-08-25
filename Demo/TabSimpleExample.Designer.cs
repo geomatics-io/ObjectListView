@@ -276,6 +276,7 @@
             this.olvSimple.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.olvSimple.CellEditUseWholeCell = false;
             this.olvSimple.CheckBoxes = true;
             this.olvSimple.CheckedAspectName = "";
             this.olvSimple.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
@@ -320,6 +321,7 @@
             // 
             this.columnHeader11.AspectName = "Name";
             this.columnHeader11.HeaderCheckBox = true;
+            this.columnHeader11.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.columnHeader11.MaximumWidth = 200;
             this.columnHeader11.MinimumWidth = 100;
             this.columnHeader11.Text = "Person";
