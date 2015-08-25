@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Diagnostics;
+using System.Drawing;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
 using ObjectListViewDemo.Models;
@@ -116,11 +117,6 @@ namespace ObjectListViewDemo
             Coordinator.ShowGroupsChecked(this.ListView, (CheckBox)sender);
         }
 
-        private void checkBoxOwnerDraw_CheckedChanged(object sender, EventArgs e)
-        {
-            Coordinator.ChangeOwnerDrawn(this.ListView, (CheckBox)sender);
-        }
-
         private void checkBoxCheckboxes_CheckedChanged(object sender, EventArgs e) {
             this.ListView.CheckBoxes = ((CheckBox) sender).Checked;
         }
@@ -188,5 +184,54 @@ namespace ObjectListViewDemo
         }
 
         #endregion
+
+        /// <summary>
+        /// Add this decoration as a cell decoration to your ListView to 
+        /// give a grid line effect.
+        /// </summary>
+        /// <remarks>
+        /// Setting GridLines = true works fine, EXCEPT when the ListView
+        /// is grouped -- in which cause there are no grid lines.
+        /// This decoration will work in either mode.
+        /// </remarks>
+        /// <example>
+        /// this.olv.UseCellFormatEvents = true;
+        /// var gridLineCellDecoration = new GridLineCellDecoration();
+        /// this.olv.FormatCell += delegate(object sender, FormatCellEventArgs args) {
+        ///     args.SubItem.Decoration = gridLineCellDecoration;
+        /// };
+        /// </example>
+        public class GridLineCellDecoration : CellBorderDecoration
+        {
+            public GridLineCellDecoration()
+            {
+                this.BorderPen = new Pen(Color.FromArgb(255, 0xE0, 0xEC, 0xEF), 1);
+            }
+
+            protected override Rectangle CalculateBounds()
+            {
+                Rectangle bounds = this.CellBounds;
+                if (bounds.IsEmpty)
+                    return bounds;
+
+                // It seems cell 0 is off by 1 on the x-axis
+                if (this.ListItem.SubItems[0] == this.SubItem)
+                    bounds.X -= 1;
+
+                // We want the grid of one cell to overlap with the bottom of the previous cell,
+                // so we move the top up by one but don't move the bottom
+                bounds.Y -= 1;
+                bounds.Height += 1;
+
+                return bounds;
+            }
+
+            public override void Draw(ObjectListView olv, Graphics g, Rectangle r)
+            {
+                Rectangle bounds = this.CalculateBounds();
+                if (!bounds.IsEmpty && this.BorderPen != null)
+                    g.DrawRectangle(this.BorderPen, bounds);
+            }
+        }
     }
 }

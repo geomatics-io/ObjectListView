@@ -37,6 +37,8 @@ namespace ObjectListViewDemo
             // Setup some configuration of the ObjectListView itself
             // There is also the standard configuration in OlvDemoTab.SetupGeneralListViewEvents()
 
+            this.olvComplex.TileSize = new Size(250, 120);
+
             // Do some fancy editing
             this.columnCookingSkill.CellEditUseWholeCell = true;
             this.olvComplex.CellEditStarting += listViewComplex_CellEditStarting;
@@ -494,7 +496,7 @@ namespace ObjectListViewDemo
         }
 
         private void comboBoxHotItemStyle_SelectedIndexChanged(object sender, EventArgs e) {
-            Coordinator.ChangeHotItemStyle(this.ListView, (ComboBox) sender, this.checkBoxOwnerDraw);
+            Coordinator.ChangeHotItemStyle(this.ListView, (ComboBox) sender);
         }
 
         private void comboBoxView_SelectedIndexChanged(object sender, EventArgs e) {
@@ -510,13 +512,6 @@ namespace ObjectListViewDemo
             this.olvComplex.UseTranslucentSelection = this.olvComplex.UseTranslucentHotItem;
 
             this.olvComplex.Invalidate();
-        }
-
-        private void checkBoxOwnerDraw_CheckedChanged(object sender, EventArgs e) {
-            if (comboBoxView.SelectedIndex == 3 && this.checkBoxOwnerDraw.Checked)
-                this.olvComplex.TileSize = new Size(250, 120);
-
-            Coordinator.ChangeOwnerDrawn(this.ListView, (CheckBox) sender);
         }
 
         private void buttonRebuild_Click(object sender, EventArgs e) {

@@ -42,7 +42,6 @@
             this.label10 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.comboBoxView = new System.Windows.Forms.ComboBox();
-            this.checkBoxOwnerDraw = new System.Windows.Forms.CheckBox();
             this.checkBoxGroups = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.olvFiles = new BrightIdeasSoftware.ObjectListView();
@@ -68,7 +67,7 @@
             // 
             this.label37.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label37.AutoSize = true;
-            this.label37.Location = new System.Drawing.Point(209, 476);
+            this.label37.Location = new System.Drawing.Point(209, 477);
             this.label37.Name = "label37";
             this.label37.Size = new System.Drawing.Size(50, 13);
             this.label37.TabIndex = 31;
@@ -85,7 +84,7 @@
             "Border",
             "Translucent",
             "Lightbox"});
-            this.comboBoxHotItemStyle.Location = new System.Drawing.Point(260, 471);
+            this.comboBoxHotItemStyle.Location = new System.Drawing.Point(260, 472);
             this.comboBoxHotItemStyle.Name = "comboBoxHotItemStyle";
             this.comboBoxHotItemStyle.Size = new System.Drawing.Size(86, 21);
             this.comboBoxHotItemStyle.TabIndex = 32;
@@ -94,7 +93,7 @@
             // checkBoxTooltips
             // 
             this.checkBoxTooltips.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.checkBoxTooltips.Location = new System.Drawing.Point(150, 474);
+            this.checkBoxTooltips.Location = new System.Drawing.Point(97, 474);
             this.checkBoxTooltips.Name = "checkBoxTooltips";
             this.checkBoxTooltips.Size = new System.Drawing.Size(65, 19);
             this.checkBoxTooltips.TabIndex = 30;
@@ -182,7 +181,7 @@
             // 
             this.label9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(352, 476);
+            this.label9.Location = new System.Drawing.Point(352, 477);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(33, 13);
             this.label9.TabIndex = 24;
@@ -199,24 +198,11 @@
             "List",
             "Tile",
             "Details"});
-            this.comboBoxView.Location = new System.Drawing.Point(386, 471);
+            this.comboBoxView.Location = new System.Drawing.Point(386, 472);
             this.comboBoxView.Name = "comboBoxView";
             this.comboBoxView.Size = new System.Drawing.Size(86, 21);
             this.comboBoxView.TabIndex = 25;
             this.comboBoxView.SelectedIndexChanged += new System.EventHandler(this.comboBoxView_SelectedIndexChanged);
-            // 
-            // checkBoxOwnerDraw
-            // 
-            this.checkBoxOwnerDraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.checkBoxOwnerDraw.Checked = true;
-            this.checkBoxOwnerDraw.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxOwnerDraw.Location = new System.Drawing.Point(64, 474);
-            this.checkBoxOwnerDraw.Name = "checkBoxOwnerDraw";
-            this.checkBoxOwnerDraw.Size = new System.Drawing.Size(90, 19);
-            this.checkBoxOwnerDraw.TabIndex = 23;
-            this.checkBoxOwnerDraw.Text = "Owner &Draw";
-            this.checkBoxOwnerDraw.UseVisualStyleBackColor = true;
-            this.checkBoxOwnerDraw.CheckedChanged += new System.EventHandler(this.checkBoxOwnerDraw_CheckedChanged);
             // 
             // checkBoxGroups
             // 
@@ -254,6 +240,7 @@
             this.olvFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.olvFiles.CellEditUseWholeCell = false;
             this.olvFiles.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.olvColumnName,
             this.olvColumnCreated,
@@ -267,7 +254,6 @@
             this.olvFiles.HideSelection = false;
             this.olvFiles.Location = new System.Drawing.Point(3, 80);
             this.olvFiles.Name = "olvFiles";
-            this.olvFiles.OwnerDraw = true;
             this.olvFiles.SelectColumnsOnRightClickBehaviour = BrightIdeasSoftware.ObjectListView.ColumnSelectBehaviour.Submenu;
             this.olvFiles.ShowCommandMenuOnRightClick = true;
             this.olvFiles.ShowGroups = false;
@@ -283,6 +269,7 @@
             // olvColumnName
             // 
             this.olvColumnName.AspectName = "Name";
+            this.olvColumnName.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumnName.IsTileViewColumn = true;
             this.olvColumnName.Text = "Name";
             this.olvColumnName.UseInitialLetterForGroup = true;
@@ -291,6 +278,7 @@
             // olvColumnCreated
             // 
             this.olvColumnCreated.AspectName = "CreationTime";
+            this.olvColumnCreated.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumnCreated.DisplayIndex = 4;
             this.olvColumnCreated.Text = "Created";
             this.olvColumnCreated.Width = 131;
@@ -298,6 +286,7 @@
             // olvColumnModified
             // 
             this.olvColumnModified.AspectName = "LastWriteTime";
+            this.olvColumnModified.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumnModified.DisplayIndex = 1;
             this.olvColumnModified.IsTileViewColumn = true;
             this.olvColumnModified.Text = "Modified";
@@ -306,6 +295,7 @@
             // olvColumnSize
             // 
             this.olvColumnSize.AspectName = "Extension";
+            this.olvColumnSize.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumnSize.DisplayIndex = 2;
             this.olvColumnSize.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumnSize.Text = "Size";
@@ -314,6 +304,7 @@
             // 
             // olvColumnFileType
             // 
+            this.olvColumnFileType.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumnFileType.DisplayIndex = 3;
             this.olvColumnFileType.IsTileViewColumn = true;
             this.olvColumnFileType.Text = "File Type";
@@ -321,6 +312,7 @@
             // 
             // olvColumnAttributes
             // 
+            this.olvColumnAttributes.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumnAttributes.FillsFreeSpace = true;
             this.olvColumnAttributes.IsEditable = false;
             this.olvColumnAttributes.MinimumWidth = 20;
@@ -426,7 +418,6 @@
             this.Controls.Add(this.label10);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.comboBoxView);
-            this.Controls.Add(this.checkBoxOwnerDraw);
             this.Controls.Add(this.checkBoxGroups);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.olvFiles);
@@ -453,7 +444,6 @@
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.ComboBox comboBoxView;
-        private System.Windows.Forms.CheckBox checkBoxOwnerDraw;
         private System.Windows.Forms.CheckBox checkBoxGroups;
         private System.Windows.Forms.Label label5;
         private BrightIdeasSoftware.ObjectListView olvFiles;

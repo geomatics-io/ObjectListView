@@ -51,6 +51,8 @@
             this.buttonDisable = new System.Windows.Forms.Button();
             this.label37 = new System.Windows.Forms.Label();
             this.comboBoxHotItemStyle = new System.Windows.Forms.ComboBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.comboBoxExpanders = new System.Windows.Forms.ComboBox();
             this.groupBox12.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.treeListView)).BeginInit();
             this.SuspendLayout();
@@ -59,20 +61,21 @@
             // 
             this.checkBoxHierarchicalCheckboxes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.checkBoxHierarchicalCheckboxes.AutoSize = true;
-            this.checkBoxHierarchicalCheckboxes.Location = new System.Drawing.Point(3, 476);
+            this.checkBoxHierarchicalCheckboxes.Location = new System.Drawing.Point(3, 474);
             this.checkBoxHierarchicalCheckboxes.Name = "checkBoxHierarchicalCheckboxes";
-            this.checkBoxHierarchicalCheckboxes.Size = new System.Drawing.Size(144, 17);
+            this.checkBoxHierarchicalCheckboxes.Size = new System.Drawing.Size(85, 17);
             this.checkBoxHierarchicalCheckboxes.TabIndex = 32;
-            this.checkBoxHierarchicalCheckboxes.Text = "Hierarchical Checkboxes";
+            this.checkBoxHierarchicalCheckboxes.Text = "Checkboxes";
+            this.toolTip1.SetToolTip(this.checkBoxHierarchicalCheckboxes, "Show hierarchical checkboxes");
             this.checkBoxHierarchicalCheckboxes.UseVisualStyleBackColor = true;
             this.checkBoxHierarchicalCheckboxes.CheckedChanged += new System.EventHandler(this.checkBoxHierarchicalCheckboxes_CheckedChanged);
             // 
             // buttonCheck
             // 
             this.buttonCheck.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonCheck.Location = new System.Drawing.Point(496, 471);
+            this.buttonCheck.Location = new System.Drawing.Point(516, 470);
             this.buttonCheck.Name = "buttonCheck";
-            this.buttonCheck.Size = new System.Drawing.Size(75, 23);
+            this.buttonCheck.Size = new System.Drawing.Size(71, 23);
             this.buttonCheck.TabIndex = 31;
             this.buttonCheck.Text = "Check";
             this.toolTip1.SetToolTip(this.buttonCheck, "Toggle checkedness of the selected items");
@@ -101,9 +104,9 @@
             // buttonRefresh
             // 
             this.buttonRefresh.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonRefresh.Location = new System.Drawing.Point(419, 471);
+            this.buttonRefresh.Location = new System.Drawing.Point(445, 470);
             this.buttonRefresh.Name = "buttonRefresh";
-            this.buttonRefresh.Size = new System.Drawing.Size(75, 23);
+            this.buttonRefresh.Size = new System.Drawing.Size(71, 23);
             this.buttonRefresh.TabIndex = 29;
             this.buttonRefresh.Text = "Refresh";
             this.toolTip1.SetToolTip(this.buttonRefresh, "Refresh the selected items");
@@ -113,9 +116,9 @@
             // buttonSaveState
             // 
             this.buttonSaveState.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSaveState.Location = new System.Drawing.Point(573, 471);
+            this.buttonSaveState.Location = new System.Drawing.Point(587, 470);
             this.buttonSaveState.Name = "buttonSaveState";
-            this.buttonSaveState.Size = new System.Drawing.Size(75, 23);
+            this.buttonSaveState.Size = new System.Drawing.Size(71, 23);
             this.buttonSaveState.TabIndex = 25;
             this.buttonSaveState.Text = "Save State";
             this.toolTip1.SetToolTip(this.buttonSaveState, "Save the width and arrangement of columns");
@@ -126,9 +129,9 @@
             // 
             this.buttonRestoreState.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonRestoreState.Enabled = false;
-            this.buttonRestoreState.Location = new System.Drawing.Point(650, 471);
+            this.buttonRestoreState.Location = new System.Drawing.Point(658, 470);
             this.buttonRestoreState.Name = "buttonRestoreState";
-            this.buttonRestoreState.Size = new System.Drawing.Size(75, 23);
+            this.buttonRestoreState.Size = new System.Drawing.Size(71, 23);
             this.buttonRestoreState.TabIndex = 26;
             this.buttonRestoreState.Text = "Restore";
             this.toolTip1.SetToolTip(this.buttonRestoreState, "Restore the width and arrangement of columns");
@@ -138,9 +141,9 @@
             // buttonColumns
             // 
             this.buttonColumns.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonColumns.Location = new System.Drawing.Point(727, 471);
+            this.buttonColumns.Location = new System.Drawing.Point(731, 470);
             this.buttonColumns.Name = "buttonColumns";
-            this.buttonColumns.Size = new System.Drawing.Size(75, 23);
+            this.buttonColumns.Size = new System.Drawing.Size(71, 23);
             this.buttonColumns.TabIndex = 27;
             this.buttonColumns.Text = "&Columns...";
             this.toolTip1.SetToolTip(this.buttonColumns, "Choose which columns are visible");
@@ -173,6 +176,7 @@
             this.treeListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.treeListView.CellEditUseWholeCell = false;
             this.treeListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.olvColumnName,
             this.olvColumnCreated,
@@ -188,7 +192,6 @@
             this.treeListView.IsSimpleDropSink = true;
             this.treeListView.Location = new System.Drawing.Point(3, 53);
             this.treeListView.Name = "treeListView";
-            this.treeListView.OwnerDraw = true;
             this.treeListView.SelectColumnsOnRightClickBehaviour = BrightIdeasSoftware.ObjectListView.ColumnSelectBehaviour.Submenu;
             this.treeListView.ShowCommandMenuOnRightClick = true;
             this.treeListView.ShowGroups = false;
@@ -278,9 +281,9 @@
             // buttonDisable
             // 
             this.buttonDisable.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonDisable.Location = new System.Drawing.Point(342, 471);
+            this.buttonDisable.Location = new System.Drawing.Point(374, 470);
             this.buttonDisable.Name = "buttonDisable";
-            this.buttonDisable.Size = new System.Drawing.Size(75, 23);
+            this.buttonDisable.Size = new System.Drawing.Size(71, 23);
             this.buttonDisable.TabIndex = 35;
             this.buttonDisable.Text = "Disable";
             this.toolTip1.SetToolTip(this.buttonDisable, "Disable the selected items. Cntl-click to re-enable all rows");
@@ -291,7 +294,7 @@
             // 
             this.label37.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label37.AutoSize = true;
-            this.label37.Location = new System.Drawing.Point(157, 476);
+            this.label37.Location = new System.Drawing.Point(222, 475);
             this.label37.Name = "label37";
             this.label37.Size = new System.Drawing.Size(50, 13);
             this.label37.TabIndex = 33;
@@ -308,16 +311,43 @@
             "Border",
             "Translucent",
             "Lightbox"});
-            this.comboBoxHotItemStyle.Location = new System.Drawing.Point(213, 472);
+            this.comboBoxHotItemStyle.Location = new System.Drawing.Point(273, 471);
             this.comboBoxHotItemStyle.Name = "comboBoxHotItemStyle";
             this.comboBoxHotItemStyle.Size = new System.Drawing.Size(86, 21);
             this.comboBoxHotItemStyle.TabIndex = 34;
             this.comboBoxHotItemStyle.SelectedIndexChanged += new System.EventHandler(this.comboBoxHotItemStyle_SelectedIndexChanged);
             // 
+            // label1
+            // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(86, 475);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(55, 13);
+            this.label1.TabIndex = 36;
+            this.label1.Text = "Expander:";
+            // 
+            // comboBoxExpanders
+            // 
+            this.comboBoxExpanders.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.comboBoxExpanders.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxExpanders.FormattingEnabled = true;
+            this.comboBoxExpanders.Items.AddRange(new object[] {
+            "None",
+            "Plus/Minus",
+            "Triangles"});
+            this.comboBoxExpanders.Location = new System.Drawing.Point(142, 471);
+            this.comboBoxExpanders.Name = "comboBoxExpanders";
+            this.comboBoxExpanders.Size = new System.Drawing.Size(79, 21);
+            this.comboBoxExpanders.TabIndex = 37;
+            this.comboBoxExpanders.SelectedIndexChanged += new System.EventHandler(this.comboBoxExpanders_SelectedIndexChanged);
+            // 
             // TabTreeListView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.comboBoxExpanders);
             this.Controls.Add(this.buttonDisable);
             this.Controls.Add(this.label37);
             this.Controls.Add(this.comboBoxHotItemStyle);
@@ -363,5 +393,7 @@
         private System.Windows.Forms.ComboBox comboBoxHotItemStyle;
         private System.Windows.Forms.ImageList imageListSmall;
         private System.Windows.Forms.Button buttonDisable;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ComboBox comboBoxExpanders;
     }
 }

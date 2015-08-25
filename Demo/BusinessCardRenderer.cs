@@ -33,7 +33,7 @@ namespace ObjectListViewDemo {
             if (e.Item.Selected)
             {
                 this.BorderPen = Pens.Blue;
-                this.HeaderBackBrush = new SolidBrush(olv.HighlightBackgroundColorOrDefault);
+                this.HeaderBackBrush = new SolidBrush(olv.SelectedBackColorOrDefault);
             }
             else
             {

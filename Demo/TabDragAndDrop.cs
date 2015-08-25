@@ -48,16 +48,6 @@ namespace ObjectListViewDemo
 
         #region UI event handlers
 
-        private void checkBoxGeeksAndTweebsOwnerDrawn_CheckedChanged(object sender, EventArgs e)
-        {
-            Coordinator.ChangeOwnerDrawn(this.olvGeeks, (CheckBox)sender);
-        }
-
-        private void checkBoxCoolFroodsOwnerDraw_CheckedChanged(object sender, EventArgs e)
-        {
-            Coordinator.ChangeOwnerDrawn(this.olvFroods, (CheckBox)sender);
-        }
-
         private void comboBoxGeeksAndTweebsView_SelectedIndexChanged(object sender, EventArgs e)
         {
             Coordinator.ChangeView(this.olvGeeks, (ComboBox)sender);

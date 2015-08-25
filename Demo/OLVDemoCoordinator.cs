@@ -175,12 +175,6 @@ namespace ObjectListViewDemo
             }
         }
 
-        public void ChangeOwnerDrawn(ObjectListView listview, CheckBox cb)
-        {
-            listview.OwnerDraw = cb.Checked;
-            listview.BuildList();
-        }
-
         public void ChangeEditable(ObjectListView objectListView, ComboBox comboBox)
         {
             if (comboBox.Text == "No")
@@ -229,17 +223,17 @@ namespace ObjectListViewDemo
 
             IList objects = olv.Objects as IList;
             if (objects == null)
-                this.ToolStripStatus1 =
+                this.ToolStripStatus1 = prefixForNextSelectionMessage =
                     String.Format("Filtered in {0}ms", stopWatch.ElapsedMilliseconds);
             else
-                this.ToolStripStatus1 =
+                this.ToolStripStatus1 = prefixForNextSelectionMessage =
                     String.Format("Filtered {0} items down to {1} items in {2}ms",
                                   objects.Count,
                                   olv.Items.Count,
                                   stopWatch.ElapsedMilliseconds);
         }
 
-        public void ChangeHotItemStyle(ObjectListView olv, ComboBox cb, CheckBox ownerDrawnCheckBox)
+        public void ChangeHotItemStyle(ObjectListView olv, ComboBox cb)
         {
             olv.UseTranslucentHotItem = false;
             olv.UseHotItem = true;
@@ -277,10 +271,6 @@ namespace ObjectListViewDemo
                     olv.FullRowSelect = true;
                     olv.UseHotItem = false;
                     olv.UseExplorerTheme = true;
-
-                    // Using Explorer theme doesn't work in owner drawn mode
-                    if (ownerDrawnCheckBox != null)
-                        ownerDrawnCheckBox.Checked = false;
                     break;
             }
             olv.Invalidate();

@@ -50,7 +50,7 @@
             // 
             this.olvColumnAction.AspectName = "Action";
             this.olvColumnAction.Text = "Action";
-            this.olvColumnAction.Width = 80;
+            this.olvColumnAction.Width = 90;
             // 
             // groupBox9
             // 

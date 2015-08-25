@@ -30,8 +30,6 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TabDragAndDrop));
-            this.checkBoxCoolFroodsOwnerDraw = new System.Windows.Forms.CheckBox();
-            this.checkBoxGeeksAndTweebsOwnerDrawn = new System.Windows.Forms.CheckBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.label34 = new System.Windows.Forms.Label();
             this.label35 = new System.Windows.Forms.Label();
@@ -66,28 +64,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.olvGeeks)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.olvFroods)).BeginInit();
             this.SuspendLayout();
-            // 
-            // checkBoxCoolFroodsOwnerDraw
-            // 
-            this.checkBoxCoolFroodsOwnerDraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkBoxCoolFroodsOwnerDraw.Location = new System.Drawing.Point(581, 471);
-            this.checkBoxCoolFroodsOwnerDraw.Name = "checkBoxCoolFroodsOwnerDraw";
-            this.checkBoxCoolFroodsOwnerDraw.Size = new System.Drawing.Size(86, 21);
-            this.checkBoxCoolFroodsOwnerDraw.TabIndex = 29;
-            this.checkBoxCoolFroodsOwnerDraw.Text = "Owner &Draw";
-            this.checkBoxCoolFroodsOwnerDraw.UseVisualStyleBackColor = true;
-            this.checkBoxCoolFroodsOwnerDraw.CheckedChanged += new System.EventHandler(this.checkBoxCoolFroodsOwnerDraw_CheckedChanged);
-            // 
-            // checkBoxGeeksAndTweebsOwnerDrawn
-            // 
-            this.checkBoxGeeksAndTweebsOwnerDrawn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.checkBoxGeeksAndTweebsOwnerDrawn.Location = new System.Drawing.Point(3, 471);
-            this.checkBoxGeeksAndTweebsOwnerDrawn.Name = "checkBoxGeeksAndTweebsOwnerDrawn";
-            this.checkBoxGeeksAndTweebsOwnerDrawn.Size = new System.Drawing.Size(86, 21);
-            this.checkBoxGeeksAndTweebsOwnerDrawn.TabIndex = 28;
-            this.checkBoxGeeksAndTweebsOwnerDrawn.Text = "Owner &Draw";
-            this.checkBoxGeeksAndTweebsOwnerDrawn.UseVisualStyleBackColor = true;
-            this.checkBoxGeeksAndTweebsOwnerDrawn.CheckedChanged += new System.EventHandler(this.checkBoxGeeksAndTweebsOwnerDrawn_CheckedChanged);
             // 
             // tableLayoutPanel1
             // 
@@ -150,6 +126,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.olvGeeks.CellEditActivation = BrightIdeasSoftware.ObjectListView.CellEditActivateMode.F2Only;
+            this.olvGeeks.CellEditUseWholeCell = false;
             this.olvGeeks.CheckedAspectName = "";
             this.olvGeeks.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.olvColumn43,
@@ -191,6 +168,7 @@
             // olvColumn43
             // 
             this.olvColumn43.AspectName = "Name";
+            this.olvColumn43.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn43.Text = "Person";
             this.olvColumn43.UseInitialLetterForGroup = true;
             this.olvColumn43.Width = 114;
@@ -198,6 +176,7 @@
             // olvColumn44
             // 
             this.olvColumn44.AspectName = "Occupation";
+            this.olvColumn44.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn44.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn44.IsTileViewColumn = true;
             this.olvColumn44.Text = "Occupation";
@@ -207,6 +186,7 @@
             // olvColumn45
             // 
             this.olvColumn45.AspectName = "CulinaryRating";
+            this.olvColumn45.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn45.GroupWithItemCountFormat = "{0} ({1} candidates)";
             this.olvColumn45.GroupWithItemCountSingularFormat = "{0} (only {1} candidate)";
             this.olvColumn45.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -218,6 +198,7 @@
             // 
             this.olvColumn46.AspectName = "BirthDate";
             this.olvColumn46.AspectToStringFormat = "{0:D}";
+            this.olvColumn46.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn46.GroupWithItemCountFormat = "{0} has {1} birthdays";
             this.olvColumn46.GroupWithItemCountSingularFormat = "{0} has only {1} birthday";
             this.olvColumn46.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -230,6 +211,7 @@
             // 
             this.olvColumn47.AspectName = "GetRate";
             this.olvColumn47.AspectToStringFormat = "{0:C}";
+            this.olvColumn47.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn47.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn47.IsTileViewColumn = true;
             this.olvColumn47.Text = "Hourly Rate";
@@ -238,6 +220,7 @@
             // 
             // olvColumn48
             // 
+            this.olvColumn48.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn48.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn48.IsEditable = false;
             this.olvColumn48.Text = "Salary";
@@ -246,6 +229,7 @@
             // 
             // olvColumn49
             // 
+            this.olvColumn49.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn49.IsEditable = false;
             this.olvColumn49.Text = "Days Since Birth";
             this.olvColumn49.Width = 81;
@@ -253,6 +237,7 @@
             // olvColumn50
             // 
             this.olvColumn50.AspectName = "CanTellJokes";
+            this.olvColumn50.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn50.CheckBoxes = true;
             this.olvColumn50.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn50.Text = "Tells Jokes?";
@@ -262,6 +247,7 @@
             // olvColumn51
             // 
             this.olvColumn51.AspectName = "MaritalStatus";
+            this.olvColumn51.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn51.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn51.Text = "Married?";
             this.olvColumn51.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -329,6 +315,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.olvFroods.CellEditActivation = BrightIdeasSoftware.ObjectListView.CellEditActivateMode.F2Only;
+            this.olvFroods.CellEditUseWholeCell = false;
             this.olvFroods.CheckedAspectName = "";
             this.olvFroods.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.olvColumn52,
@@ -370,6 +357,7 @@
             // olvColumn52
             // 
             this.olvColumn52.AspectName = "Name";
+            this.olvColumn52.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn52.Text = "Person";
             this.olvColumn52.UseInitialLetterForGroup = true;
             this.olvColumn52.Width = 114;
@@ -377,6 +365,7 @@
             // olvColumn53
             // 
             this.olvColumn53.AspectName = "Occupation";
+            this.olvColumn53.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn53.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn53.IsTileViewColumn = true;
             this.olvColumn53.Text = "Occupation";
@@ -386,6 +375,7 @@
             // olvColumn54
             // 
             this.olvColumn54.AspectName = "CulinaryRating";
+            this.olvColumn54.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn54.GroupWithItemCountFormat = "{0} ({1} candidates)";
             this.olvColumn54.GroupWithItemCountSingularFormat = "{0} (only {1} candidate)";
             this.olvColumn54.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -397,6 +387,7 @@
             // 
             this.olvColumn55.AspectName = "BirthDate";
             this.olvColumn55.AspectToStringFormat = "{0:D}";
+            this.olvColumn55.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn55.GroupWithItemCountFormat = "{0} has {1} birthdays";
             this.olvColumn55.GroupWithItemCountSingularFormat = "{0} has only {1} birthday";
             this.olvColumn55.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -409,6 +400,7 @@
             // 
             this.olvColumn56.AspectName = "GetRate";
             this.olvColumn56.AspectToStringFormat = "{0:C}";
+            this.olvColumn56.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn56.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn56.IsTileViewColumn = true;
             this.olvColumn56.Text = "Hourly Rate";
@@ -417,6 +409,7 @@
             // 
             // olvColumn57
             // 
+            this.olvColumn57.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn57.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn57.IsEditable = false;
             this.olvColumn57.Text = "Salary";
@@ -425,6 +418,7 @@
             // 
             // olvColumn58
             // 
+            this.olvColumn58.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn58.IsEditable = false;
             this.olvColumn58.Text = "Days Since Birth";
             this.olvColumn58.Width = 81;
@@ -432,6 +426,7 @@
             // olvColumn59
             // 
             this.olvColumn59.AspectName = "CanTellJokes";
+            this.olvColumn59.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn59.CheckBoxes = true;
             this.olvColumn59.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn59.Text = "Tells Jokes?";
@@ -441,6 +436,7 @@
             // olvColumn60
             // 
             this.olvColumn60.AspectName = "MaritalStatus";
+            this.olvColumn60.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn60.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.olvColumn60.Text = "Married?";
             this.olvColumn60.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
@@ -476,7 +472,7 @@
             // 
             this.label31.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label31.AutoSize = true;
-            this.label31.Location = new System.Drawing.Point(92, 474);
+            this.label31.Location = new System.Drawing.Point(5, 474);
             this.label31.Name = "label31";
             this.label31.Size = new System.Drawing.Size(33, 13);
             this.label31.TabIndex = 24;
@@ -493,7 +489,7 @@
             "List",
             "Tile",
             "Details"});
-            this.comboBoxGeeksAndTweebsView.Location = new System.Drawing.Point(131, 471);
+            this.comboBoxGeeksAndTweebsView.Location = new System.Drawing.Point(44, 471);
             this.comboBoxGeeksAndTweebsView.Name = "comboBoxGeeksAndTweebsView";
             this.comboBoxGeeksAndTweebsView.Size = new System.Drawing.Size(97, 21);
             this.comboBoxGeeksAndTweebsView.TabIndex = 23;
@@ -515,8 +511,6 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.checkBoxCoolFroodsOwnerDraw);
-            this.Controls.Add(this.checkBoxGeeksAndTweebsOwnerDrawn);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.label33);
             this.Controls.Add(this.comboBoxCoolFroodsView);
@@ -536,8 +530,6 @@
 
         #endregion
 
-        private System.Windows.Forms.CheckBox checkBoxCoolFroodsOwnerDraw;
-        private System.Windows.Forms.CheckBox checkBoxGeeksAndTweebsOwnerDrawn;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Label label34;
         private System.Windows.Forms.Label label35;
