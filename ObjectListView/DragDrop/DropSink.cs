@@ -5,6 +5,10 @@
  * Date: 2009-03-17 5:15 PM
  *
  * Change log:
+ * v2.9
+ * 2015-07-08   JPP  - Added SimpleDropSink.EnableFeedback to allow all the pretty and helpful
+ *                     user feedback during drags to be turned off
+ * v2.7
  * 2011-04-20   JPP  - Rewrote how ModelDropEventArgs.RefreshObjects() works on TreeListViews
  * v2.4.1
  * 2010-08-24   JPP  - Moved AcceptExternal property up to SimpleDragSource.
@@ -37,7 +41,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
+ * If you wish to use this code in a closed source application, please contact phillip.piper@gmail.com.
  */
 
 using System;
@@ -278,7 +282,7 @@ namespace BrightIdeasSoftware
     /// This class represents a simple implementation of a drop sink.
     /// </summary>
     /// <remarks>
-    /// Actually, it's far from simple and can do quite a lot in its own right.
+    /// Actually, it should be called CleverDropSink -- it's far from simple and can do quite a lot in its own right.
     /// </remarks>
     public class SimpleDropSink : AbstractDropSink
     {
@@ -315,7 +319,7 @@ namespace BrightIdeasSoftware
         private DropTargetLocation acceptableLocations;
         
         /// <summary>
-        /// Gets or sets whether this sink allows model objects to be dragged from other lists
+        /// Gets or sets whether this sink allows model objects to be dragged from other lists. Defaults to true.
         /// </summary>
         public bool AcceptExternal {
             get { return this.acceptExternal; }
@@ -325,8 +329,9 @@ namespace BrightIdeasSoftware
 
         /// <summary>
         /// Gets or sets whether the ObjectListView should scroll when the user drags
-        /// something near to the top or bottom rows.
+        /// something near to the top or bottom rows. Defaults to true.
         /// </summary>
+        /// <remarks>AutoScroll does not scroll horizontally.</remarks>
         public bool AutoScroll {
             get { return this.autoScroll; }
             set { this.autoScroll = value; }
@@ -395,6 +400,18 @@ namespace BrightIdeasSoftware
                     this.AcceptableLocations &= ~DropTargetLocation.SubItem;
             }
         }
+
+        /// <summary>
+        /// Gets or sets whether the drop sink should draw feedback onto the given list
+        /// during the drag operation. Defaults to true.
+        /// </summary>
+        /// <remarks>If this is false, you will have to give the user feedback in some
+        /// other fashion, like cursor changes</remarks>
+        public bool EnableFeedback {
+            get { return enableFeedback; }
+            set { enableFeedback = value; }
+        }
+        private bool enableFeedback = true;
 
         /// <summary>
         /// Get or set the index of the item that is the target of the drop
@@ -588,19 +605,21 @@ namespace BrightIdeasSoftware
         public override void DrawFeedback(Graphics g, Rectangle bounds) {
             g.SmoothingMode = ObjectListView.SmoothingMode;
 
-            switch (this.DropTargetLocation) {
-                case DropTargetLocation.Background:
-                    this.DrawFeedbackBackgroundTarget(g, bounds);
-                    break;
-                case DropTargetLocation.Item:
-                    this.DrawFeedbackItemTarget(g, bounds);
-                    break;
-                case DropTargetLocation.AboveItem:
-                    this.DrawFeedbackAboveItemTarget(g, bounds);
-                    break;
-                case DropTargetLocation.BelowItem:
-                    this.DrawFeedbackBelowItemTarget(g, bounds);
-                    break;
+            if (this.EnableFeedback) {
+                switch (this.DropTargetLocation) {
+                    case DropTargetLocation.Background:
+                        this.DrawFeedbackBackgroundTarget(g, bounds);
+                        break;
+                    case DropTargetLocation.Item:
+                        this.DrawFeedbackItemTarget(g, bounds);
+                        break;
+                    case DropTargetLocation.AboveItem:
+                        this.DrawFeedbackAboveItemTarget(g, bounds);
+                        break;
+                    case DropTargetLocation.BelowItem:
+                        this.DrawFeedbackBelowItemTarget(g, bounds);
+                        break;
+                }
             }
 
             if (this.Billboard != null) {
