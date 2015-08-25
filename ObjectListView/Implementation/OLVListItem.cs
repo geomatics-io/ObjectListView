@@ -5,6 +5,7 @@
  * Date: 31-March-2011 5:53 pm
  *
  * Change log:
+ * 2015-08-22  JPP  - Added OLVListItem.SelectedBackColor and SelectedForeColor
  * 2015-06-09  JPP  - Added HasAnyHyperlinks property
  * v2.8
  * 2014-09-27  JPP  - Remove faulty caching of CheckState
@@ -27,7 +28,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
+ * If you wish to use this code in a closed source application, please contact phillip.piper@gmail.com.
  */
 
 using System;
@@ -66,14 +67,6 @@ namespace BrightIdeasSoftware {
         #endregion.
 
         #region Properties
-//
-//        public new Color BackColor {
-//            get { return base.BackColor; }
-//            set {
-//                Debug.WriteLine("BackCOlor = " + value);
-//                base.BackColor = value;
-//            }
-//        }
 
         /// <summary>
         /// Gets the bounding rectangle of the item, including all subitems
@@ -227,6 +220,7 @@ namespace BrightIdeasSoftware {
                 return false;
             }
         }
+
         /// <summary>
         /// Get or set the image that should be shown against this item
         /// </summary>
@@ -254,6 +248,39 @@ namespace BrightIdeasSoftware {
             set { rowObject = value; }
         }
         private object rowObject;
+
+        /// <summary>
+        /// Gets or sets the color that will be used for this row's background when it is selected and 
+        /// the control is focused.
+        /// </summary>
+        /// <remarks>
+        /// <para>To work reliably, this property must be set during a FormatRow event.</para>
+        /// <para>
+        /// If this is not set, the normal selection BackColor will be used.
+        /// </para>
+        /// </remarks>
+        public Color? SelectedBackColor {
+            get { return this.selectedBackColor; }
+            set { this.selectedBackColor = value; }
+        }
+        private Color? selectedBackColor;
+
+        /// <summary>
+        /// Gets or sets the color that will be used for this row's foreground when it is selected and 
+        /// the control is focused.
+        /// </summary>
+        /// <remarks>
+        /// <para>To work reliably, this property must be set during a FormatRow event.</para>
+        /// <para>
+        /// If this is not set, the normal selection ForeColor will be used.
+        /// </para>
+        /// </remarks>
+        public Color? SelectedForeColor
+        {
+            get { return this.selectedForeColor; }
+            set { this.selectedForeColor = value; }
+        }
+        private Color? selectedForeColor;
 
         #endregion
 
