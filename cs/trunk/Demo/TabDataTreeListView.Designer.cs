@@ -90,7 +90,6 @@
             this.olvDataTree.KeyAspectName = "Id";
             this.olvDataTree.Location = new System.Drawing.Point(6, 19);
             this.olvDataTree.Name = "olvDataTree";
-            this.olvDataTree.OwnerDraw = true;
             this.olvDataTree.ParentKeyAspectName = "ParentId";
             this.olvDataTree.RootKeyValueString = "";
             this.olvDataTree.ShowGroups = false;

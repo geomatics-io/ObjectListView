@@ -165,10 +165,6 @@ namespace ObjectListViewDemo
             Coordinator.ShowLabelsOnGroupsChecked(this.ListView, (CheckBox) sender);
         }
 
-        private void checkBoxOwnerDraw_CheckedChanged(object sender, EventArgs e) {
-            Coordinator.ChangeOwnerDrawn(this.ListView, (CheckBox) sender);
-        }
-
         private void checkBoxPause_CheckedChanged(object sender, EventArgs e) {
             this.ListView.PauseAnimations(((CheckBox) sender).Checked);
         }

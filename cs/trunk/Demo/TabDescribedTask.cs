@@ -14,12 +14,9 @@ namespace ObjectListViewDemo
 
         protected override void InitializeTab() {
 
-            SetupColumns();
-            SetupColumnWithButton();
-
-            // We are completely changing the way the ListView draws itself,
-            // so it has to be owner drawn.
-            this.olvTasks.OwnerDraw = true;
+            this.SetupDescibedTaskColumn();
+            this.SetupColumns();
+            this.SetupColumnWithButton();
 
             // How much space do we want to give each row? Obviously, this should be at least
             // the height of the images used by the renderer
@@ -27,6 +24,7 @@ namespace ObjectListViewDemo
             this.olvTasks.SmallImageList = imageListSmall;
             this.olvTasks.EmptyListMsg = "No tasks match the filter";
             this.olvTasks.UseAlternatingBackColors = false;
+            this.olvTasks.UseHotItem = false;
 
             // Make and display a list of tasks
             List<ServiceTask> tasks = CreateTasks();
@@ -35,16 +33,17 @@ namespace ObjectListViewDemo
 
         private void SetupColumnWithButton() {
 
-            // We put buttons in a column by giving that column a ColumnButtonRenderer.
+            // Tell the columns that it is going to show buttons.
             // The label that goes into the button is the Aspect that would have been
             // displayed in the cell.
+            this.olvColumnAction.IsButton = true;
 
-            // Create a renderer that draws fixed width buttons. Buttons can also be sized
-            // to the bounds of the cell, or to width of the text.
-            ColumnButtonRenderer columnButtonRenderer = new ColumnButtonRenderer();
-            columnButtonRenderer.SizingMode = ColumnButtonRenderer.ButtonSizingMode.FixedBounds;
-            columnButtonRenderer.ButtonSize = new Size(80, 26);
-            this.olvColumnAction.Renderer = columnButtonRenderer;
+            // How will the button be sized? That can either be:
+            //   - FixedBounds. Each button is ButtonSize in size
+            //   - CellBounds. Each button is as wide as the cell, inset by CellPadding
+            //   - TextBounds. Each button resizes to match the width of the text plus ButtonPadding
+            this.olvColumnAction.ButtonSizing = OLVColumn.ButtonSizingMode.FixedBounds;
+            this.olvColumnAction.ButtonSize = new Size(80, 26);
 
             // Make the buttons clickable even if the row itself is disabled
             this.olvColumnAction.EnableButtonWhenItemIsDisabled = true;
@@ -69,7 +68,7 @@ namespace ObjectListViewDemo
             };
         }
 
-        private void SetupColumns() {
+        private void SetupDescibedTaskColumn() {
             // Setup a described task renderer, which draws a large icon
             // with a title, and a description under the title.
             // Almost all of this configuration could be done through the Designer
@@ -77,12 +76,6 @@ namespace ObjectListViewDemo
 
             // Create and install an appropriately configured renderer 
             this.olvColumnTask.Renderer = CreateDescribedTaskRenderer();
-
-            // When applying a text filter, search both the title and the description
-            this.olvColumnTask.SearchValueGetter = delegate(object x) {
-                ServiceTask model = (ServiceTask)x;
-                return new string[] {model.Task, model.Description};
-            };
 
             // Now let's setup the couple of other bits that the column needs
 
@@ -95,7 +88,10 @@ namespace ObjectListViewDemo
 
             // Put a little bit of space around the task and its description
             this.olvColumnTask.CellPadding = new Rectangle(4, 2, 4, 2);
+        }
 
+        private void SetupColumns()
+        {
             // Draw the priority column as a collection of coins (first parameter).
             // We want the renderer to draw at most 4 stars (second parameter).
             // Priority has a value range from 0-5 (the last two parameters).
@@ -152,8 +148,11 @@ namespace ObjectListViewDemo
             // Change the formatting slightly
             renderer.TitleFont = new Font("Tahoma", 11, FontStyle.Bold);
             renderer.DescriptionFont = new Font("Tahoma", 9);
-            renderer.ImageTextSpace = 16;
+            renderer.ImageTextSpace = 8;
             renderer.TitleDescriptionSpace = 1;
+
+            // Use older Gdi renderering, since most people think the text looks clearer
+            renderer.UseGdiTextRendering = true;
 
             // If you like colours other than black and grey, you could uncomment these
 //            renderer.TitleColor = Color.DarkBlue;

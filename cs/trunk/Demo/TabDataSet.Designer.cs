@@ -45,14 +45,12 @@
             this.label11 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.comboBoxView = new System.Windows.Forms.ComboBox();
-            this.checkBoxOwnerDraw = new System.Windows.Forms.CheckBox();
             this.olvData = new BrightIdeasSoftware.DataListView();
             this.olvColumn1 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.highlightTextRenderer1 = new BrightIdeasSoftware.HighlightTextRenderer();
             this.olvColumn2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.olvColumn3 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.salaryColumn = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.salaryRenderer = new BrightIdeasSoftware.MultiImageRenderer();
             this.heightColumn = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.heightRenderer = new BrightIdeasSoftware.BarRenderer();
             this.olvColumn42 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
@@ -63,6 +61,7 @@
             this.imageListSmall = new System.Windows.Forms.ImageList(this.components);
             this.checkBoxGroups = new System.Windows.Forms.CheckBox();
             this.checkBoxItemCounts = new System.Windows.Forms.CheckBox();
+            this.salaryRenderer = new BrightIdeasSoftware.MultiImageRenderer();
             this.groupBox13.SuspendLayout();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -174,7 +173,6 @@
             this.groupBox3.Controls.Add(this.label11);
             this.groupBox3.Controls.Add(this.label8);
             this.groupBox3.Controls.Add(this.comboBoxView);
-            this.groupBox3.Controls.Add(this.checkBoxOwnerDraw);
             this.groupBox3.Controls.Add(this.olvData);
             this.groupBox3.Controls.Add(this.checkBoxGroups);
             this.groupBox3.Controls.Add(this.checkBoxItemCounts);
@@ -189,7 +187,7 @@
             // 
             this.label22.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(689, 133);
+            this.label22.Location = new System.Drawing.Point(689, 131);
             this.label22.Name = "label22";
             this.label22.Size = new System.Drawing.Size(48, 13);
             this.label22.TabIndex = 7;
@@ -205,7 +203,7 @@
             "Single Click",
             "Double Click",
             "F2 Only"});
-            this.comboBoxEditable.Location = new System.Drawing.Point(689, 148);
+            this.comboBoxEditable.Location = new System.Drawing.Point(689, 146);
             this.comboBoxEditable.Name = "comboBoxEditable";
             this.comboBoxEditable.Size = new System.Drawing.Size(104, 21);
             this.comboBoxEditable.TabIndex = 8;
@@ -216,7 +214,7 @@
             this.checkBoxPause.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxPause.Checked = true;
             this.checkBoxPause.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxPause.Location = new System.Drawing.Point(689, 73);
+            this.checkBoxPause.Location = new System.Drawing.Point(689, 63);
             this.checkBoxPause.Name = "checkBoxPause";
             this.checkBoxPause.Size = new System.Drawing.Size(113, 19);
             this.checkBoxPause.TabIndex = 4;
@@ -262,7 +260,7 @@
             // 
             this.label8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(689, 93);
+            this.label8.Location = new System.Drawing.Point(689, 89);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(33, 13);
             this.label8.TabIndex = 5;
@@ -279,24 +277,11 @@
             "List",
             "Tile",
             "Details"});
-            this.comboBoxView.Location = new System.Drawing.Point(689, 108);
+            this.comboBoxView.Location = new System.Drawing.Point(689, 104);
             this.comboBoxView.Name = "comboBoxView";
             this.comboBoxView.Size = new System.Drawing.Size(104, 21);
             this.comboBoxView.TabIndex = 6;
             this.comboBoxView.SelectedIndexChanged += new System.EventHandler(this.comboBoxView_SelectedIndexChanged);
-            // 
-            // checkBoxOwnerDraw
-            // 
-            this.checkBoxOwnerDraw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkBoxOwnerDraw.Checked = true;
-            this.checkBoxOwnerDraw.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxOwnerDraw.Location = new System.Drawing.Point(689, 55);
-            this.checkBoxOwnerDraw.Name = "checkBoxOwnerDraw";
-            this.checkBoxOwnerDraw.Size = new System.Drawing.Size(113, 19);
-            this.checkBoxOwnerDraw.TabIndex = 3;
-            this.checkBoxOwnerDraw.Text = "Owner &Draw";
-            this.checkBoxOwnerDraw.UseVisualStyleBackColor = true;
-            this.checkBoxOwnerDraw.CheckedChanged += new System.EventHandler(this.checkBoxOwnerDraw_CheckedChanged);
             // 
             // olvData
             // 
@@ -333,12 +318,11 @@
             this.olvData.GroupWithItemCountFormat = "{0} ({1} people)";
             this.olvData.GroupWithItemCountSingularFormat = "{0} (1 person)";
             this.olvData.HideSelection = false;
-            this.olvData.HighlightBackgroundColor = System.Drawing.Color.Pink;
-            this.olvData.HighlightForegroundColor = System.Drawing.Color.MidnightBlue;
+            this.olvData.SelectedBackColor = System.Drawing.Color.Pink;
+            this.olvData.SelectedForeColor = System.Drawing.Color.MidnightBlue;
             this.olvData.LargeImageList = this.imageListLarge;
             this.olvData.Location = new System.Drawing.Point(6, 19);
             this.olvData.Name = "olvData";
-            this.olvData.OwnerDraw = true;
             this.olvData.SelectColumnsOnRightClickBehaviour = BrightIdeasSoftware.ObjectListView.ColumnSelectBehaviour.Submenu;
             this.olvData.ShowCommandMenuOnRightClick = true;
             this.olvData.ShowGroups = false;
@@ -358,6 +342,7 @@
             // olvColumn1
             // 
             this.olvColumn1.AspectName = "Name";
+            this.olvColumn1.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn1.IsTileViewColumn = true;
             this.olvColumn1.Renderer = this.highlightTextRenderer1;
             this.olvColumn1.Text = "Name";
@@ -373,6 +358,7 @@
             // olvColumn2
             // 
             this.olvColumn2.AspectName = "Company";
+            this.olvColumn2.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn2.IsTileViewColumn = true;
             this.olvColumn2.Text = "Company";
             this.olvColumn2.Width = 130;
@@ -380,6 +366,7 @@
             // olvColumn3
             // 
             this.olvColumn3.AspectName = "Occupation";
+            this.olvColumn3.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn3.IsTileViewColumn = true;
             this.olvColumn3.Text = "Occupation";
             this.olvColumn3.Width = 134;
@@ -388,23 +375,19 @@
             // 
             this.salaryColumn.AspectName = "Salary";
             this.salaryColumn.AspectToStringFormat = "{0:C}";
-            this.salaryColumn.CellVerticalAlignment = System.Drawing.StringAlignment.Far;
-            this.salaryColumn.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.salaryColumn.ButtonPadding = new System.Drawing.Size(0, 0);
+            this.salaryColumn.CellVerticalAlignment = System.Drawing.StringAlignment.Center;
+            this.salaryColumn.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.salaryColumn.IsButton = true;
             this.salaryColumn.Renderer = this.salaryRenderer;
             this.salaryColumn.Text = "Salary";
-            this.salaryColumn.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.salaryColumn.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.salaryColumn.Width = 95;
-            // 
-            // salaryRenderer
-            // 
-            this.salaryRenderer.ImageName = "tick";
-            this.salaryRenderer.MaximumValue = 500000;
-            this.salaryRenderer.MaxNumberImages = 5;
-            this.salaryRenderer.MinimumValue = 10000;
             // 
             // heightColumn
             // 
             this.heightColumn.AspectName = "Height";
+            this.heightColumn.ButtonPadding = new System.Drawing.Size(10, 10);
             this.heightColumn.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.heightColumn.Renderer = this.heightRenderer;
             this.heightColumn.Text = "Height (m)";
@@ -420,6 +403,7 @@
             // olvColumn42
             // 
             this.olvColumn42.AspectName = "TellsJokes";
+            this.olvColumn42.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumn42.CheckBoxes = true;
             this.olvColumn42.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumn42.Text = "Joker?";
@@ -429,6 +413,7 @@
             // olvColumnGif
             // 
             this.olvColumnGif.AspectName = "GifFileName";
+            this.olvColumnGif.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumnGif.Groupable = false;
             this.olvColumnGif.HeaderTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.olvColumnGif.IsEditable = false;
@@ -442,6 +427,7 @@
             // 
             // olvColumnFiller
             // 
+            this.olvColumnFiller.ButtonPadding = new System.Drawing.Size(10, 10);
             this.olvColumnFiller.FillsFreeSpace = true;
             this.olvColumnFiller.Groupable = false;
             this.olvColumnFiller.IsEditable = false;
@@ -510,13 +496,20 @@
             // checkBoxItemCounts
             // 
             this.checkBoxItemCounts.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkBoxItemCounts.Location = new System.Drawing.Point(689, 37);
+            this.checkBoxItemCounts.Location = new System.Drawing.Point(689, 41);
             this.checkBoxItemCounts.Name = "checkBoxItemCounts";
             this.checkBoxItemCounts.Size = new System.Drawing.Size(113, 19);
             this.checkBoxItemCounts.TabIndex = 2;
             this.checkBoxItemCounts.Text = "Show Item &Counts";
             this.checkBoxItemCounts.UseVisualStyleBackColor = true;
             this.checkBoxItemCounts.CheckedChanged += new System.EventHandler(this.checkBoxItemCounts_CheckedChanged);
+            // 
+            // salaryRenderer
+            // 
+            this.salaryRenderer.ImageName = "star";
+            this.salaryRenderer.MaximumValue = 500000;
+            this.salaryRenderer.MaxNumberImages = 5;
+            this.salaryRenderer.MinimumValue = 10000;
             // 
             // TabDataSet
             // 
@@ -559,7 +552,6 @@
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.ComboBox comboBoxView;
-        private System.Windows.Forms.CheckBox checkBoxOwnerDraw;
         private BrightIdeasSoftware.DataListView olvData;
         private BrightIdeasSoftware.OLVColumn olvColumn1;
         private BrightIdeasSoftware.OLVColumn olvColumn2;

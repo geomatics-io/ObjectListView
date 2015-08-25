@@ -242,10 +242,6 @@ namespace ObjectListViewDemo {
             Coordinator.ShowGroupsChecked(this.ListView, (CheckBox)sender);
         }
 
-        private void checkBoxOwnerDraw_CheckedChanged(object sender, EventArgs e) {
-            Coordinator.ChangeOwnerDrawn(this.ListView, (CheckBox)sender);
-        }
-
         private void checkBoxTooltips_CheckedChanged(object sender, EventArgs e) {
             this.showToolTipsOnFiles = !this.showToolTipsOnFiles;
         }
@@ -253,7 +249,7 @@ namespace ObjectListViewDemo {
         private bool showToolTipsOnFiles = false;
 
         private void comboBoxHotItemStyle_SelectedIndexChanged(object sender, EventArgs e) {
-            Coordinator.ChangeHotItemStyle(this.ListView, (ComboBox)sender, this.checkBoxOwnerDraw);
+            Coordinator.ChangeHotItemStyle(this.ListView, (ComboBox)sender);
         }
 
         private void comboBoxView_SelectedIndexChanged(object sender, EventArgs e) {

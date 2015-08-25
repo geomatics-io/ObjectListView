@@ -26,6 +26,7 @@ namespace ObjectListViewDemo
             // with TreeListView, so we don't give the option
             this.comboBoxHotItemStyle.SelectedIndex = 0; // None
             this.treeListView.HierarchicalCheckboxes = this.checkBoxHierarchicalCheckboxes.Checked;
+            this.comboBoxExpanders.SelectedIndex = 2; // triangles
 
             SetupColumns();
             SetupDragAndDrop();
@@ -76,12 +77,24 @@ namespace ObjectListViewDemo
                 return ((MyFileSystemInfo) x).IsDirectory;
             };
 
+            // We just want to get the children of the given directory.
+            // This becomes a little complicated when we can't (for whatever reason). We need to report the error 
+            // to the user, but we can't just call MessageBox.Show() directly, since that would stall the UI thread
+            // leaving the tree in a potentially undefined state (not good). We also don't want to keep trying to
+            // get the contents of the given directory if the tree is refreshed. To get around the first problem,
+            // we immediately return an empty list of children and use BeginInvoke to show the MessageBox at the 
+            // earliest opportunity. We get around the second problem by collapsing the branch again, so it's children
+            // will not be fetched when the tree is refreshed. The user could still explicitly unroll it again --
+            // that's their problem :)
             this.treeListView.ChildrenGetter = delegate(object x) {
                 try {
                     return ((MyFileSystemInfo) x).GetFileSystemInfos();
                 }
                 catch (UnauthorizedAccessException ex) {
-                    MessageBox.Show(this, ex.Message, "ObjectListViewDemo", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    this.BeginInvoke((MethodInvoker)delegate() {
+                        this.treeListView.Collapse(x);
+                        MessageBox.Show(this, ex.Message, "ObjectListViewDemo", MessageBoxButtons.OK, MessageBoxIcon.Exclamation); 
+                    });
                     return new ArrayList();
                 }
             };
@@ -183,7 +196,7 @@ namespace ObjectListViewDemo
 
         private void comboBoxHotItemStyle_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Coordinator.ChangeHotItemStyle(this.ListView, (ComboBox)sender, null);
+            Coordinator.ChangeHotItemStyle(this.ListView, (ComboBox)sender);
         }
 
         private void buttonRefresh_Click(object sender, EventArgs e)
@@ -225,6 +238,28 @@ namespace ObjectListViewDemo
         }
 
         #endregion
+
+        private void comboBoxExpanders_SelectedIndexChanged(object sender, EventArgs e) {
+            TreeListView.TreeRenderer treeColumnRenderer = this.treeListView.TreeColumnRenderer;
+            ComboBox cb = (ComboBox)sender;
+            switch (cb.SelectedIndex)
+            {
+                case 0:
+                    treeColumnRenderer.IsShowGlyphs = false;
+                    break;
+                case 1:
+                    treeColumnRenderer.IsShowGlyphs = true;
+                    treeColumnRenderer.UseTriangles = false;
+                    break;
+                case 2:
+                    treeColumnRenderer.IsShowGlyphs = true;
+                    treeColumnRenderer.UseTriangles = true;
+                    break;
+            }
+
+            // Cause a redraw so that the changes to the renderer take effect
+            this.treeListView.Refresh();
+        }
 
     }
 }

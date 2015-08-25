@@ -16,7 +16,6 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-
 using BrightIdeasSoftware;
 
 namespace ObjectListViewDemo {
@@ -30,6 +29,9 @@ namespace ObjectListViewDemo {
             Application.Run(new MainForm());
         }
 
+        /// <summary>
+        ///
+        /// </summary>
         public MainForm() {
             //
             // The InitializeComponent() call is required for Windows Forms designer support.
@@ -39,7 +41,7 @@ namespace ObjectListViewDemo {
         }
 
         void InitializeExamples() {
-            // Use different font under Vista or later
+            // Use different font under Vista
             if (ObjectListView.IsVistaOrLater)
                 this.Font = new Font("Segoe UI", 9);
              
@@ -63,7 +65,7 @@ namespace ObjectListViewDemo {
             this.tabPrinting1.TreeListView = this.tabTreeListView1.ListView;
             this.tabPrinting1.Coordinator = coordinator;
 
-            this.tabControl1.SelectTab(this.tabDescribedTasks);
+            //this.tabControl1.SelectTab(this.tabDescribedTasks);
         }
 
         private void tabControl1_Selected(object sender, TabControlEventArgs e)
