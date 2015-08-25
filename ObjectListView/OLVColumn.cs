@@ -5,7 +5,7 @@
  * Date: 31-March-2011 5:53 pm
  *
  * Change log:
- * 2015-06-12  JPP  - HeaderTextAlignment became nullable so that it can be "not set" (this was always the intent)
+ * 2015-06-12  JPP  - HeaderTextAlign became nullable so that it can be "not set" (this was always the intent)
  * 2014-09-07  JPP  - Added ability to have checkboxes in headers
  * 
  * 2011-05-27  JPP  - Added Sortable, Hideable, Groupable, Searchable, ShowTextInHeader properties
@@ -27,7 +27,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
+ * If you wish to use this code in a closed source application, please contact phillip.piper@gmail.com.
  */
 
 using System;
@@ -36,6 +36,7 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Collections;
 using System.Diagnostics;
+using System.Drawing.Design;
 
 namespace BrightIdeasSoftware {
 
@@ -85,6 +86,27 @@ namespace BrightIdeasSoftware {
     /// </remarks>
     [Browsable(false)]
     public partial class OLVColumn : ColumnHeader {
+
+        /// <summary>
+        /// How should the button be sized?
+        /// </summary>
+        public enum ButtonSizingMode
+        {
+            /// <summary>
+            /// Every cell will have the same sized button, as indicated by ButtonSize property
+            /// </summary>
+            FixedBounds,
+
+            /// <summary>
+            /// Every cell will draw a button that fills the cell, inset by ButtonPadding
+            /// </summary>
+            CellBounds,
+
+            /// <summary>
+            /// Each button will be resized to contain the text of the Aspect
+            /// </summary>
+            TextBounds
+        }
 
         #region Life and death
 
@@ -638,7 +660,7 @@ namespace BrightIdeasSoftware {
         /// <remarks>You should probably use a HeaderFormatStyle instead of this property</remarks>
         /// <remarks>This is only uses when HeaderUsesThemes is false.</remarks>
         [Category("ObjectListView"),
-        Description("How will the header text be aligned?"),
+        Description("Which font will be used to draw the header?"),
         DefaultValue(null)]
         public Font HeaderFont {
             get { return this.HeaderFormatStyle == null ? null : this.HeaderFormatStyle.Normal.Font; }
@@ -659,7 +681,7 @@ namespace BrightIdeasSoftware {
         /// <remarks>You should probably use a HeaderFormatStyle instead of this property</remarks>
         /// <remarks>This is only uses when HeaderUsesThemes is false.</remarks>
         [Category("ObjectListView"),
-         Description("How will the header text be aligned?"),
+         Description("In what color will the header text be drawn?"),
          DefaultValue(typeof(Color), "")]
         public Color HeaderForeColor {
             get { return this.HeaderFormatStyle == null ? Color.Empty : this.HeaderFormatStyle.Normal.ForeColor; }
@@ -682,7 +704,7 @@ namespace BrightIdeasSoftware {
          Description("Name of the image that will be shown in the column header."),
          DefaultValue(null),
          TypeConverter(typeof(ImageKeyConverter)),
-         Editor("System.Windows.Forms.Design.ImageIndexEditor, System.Design, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", typeof(System.Drawing.Design.UITypeEditor)),
+         Editor("System.Windows.Forms.Design.ImageIndexEditor, System.Design, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", typeof(UITypeEditor)),
          RefreshProperties(RefreshProperties.Repaint)]
         public string HeaderImageKey {
             get { return headerImageKey; }
@@ -897,6 +919,121 @@ namespace BrightIdeasSoftware {
         private ImageGetterDelegate imageGetter;
 
         /// <summary>
+        /// Gets or sets whether this column will draw buttons in its cells
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// When this is set to true, the renderer for the column is become a ColumnButtonRenderer
+        /// if it isn't already. If this is set to false, any previous button renderer will be discarded
+        /// </para>
+        /// If the cell's aspect is null or empty, nothing will be drawn in the cell.</remarks>
+        [Category("ObjectListView"),
+         Description("Does this column draw its cells as buttons?"),
+         DefaultValue(false)]
+        public bool IsButton {
+            get { return isButton; }
+            set {
+                isButton = value;
+                if (value) {
+                    ColumnButtonRenderer buttonRenderer = this.Renderer as ColumnButtonRenderer;
+                    if (buttonRenderer == null) {
+                        this.Renderer = this.CreateColumnButtonRenderer();
+                        this.FillInColumnButtonRenderer();
+                    }
+                } else {
+                    if (this.Renderer is ColumnButtonRenderer)
+                        this.Renderer = null;
+                }
+            }
+        }
+        private bool isButton;
+
+        /// <summary>
+        /// Create a ColumnButtonRenderer to draw buttons in this column
+        /// </summary>
+        /// <returns></returns>
+        protected virtual ColumnButtonRenderer CreateColumnButtonRenderer() {
+            return new ColumnButtonRenderer();
+        }
+
+        /// <summary>
+        /// Fill in details to our ColumnButtonRenderer based on the properties set on the column
+        /// </summary>
+        protected virtual void FillInColumnButtonRenderer() {
+            ColumnButtonRenderer buttonRenderer = this.Renderer as ColumnButtonRenderer;
+            if (buttonRenderer == null)
+                return;
+
+            buttonRenderer.SizingMode = this.ButtonSizing;
+            buttonRenderer.ButtonSize = this.ButtonSize;
+            buttonRenderer.ButtonPadding = this.ButtonPadding;
+            buttonRenderer.MaxButtonWidth = this.ButtonMaxWidth;
+        }
+
+        /// <summary>
+        /// Gets or sets the maximum width that a button can occupy.
+        /// -1 means there is no maximum width.
+        /// </summary>
+        /// <remarks>This is only considered when the SizingMode is TextBounds</remarks>
+        [Category("ObjectListView"),
+         Description("The maximum width that a button can occupy when the SizingMode is TextBounds"),
+         DefaultValue(-1)]
+        public int ButtonMaxWidth {
+            get { return this.buttonMaxWidth; }
+            set {
+                this.buttonMaxWidth = value;
+                FillInColumnButtonRenderer();
+            }
+        }
+        private int buttonMaxWidth = -1;
+
+        /// <summary>
+        /// Gets or sets the extra space that surrounds the cell when the SizingMode is TextBounds
+        /// </summary>
+        [Category("ObjectListView"),
+         Description("The extra space that surrounds the cell when the SizingMode is TextBounds"),
+         DefaultValue(null)]
+        public Size? ButtonPadding {
+            get { return this.buttonPadding; }
+            set {
+                this.buttonPadding = value;
+                this.FillInColumnButtonRenderer();
+            }
+        }
+        private Size? buttonPadding;
+
+        /// <summary>
+        /// Gets or sets the size of the button when the SizingMode is FixedBounds
+        /// </summary>
+        /// <remarks>If this is not set, the bounds of the cell will be used</remarks>
+        [Category("ObjectListView"),
+         Description("The size of the button when the SizingMode is FixedBounds"),
+         DefaultValue(null)]
+        public Size? ButtonSize {
+            get { return this.buttonSize; }
+            set {
+                this.buttonSize = value;
+                this.FillInColumnButtonRenderer();
+            }
+        }
+        private Size? buttonSize;
+
+        /// <summary>
+        /// Gets or sets how each button will be sized if this column is displaying buttons
+        /// </summary>
+        [Category("ObjectListView"),
+         Description("If this column is showing buttons, how each button will be sized"),
+         DefaultValue(ButtonSizingMode.TextBounds)]
+        public ButtonSizingMode ButtonSizing {
+            get { return this.buttonSizing; }
+            set {
+                this.buttonSizing = value;
+                this.FillInColumnButtonRenderer();
+            }
+        }
+        private ButtonSizingMode buttonSizing = ButtonSizingMode.TextBounds;
+
+        /// <summary>
         /// Can the values shown in this column be edited?
         /// </summary>
         /// <remarks>This defaults to true, since the primary means to control the editability of a listview
@@ -905,7 +1042,8 @@ namespace BrightIdeasSoftware {
         [Category("ObjectListView"),
          Description("Can the value in this column be edited?"),
          DefaultValue(true)]
-        public bool IsEditable {
+        public bool IsEditable
+        {
             get { return isEditable; }
             set { isEditable = value; }
         }
@@ -1382,7 +1520,7 @@ namespace BrightIdeasSoftware {
 
             if (this.UseInitialLetterForGroup) {
                 String keyAsString = key as String;
-                if (!string.IsNullOrEmpty(keyAsString))
+                if (!String.IsNullOrEmpty(keyAsString))
                     return keyAsString.Substring(0, 1).ToUpper();
                 }
 
@@ -1444,7 +1582,17 @@ namespace BrightIdeasSoftware {
         /// <param name="rowObject"></param>
         /// <returns>The array of texts to be searched. If this returns null, search will not match that object.</returns>
         public string[] GetSearchValues(object rowObject) {
-            return this.SearchValueGetter == null ? new string[] { this.GetStringValue(rowObject) } : this.SearchValueGetter(rowObject);
+            if (this.SearchValueGetter != null)
+                return this.SearchValueGetter(rowObject);
+
+            var stringValue = this.GetStringValue(rowObject);
+
+            DescribedTaskRenderer dtr = this.Renderer as DescribedTaskRenderer;
+            if (dtr != null) {
+                return new string[] { stringValue, dtr.GetDescription(rowObject) };
+            }
+
+            return new string[] { stringValue };
         }
 
         /// <summary>
@@ -1663,7 +1811,7 @@ namespace BrightIdeasSoftware {
             // Install a delegate that returns the index of the description to be shown
             this.GroupKeyGetter = delegate(object row) {
                 Object aspect = this.GetValue(row);
-                if (aspect == null || aspect == System.DBNull.Value)
+                if (aspect == null || aspect == DBNull.Value)
                     return -1;
                 IComparable comparable = (IComparable)aspect;
                 for (int i = 0; i < values.Length; i++) {
@@ -1759,6 +1907,5 @@ namespace BrightIdeasSoftware {
         }
 
         #endregion
-
     }
 }
