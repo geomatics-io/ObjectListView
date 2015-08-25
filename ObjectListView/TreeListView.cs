@@ -3,8 +3,11 @@
  *
  * Author: Phillip Piper
  * Date: 23/09/2008 11:15 AM
- *
+ * 
  * Change log:
+ * v2.9
+ * 2015-08-02  JPP  - Fixed buy with hierarchical checkboxes where setting the checkedness of a deeply
+ *                    nested object would sometimes not correctly calculate the changes in the hierarchy. SF #150.
  * 2015-06-27  JPP  - Corrected small UI glitch when focus was lost and HideSelection was false. SF #135.
  * v2.8.1
  * 2014-11-28  JPP  - Fixed issue in RefreshObject() where a model with less children than previous that could not
@@ -115,7 +118,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
+ * If you wish to use this code in a closed source application, please contact phillip.piper@gmail.com.
  */
 
 using System;
@@ -200,6 +203,17 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// This is the delegate that will be used to decide if a model object can be expanded.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This is called *often* -- on every mouse move when required. It must be fast.
+        /// Don't do database lookups, linear searches, or pi calculations. Just return the
+        /// value of a property.
+        /// </para>
+        /// <para>
+        /// When this delegate is called, the TreeListView is not in a stable state. Don't make
+        /// calls back into the control.
+        /// </para>
+        /// </remarks>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual CanExpandGetterDelegate CanExpandGetter {
@@ -220,8 +234,16 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// This is the delegate that will be used to fetch the children of a model object
         /// </summary>
-        /// <remarks>This delegate will only be called if the CanExpand delegate has 
-        /// returned true for the model object.</remarks>
+        /// <remarks>
+        /// <para>
+        /// This delegate will only be called if the CanExpand delegate has 
+        /// returned true for the model object.
+        /// </para>
+        /// <para>
+        /// When this delegate is called, the TreeListView is not in a stable state. Don't do anything
+        /// that will result in calls being made back into the control.
+        /// </para>
+        /// </remarks>
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public virtual ChildrenGetterDelegate ChildrenGetter {
@@ -1017,12 +1039,12 @@ namespace BrightIdeasSoftware
                 return;
 
             // Only branches have calculated check states. Leaf node checkedness is not calculated
-            if (!this.CanExpand(modelObject))
+            if (!this.CanExpandUncached(modelObject))
                 return;
 
             // Set the checkedness of the given model based on the state of its children.
             CheckState? aggregate = null;
-            foreach (object child in this.GetChildren(modelObject)) {
+            foreach (object child in this.GetChildrenUncached(modelObject)) {
                 CheckState? checkedness = this.GetCheckState(child);
                 if (!checkedness.HasValue)
                     continue;
@@ -1037,6 +1059,14 @@ namespace BrightIdeasSoftware
             }
 
             base.SetObjectCheckedness(modelObject, aggregate ?? CheckState.Indeterminate);
+        }
+
+        private bool CanExpandUncached(object model) {
+            return this.CanExpandGetter != null && model != null && this.CanExpandGetter(model);
+        }
+
+        private IEnumerable GetChildrenUncached(object model) {
+            return this.ChildrenGetter != null && model != null ? this.ChildrenGetter(model) : new ArrayList();
         }
 
         /// <summary>
@@ -1605,6 +1635,15 @@ namespace BrightIdeasSoftware
             }
 
             /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="index"></param>
+            /// <param name="modelObjects"></param>
+            public void InsertObjects(int index, ICollection modelObjects) {
+                throw new NotImplementedException();
+            }
+
+            /// <summary>
             /// Remove all of the given objects from the roots of the tree.
             /// Any objects that is not already in the roots collection is ignored.
             /// </summary>
@@ -1783,7 +1822,7 @@ namespace BrightIdeasSoftware
                     if (this.Tree.CanExpandGetter == null || this.Model == null)
                         return false;
                     
-                        return this.Tree.CanExpandGetter(this.Model);
+                    return this.Tree.CanExpandGetter(this.Model);
                 }
             }
 
