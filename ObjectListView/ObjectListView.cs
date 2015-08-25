@@ -5,10 +5,25 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * v2.9.0
+ * 2015-08-22  JPP  - Allow selected row back/fore colours to be specified for each row
+ *                  - Renamed properties related to selection colours:
+ *                       - HighlightBackgroundColor -> SelectedBackColor
+ *                       - HighlightForegroundColor -> SelectedForeColor
+ *                       - UnfocusedHighlightBackgroundColor -> UnfocusedSelectedBackColor
+ *                       - UnfocusedHighlightForegroundColor -> UnfocusedSelectedForeColor
+ *                  - UseCustomSelectionColors is no longer used
+ * 2015-08-03  JPP  - Added ObjectListView.CellEditFinished event
+ *                  - Added EditorRegistry.Unregister()
+ * 2015-07-08  JPP  - All ObjectListViews are now OwnerDrawn by default. This allows all the great features
+ *                    of ObjectListView to work correctly at the slight cost of more processing at render time.
+ *                    It also avoids the annoying "hot item background ignored in column 0" behaviour that native
+ *                    ListView has. Programmers can still turn it back off if they wish.
  * 2015-06-27  JPP  - Yet another attempt to disable ListView's "shift click toggles checkboxes" behaviour.
  *                    The last strategy (fake right click) worked, but had nasty side effects. This one works
  *                    by intercepting a HITTEST message so that it fails. It no longer creates fake right mouse events.
  *                  - Trigger SelectionChanged when filter is changed
+ * 2015-06-23  JPP  - Added support for Buttons
  * 2015-06-22  JPP  - Added OLVColumn.SearchValueGetter to allow the text used when text filtering to be customised
  *                  - The default DefaultRenderer is now a HighlightTextRenderer, since that seems more generally useful
  * 2015-06-17  JPP  - Added FocusedObject property
@@ -19,6 +34,7 @@
  * 2015-05-15  JPP  - Allow ImageGetter to return an Image (which I can't believe didn't work from the beginning!)
  * 2015-04-27  JPP  - Fix bug where setting View to LargeIcon in the designer was not persisted
  * 2015-04-07  JPP  - Ensure changes to row.Font in FormatRow are not wiped out by FormatCell (SF #141)
+ * 
  * v2.8.1
  * 2014-10-15  JPP  - Added CellEditActivateMode.SingleClickAlways mode
  *                  - Fire Filter event event if ModelFilter and ListFilter are null (SF #126)
@@ -547,7 +563,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
+ * If you wish to use this code in a closed source application, please contact phillip.piper@gmail.com.
  */
 
 using System;
@@ -634,6 +650,10 @@ namespace BrightIdeasSoftware
             this.ColumnWidthChanged += new ColumnWidthChangedEventHandler(this.HandleColumnWidthChanged);
 
             base.View = View.Details;
+
+            // Turn on owner draw so that we are responsible for our own fates (and isolated from bugs in the underlying ListView)
+            this.OwnerDraw = true;
+
 // ReSharper disable DoNotCallOverridableMethodsInConstructor
             this.DoubleBuffered = true; // kill nasty flickers. hiss... me hates 'em
             this.ShowSortIndicators = true;
@@ -861,8 +881,6 @@ namespace BrightIdeasSoftware
             get {
                 if (sDefaultHotItemStyle == null) {
                     sDefaultHotItemStyle = new HotItemStyle();
-//                    sDefaultHotItemStyle.ForeColor = Color.Red;
-//                    sDefaultHotItemStyle.FontStyle = FontStyle.Bold;
                     sDefaultHotItemStyle.BackColor = Color.FromArgb(224, 235, 253);
                 }
                 return sDefaultHotItemStyle;
@@ -2082,52 +2100,70 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// What color should be used for the background of selected rows?
         /// </summary>
-        /// <remarks>Windows does not give the option of changing the selection background.
-        /// So the control has to be owner drawn to see the result of this setting.
-        /// Setting UseCustomSelectionColors = true will do this for you.</remarks>
         [Category("ObjectListView"),
-         Description("The background foregroundColor of selected rows when the control is owner drawn"),
+         Description("The background of selected rows when the control is owner drawn"),
          DefaultValue(typeof(Color), "")]
-        public virtual Color HighlightBackgroundColor {
-            get { return highlightBackgroundColor; }
-            set { highlightBackgroundColor = value; }
+        public virtual Color SelectedBackColor {
+            get { return this.selectedBackColor; }
+            set { this.selectedBackColor = value; }
         }
-        private Color highlightBackgroundColor = Color.Empty;
+        private Color selectedBackColor = Color.Empty;
 
         /// <summary>
         /// Return the color should be used for the background of selected rows or a reasonable default
         /// </summary>
         [Browsable(false)]
-        public virtual Color HighlightBackgroundColorOrDefault {
+        public virtual Color SelectedBackColorOrDefault {
             get {
-                return this.HighlightBackgroundColor.IsEmpty ? SystemColors.Highlight : this.HighlightBackgroundColor;
+                return this.SelectedBackColor.IsEmpty ? SystemColors.Highlight : this.SelectedBackColor;
             }
         }
 
         /// <summary>
         /// What color should be used for the foreground of selected rows?
         /// </summary>
-        /// <remarks>Windows does not give the option of changing the selection foreground (text color).
-        /// So the control has to be owner drawn to see the result of this setting.
-        /// Setting UseCustomSelectionColors = true will do this for you.</remarks>
         [Category("ObjectListView"),
-         Description("The foreground foregroundColor of selected rows when the control is owner drawn"),
+         Description("The foreground color of selected rows (when the control is owner drawn)"),
          DefaultValue(typeof(Color), "")]
-        public virtual Color HighlightForegroundColor {
-            get { return highlightForegroundColor; }
-            set { highlightForegroundColor = value; }
+        public virtual Color SelectedForeColor {
+            get { return this.selectedForeColor; }
+            set { this.selectedForeColor = value; }
         }
-        private Color highlightForegroundColor = Color.Empty;
+        private Color selectedForeColor = Color.Empty;
 
         /// <summary>
         /// Return the color should be used for the foreground of selected rows or a reasonable default
         /// </summary>
         [Browsable(false)]
-        public virtual Color HighlightForegroundColorOrDefault {
+        public virtual Color SelectedForeColorOrDefault {
             get {
-                return this.HighlightForegroundColor.IsEmpty ? SystemColors.HighlightText : this.HighlightForegroundColor;
+                return this.SelectedForeColor.IsEmpty ? SystemColors.HighlightText : this.SelectedForeColor;
             }
         }
+
+        [Obsolete("Use SelectedBackColor instead")]
+        public virtual Color HighlightBackgroundColor { get { return this.SelectedBackColor; } set { this.SelectedBackColor = value; } }
+
+        [Obsolete("Use SelectedBackColorOrDefault instead")]
+        public virtual Color HighlightBackgroundColorOrDefault { get { return this.SelectedBackColorOrDefault; } }
+
+        [Obsolete("Use SelectedForeColor instead")]
+        public virtual Color HighlightForegroundColor { get { return this.SelectedForeColor; } set { this.SelectedForeColor = value; } }
+
+        [Obsolete("Use SelectedForeColorOrDefault instead")]
+        public virtual Color HighlightForegroundColorOrDefault { get { return this.SelectedForeColorOrDefault; } }
+
+//        [Obsolete("Use UnfocusedSelectedBackColor instead")]
+//        public virtual Color UnfocusedHighlightBackgroundColor { get { return this.UnfocusedSelectedBackColor; } set { this.UnfocusedSelectedBackColor = value; } }
+//
+//        [Obsolete("Use UnfocusedSelectedBackColorOrDefault instead")]
+//        public virtual Color UnfocusedHighlightBackgroundColorOrDefault { get { return this.UnfocusedSelectedBackColorOrDefault; } }
+//
+//        [Obsolete("Use UnfocusedSelectedForeColor instead")]
+//        public virtual Color UnfocusedHighlightForegroundColor { get { return this.UnfocusedSelectedForeColor; } set { this.UnfocusedSelectedForeColor = value; } }
+//
+//        [Obsolete("Use UnfocusedSelectedForeColorOrDefault instead")]
+//        public virtual Color UnfocusedHighlightForegroundColorOrDefault { get { return this.UnfocusedSelectedForeColorOrDefault; } }
 
         /// <summary>
         /// Gets or sets whether or not hidden columns should be included in the text representation
@@ -2511,6 +2547,25 @@ namespace BrightIdeasSoftware
             get { return this.overlays; }
         }
         private readonly List<IOverlay> overlays = new List<IOverlay>();
+
+        /// <summary>
+        /// Gets or sets whether the ObjectListView will be owner drawn. Defaults to true.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// When this is true, all of ObjectListView's neat features are available.
+        /// </para>
+        /// <para>We have to reimplement this property, even though we just call the base
+        /// property, in order to change the [DefaultValue] to true.
+        /// </para>
+        /// </remarks>
+        [Category("Appearance"),
+         Description("Should the ListView do its own rendering"),
+         DefaultValue(true)]
+        public new bool OwnerDraw {
+            get { return base.OwnerDraw; }
+            set { base.OwnerDraw = value; }
+        }
 
         /// <summary>
         /// Gets or sets whether or not primary checkboxes will persistent their values across list rebuild
@@ -3228,55 +3283,49 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// What color should be used for the background of selected rows when the control doesn't have the focus?
         /// </summary>
-        /// <remarks>Windows does not give the option of changing the selection background.
-        /// So the control has to be owner drawn to see the result of this setting.
-        /// Setting UseCustomSelectionColors = true will do this for you.</remarks>
         [Category("ObjectListView"),
-         Description("The background color of selected rows when the control is owner drawn and doesn't have the focus"),
+         Description("The background color of selected rows when the control doesn't have the focus"),
          DefaultValue(typeof(Color), "")]
-        public virtual Color UnfocusedHighlightBackgroundColor {
-            get { return unfocusedHighlightBackgroundColor; }
-            set { unfocusedHighlightBackgroundColor = value; }
+        public virtual Color UnfocusedSelectedBackColor {
+            get { return this.unfocusedSelectedBackColor; }
+            set { this.unfocusedSelectedBackColor = value; }
         }
-        private Color unfocusedHighlightBackgroundColor = Color.Empty;
+        private Color unfocusedSelectedBackColor = Color.Empty;
 
         /// <summary>
         /// Return the color should be used for the background of selected rows when the control doesn't have the focus or a reasonable default
         /// </summary>
         [Browsable(false)]
-        public virtual Color UnfocusedHighlightBackgroundColorOrDefault {
+        public virtual Color UnfocusedSelectedBackColorOrDefault {
             get {
-                return this.UnfocusedHighlightBackgroundColor.IsEmpty ? SystemColors.Control : this.UnfocusedHighlightBackgroundColor;
+                return this.UnfocusedSelectedBackColor.IsEmpty ? SystemColors.Control : this.UnfocusedSelectedBackColor;
             }
         }
 
         /// <summary>
         /// What color should be used for the foreground of selected rows when the control doesn't have the focus?
         /// </summary>
-        /// <remarks>Windows does not give the option of changing the selection foreground (text color).
-        /// So the control has to be owner drawn to see the result of this setting.
-        /// Setting UseCustomSelectionColors = true will do this for you.</remarks>
         [Category("ObjectListView"),
          Description("The foreground color of selected rows when the control is owner drawn and doesn't have the focus"),
          DefaultValue(typeof(Color), "")]
-        public virtual Color UnfocusedHighlightForegroundColor {
-            get { return unfocusedHighlightForegroundColor; }
-            set { unfocusedHighlightForegroundColor = value; }
+        public virtual Color UnfocusedSelectedForeColor {
+            get { return this.unfocusedSelectedForeColor; }
+            set { this.unfocusedSelectedForeColor = value; }
         }
-        private Color unfocusedHighlightForegroundColor = Color.Empty;
+        private Color unfocusedSelectedForeColor = Color.Empty;
 
         /// <summary>
         /// Return the color should be used for the foreground of selected rows when the control doesn't have the focus or a reasonable default
         /// </summary>
         [Browsable(false)]
-        public virtual Color UnfocusedHighlightForegroundColorOrDefault {
+        public virtual Color UnfocusedSelectedForeColorOrDefault {
             get {
-                return this.UnfocusedHighlightForegroundColor.IsEmpty ? SystemColors.ControlText : this.UnfocusedHighlightForegroundColor;
+                return this.UnfocusedSelectedForeColor.IsEmpty ? SystemColors.ControlText : this.UnfocusedSelectedForeColor;
             }
         }
 
         /// <summary>
-        /// Should the list give a different background color to every second row?
+        /// Gets or sets whether the list give a different background color to every second row? Defaults to false.
         /// </summary>
         /// <remarks><para>The color of the alternate rows is given by AlternateRowBackColor.</para>
         /// <para>There is a "feature" in .NET for listviews in non-full-row-select mode, where
@@ -3318,38 +3367,38 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Should the selected row be drawn with non-standard foreground and background colors?
         /// </summary>
-        /// <remarks>
-        /// When this is enabled, the control becomes owner drawn.
-        /// </remarks>
+        /// <remarks>v2.9 This property is no longer required</remarks>
         [Category("ObjectListView"),
          Description("Should the selected row be drawn with non-standard foreground and background colors?"),
          DefaultValue(false)]
         public bool UseCustomSelectionColors {
-            get { return this.useCustomSelectionColors; }
-            set {
-                this.useCustomSelectionColors = value;
-
-                if (!this.DesignMode && value)
-                    this.OwnerDraw = true;
-            }
+            get { return false; }
+            set { }
         }
-        private bool useCustomSelectionColors;
 
         /// <summary>
         /// Gets or sets whether this ObjectListView will use the same hot item and selection 
         /// mechanism that Vista Explorer does.
         /// </summary>
-        /// <remarks>This property has many imperfections:
+        /// <remarks>
+        /// <para>
+        /// This property has many imperfections:
         /// <list type="bullet">
         /// <item><description>This only works on Vista and later</description></item>
-        /// <item><description>It does nothing for owner drawn lists.
-        /// Owner drawn lists are (naturally) controlled by their renderers.</description></item>
         /// <item><description>It does not work well with AlternateRowBackColors.</description></item>
         /// <item><description>It does not play well with HotItemStyles.</description></item>
         /// <item><description>It looks a little bit silly is FullRowSelect is false.</description></item>
+        /// <item><description>It doesn't work at all when the list is owner drawn (since the renderers
+        /// do all the drawing). As such, it won't work with TreeListView's since they *have to be*
+        /// owner drawn. You can still set it, but it's just not going to be happy.</description></item>
         /// </list>
-        /// But if you absolutely have to look like Vista, this is your property. 
+        /// But if you absolutely have to look like Vista/Win7, this is your property. 
         /// Do not complain if settings this messes up other things.
+        /// </para>
+        /// <para>
+        /// When this property is set to true, the ObjectListView will be not owner drawn. This will
+        /// disable many of the pretty drawing-based features of ObjectListView.
+        /// </para>
         /// </remarks>
         [Category("ObjectListView"),
          Description("Should the list use the same hot item and selection mechanism as Vista?"),
@@ -3360,6 +3409,8 @@ namespace BrightIdeasSoftware
                 useExplorerTheme = value;
                 if (this.Created)
                     NativeMethods.SetWindowTheme(this.Handle, value ? "explorer" : "", null);
+                
+                this.OwnerDraw = !value;
             }
         }
         private bool useExplorerTheme;
@@ -3402,6 +3453,25 @@ namespace BrightIdeasSoftware
             }
         }
         private bool useFilterIndicator;
+
+        /// <summary>
+        /// Should controls (checkboxes or buttons) that are under the mouse be drawn "hot"?
+        /// </summary>
+        /// <remarks>
+        /// <para>If this is false, control will not be drawn differently when the mouse is over them.</para>
+        /// <para>
+        /// If this is false AND UseHotItem is false AND UseHyperlinks is false, then the ObjectListView
+        /// can skip some processing on mouse move. This make mouse move processing use almost no CPU.
+        /// </para>
+        /// </remarks>
+        [Category("ObjectListView"),
+         Description("Should controls (checkboxes or buttons) that are under the mouse be drawn hot?"),
+         DefaultValue(true)]
+        public bool UseHotControls {
+            get { return this.useHotControls; }
+            set { this.useHotControls = value; }
+        }
+        private bool useHotControls = true;
 
         /// <summary>
         /// Should the item under the cursor be formatted in a special way?
@@ -4339,17 +4409,6 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Setup the list so it will draw selected rows using custom colours.
-        /// </summary>
-        /// <remarks>
-        /// This method makes the list owner drawn, and ensures that all columns have at
-        /// least a BaseRender installed.
-        /// </remarks>
-        public virtual void EnableCustomSelectionColors() {
-            this.UseCustomSelectionColors = true;
-        }
-
-        /// <summary>
         /// Return the ListViewItem that appears immediately after the given item.
         /// If the given item is null, the first item in the list will be returned.
         /// Return null if the given item is the last item.
@@ -4756,8 +4815,7 @@ namespace BrightIdeasSoftware
                     if (hti.Item == null)
                         hti = this.LowLevelHitTest(4, y);
 
-                    if (hti.Item != null)
-                    {
+                    if (hti.Item != null) {
                         // We hit something! So, the original point must have been in cell 0
                         hti.ColumnIndex = 0;
                         hti.SubItem = hti.Item.GetSubItem(0);
@@ -5725,53 +5783,6 @@ namespace BrightIdeasSoftware
         }
         readonly IntPtr minusOne = new IntPtr(-1);
 
-#if NOT_USED
-        /// <summary>
-        /// Intercept the low-level HitTest message to try and trick it in regards to checkboxes
-        /// </summary>
-        /// <param name="m"></param>
-        /// <returns></returns>
-        protected virtual bool HandleHitTest(ref Message m) {
-            System.Diagnostics.Debug.WriteLine("HandleHitTest");
-
-            // The underlying control knows nothing about checkboxes on virtual lists.
-            // This throws off the hit testing. We can handle that for functionality that is
-            // triggered internally, but we need to intercept the hit test message so we
-            // can fool the underlying control when it does hit testing for itself.
-
-            // Basic condition we are trying to fix: a virtual list with checkboxes.
-            // Anything else and we can just use the normal hit test
-            if (!this.VirtualMode || !this.CheckBoxes)
-                return false;
-
-            // Do the normal hit test and see if we hit something
-            base.DefWndProc(ref m);
-            NativeMethods.LVHITTESTINFO lvhittestinfo = (NativeMethods.LVHITTESTINFO) m.GetLParam(typeof (NativeMethods.LVHITTESTINFO));
-
-            // If we did hit something, we don't need to do anything else
-            if (lvhittestinfo.iItem != -1) {
-                Debug.WriteLine(String.Format("Found item {0} normally", lvhittestinfo.iItem));
-                return true;
-            }
-            // The hit test doesn't take the checkbox into account. So pretend the click happened
-            // slightly to the left (the width of the checkbox)
-            int originalX = lvhittestinfo.pt_x;
-            int checkBoxWidth = this.StateImageList.ImageSize.Width;
-            lvhittestinfo.pt_x -= checkBoxWidth; // TODO: Handle RTL
-            Marshal.StructureToPtr(lvhittestinfo, m.LParam, false);
-            base.DefWndProc(ref m);
-
-            // Put back the original x co-ord so if anything was hit, it will appear
-            // to have been at the original location
-            lvhittestinfo = (NativeMethods.LVHITTESTINFO)m.GetLParam(typeof(NativeMethods.LVHITTESTINFO));
-            System.Diagnostics.Debug.WriteLine(lvhittestinfo.iItem);
-            System.Diagnostics.Debug.WriteLine(lvhittestinfo.flags);
-            lvhittestinfo.pt_x = originalX;
-            Marshal.StructureToPtr(lvhittestinfo, m.LParam, false);
-
-            return true;
-        }
-#endif
         /// <summary>
         /// Handle the Custom draw series of notifications
         /// </summary>
@@ -6284,14 +6295,18 @@ namespace BrightIdeasSoftware
             int x = m.LParam.ToInt32() & 0xFFFF;
             int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
 
-            // Did they click an enabled button?
+            // Did they click an enabled, non-empty button?
             if (this.MouseMoveHitTest.HitTestLocation == HitTestLocation.Button) {
+                // If a button was hit, Item and Column must be non-null
                 if (this.MouseMoveHitTest.Item.Enabled || this.MouseMoveHitTest.Column.EnableButtonWhenItemIsDisabled) {
-                    this.Invalidate();
-                    CellClickEventArgs args = new CellClickEventArgs();
-                    this.BuildCellEvent(args, new Point(x, y), this.MouseMoveHitTest);
-                    this.OnButtonClick(args);
-                    return true;
+                    string buttonText = this.MouseMoveHitTest.Column.GetStringValue(this.MouseMoveHitTest.RowObject);
+                    if (!String.IsNullOrEmpty(buttonText)) {
+                        this.Invalidate();
+                        CellClickEventArgs args = new CellClickEventArgs();
+                        this.BuildCellEvent(args, new Point(x, y), this.MouseMoveHitTest);
+                        this.OnButtonClick(args);
+                        return true;
+                    }
                 }
             }
 
@@ -8421,8 +8436,7 @@ namespace BrightIdeasSoftware
             }
 
             // Should the row be selectable?
-            if (!lvi.Enabled)
-            {
+            if (!lvi.Enabled) {
                 lvi.UseItemStyleForSubItems = false;
                 ApplyRowStyle(lvi, this.DisabledItemStyle ?? ObjectListView.DefaultDisabledItemStyle);
             }
@@ -8430,7 +8444,8 @@ namespace BrightIdeasSoftware
             // Set the check state of the row, if we are showing check boxes
             if (this.CheckBoxes) {
                 CheckState? state = this.GetCheckState(lvi.RowObject);
-                lvi.CheckState = state ?? CheckState.Unchecked;
+                if (state.HasValue)
+                    lvi.CheckState = state.Value;
             }
 
             // Give the RowFormatter a chance to mess with the item
@@ -8793,9 +8808,6 @@ namespace BrightIdeasSoftware
                 if (this.CheckBoxes)
                     this.InitializeStateImageList();
             }
-
-            if (this.UseCustomSelectionColors)
-                this.EnableCustomSelectionColors();
 
             if (this.UseSubItemCheckBoxes || (this.VirtualMode && this.CheckBoxes))
                 this.SetupSubItemCheckBoxes();
@@ -9459,11 +9471,6 @@ namespace BrightIdeasSoftware
 
             // The event handler may have completely changed the control, so we need to remember it
             this.cellEditor = this.CellEditEventArgs.Control;
-
-            // If the control isn't the height of the cell, centre it vertically. 
-            // We also dont need to do this when in Tile view.
-//            if (this.View != View.Tile && this.cellEditor.Height != cellBounds.Height)
-//                this.cellEditor.Top += (cellBounds.Height - this.cellEditor.Height) / 2;
             
             this.Invalidate();
             this.Controls.Add(this.cellEditor);
@@ -9930,6 +9937,9 @@ namespace BrightIdeasSoftware
             }
 
             this.CleanupCellEdit(expectingCellEdit, this.CellEditEventArgs.AutoDispose);
+
+            // Tell the world that the cell has been edited
+            this.OnCellEditFinished(this.CellEditEventArgs);
         }
 
         /// <summary>
@@ -10013,10 +10023,10 @@ namespace BrightIdeasSoftware
             // (i.e. some element whose visual appearance changes when under the mouse)?
             // Hot item decorations and hyperlinks are obvious, but if we have checkboxes
             // or buttons, those are also "hot". It's difficult to quickly detect if there are any
-            // columns that have checkboxes or buttons, so we just assume that if the control is
-            // owner drawn, then we should allow for hot items.
-
-            if (!this.UseHotItem && !this.UseHyperlinks && !this.OwnerDraw)
+            // columns that have checkboxes or buttons, so we just abdicate responsibililty and 
+            // provide a property (UseHotControls) which lets the programmer say whether to do
+            // the hot processing or not.
+            if (!this.UseHotItem && !this.UseHyperlinks && !this.UseHotControls)
                 return;
 
             int newHotRow = hti.RowIndex;
