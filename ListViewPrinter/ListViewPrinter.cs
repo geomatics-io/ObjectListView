@@ -1,7 +1,7 @@
 /*
  * ListViewPrinterBase - A helper class to easily print an ListView 
  *
- * User: Phillip Piper (phillip_piper@bigfoot.com)
+ * User: Phillip Piper (phillip.piper@gmail.com)
  * Date: 2007-11-01 11:15 AM
  *
  * Change log:
@@ -56,7 +56,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
+ * If you wish to use this code in a closed source application, please contact phillip.piper@gmail.com.
  */
 
 using System;
@@ -77,6 +77,14 @@ namespace BrightIdeasSoftware
     /// <para>This class works best with ObjectListView class, but still works fine with normal ListViews.
     /// If you don't have ObjectListView class in your project, you must define WITHOUT_OBJECTLISTVIEW as one
     /// of the conditional compilation symbols on your projects properties.</para>
+    /// <para>
+    /// If you do use ObjectListView, and specifically the "Fast" flavours, printing groups will not work --
+    /// the list will be printed as if groups were off. This is because the "Fast" flavours of ObjectListView 
+    /// are virtual listviews, and MS doesn't allow virtual listviews to have groups. To make them work in
+    /// OLV, I had to use undocumented features and avoid the standard Groups mechanism completely. 
+    /// This printer was written to work against a standard ListView, so uses the standard Groups mechanism,
+    /// which for virtual lists is always empty. So, no printing of groups for FastObjectListViews.
+    /// </para>
     /// </remarks>
     public class ListViewPrinterBase : PrintDocument
     {
