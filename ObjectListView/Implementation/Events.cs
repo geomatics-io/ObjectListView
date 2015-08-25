@@ -48,7 +48,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
+ * If you wish to use this code in a closed source application, please contact phillip.piper@gmail.com.
  */
 
 using System;
@@ -157,6 +157,13 @@ namespace BrightIdeasSoftware
         [Category("ObjectListView"),
         Description("Can the user drop the currently dragged items at the current mouse location?")]
         public event EventHandler<OlvDropEventArgs> CanDrop;
+
+        /// <summary>
+        /// Triggered when a cell has finished being edited.
+        /// </summary>
+        [Category("ObjectListView"),
+        Description("This event is triggered cell edit operation has completely finished")]
+        public event CellEditEventHandler CellEditFinished;
 
         /// <summary>
         /// Triggered when a cell is about to finish being edited.
@@ -778,6 +785,14 @@ namespace BrightIdeasSoftware
                 this.CellEditFinishing(this, e);
         }
 
+        /// <summary>
+        /// Tell the world when a cell has finished being edited.
+        /// </summary>
+        protected virtual void OnCellEditFinished(CellEditEventArgs e) {
+            if (this.CellEditFinished != null)
+                this.CellEditFinished(this, e);
+        }
+
         #endregion
     }
     
@@ -1219,9 +1234,26 @@ namespace BrightIdeasSoftware
         /// Create an ItemsAddingEventArgs
         /// </summary>
         /// <param name="objectsToAdd"></param>
-        public ItemsAddingEventArgs(ICollection objectsToAdd) {
+        public ItemsAddingEventArgs(ICollection objectsToAdd)
+        {
             this.ObjectsToAdd = objectsToAdd;
         }
+        
+        /// <summary>
+        /// Create an ItemsAddingEventArgs
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="objectsToAdd"></param>
+        public ItemsAddingEventArgs(int index, ICollection objectsToAdd)
+        {
+            this.Index = index;
+            this.ObjectsToAdd = objectsToAdd;
+        }
+
+        /// <summary>
+        /// Gets or sets where the collection is going to be inserted.
+        /// </summary>
+        public int Index;
 
         /// <summary>
         /// Gets or sets the objects to be added to the list
