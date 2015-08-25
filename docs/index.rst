@@ -24,15 +24,15 @@ Here is an example of what your ListView can look like with a few callbacks in p
 
 .. image:: images/fancy-screenshot2.png
 
-On Windows 7 (and even Vista), the groups look even better:
+Put pretty graphics, buttons and descriptions on your list, to make your users love your application:
 
-.. image:: images/fancy-screenshot3.png
+.. image:: images/described-task1.png
 
 The `TreeListView` similarly make a tree structure look beautiful:
 
 .. image:: images/treelistview.png
 
-And this is the report that can be effortlessly produced from the `ObjectListView`:
+Need to print a report? `ListViewPrinter` effortlessly produces reports from an `ObjectListView`:
 
 .. image:: images/printpreview.png
 
@@ -47,16 +47,19 @@ Without wasting my time, just tell me what it does!
 OK, here's the bullet point feature list:
 
 * Automatically transforms a list of model objects into a fully functional ListView, including automatically sorting and grouping rows.
-* Supports :ref:`owner drawing <owner-draw-label>`, including rendering animated graphics and images stored in a database.
+
 * Easily :ref:`edit cell values <cell-editing-label>`.
 * Easily :ref:`use drag and drop <dragdrop-label>`.
 * Supports all ListView views (report, list, large and small icons).
+* Supports :ref:`owner drawing <owner-draw-label>`, including rendering animated graphics and images stored in a database.
 * Supports automatic grouping.
 * Supports sophisticated :ref:`group formatting <recipe-groupformatting>`, including collapsible groups (Vista and later only).
 * Columns can be fixed-width, have a minimum and/or maximum width, or be space-filling (:ref:`Column Widths <recipe-column-width>`)
 * Displays a :ref:`"list is empty" message <recipe-emptymsg>` when the list is empty (obviously).
 * Supports fancy :ref:`tooltips <recipe-tooltips>` for cells and for headers.
+* Supports :ref:`buttons in cells <recipe-buttons>`.
 * Supports :ref:`checkboxes in any column <recipe-checkbox>` as well as tri-state checkboxes.
+* Supports :ref:`hierarchical checkboxes <recipe-hierarchical-checkboxes>` in `TreeListView`.
 * Supports alternate rows background colors.
 * Supports :ref:`custom formatting of rows <recipe-formatter>`.
 * Supports :ref:`searching (by typing) on any column <recipe-search>`.
@@ -72,11 +75,13 @@ OK, here's the bullet point feature list:
 * Supports :ref:`Excel-like column filtering <column-filtering-label>`.
 * Supports :ref:`native background images <recipe-native-backgrounds>` with all their inherent limitations.
 * Supports :ref:`disabled rows<recipe-disabled-rows>`
-* The `FastObjectListView` version can build a list of 10,000 objects in less than 0.1 seconds.
-* The `TreeListView` version combines :ref:`an expandable tree structure with the columns of a ListView <recipe-treelistview>`.
-* The `VirtualObjectListView` class allow you to create your own million row `ListView` through ListView's virtual mode.
-* Has :ref:`data binding versions of each control <recipe-databinding>`.
-* `TreeListView` supports :ref:`hierarchical checkboxes <recipe-hierarchical-checkboxes>`.
+* Supports :ref:`automatic updates <recipe-auto-updates>` via standard `INotifyPropertyChanged`.
+
+There are several flavours of `ObjectListView`:
+
+* `FastObjectListView` can build a list of 10,000 objects in less than 0.1 seconds.
+* `TreeListView` control combines :ref:`an expandable tree structure with the columns of a ListView <recipe-treelistview>`.
+* There are :ref:`data binding versions of each flavour <recipe-databinding>`.
 
 Seriously, after using an `ObjectListView`, you will never go back to using a plain `ListView`.
 
@@ -93,7 +98,7 @@ describing the `ObjectListView at CodeProject`_.
 
 At some point, you will want to do something with an ObjectListView and it won't
 be immediately obvious how to make it happen. After dutifully scouring the
-:ref:`Getting Started <gettingstarted>` and the :ref:`Cookbook` sections, you decide that is is
+:ref:`Getting Started <gettingstarted>` and the :ref:`Cookbook` sections, you decide that it is
 still not obvious. The Forum_ section is the place to find all your as-yet-
 unasked questions.
 
@@ -102,7 +107,7 @@ code (also known as bugs). These "features" can be `reported here`_ and can be
 tracked on the project's `Issue Tracker`_.
 
 If you would like to ask me a question or suggest an improvement, you can contact me here:
-phillip_piper@bigfoot.com.
+phillip.piper@gmail.com.
 
 .. _ObjectListView at CodeProject: http://www.codeproject.com/KB/list/ObjectListView.aspx
 
@@ -115,7 +120,7 @@ phillip_piper@bigfoot.com.
 Technical details
 -----------------
 
-I've started keeping a :ref:`technical blog <blog>` documenting some of the efforts that were required to
+I've kept a :ref:`technical blog <blog>` documenting some of the efforts that were required to
 solve some of the problem encountered within the ObjectListView.
 
 * :ref:`Enabling disabling (20 May 2014)<blog-disabledrows>`
@@ -274,29 +279,26 @@ When thinking about using some new code, it's always interesting to hear what ot
 Future directions
 -----------------
 
-v2.9 will also move towards using `IEnumerable` whenever possible.
-`SelectedObjects`, `CheckedObjects`, `AddObjects()`, `InsertObjects()`
-`RefreshObjects()`, `RemoveObjects()`, and `CopyObjectsToClipboard()` will all be changed to use
-`IEnumerable`. This is with a view to using LINQ in future versions.
-
 v3.0 will be a big change. Until now, each version has strove to maintain strict backwards compatibility. v3.0 will not have this as a strict goal. It will be backwards compatible where possible, but will drop properties, events and methods where they do not fit within the new scheme. In particular, features that were a moment of design weakness (I'm looking at you *AlwaysGroupByColumn* and your friends) will disappear.
 
 * Support for .NET 2.0 will be dropped. .NET 4.0 will become the minimum.
 
-* Most delegates will be replaced by events (events are actually faster than delegates).
+* Use `IEnumerable` whenever possible. `SelectedObjects`, `CheckedObjects`, `AddObjects()`, `InsertObjects()`
+  `RefreshObjects()`, `RemoveObjects()`, and `CopyObjectsToClipboard()` will all be changed to use
+  `IEnumerable`. This is with a view to using LINQ in future versions.
 
 * All styling (cell, header, tool tips) will be unified, and will include custom renderers and hit detection.
 
 * General cleanup/refactor
 
-There is no definite timetable for these versions.
+There is no definite timetable for this version.
 
 
 Site contents
 -------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    whatsnew
    features

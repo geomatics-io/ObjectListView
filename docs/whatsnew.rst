@@ -7,6 +7,62 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
+August 2015 - Version 2.9.0
+---------------------------
+
+New features
+^^^^^^^^^^^^
+
+* Buttons! :ref:`[More info] <recipe-buttons>` 
+* Added `ObjectListView.CellEditUsesWholeCell` and `OLVColumn.CellEditUsesWholeCell` properties.
+  If these are set to *true*, `ObjectListView` will use the whole width of a cell 
+  when editing a cell's value. Setting the property on a `OLVColumn` impacts just that column,
+  setting it on the `ObjectListView` impacts all columns.
+* `TreeListViews` can now draw triangles as expansion glyphs, complete with hot behaviour.
+  Set `TreeListView.TreeRenderer.UseTriangles` to *true*. It can also not draw any expansion
+  glyph by setting `IsShowGlyphs` to *false*.
+* Added `ObjectListView.FocusedObject`, `ObjectListView.DefaultHotItemStyle`, 
+  and `ObjectListView.HeaderMinimumHeight` properties. Each is completely predictable.
+
+Large-ish Improvements
+^^^^^^^^^^^^^^^^^^^^^^
+
+* Regularized the interaction of the various formatting options, in particular `FormatRow`,
+  `FormatCell` and hyperlinks.
+* Completely rewrote the demo. Each tab is now its own UserControl, and there are lots more 
+  comments and explanations.
+* `DescribedTaskRenderer` left experimental state and became a first class part of the project.
+  See "Pretty Tasks" tab in the demo.
+* Lists are now owner drawn by default. About one-quarter of all complaints I receive are
+  from someone trying to use a feature that only works when `OwnerDraw` is true.
+  This allows all the great features of ObjectListView to work correctly at the slight cost of more processing at render time. It also avoids the annoying "hot item background ignored in column 0" behaviour that the native ListView has. You can still set it back to *false* if you wish. 
+
+
+Small improvments
+^^^^^^^^^^^^^^^^^
+
+* The normal `DefaultRenderer` is now a `HighlightTextRenderer`, since that seems more generally useful.
+* Allow `ImageGetter` to return an `Image` (which I can't believe didn't work from the beginning!)
+* Added `SimpleDropSink.EnableFeedback` to allow all the pretty and helpful user feedback 
+  during drag operations to be turned off.
+* `OLVColumn.HeaderTextAlign` became nullable so that it can be "not set", in which case the alignment
+  of the header will follow the alignment of the column (this was always the intent)
+* Made Unfreezing on data bound lists more efficient by removing a redundant `BuildList()` call
+* When auto generating column, columns that do not have a `[OLVColumn]` attribute will auto size
+
+Bug fixes
+^^^^^^^^^
+
+* Yet another attempt to disable ListView's "shift click toggles checkboxes" behaviour. The last
+  attempt had nasty side effects -- I received the full set of "Hey! I got a right mouse click event 
+  when I left clicked the control" emails, expressed in varying degrees of politeness. The 
+  new strategy is (hopefully) more invisible.
+* `FastObjectListView` now fires a `Filter` event when applying filters
+* `SelectionChanged` event is now triggered when the filter is changed
+* Setting `View` to `LargeIcon` in the designer is now persisted
+* Check more rigourously for a dead control when performing animations
+* Corrected small UI glitch in `TreeListView` when focus was lost and `HideSelection` was *false*.
+
 November 2014 - Version 2.8.1
 -----------------------------
 
