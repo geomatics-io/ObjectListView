@@ -12,6 +12,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Windows.Forms;
+using System.Windows.Forms.VisualStyles;
 using NUnit.Framework;
 
 namespace BrightIdeasSoftware.Tests
@@ -51,7 +53,7 @@ namespace BrightIdeasSoftware.Tests
 
         [TearDown]
         public void TearDownEachTest() {
-            mainForm.Close();
+           mainForm.Close();
         }
 
         [Test]
@@ -485,7 +487,7 @@ namespace BrightIdeasSoftware.Tests
             Assert.IsEmpty(this.olv.CheckedObjects);
 
             this.olv.HierarchicalCheckboxes = true;
- 
+
             this.olv.CheckedObjects = ObjectListView.EnumerableToArray(firstRoot.Children, true);
 
             ArrayList checkedObjects = new ArrayList(this.olv.CheckedObjects);
@@ -493,6 +495,48 @@ namespace BrightIdeasSoftware.Tests
             Assert.IsTrue(checkedObjects.Contains(firstRoot));
             foreach (Person child in firstRoot.Children)
                 Assert.IsTrue(checkedObjects.Contains(child));
+        }
+
+        [Test]
+        public void Test_HierarchicalCheckBoxes_CheckedObjects_Set_DeeplyNestedObject()
+        {
+            this.olv.HierarchicalCheckboxes = true;
+            Assert.IsEmpty(this.olv.CheckedObjects);
+
+            // The tree structure is:
+            // GGP1
+            // +-- GP1
+            // +-- GP2 
+            //      +-- P1
+            //          +-- last
+            // So checking "last" will also check P1 and GP2, and will make GGP1 indeterminate.
+
+            Person last = PersonDb.All[PersonDb.All.Count - 1];
+            Person P1 = last.Parent;
+            Person GP2 = last.Parent.Parent;
+            Person GGP1 = last.Parent.Parent.Parent;
+            Person GP1 = GGP1.Children[0];
+
+            ArrayList toBeChecked = new ArrayList();
+            toBeChecked.Add(last);
+            this.olv.CheckedObjects = toBeChecked;
+
+            ArrayList checkedObjects = new ArrayList(this.olv.CheckedObjects);
+            Assert.AreEqual(3, checkedObjects.Count);
+            Assert.IsTrue(checkedObjects.Contains(last));
+            Assert.IsTrue(checkedObjects.Contains(P1));
+            Assert.IsTrue(checkedObjects.Contains(GP2));
+            Assert.IsFalse(checkedObjects.Contains(GGP1));
+
+            Assert.IsTrue(this.olv.IsChecked(last));
+            Assert.IsTrue(this.olv.IsChecked(P1));
+            Assert.IsTrue(this.olv.IsChecked(GP2));
+            Assert.IsTrue(this.olv.IsCheckedIndeterminate(GGP1));
+
+            // When GP1 is checked, GGP1 should also become checked.
+            this.olv.CheckObject(GP1);
+            Assert.IsTrue(this.olv.IsChecked(GP1));
+            Assert.IsTrue(this.olv.IsChecked(GGP1));
         }
 
         [Test]
