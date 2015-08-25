@@ -48,12 +48,6 @@
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.listView1 = new System.Windows.Forms.ListView();
-            this.colName = new System.Windows.Forms.ColumnHeader();
-            this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
-            this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
-            this.columnHeader3 = new System.Windows.Forms.ColumnHeader();
-            this.columnHeader4 = new System.Windows.Forms.ColumnHeader();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
@@ -90,6 +84,12 @@
             this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
             this.listViewPrinter2 = new BrightIdeasSoftware.ListViewPrinter();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.dataListView1 = new BrightIdeasSoftware.DataListView();
+            this.olvColumnName = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.olvColumnOccupation = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.olvColumnCompany = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.olvColumnSalary = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.olvColumnHeight = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -98,13 +98,14 @@
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.tabPage3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataListView1)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl1
             // 
-            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage3);
@@ -117,8 +118,8 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.dataListView1);
             this.tabPage1.Controls.Add(this.checkBox1);
-            this.tabPage1.Controls.Add(this.listView1);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
@@ -138,61 +139,6 @@
             this.checkBox1.Text = "&Show groups";
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.CheckBox1CheckedChanged);
-            // 
-            // listView1
-            // 
-            this.listView1.AllowColumnReorder = true;
-            this.listView1.AllowDrop = true;
-            this.listView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.colName,
-            this.columnHeader1,
-            this.columnHeader2,
-            this.columnHeader3,
-            this.columnHeader4});
-            this.listView1.FullRowSelect = true;
-            this.listView1.Location = new System.Drawing.Point(6, 6);
-            this.listView1.Name = "listView1";
-            this.listView1.ShowGroups = false;
-            this.listView1.ShowItemToolTips = true;
-            this.listView1.Size = new System.Drawing.Size(740, 572);
-            this.listView1.SmallImageList = this.imageList1;
-            this.listView1.Sorting = System.Windows.Forms.SortOrder.Ascending;
-            this.listView1.TabIndex = 0;
-            this.listView1.UseCompatibleStateImageBehavior = false;
-            this.listView1.View = System.Windows.Forms.View.Details;
-            this.listView1.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.listView1_ColumnClick);
-            // 
-            // colName
-            // 
-            this.colName.Text = "Name";
-            this.colName.Width = 186;
-            // 
-            // columnHeader1
-            // 
-            this.columnHeader1.DisplayIndex = 2;
-            this.columnHeader1.Text = "Company";
-            this.columnHeader1.Width = 150;
-            // 
-            // columnHeader2
-            // 
-            this.columnHeader2.DisplayIndex = 1;
-            this.columnHeader2.Text = "Occupation";
-            this.columnHeader2.Width = 155;
-            // 
-            // columnHeader3
-            // 
-            this.columnHeader3.Text = "Salary";
-            this.columnHeader3.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.columnHeader3.Width = 94;
-            // 
-            // columnHeader4
-            // 
-            this.columnHeader4.Text = "Height";
-            this.columnHeader4.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.columnHeader4.Width = 75;
             // 
             // imageList1
             // 
@@ -413,8 +359,8 @@
             // 
             // groupBox1
             // 
-            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox1.Controls.Add(this.tbWatermark);
             this.groupBox1.Controls.Add(this.tbFooter);
             this.groupBox1.Controls.Add(this.tbHeader);
@@ -430,8 +376,8 @@
             // 
             // tbWatermark
             // 
-            this.tbWatermark.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbWatermark.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tbWatermark.Location = new System.Drawing.Point(88, 56);
             this.tbWatermark.Name = "tbWatermark";
             this.tbWatermark.Size = new System.Drawing.Size(288, 20);
@@ -440,8 +386,8 @@
             // 
             // tbFooter
             // 
-            this.tbFooter.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbFooter.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tbFooter.Location = new System.Drawing.Point(88, 35);
             this.tbFooter.Name = "tbFooter";
             this.tbFooter.Size = new System.Drawing.Size(288, 20);
@@ -450,8 +396,8 @@
             // 
             // tbHeader
             // 
-            this.tbHeader.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbHeader.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tbHeader.Location = new System.Drawing.Point(88, 13);
             this.tbHeader.Name = "tbHeader";
             this.tbHeader.Size = new System.Drawing.Size(288, 20);
@@ -555,9 +501,9 @@
             // 
             // printPreviewControl1
             // 
-            this.printPreviewControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.printPreviewControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.printPreviewControl1.AutoZoom = false;
             this.printPreviewControl1.Columns = 2;
             this.printPreviewControl1.Document = this.listViewPrinter1;
@@ -565,7 +511,7 @@
             this.printPreviewControl1.Name = "printPreviewControl1";
             this.printPreviewControl1.Size = new System.Drawing.Size(627, 504);
             this.printPreviewControl1.TabIndex = 8;
-            this.printPreviewControl1.Zoom = 0.45765611633875108;
+            this.printPreviewControl1.Zoom = 0.45765611633875108D;
             // 
             // listViewPrinter1
             // 
@@ -579,7 +525,6 @@
             this.listViewPrinter1.CellFormat.CanWrap = true;
             this.listViewPrinter1.CellFormat.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F);
             this.listViewPrinter1.CellFormat.LeftBorderPenData = penData1;
-            this.listViewPrinter1.CellFormat.MinimumTextHeight = 0F;
             this.listViewPrinter1.CellFormat.RightBorderPenData = penData1;
             solidBrushData2.Color = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
             this.listViewPrinter1.CellFormat.TextBrushData = solidBrushData2;
@@ -589,7 +534,6 @@
             // 
             // 
             this.listViewPrinter1.FooterFormat.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Italic);
-            this.listViewPrinter1.FooterFormat.MinimumTextHeight = 0F;
             // 
             // 
             // 
@@ -600,7 +544,6 @@
             this.listViewPrinter1.GroupHeaderFormat.BottomBorderPenData = penData2;
             this.listViewPrinter1.GroupHeaderFormat.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Bold);
             this.listViewPrinter1.GroupHeaderFormat.LeftBorderPenData = penData2;
-            this.listViewPrinter1.GroupHeaderFormat.MinimumTextHeight = 0F;
             this.listViewPrinter1.GroupHeaderFormat.RightBorderPenData = penData2;
             this.listViewPrinter1.GroupHeaderFormat.TopBorderPenData = penData2;
             this.listViewPrinter1.Header = "ListViewPrinterDemo";
@@ -618,20 +561,16 @@
             this.listViewPrinter1.HeaderFormat.BottomBorderPenData = penData3;
             this.listViewPrinter1.HeaderFormat.Font = new System.Drawing.Font("Verdana", 24F);
             this.listViewPrinter1.HeaderFormat.LeftBorderPenData = penData3;
-            this.listViewPrinter1.HeaderFormat.MinimumTextHeight = 0F;
             this.listViewPrinter1.HeaderFormat.RightBorderPenData = penData3;
             this.listViewPrinter1.HeaderFormat.TopBorderPenData = penData3;
             this.listViewPrinter1.IsListHeaderOnEachPage = false;
-            this.listViewPrinter1.ListFont = new System.Drawing.Font("Microsoft Sans Serif", 9F);
             // 
             // 
             // 
             this.listViewPrinter1.ListHeaderFormat.CanWrap = true;
             this.listViewPrinter1.ListHeaderFormat.Font = new System.Drawing.Font("Verdana", 12F);
-            this.listViewPrinter1.ListHeaderFormat.MinimumTextHeight = 0F;
-            this.listViewPrinter1.ListView = this.listView1;
+            this.listViewPrinter1.ListView = this.dataListView1;
             this.listViewPrinter1.Watermark = "Top Secret";
-            this.listViewPrinter1.WatermarkColor = System.Drawing.Color.Empty;
             // 
             // tabPage3
             // 
@@ -647,8 +586,8 @@
             // 
             // label1
             // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
             this.label1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -660,9 +599,9 @@
             // 
             // propertyGrid1
             // 
-            this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.propertyGrid1.Location = new System.Drawing.Point(6, 45);
             this.propertyGrid1.Name = "propertyGrid1";
             this.propertyGrid1.SelectedObject = this.listViewPrinter2;
@@ -683,14 +622,12 @@
             this.listViewPrinter2.CellFormat.CanWrap = true;
             this.listViewPrinter2.CellFormat.Font = new System.Drawing.Font("Tahoma", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.listViewPrinter2.CellFormat.LeftBorderPenData = penData4;
-            this.listViewPrinter2.CellFormat.MinimumTextHeight = 0F;
             this.listViewPrinter2.CellFormat.RightBorderPenData = penData4;
             this.listViewPrinter2.CellFormat.TopBorderPenData = penData4;
             // 
             // 
             // 
             this.listViewPrinter2.FooterFormat.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Italic);
-            this.listViewPrinter2.FooterFormat.MinimumTextHeight = 0F;
             linearGradientBrushData2.FromColor = System.Drawing.Color.Cornsilk;
             linearGradientBrushData2.GradientMode = System.Drawing.Drawing2D.LinearGradientMode.Horizontal;
             linearGradientBrushData2.ToColor = System.Drawing.Color.Gold;
@@ -702,7 +639,6 @@
             // 
             // 
             this.listViewPrinter2.GroupHeaderFormat.Font = new System.Drawing.Font("Verdana", 10F, System.Drawing.FontStyle.Bold);
-            this.listViewPrinter2.GroupHeaderFormat.MinimumTextHeight = 0F;
             // 
             // 
             // 
@@ -715,19 +651,82 @@
             this.listViewPrinter2.HeaderFormat.BottomBorderPenData = penData6;
             this.listViewPrinter2.HeaderFormat.Font = new System.Drawing.Font("Verdana", 24F);
             this.listViewPrinter2.HeaderFormat.LeftBorderPenData = penData6;
-            this.listViewPrinter2.HeaderFormat.MinimumTextHeight = 0F;
             this.listViewPrinter2.HeaderFormat.RightBorderPenData = penData6;
             this.listViewPrinter2.HeaderFormat.TopBorderPenData = penData6;
             this.listViewPrinter2.IsListHeaderOnEachPage = false;
-            this.listViewPrinter2.ListFont = new System.Drawing.Font("Tahoma", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             // 
             // 
             // 
             this.listViewPrinter2.ListHeaderFormat.CanWrap = true;
             this.listViewPrinter2.ListHeaderFormat.Font = new System.Drawing.Font("Verdana", 12F);
-            this.listViewPrinter2.ListHeaderFormat.MinimumTextHeight = 0F;
             this.listViewPrinter2.WatermarkColor = System.Drawing.Color.Red;
-            this.listViewPrinter2.WatermarkFont = new System.Drawing.Font("Arial Rounded MT Bold", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.listViewPrinter2.WatermarkFont = new System.Drawing.Font("Microsoft Sans Serif", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            // 
+            // dataListView1
+            // 
+            this.dataListView1.AllColumns.Add(this.olvColumnName);
+            this.dataListView1.AllColumns.Add(this.olvColumnOccupation);
+            this.dataListView1.AllColumns.Add(this.olvColumnCompany);
+            this.dataListView1.AllColumns.Add(this.olvColumnSalary);
+            this.dataListView1.AllColumns.Add(this.olvColumnHeight);
+            this.dataListView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dataListView1.AutoGenerateColumns = false;
+            this.dataListView1.CellEditUseWholeCell = false;
+            this.dataListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.olvColumnName,
+            this.olvColumnOccupation,
+            this.olvColumnCompany,
+            this.olvColumnSalary,
+            this.olvColumnHeight});
+            this.dataListView1.Cursor = System.Windows.Forms.Cursors.Default;
+            this.dataListView1.DataSource = null;
+            this.dataListView1.FullRowSelect = true;
+            this.dataListView1.HideSelection = false;
+            this.dataListView1.Location = new System.Drawing.Point(2, 4);
+            this.dataListView1.Name = "dataListView1";
+            this.dataListView1.ShowGroups = false;
+            this.dataListView1.Size = new System.Drawing.Size(744, 574);
+            this.dataListView1.SmallImageList = this.imageList1;
+            this.dataListView1.TabIndex = 3;
+            this.dataListView1.UseCompatibleStateImageBehavior = false;
+            this.dataListView1.View = System.Windows.Forms.View.Details;
+            // 
+            // olvColumnName
+            // 
+            this.olvColumnName.AspectName = "Name";
+            this.olvColumnName.ImageAspectName = "ImageIndex";
+            this.olvColumnName.Text = "Name";
+            this.olvColumnName.Width = 202;
+            // 
+            // olvColumnOccupation
+            // 
+            this.olvColumnOccupation.AspectName = "Occupation";
+            this.olvColumnOccupation.Text = "Occupation";
+            this.olvColumnOccupation.Width = 172;
+            // 
+            // olvColumnCompany
+            // 
+            this.olvColumnCompany.AspectName = "Company";
+            this.olvColumnCompany.Text = "Company";
+            this.olvColumnCompany.Width = 173;
+            // 
+            // olvColumnSalary
+            // 
+            this.olvColumnSalary.AspectName = "Salary";
+            this.olvColumnSalary.AspectToStringFormat = "{0:$#,##0}";
+            this.olvColumnSalary.Text = "Salary";
+            this.olvColumnSalary.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.olvColumnSalary.Width = 96;
+            // 
+            // olvColumnHeight
+            // 
+            this.olvColumnHeight.AspectName = "Height";
+            this.olvColumnHeight.AspectToStringFormat = "{0:0.0# m}";
+            this.olvColumnHeight.Text = "Height";
+            this.olvColumnHeight.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.olvColumnHeight.Width = 78;
             // 
             // Form1
             // 
@@ -751,6 +750,7 @@
             this.groupBox1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.tabPage3.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dataListView1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -762,13 +762,7 @@
 
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.ListView listView1;
         private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.ColumnHeader colName;
-        private System.Windows.Forms.ColumnHeader columnHeader2;
-        private System.Windows.Forms.ColumnHeader columnHeader1;
-        private System.Windows.Forms.ColumnHeader columnHeader3;
-        private System.Windows.Forms.ColumnHeader columnHeader4;
         private System.Windows.Forms.ImageList imageList1;
         private System.Windows.Forms.PrintPreviewControl printPreviewControl1;
         private BrightIdeasSoftware.ListViewPrinter listViewPrinter1;
@@ -802,6 +796,12 @@
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.Label label1;
+        private BrightIdeasSoftware.DataListView dataListView1;
+        private BrightIdeasSoftware.OLVColumn olvColumnName;
+        private BrightIdeasSoftware.OLVColumn olvColumnOccupation;
+        private BrightIdeasSoftware.OLVColumn olvColumnCompany;
+        private BrightIdeasSoftware.OLVColumn olvColumnSalary;
+        private BrightIdeasSoftware.OLVColumn olvColumnHeight;
     }
 }
 
