@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 [assembly: AssemblyVersion("2.9.0.*")]
 [assembly: AssemblyFileVersion("2.9.0.0")]
-[assembly: AssemblyInformationalVersion("2.9.0-alpha")]
+[assembly: AssemblyInformationalVersion("2.9.0-beta1")]
 [assembly: System.CLSCompliant(true)]
