@@ -171,7 +171,6 @@ namespace BrightIdeasSoftware.Tests
             this.olvColumn3});
             this.treeListView1.Location = new System.Drawing.Point(13, 395);
             this.treeListView1.Name = "treeListView1";
-            this.treeListView1.OwnerDraw = true;
             this.treeListView1.ShowGroups = false;
             this.treeListView1.Size = new System.Drawing.Size(819, 203);
             this.treeListView1.TabIndex = 2;

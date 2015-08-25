@@ -281,8 +281,8 @@ namespace BrightIdeasSoftware.Tests
                 new string[] { "GroupWithItemCountSingularFormatOrDefault", "GroupWithItemCountSingularFormat OrDefault" },
                 new string[] { "RenderNonEditableCheckboxesAsDisabled", "RenderNonEditableCheckboxes AsDisabled" },
                 new string[] { "UpdateSpaceFillingColumnsWhenDraggingColumnDivider", "UpdateSpaceFillingColumnsWhenDragging ColumnDivider" },
-                new string[] { "UnfocusedHighlightForegroundColorOrDefault", "UnfocusedHighlightForegroundColorOr Default" },
-                new string[] { "UnfocusedHighlightBackgroundColorOrDefault", "UnfocusedHighlightBackgroundColorOr Default" }
+                new string[] { "UnfocusedSelectedForeColorOrDefault", "UnfocusedHighlightForegroundColorOr Default" },
+                new string[] { "UnfocusedSelectedBackColorOrDefault", "UnfocusedHighlightBackgroundColorOr Default" }
             
             });
 
