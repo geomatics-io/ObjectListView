@@ -5,8 +5,12 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log: 
+ * v2.9
+ * 2015-08-22   JPP  - Allow selected row back/fore colours to be specified for each row
+ * 2015-06-23   JPP  - Added ColumnButtonRenderer plus general support for Buttons
  * 2015-06-22   JPP  - Added BaseRenderer.ConfigureItem() and ConfigureSubItem() to easily allow
  *                     other renderers to be chained for use within a primary renderer.
+ *                   - Lots of tightening of hit tests and edit rectangles
  * 2015-05-15   JPP  - Handle renderering an Image when that Image is returned as an aspect.
  * v2.8
  * 2014-09-26   JPP  - Dispose of animation timer in a more robust fashion.
@@ -92,7 +96,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
+ * If you wish to use this code in a closed source application, please contact phillip.piper@gmail.com.
  */
 
 using System;
@@ -261,7 +265,6 @@ namespace BrightIdeasSoftware {
     public class BaseRenderer : AbstractRenderer {
         internal const TextFormatFlags NormalTextFormatFlags = TextFormatFlags.NoPrefix |
                                                                TextFormatFlags.EndEllipsis |
-                                                               TextFormatFlags.VerticalCenter |
                                                                TextFormatFlags.PreserveGraphicsTranslateTransform;
 
         #region Configuration Properties
@@ -412,14 +415,13 @@ namespace BrightIdeasSoftware {
         [Category("Appearance"),
          Description("Should text be rendered using GDI routines?"),
          DefaultValue(true)]
-        public bool UseGdiTextRendering {
+        public virtual bool UseGdiTextRendering {
             get {
                 // Can't use GDI routines on a GDI+ printer context
                 return !this.IsPrinting && useGdiTextRendering;
             }
             set { useGdiTextRendering = value; }
         }
-
         private bool useGdiTextRendering = true;
 
         #endregion
@@ -923,13 +925,8 @@ namespace BrightIdeasSoftware {
             if (!this.ListView.Enabled)
                 return SystemColors.Control;
 
-            if (this.IsItemSelected && !this.ListView.UseTranslucentSelection && this.ListView.FullRowSelect) {
-                if (this.ListView.Focused)
-                    return this.ListView.HighlightBackgroundColorOrDefault;
-
-                if (!this.ListView.HideSelection)
-                    return this.ListView.UnfocusedHighlightBackgroundColorOrDefault;
-            }
+            if (this.IsItemSelected && !this.ListView.UseTranslucentSelection && this.ListView.FullRowSelect)
+                return this.GetSelectedBackgroundColor();
 
             if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
                 return this.ListItem.BackColor;
@@ -938,21 +935,45 @@ namespace BrightIdeasSoftware {
         }
 
         /// <summary>
+        /// Return the color of the background color when the item is selected
+        /// </summary>
+        /// <returns>The background color of the subitem</returns>
+        public virtual Color GetSelectedBackgroundColor() {
+            if (this.ListView.Focused) 
+                return this.ListItem.SelectedBackColor ?? this.ListView.SelectedBackColorOrDefault;
+
+            if (!this.ListView.HideSelection)
+                return this.ListView.UnfocusedSelectedBackColorOrDefault;
+
+            return this.ListItem.BackColor;
+        }
+
+        /// <summary>
         /// Return the color to be used for text in this cell
         /// </summary>
         /// <returns>The text color of the subitem</returns>
         public virtual Color GetForegroundColor() {
-            if (this.IsItemSelected && !this.ListView.UseTranslucentSelection &&
-                (this.ColumnIsPrimary || this.ListView.FullRowSelect)) {
-                if (this.ListView.Focused)
-                    return this.ListView.HighlightForegroundColorOrDefault;
-                else if (!this.ListView.HideSelection)
-                    return this.ListView.UnfocusedHighlightForegroundColorOrDefault;
-            }
-            if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
-                return this.ListItem.ForeColor;
-            else
-                return this.SubItem.ForeColor;
+            if (this.IsItemSelected && 
+                !this.ListView.UseTranslucentSelection &&
+                (this.ColumnIsPrimary || this.ListView.FullRowSelect)) 
+                return this.GetSelectedForegroundColor();
+
+            return this.SubItem == null || this.ListItem.UseItemStyleForSubItems ? this.ListItem.ForeColor : this.SubItem.ForeColor;
+        }
+
+        /// <summary>
+        /// Return the color of the foreground color when the item is selected
+        /// </summary>
+        /// <returns>The foreground color of the subitem</returns>
+        public virtual Color GetSelectedForegroundColor()
+        {
+            if (this.ListView.Focused)
+                return this.ListItem.SelectedForeColor ?? this.ListView.SelectedForeColorOrDefault;
+
+            if (!this.ListView.HideSelection)
+                return this.ListView.UnfocusedSelectedForeColorOrDefault;
+
+            return this.SubItem == null || this.ListItem.UseItemStyleForSubItems ? this.ListItem.ForeColor : this.SubItem.ForeColor;
         }
 
         /// <summary>
@@ -1017,20 +1038,9 @@ namespace BrightIdeasSoftware {
         /// Return the Color that is the background color for this item's text
         /// </summary>
         /// <returns>The background color of the subitem's text</returns>
+        [Obsolete("Use GetBackgroundColor() instead")]
         protected virtual Color GetTextBackgroundColor() {
-            //TODO: Refactor with GetBackgroundColor() - they are almost identical
-            if (this.IsItemSelected && !this.ListView.UseTranslucentSelection
-                && (this.ColumnIsPrimary || this.ListView.FullRowSelect)) {
-                if (this.ListView.Focused)
-                    return this.ListView.HighlightBackgroundColorOrDefault;
-                else if (!this.ListView.HideSelection)
-                    return this.ListView.UnfocusedHighlightBackgroundColorOrDefault;
-            }
-
-            if (this.SubItem == null || this.ListItem.UseItemStyleForSubItems)
-                return this.ListItem.BackColor;
-            else
-                return this.SubItem.BackColor;
+            return Color.Red; // just so it shows up if it is used
         }
 
         #endregion
@@ -1710,7 +1720,7 @@ namespace BrightIdeasSoftware {
         protected virtual void DrawTextGdi(Graphics g, Rectangle r, String txt) {
             Color backColor = Color.Transparent;
             if (this.IsDrawBackground && this.IsItemSelected && ColumnIsPrimary && !this.ListView.FullRowSelect)
-                backColor = this.GetTextBackgroundColor();
+                backColor = this.GetSelectedBackgroundColor();
 
             TextFormatFlags flags = NormalTextFormatFlags | this.CellVerticalAlignmentAsTextFormatFlag;
 
@@ -1772,7 +1782,7 @@ namespace BrightIdeasSoftware {
                     SizeF size = g.MeasureString(txt, f, r.Width, fmt);
                     Rectangle r2 = r;
                     r2.Width = (int) size.Width + 1;
-                    using (Brush brush = new SolidBrush(this.ListView.HighlightBackgroundColorOrDefault)) {
+                    using (Brush brush = new SolidBrush(this.GetSelectedBackgroundColor())) {
                         g.FillRectangle(brush, r2);
                     }
                 }
@@ -3344,14 +3354,12 @@ namespace BrightIdeasSoftware {
     /// <para>This class works best with FullRowSelect = true.</para>
     /// <para>It's not designed to work with cell editing -- it will work but will look odd.</para>
     /// <para>
-    /// This class is experimental. It may not work properly and may disappear from
-    /// future versions.
+    /// It's not RightToLeft friendly.
     /// </para>
     /// </remarks>
     public class DescribedTaskRenderer : BaseRenderer, IFilterAwareRenderer
     {
         private readonly StringFormat noWrapStringFormat;
-        private readonly StringFormat wrapStringFormat;
         private readonly HighlightTextRenderer highlightTextRenderer = new HighlightTextRenderer();
 
         /// <summary>
@@ -3362,11 +3370,24 @@ namespace BrightIdeasSoftware {
             this.noWrapStringFormat.Trimming = StringTrimming.EllipsisCharacter;
             this.noWrapStringFormat.Alignment = StringAlignment.Near;
             this.noWrapStringFormat.LineAlignment = StringAlignment.Near;
-            this.wrapStringFormat = new StringFormat();
-            this.wrapStringFormat.Trimming = StringTrimming.EllipsisCharacter;
+            this.highlightTextRenderer.CellVerticalAlignment = StringAlignment.Near;
         }
 
         #region Configuration properties
+
+        /// <summary>
+        /// Should text be rendered using GDI routines? This makes the text look more
+        /// like a native List view control.
+        /// </summary>
+        public override bool UseGdiTextRendering
+        {
+            get { return base.UseGdiTextRendering; }
+            set
+            {
+                base.UseGdiTextRendering = value;
+                this.highlightTextRenderer.UseGdiTextRendering = value;
+            }
+        }
 
         /// <summary>
         /// Gets or set the font that will be used to draw the title of the task
@@ -3482,7 +3503,6 @@ namespace BrightIdeasSoftware {
             get { return imageTextSpace; }
             set { imageTextSpace = value; }
         }
-
         private int imageTextSpace = 4;
 
         /// <summary>
@@ -3508,7 +3528,6 @@ namespace BrightIdeasSoftware {
             get { return descriptionAspectName; }
             set { descriptionAspectName = value; }
         }
-
         private string descriptionAspectName;
 
         #endregion
@@ -3542,17 +3561,17 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// Fetch the description from the model class
         /// </summary>
+        /// <param name="model"></param>
         /// <returns></returns>
-        protected virtual string GetDescription() {
+        public virtual string GetDescription(object model) {
             if (String.IsNullOrEmpty(this.DescriptionAspectName))
                 return String.Empty;
 
             if (this.descriptionGetter == null)
                 this.descriptionGetter = new Munger(this.DescriptionAspectName);
 
-            return this.descriptionGetter.GetValue(this.RowObject) as String;
+            return this.descriptionGetter.GetValue(model) as string;
         }
-
         private Munger descriptionGetter;
 
         #endregion
@@ -3572,7 +3591,7 @@ namespace BrightIdeasSoftware {
         public override void Render(Graphics g, Rectangle r) {
             this.DrawBackground(g, r);
             r = this.ApplyCellPadding(r);
-            this.DrawDescribedTask(g, r, this.Aspect as String, this.GetDescription(), this.GetImageSelector());
+            this.DrawDescribedTask(g, r, this.GetText(), this.GetDescription(this.RowObject), this.GetImageSelector());
         }
 
         /// <summary>
@@ -3584,7 +3603,8 @@ namespace BrightIdeasSoftware {
         /// <param name="description"></param>
         /// <param name="imageSelector"></param>
         protected virtual void DrawDescribedTask(Graphics g, Rectangle r, string title, string description, object imageSelector) {
-            this.highlightTextRenderer.CellVerticalAlignment = StringAlignment.Near;
+
+            //Debug.WriteLine(String.Format("DrawDescribedTask({0}, {1}, {2}, {3})", r, title, description, imageSelector));
 
             // Draw the image if one's been given
             Rectangle textBounds = r;
@@ -3620,6 +3640,8 @@ namespace BrightIdeasSoftware {
                     this.highlightTextRenderer.DrawText(g, textBounds, description); 
                 }
             }
+
+            //g.DrawRectangle(Pens.OrangeRed, r);
         }
 
         #endregion
@@ -3642,30 +3664,9 @@ namespace BrightIdeasSoftware {
     }
 
     /// <summary>
-    /// This renderer draws a functional button in its cell
+    /// This renderer draws a functioning button in its cell
     /// </summary>
     public class ColumnButtonRenderer : BaseRenderer {
-
-        /// <summary>
-        /// How should the button be sized?
-        /// </summary>
-        public enum ButtonSizingMode {
-
-            /// <summary>
-            /// Every cell will have the same sized button, as indicated by ButtonSize property
-            /// </summary>
-            FixedBounds,
-
-            /// <summary>
-            /// Every cell will draw a button that fills the cell.
-            /// </summary>
-            CellBounds,
-
-            /// <summary>
-            /// Each button will be resized to contain the text of the Aspect
-            /// </summary>
-            TextBounds
-        }
 
         #region Properties
 
@@ -3674,13 +3675,13 @@ namespace BrightIdeasSoftware {
         /// </summary>
         [Category("ObjectListView"),
         Description("How each button will be sized"),
-        DefaultValue(ButtonSizingMode.TextBounds)]
-        public ButtonSizingMode SizingMode
+        DefaultValue(OLVColumn.ButtonSizingMode.TextBounds)]
+        public OLVColumn.ButtonSizingMode SizingMode
         {
             get { return this.sizingMode; }
             set { this.sizingMode = value; }
         }
-        private ButtonSizingMode sizingMode = ButtonSizingMode.TextBounds;
+        private OLVColumn.ButtonSizingMode sizingMode = OLVColumn.ButtonSizingMode.TextBounds;
 
         /// <summary>
         /// Gets or sets the size of the button when the SizingMode is FixedBounds
@@ -3701,12 +3702,16 @@ namespace BrightIdeasSoftware {
         /// </summary>
         [Category("ObjectListView"),
         Description("The extra space that surrounds the cell when the SizingMode is TextBounds")]
-        public Size ButtonPadding
+        public Size? ButtonPadding
         {
             get { return this.buttonPadding; }
             set { this.buttonPadding = value; }
         }
-        private Size buttonPadding = new Size(10, 10);
+        private Size? buttonPadding = new Size(10, 10);
+
+        private Size ButtonPaddingOrDefault {
+            get { return this.ButtonPadding ?? new Size(10, 10); }
+        }
 
         /// <summary>
         /// Gets or sets the maximum width that a button can occupy.
@@ -3723,29 +3728,56 @@ namespace BrightIdeasSoftware {
         }
         private int maxButtonWidth = -1;
 
+        /// <summary>
+        /// Gets or sets the minimum width that a button can occupy.
+        /// -1 means there is no minimum width.
+        /// </summary>
+        /// <remarks>This is only considered when the SizingMode is TextBounds</remarks>
+        [Category("ObjectListView"),
+         Description("The minimum width that a button can be when the SizingMode is TextBounds"),
+         DefaultValue(-1)]
+        public int MinButtonWidth {
+            get { return this.minButtonWidth; }
+            set { this.minButtonWidth = value; }
+        }
+        private int minButtonWidth = -1;
+
         #endregion
 
         #region Rendering
 
+        /// <summary>
+        /// Calculate the size of the contents
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <returns></returns>
         protected override Size CalculateContentSize(Graphics g, Rectangle r) {
-            if (this.SizingMode == ButtonSizingMode.CellBounds)
+            if (this.SizingMode == OLVColumn.ButtonSizingMode.CellBounds)
                 return r.Size;
 
-            if (this.SizingMode == ButtonSizingMode.FixedBounds)
+            if (this.SizingMode == OLVColumn.ButtonSizingMode.FixedBounds)
                 return this.ButtonSize ?? r.Size;
 
             // Ok, SizingMode must be TextBounds. So figure out the size of the text
-            Size textSize = this.CalculateTextSize(g, GetText(), r.Width);
+            Size textSize = this.CalculateTextSize(g, this.GetText(), r.Width);
 
             // Allow for padding and max width
-            textSize.Height += ButtonPadding.Height;
-            textSize.Width += ButtonPadding.Width;
+            textSize.Height += this.ButtonPaddingOrDefault.Height * 2;
+            textSize.Width += this.ButtonPaddingOrDefault.Width * 2;
             if (this.MaxButtonWidth != -1 && textSize.Width > this.MaxButtonWidth)
                 textSize.Width = this.MaxButtonWidth;
+            if (textSize.Width < this.MinButtonWidth)
+                textSize.Width = this.MinButtonWidth;
 
             return textSize;
         }
 
+        /// <summary>
+        /// Draw the button
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
         protected override void DrawImageAndText(Graphics g, Rectangle r) {
             TextFormatFlags textFormatFlags = TextFormatFlags.HorizontalCenter |
                                               TextFormatFlags.VerticalCenter |
@@ -3756,15 +3788,29 @@ namespace BrightIdeasSoftware {
             if (this.ListView.RightToLeftLayout)
                 textFormatFlags |= TextFormatFlags.RightToLeft;
 
-            ButtonRenderer.DrawButton(g, r, GetText(), this.Font, textFormatFlags, false, CalculatePushButtonState());
+            string buttonText = GetText();
+            if (!String.IsNullOrEmpty(buttonText))
+                ButtonRenderer.DrawButton(g, r, buttonText, this.Font, textFormatFlags, false, CalculatePushButtonState());
         }
 
+        /// <summary>
+        /// What part of the control is under the given point?
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="hti"></param>
+        /// <param name="bounds"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
         protected override void StandardHitTest(Graphics g, OlvListViewHitTestInfo hti, Rectangle bounds, int x, int y) {
             Rectangle r = ApplyCellPadding(bounds);
             if (r.Contains(x, y))
                 hti.HitTestLocation = HitTestLocation.Button;
         }
 
+        /// <summary>
+        /// What is the state of the button?
+        /// </summary>
+        /// <returns></returns>
         protected PushButtonState CalculatePushButtonState() {
             if (!this.ListItem.Enabled && !this.Column.EnableButtonWhenItemIsDisabled)
                 return PushButtonState.Disabled;
@@ -3775,6 +3821,9 @@ namespace BrightIdeasSoftware {
             return PushButtonState.Normal;
         }
 
+        /// <summary>
+        /// Is the mouse over the button?
+        /// </summary>
         protected bool IsButtonHot {
             get {
                 return this.IsCellHot && this.ListView.HotCellHitLocation == HitTestLocation.Button;
