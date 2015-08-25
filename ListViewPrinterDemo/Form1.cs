@@ -24,7 +24,6 @@ namespace ListViewPrinterDemo
         private void Form1_Load(object sender, EventArgs e)
         {
             this.LoadXmlDataIntoList();
-            this.Rebuild();
             this.UpdatePrintPreview(null, null);
         }
 
@@ -33,29 +32,16 @@ namespace ListViewPrinterDemo
             DataSet ds = new DataSet();
             try {
                 ds.ReadXml("Persons.xml");
-                LoadTableIntoList(this.listView1, ds.Tables["Person"]);
+                dataListView1.DataSource = ds.Tables["Person"];
             } catch (Exception ex) {
                 MessageBox.Show(ex.Message);
             }
         }
 
-        private void LoadTableIntoList(ListView lv, DataTable table)
+        void CheckBox1CheckedChanged(object sender, EventArgs e)
         {
-            lv.BeginUpdate();
-
-            lv.Items.Clear();
-            foreach (DataRow row in table.Rows) {
-                ListViewItem lvi = new ListViewItem();
-                lvi.Text = row[0].ToString();
-                lvi.ImageIndex = Int32.Parse(row[1].ToString());
-
-                for (int i = 2; i < table.Columns.Count; i++) {
-                    lvi.SubItems.Add(row[i].ToString());
-                }
-                lv.Items.Add(lvi);
-            }
-
-            lv.EndUpdate();
+            this.dataListView1.ShowGroups = ((CheckBox)sender).Checked;
+            this.dataListView1.BuildList();
         }
 
         private void tabControl1_Selected(object sender, TabControlEventArgs e)
@@ -206,7 +192,7 @@ namespace ListViewPrinterDemo
             this.listViewPrinter1.HeaderFormat = BlockFormat.Header(new Font("Comic Sans MS", 36));
             this.listViewPrinter1.HeaderFormat.TextBrush = new LinearGradientBrush(new Rectangle(0, 0, 1, 1), Color.Black, Color.Blue, LinearGradientMode.Horizontal);
 
-            this.listViewPrinter1.HeaderFormat.BackgroundBrush = new TextureBrush(this.listView1.SmallImageList.Images["music"], WrapMode.Tile);
+            this.listViewPrinter1.HeaderFormat.BackgroundBrush = new TextureBrush(this.dataListView1.SmallImageList.Images["music"], WrapMode.Tile);
             this.listViewPrinter1.HeaderFormat.SetBorder(Sides.All, 10, new LinearGradientBrush(new Rectangle(0, 0, 1, 1), Color.Purple, Color.Pink, LinearGradientMode.Horizontal));
 
             this.listViewPrinter1.FooterFormat = BlockFormat.Footer(new Font("Comic Sans MS", 12));
@@ -257,137 +243,6 @@ namespace ListViewPrinterDemo
             blockFormat.RightBorderPenData = blockFormat.RightBorderPenData;
             blockFormat.TextBrushData = blockFormat.TextBrushData;
             blockFormat.TopBorderPenData = blockFormat.TopBorderPenData;
-        }
-        
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-            this.listView1.ShowGroups = this.checkBox1.Checked;
-            this.Rebuild();
-        }
-
-        //-----------------------------------------------------------------------------
-        // Include all the stupid normal stuff that a ListView needs to be useful
-        // Better to use an ObjectListView!
-
-        private void listView1_ColumnClick(object sender, ColumnClickEventArgs e)
-        {
-            if (e.Column == this.lastSortColumn) {
-                if (this.lastSortOrder == SortOrder.Ascending)
-                    this.lastSortOrder = SortOrder.Descending;
-                else
-                    this.lastSortOrder = SortOrder.Ascending;
-            }  else {
-                this.lastSortOrder = SortOrder.Ascending;
-                this.lastSortColumn = e.Column;
-            }
-
-            this.Rebuild();
-        }
-        private int lastSortColumn = 0;
-        private SortOrder lastSortOrder = SortOrder.Ascending;
-
-        private void Rebuild() 
-        {
-            if (this.listView1.ShowGroups)
-                this.BuildGroups(this.lastSortColumn);
-            else
-                this.listView1.ListViewItemSorter = new ColumnComparer(this.lastSortColumn, this.lastSortOrder);
-        }
-
-        private void BuildGroups(int column)
-        {
-            this.listView1.Groups.Clear();
-
-            // Getting the Count forces any internal cache of the ListView to be flushed. Without
-            // this, iterating over the Items will not work correctly if the ListView handle
-            // has not yet been created.
-            int dummy = this.listView1.Items.Count;
-
-            // Separate the list view items into groups, using the group key as the descrimanent
-            Dictionary<String, List<ListViewItem>> map = new Dictionary<String, List<ListViewItem>>();
-            foreach (ListViewItem lvi in this.listView1.Items) {
-                String key = lvi.SubItems[column].Text;
-                if (column == 0 && key.Length > 0)
-                    key = key.Substring(0, 1);
-                if (!map.ContainsKey(key))
-                    map[key] = new List<ListViewItem>();
-                map[key].Add(lvi);
-            }
-
-            // Make a list of the required groups
-            List<ListViewGroup> groups = new List<ListViewGroup>();
-            foreach (String key in map.Keys) {
-                groups.Add(new ListViewGroup(key));
-            }
-
-            // Sort the groups
-            groups.Sort(new ListViewGroupComparer(this.lastSortOrder));
-
-            // Put each group into the list view, and give each group its member items.
-            // The order of statements is important here:
-            // - the header must be calculate before the group is added to the list view,
-            //   otherwise changing the header causes a nasty redraw (even in the middle of a BeginUpdate...EndUpdate pair)
-            // - the group must be added before it is given items, otherwise an exception is thrown (is this documented?)
-            ColumnComparer itemSorter = new ColumnComparer(column,  this.lastSortOrder);
-            foreach (ListViewGroup group in groups) {
-                this.listView1.Groups.Add(group);
-                map[group.Header].Sort(itemSorter);
-                group.Items.AddRange(map[group.Header].ToArray());
-            }
-        }
-
-        internal class ListViewGroupComparer : IComparer<ListViewGroup>
-        {
-            public ListViewGroupComparer(SortOrder order)
-            {
-                this.sortOrder = order;
-            }
-
-            public int Compare(ListViewGroup x, ListViewGroup y)
-            {
-                int result = String.Compare(x.Header, y.Header, true);
-
-                if (this.sortOrder == SortOrder.Descending)
-                    result = 0 - result;
-
-                return result;
-            }
-
-            private SortOrder sortOrder;
-        }
-
-        internal class ColumnComparer : IComparer, IComparer<ListViewItem>
-        {
-            public ColumnComparer(int col, SortOrder order)
-            {
-                this.column = col;
-                this.sortOrder = order;
-            }
-
-            public int Compare(object x, object y)
-            {
-                return this.Compare((ListViewItem)x, (ListViewItem)y);
-            }
-
-            public int Compare(ListViewItem x, ListViewItem y)
-            {
-                int result = String.Compare(x.SubItems[this.column].Text, y.SubItems[this.column].Text, true);
-
-                if (this.sortOrder == SortOrder.Descending)
-                    result = 0 - result;
-
-                return result;
-
-            }
-
-            private int column;
-            private SortOrder sortOrder;
-        }
-        
-        void CheckBox1CheckedChanged(object sender, EventArgs e)
-        {
-        	this.listView1.ShowGroups = ((CheckBox)sender).Checked;
-        	this.Rebuild();
         }
     }
 }
