@@ -67,7 +67,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
+ * If you wish to use this code in a closed source application, please contact phillip.piper@gmail.com.
  */
 
 using System;
@@ -479,13 +479,15 @@ namespace BrightIdeasSoftware
             if (args.Canceled)
                 return;
 
-            try {
+            try
+            {
                 this.BeginUpdate();
                 this.VirtualListDataSource.AddObjects(args.ObjectsToAdd);
                 this.BuildList();
                 this.SubscribeNotifications(args.ObjectsToAdd);
             }
-            finally {
+            finally
+            {
                 this.EndUpdate();
             }
         }
@@ -531,6 +533,40 @@ namespace BrightIdeasSoftware
                 // which will make the desired group header visible.
                 int delta = r.Y + r.Height / 2;
                 NativeMethods.Scroll(this, 0, delta);
+            }
+        }
+
+        /// <summary>
+        /// Inserts the given collection of model objects to this control at hte given location
+        /// </summary>
+        /// <param name="modelObjects">A collection of model objects</param>
+        /// <remarks>
+        /// <para>The added objects will appear in their correct sort position, if sorting
+        /// is active. Otherwise, they will appear at the given position of the list.</para>
+        /// <para>No check is performed to see if any of the objects are already in the ListView.</para>
+        /// <para>Null objects are silently ignored.</para>
+        /// </remarks>
+        public override void InsertObjects(int index, ICollection modelObjects)
+        {
+            if (this.VirtualListDataSource == null)
+                return;
+
+            // Give the world a chance to cancel or change the added objects
+            ItemsAddingEventArgs args = new ItemsAddingEventArgs(index, modelObjects);
+            this.OnItemsAdding(args);
+            if (args.Canceled)
+                return;
+
+            try
+            {
+                this.BeginUpdate();
+                this.VirtualListDataSource.InsertObjects(index, args.ObjectsToAdd);
+                this.BuildList();
+                this.SubscribeNotifications(args.ObjectsToAdd);
+            }
+            finally
+            {
+                this.EndUpdate();
             }
         }
 
