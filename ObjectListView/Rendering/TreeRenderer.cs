@@ -1,4 +1,16 @@
-﻿using System;
+﻿/*
+ * TreeRenderer - Draw the major column in a TreeListView
+ *
+ * Author: Phillip Piper
+ * Date: 27/06/2015 
+ *
+ * Change log:
+ * 2016-07-17  JPP  - Added TreeRenderer.UseTriangles and IsShowGlyphs
+ * 2015-06-27  JPP  - Split out from TreeListView.cs
+ * 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Drawing;
@@ -21,6 +33,54 @@ namespace BrightIdeasSoftware {
                 this.LinePen.DashStyle = DashStyle.Dot;
             }
 
+            #region Configuration properties
+
+            /// <summary>
+            /// Should the renderer draw glyphs at the expansion points?
+            /// </summary>
+            /// <remarks>The expansion points will still function to expand/collapse even if this is false.</remarks>
+            public bool IsShowGlyphs
+            {
+                get { return isShowGlyphs; }
+                set { isShowGlyphs = value; }
+            }
+            private bool isShowGlyphs = true;
+
+            /// <summary>
+            /// Should the renderer draw lines connecting siblings?
+            /// </summary>
+            public bool IsShowLines
+            {
+                get { return isShowLines; }
+                set { isShowLines = value; }
+            }
+            private bool isShowLines = true;
+
+            /// <summary>
+            /// Return the pen that will be used to draw the lines between branches
+            /// </summary>
+            public Pen LinePen
+            {
+                get { return linePen; }
+                set { linePen = value; }
+            }
+            private Pen linePen;
+
+            /// <summary>
+            /// Should the renderer draw triangles as the expansion glyphs?
+            /// </summary>
+            /// <remarks>
+            /// This looks best with ShowLines = false
+            /// </remarks>
+            public bool UseTriangles
+            {
+                get { return useTriangles; }
+                set { useTriangles = value; }
+            }
+            private bool useTriangles = false;
+
+            #endregion
+
             /// <summary>
             /// Return the branch that the renderer is currently drawing.
             /// </summary>
@@ -31,15 +91,6 @@ namespace BrightIdeasSoftware {
             }
 
             /// <summary>
-            /// Return the pen that will be used to draw the lines between branches
-            /// </summary>
-            public Pen LinePen {
-                get { return linePen; }
-                set { linePen = value; }
-            }
-            private Pen linePen;
-
-            /// <summary>
             /// Return the TreeListView for which the renderer is being used.
             /// </summary>
             public TreeListView TreeListView {
@@ -48,15 +99,6 @@ namespace BrightIdeasSoftware {
                 }
             }
 
-            /// <summary>
-            /// Should the renderer draw lines connecting siblings?
-            /// </summary>
-            public bool IsShowLines {
-                get { return isShowLines; }
-                set { isShowLines = value; }
-            }
-            private bool isShowLines = true;
-            
             /// <summary>
             /// How many pixels will be reserved for each level of indentation?
             /// </summary>
@@ -84,7 +126,7 @@ namespace BrightIdeasSoftware {
                 if (this.IsShowLines)
                     this.DrawLines(g, r, this.LinePen, br, expandGlyphRectangleMidVertical);
 
-                if (br.CanExpand) 
+                if (br.CanExpand && this.IsShowGlyphs) 
                     this.DrawExpansionGlyph(g, expandGlyphRectangle, br.IsExpanded);
 
                 int indent = br.Level * PIXELS_PER_LEVEL;
@@ -124,11 +166,30 @@ namespace BrightIdeasSoftware {
             /// <param name="r"></param>
             /// <param name="isExpanded"></param>
             protected virtual void DrawExpansionGlyphStyled(Graphics g, Rectangle r, bool isExpanded) {
-                VisualStyleElement element = VisualStyleElement.TreeView.Glyph.Closed;
-                if (isExpanded)
-                    element = VisualStyleElement.TreeView.Glyph.Opened;
-                VisualStyleRenderer renderer = new VisualStyleRenderer(element);
+                if (this.UseTriangles && this.IsShowLines) {
+                    using (SolidBrush b = new SolidBrush(GetBackgroundColor())) {
+                        Rectangle r2 = r;
+                        r2.Inflate(-2, -2);
+                        g.FillRectangle(b, r2);
+                    }
+                }
+
+                VisualStyleRenderer renderer = new VisualStyleRenderer(DecideVisualElement(isExpanded));
                 renderer.DrawBackground(g, r);
+            }
+
+            private VisualStyleElement DecideVisualElement(bool isExpanded) {
+                string klass = this.UseTriangles ? "Explorer::TreeView" : "TREEVIEW";
+                int part = this.UseTriangles && this.IsExpansionHot ? 4 : 2;
+                int state = isExpanded ? 2 : 1;
+                return VisualStyleElement.CreateElement(klass, part, state);
+            }
+
+            /// <summary>
+            /// Is the mouse over a checkbox in this cell?
+            /// </summary>
+            protected bool IsExpansionHot {
+                get { return this.IsCellHot && this.ListView.HotCellHitLocation == HitTestLocation.ExpandButton; }
             }
 
             /// <summary>
