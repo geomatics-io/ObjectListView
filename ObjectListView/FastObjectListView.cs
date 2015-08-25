@@ -5,7 +5,6 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
- * 2015-06-28   JPP  - Fix issue with RemoveObjects() where objects were removed too early
  * 2014-10-15   JPP  - Fire Filter event when applying filters
  * v2.8
  * 2012-06-11   JPP  - Added more efficient version of FilteredObjects
@@ -35,7 +34,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
+ * If you wish to use this code in a closed source application, please contact phillip.piper@gmail.com.
  */
 
 using System;
@@ -104,6 +103,38 @@ namespace BrightIdeasSoftware
                 return ((FastObjectListDataSource)this.VirtualListDataSource).ObjectList;
             }
             set { base.Objects = value; }
+        }
+
+        /// <summary>
+        /// Move the given collection of objects to the given index.
+        /// </summary>
+        /// <remarks>This operation only makes sense on non-grouped ObjectListViews.</remarks>
+        /// <param name="index"></param>
+        /// <param name="modelObjects"></param>
+        public override void MoveObjects(int index, ICollection modelObjects) {
+            if (this.InvokeRequired) {
+                this.Invoke((MethodInvoker)delegate() { this.MoveObjects(index, modelObjects); });
+                return;
+            }
+
+            // If any object that is going to be moved is before the point where the insertion 
+            // will occur, then we have to reduce the location of our insertion point
+            int displacedObjectCount = 0;
+            foreach (object modelObject in modelObjects) {
+                int i = this.IndexOf(modelObject);
+                if (i >= 0 && i <= index)
+                    displacedObjectCount++;
+            }
+            index -= displacedObjectCount;
+
+            this.BeginUpdate();
+            try {
+                this.RemoveObjects(modelObjects);
+                this.InsertObjects(index, modelObjects);
+            }
+            finally {
+                this.EndUpdate();
+            }
         }
 
         /// <summary>
@@ -222,6 +253,17 @@ namespace BrightIdeasSoftware
                 if (modelObject != null)
                     this.fullObjectList.Add(modelObject);
             }
+            this.FilterObjects();
+            this.RebuildIndexMap();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="modelObjects"></param>
+        public override void InsertObjects(int index, ICollection modelObjects) {
+            this.fullObjectList.InsertRange(index, modelObjects);
             this.FilterObjects();
             this.RebuildIndexMap();
         }

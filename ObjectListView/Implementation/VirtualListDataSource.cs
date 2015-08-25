@@ -27,7 +27,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
+ * If you wish to use this code in a closed source application, please contact phillip.piper@gmail.com.
  */
 
 using System;
@@ -100,6 +100,13 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="modelObjects">A collection of model objects</param>
         void AddObjects(ICollection modelObjects);
+
+        /// <summary>
+        /// Insert the given collection of model objects to this control at the position
+        /// </summary>
+        /// <param name="index">Index where the collection will be added</param>
+        /// <param name="modelObjects">A collection of model objects</param>
+        void InsertObjects(int index, ICollection modelObjects);
 
         /// <summary>
         /// Remove all of the given objects from the control
@@ -212,6 +219,14 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="modelObjects"></param>
         public virtual void AddObjects(ICollection modelObjects) {
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="modelObjects"></param>
+        public virtual void InsertObjects(int index, ICollection modelObjects) {
         }
 
         /// <summary>
