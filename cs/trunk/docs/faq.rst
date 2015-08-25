@@ -100,7 +100,7 @@ developers want. (I am not a lawyer. This is not legal advice. It could be
 completely wrong).
 
 However, if you wish to use this code in a commercial application, please
-contact me: phillip_piper@bigfoot.com .
+contact me: phillip.piper@gmail.com .
 
 
 Why doesn't the ObjectListView auto-update when I change my model objects?

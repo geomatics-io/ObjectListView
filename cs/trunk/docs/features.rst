@@ -17,11 +17,12 @@ of what's available so that you can use it when the need arises.
 * `Automatic grouping`_
 * `Automatic sorting`_
 * `Automatically create the ListView from model objects`_
+* `Buttons in cells`_
 * `Checkboxes in any column`_
 * `Cell events`_
 * `Collapsible groups`_
 * `Copy selected rows to clipboard`_
-* `Custom row formatting`_
+* `Custom row and cell formatting`_
 * `Custom selection colours`_
 * `Data binding`_
 * `Different flavours of ObjectListView for different purposes`_
@@ -31,6 +32,7 @@ of what's available so that you can use it when the need arises.
 * `Editing cell values`_
 * `Filtering`_
 * `Groups on virtual lists`_
+* `Header check boxes`_
 * `Header formatting`_
 * `Header images`_
 * `Header drawn vertically`_
@@ -266,6 +268,14 @@ You can even apply some fairly customizations to the appearance of the message.
 See this recipe: :ref:`recipe-emptymsg`
 
 
+Buttons in cells
+----------------
+
+An `ObjectListView` can put clickable buttons into cells.
+
+See this recipe for more details: :ref:`recipe-buttons`.
+
+
 Checkboxes in any column
 ------------------------
 
@@ -281,12 +291,12 @@ Alternate rows background colors
 
 Having subtly different row colours for even and odd rows can make a ListView easier
 for users to read. `ObjectListView` supports this alternating of background colours.
-It is enabled by setting `UseAlternateBackColors` to true (the default). The background
+It is enabled by setting `UseAlternatingBackColors` to true (the default). The background
 of odd numbered rows will be `AlternateRowBackColor`.
 
 
-Custom row formatting
----------------------
+Custom row and cell formatting
+------------------------------
 
 An `ObjectListView` allows rows and even cells to be formatted with custom colours and fonts. For example,
 you could draw clients with debts in red, or big spending customers could be given a gold
@@ -454,6 +464,14 @@ A normal `ListView` triggers mouse events for the list as a whole.
 `CellClick`, `CellOver` and `CellRightClick`. These events allow you
 to easily know what the user clicked (or what the mouse is over), and
 then react appropriately.
+
+Header checkboxes
+-----------------
+
+Each column header can show a checkbox. Checking or uncheckeding this checkbox
+can change the checkedness of all checkboxes in the column.
+
+See :ref:`recipe-checkbox-in-header`.
 
 Header formatting
 -----------------
