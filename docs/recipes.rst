@@ -116,7 +116,6 @@ FastDataListView - Chilli Smoothie
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. image:: images/chili-smoothie2.jpg
-   :target: http://www.flickr.com/photos/flashfire/3178281016/
    :class: left-padded
 
 *Fast and easy*
@@ -124,7 +123,7 @@ FastDataListView - Chilli Smoothie
 A `FastDataListView` combines speed with ease of use: the speed of a virtual list with the
 ease of `DataListView`. On my mid-range laptop, a `FastDataListView` can easily handle data sets of 100,000 rows or more.
 
-A `FastDataListView` virtualizes the display of the data set -- it does not change the process of
+A `FastDataListView` virtualizes the *display* of the data set -- it does not change the process of
 loading data into the dataset. If your dataset is a SQL statement that fetches one million rows
 from a remote database, your program will still have to load all one millions rows. Once loaded, however,
 `FastDataListView` will show them almost instantly.
@@ -133,7 +132,6 @@ DataTreeListView - Lime Smoothie
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. image:: images/chili-smoothie2.jpg
-   :target: http://www.flickr.com/photos/flashfire/3178281016/
    :class: left-padded
 
 *Hierarchy -- fast and easy*
@@ -320,12 +318,12 @@ To show just the credit balance in red, you could do something like this::
     }
 
 These events play well
-with `UseAlternateBackColors`. Any formatting you do in these events takes
-precedence over the alternate backcolors.
+with `UseAlternatingBackColors`. Any formatting you do in these events takes
+precedence over the alternate back colours.
 
 These events know where the row is going to
 appear in the control, so the `DisplayIndex` property of the event
-can be used for more sophisticated alternate background color schemes.
+can be used for more sophisticated alternate background colour schemes.
 The `DisplayIndex` is correct even when the list is showing groups and
 when the listview is virtual.
 
@@ -335,60 +333,21 @@ event sets `UseCellFormatEvents` to *true*. If you want to have a `FormatCell`
 event fired for every cell, you can set `UseCellFormatEvents` on the
 `ObjectListView` itself.
 
+Priority
+^^^^^^^^
 
-v2.2.1 and earlier
-^^^^^^^^^^^^^^^^^^
+There are lots of bits that can influence the format of a row or cell,
+and they can interact in complex fashions.
 
-You install a `RowFormatter` delegate. A `RowFormatter` delegate is called after a
-`OLVListItem` has been completely filled in, but before it is added to the
-`ObjectListView`. It can change the formatting of the list item, or any of its
-other properties.
+The various formatting options are applied in this order, with later formatting
+overriding earlier formatting:
 
-To show customers in red when they owe money, you could do this::
-
-    this.customerListView.RowFormatter = delegate(OLVListItem olvi) {
-        Customer customer = (Customer)olvi.RowObject;
-        if (customer.Credit < 0)
-            olvi.ForeColor = Color.Red;
-    };
-
-You can format sub-items too, but it is a little more involved. There is no
-separated callback for individual sub-items. So the `RowFormatter` can be written
-to format sub-items too.
-
-So, if in our above example, we only want to make the actual credit balance to
-be red, not the whole row, the `RowFormatter` would look like this::
-
-    this.customerListView.RowFormatter = delegate(OLVListItem olvi) {
-        Customer customer = (Customer)olvi.RowObject;
-        if (customer.Credit < 0) {
-            int i = this.customerListView.Columns.IndexOf(this.creditColumn);
-            if (i >= 0) {
-               olvi.UseItemStyleForSubItems = false;
-               olvi.SubItems[i].ForeColor = Color.Red;
-            }
-        }
-    };
-
-This code doesn't assume a position for the credit column but finds it each
-time. This is conservative and it could be replaced with a constant -- if you
-can guarantee that no other fool is going to move or remove it :-)
-
-Also pay attention to *olvi.UseItemStyleForSubItems = false*.
-By default, all subitems have the same formatting as the listitem itself. To
-indicate that you want subitems have their own formatting, you must set
-`UseItemStyleForSubItems` to *false*.
-
-One important thing to know about `RowFormatters` is that they are called
-before the row is added to the control. This means that many of the properties
-of the `OLVListItem` object do not yet have sensible values. For example, you
-cannot use the `Index` property to try and figure out where the item is in
-the control, because the item doesn't yet belong to any control.
-
-One final thing: `UseAlternateBackColors` and `RowFormatters` that change the
-`BackColor` of rows do not play well together. The `UseAlternateBackColors` assumes
-that it owns the background color, and it will override any setting made by
-a `RowFormatter.`
+ 1. Disabled
+ 2. AlternateBackColors (not applied if row is disabled)
+ 3. FormatRow
+ 4. FormatCell
+ 5. Hyperlinks
+ 6. Selection
 
 
 .. _recipe-listviewprinter:
@@ -434,19 +393,19 @@ To decide if a particular model is checked, use `IsChecked()` or
 
 To changed the "checked-ness" of a model, you should use:
 
-    * `CheckIndeterminateObject()`
-    * `CheckObject(object model)`
-    * `ToggleCheckObject()`
-    * `UncheckObject()`
+* `CheckIndeterminateObject()`
+* `CheckObject(object model)`
+* `ToggleCheckObject()`
+* `UncheckObject()`
 
 For sub-item checkboxes, there are the same collection of methods, but they take
 a `OLVColumn` parameter to indicate which subitem should be fetched or set.
 
-    * `CheckSubItem(object model, OLVColumn column)`
-    * `CheckIndeterminateSubItem(object model, OLVColumn column)`
-    * `IsSubItemChecked(object model, OLVColumn column)`
-    * `ToggleSubItem(object model, OLVColumn column)`
-    * `UncheckSubItem(object model, OLVColumn column)`
+* `CheckSubItem(object model, OLVColumn column)`
+* `CheckIndeterminateSubItem(object model, OLVColumn column)`
+* `IsSubItemChecked(object model, OLVColumn column)`
+* `ToggleSubItem(object model, OLVColumn column)`
+* `UncheckSubItem(object model, OLVColumn column)`
 
 Data bound checkboxes
 ^^^^^^^^^^^^^^^^^^^^^
@@ -632,7 +591,7 @@ The `EmptyListMsg` is the property that holds the string that appears when an
     this.objectListView1.EmptyListMsg = "This database has no rows";
     this.objectListView1.EmptyListMsgFont = new Font("Tahoma", 24);
 
-The empty msg list is actually implemented as an overlay. You can access that overlay
+The empty message list is actually implemented as an overlay. You can access that overlay
 though the `EmptyListMsgOverlay` property. By default, this is a `TextOverlay` that
 you can customise to your hearts content::
 
@@ -774,7 +733,7 @@ A side benefit of a `TypedObjectListView` is that it can automatically generate 
 the IDE, and then call `tlist.GenerateAspectGetters()`. This can (should?) handle
 aspects of arbitrary complexity, like "Parent.HomeAddress.Phone.AreaCode".
 
-This allows the convience of reflection, but the speed of hand-written `AspectGetters`.
+This allows the convenience of reflection, but the speed of hand-written `AspectGetters`.
 
 
 .. _recipe-treelistview:
@@ -838,14 +797,48 @@ To see an example of how to use drag and drop on a `TreeListView`, read :ref:`th
 Notes
 ^^^^^
 
-Do not try to use a `TreeListView` like a standard `TreeView`. A `TreeListView`
+`CanExpandGetter` is called often! It must be fast. Don't do a database lookup, calculate pi, or 
+do linear searches -- just return a property value.
+
+When `CanExpandGetter` and `ChildrenGetter` are called, the `TreeListView` is in an unstable state.
+Do not do anything that will callback into the control. 
+
+Both `CanExpandGetter` and `ChildrenGetter` must return immediately. If you can't return immediately,
+return a dummy value, do whatever calculation you need, and then called `RefreshObject()` so that the
+dummy value is replaced [`RefreshObject()` is thread-safe] Something like this::
+
+    this.treeListView.ChildrenGetter = delegate(object x) {
+        var model = (MyModelClass)x;
+        if (model.HasChildrenAlready)
+            return model.Children;
+        if (!model.AlreadyStartedSlowFetch) {
+            model.AlreadyStartedSlowFetch = true;
+            Task.Factory.StartNew(() => {
+                model.SlowChildrenFetch();
+                this.treeListView.RefreshObject(model);
+            });
+        }
+        return new ArrayList();
+    };
+
+Unlearn
+^^^^^^^
+
+Do not try to use a `TreeListView` like a standard `TreeView`. They are not the same.
+
+A `TreeListView`
 does not have `TreeNodes` that you have to create and then pass to the view.
 That's just one more level of unnecessary boiler-plate code -- exactly the
-things that `ObjectListView` was written to avoid. Instead of creating node,
-think in terms of your data model. Can this "thing" be unrolled? When it is
-unrolled, what list of "things" should be shown?
+things that `ObjectListView` was written to avoid. 
 
-`CanExpandGetter` is called often! It should be efficient.
+Instead of creating nodes, think in terms of your data model:
+
+* Can this "thing" be unrolled? 
+
+* When it is unrolled, what list of "things" should be shown?
+
+With that mental mode, `TreeListView` will be much easier to understand and use.
+
 
 .. _recipe-search:
 
@@ -853,13 +846,13 @@ unrolled, what list of "things" should be shown?
 -------------------------------------------------------------------------------------------------------------------
 
     I have a list that shows medical incidents. One of the columns is
-    the doctor reponsible for that incident. I'd like the users to be able to sort
+    the doctor responsible for that incident. I'd like the users to be able to sort
     by the "Doctor" column and then type the first few characters of the doctors
     name and find the cases assigned to that doctor. Is there a way to do that?
 
 Surprisingly, yes! If you set `IsSearchOnSortColumn` to  *true* (the default), then characters
 typed into the list will be matched against the values of the sort column,
-rather than against the values of column 0. iTunes shows this behavior when you
+rather than against the values of column 0. iTunes shows this behaviour when you
 sort by the "Artist" or "Album" columns.
 
 Remember: this searching works on the string representation of the value, rather than on the values themselves.
@@ -870,7 +863,7 @@ Remember: this searching works on the string representation of the value, rather
 17. How can I show more information in the tooltip when the mouse hovers over a cell?
 -------------------------------------------------------------------------------------
 
-The `ListView` default behavior is to only use tool tips to show truncated cell
+The `ListView` default behaviour is to only use tool tips to show truncated cell
 values (even then only when `FullRowSelect` is  *true*). But with an `ObjectListView`,
 you are not so limited.
 
@@ -884,10 +877,10 @@ to change the tool tip that will be displayed:
 
 * `Text` is the string that will be displayed in the tooltip. If this is null or
   empty, the tool tip will not be shown. Inserting "\\r\\n" sequences into the
-  string gives a multiline tool tip.
+  string gives a multi-line tool tip.
 
 * `Font`, `ForeColor` and `BackColor` control the font of the text,
-  the text colour and background colour of the tooltip. (NOTE: The color
+  the text colour and background colour of the tooltip. (NOTE: The colour
   settings do not work under Vista)
 
 * `IsBalloon` allows the tooltip to be shown as a balloon style. (NOTE:
@@ -959,7 +952,7 @@ to cell 0.
 you easily add a decoration to the hot row, as well as display an overlay while
 there is a hot item.
 
-For example, this puts a transluscent border around the row that the cursor
+For example, this puts a translucent border around the row that the cursor
 is over::
 
     // Make the decoration
@@ -972,6 +965,8 @@ is over::
     this.olv1.HotItemStyle = new HotItemStyle();
     this.olv1.HotItemStyle.Decoration = rbd;
 
+There is a static property `ObjectListView.DefaultHotItemStyle`. This style is used by default
+when no specific `HotItemStyle` is set. This is shared across all `ObjectListView`.
 
 .. _recipe-overlays:
 
@@ -1010,7 +1005,7 @@ controls), they will work flawlessly.
 
 However, if you do "clever" things with your `ObjectListViews`, you
 may need to read this: :ref:`overlays-label`. "Clever" in this case
-means reparenting the ObjectListView after it has been created, or
+means re-parenting the ObjectListView after it has been created, or
 hiding it by rearranging the windows z-ordering. You may also need
 to read that if the `ObjectListView` is hosted by a non-standard
 TabControl-like container.
@@ -1084,7 +1079,7 @@ See :ref:`recipe-hottracking`.
 
 Decorations can also be attached to the selected rows. Set `SelectedRowDecoration`
 property of the `ObjectListView` to a decoration, and that decoration will be draw
-over each selected row. This draws a transluscent green border around each
+over each selected row. This draws a translucent green border around each
 selected row::
 
     RowBorderDecoration rbd = new RowBorderDecoration();
@@ -1128,7 +1123,7 @@ This latter option lets you tint more than one column.
 23. How do I make a column that shows just an image?
 ----------------------------------------------------
 
-    *I want to show a meetings room's availablity as an icon, without any text.
+    *I want to show a meetings room's availability as an icon, without any text.
     What's the best way to do that?*
 
 To show only an image in a column, do this::
@@ -1176,30 +1171,6 @@ If `MenuStrip` is not null, it will be shown where the mouse was clicked.
 It's entirely reasonable for `e.Model` to be *null*. That means the user clicked
 on the list background.
 
-v2.2 or earlier
-^^^^^^^^^^^^^^^
-
-If you have v2.2 or earlier,
-you need to listen for `OnMouseClick` event and do something like this::
-
-    private void olv_MouseClick(object sender, MouseEventArgs e) {
-        if (e.Button != MouseButtons.Right)
-            return;
-
-        ObjectListView olv = (ObjectListView)sender;
-        OlvListViewHitTestInfo hitTest = olv.OlvHitTest(e.X, e.Y);
-        ContextMenuStrip ms = this.DecideRightClickMenu(hitTest.RowObject, hitTest.Column);
-        if (ms != null)
-            ms.Show(olv, e.X, e.Y);
-    }
-
-This finds the model object under the mouse click and the column that was clicked too.
-Using those, you can decide what menu to show: `DecideRightClickMenu()` is obviously
-something you have to implement yourself.
-
-It's entirely reasonable for `hitTest.RowObject` to be *null*. That means the user clicked
-on the list background.
-
 
 .. _recipe-headerformatting:
 
@@ -1217,7 +1188,7 @@ Each `HeaderFormatStyle` has a setting for each state of the header:
 * `Normal` controls how the header appears when nothing else is happening to it.
 
 * `Hot` controls how the header appears when the mouse is over the header.
-  This should be a slight, but still noticable, shift from the normal state.
+  This should be a slight, but still noticeable, shift from the normal state.
 
 * `Pressed` controls how the header appears when the user has pressed the
   mouse button on the header, but not yet released the button.
@@ -1227,7 +1198,7 @@ For each state, the header format allows the font, font color, background color
 and frame to be specified. If you combine these attributes badly, you can
 produce some truly dreadful designs, but when well used, the effect can be pleasant.
 
-    *"I've setup the HeaderFormat like you say, but the stupid thing does nothing"*
+    *"I've set up the HeaderFormat like you say, but the stupid thing does nothing"*
 
 Make sure `HeaderUsesThemes` is *false*. If this is *true*, `ObjectListView` will
 use the OS's theme to draw the header, ignoring the `HeaderFormatStyle` completely.
@@ -1237,16 +1208,6 @@ word wrap the text within the header.
 
 .. image:: images/header-formatting.png
 
-[v2.3 and earlier]
-
-In previous versions, you could set the `HeaderFont` or `HeaderForeColor`
-properties on the `ObjectListView` to
-change the font and color for all columns. You can also set the `HeaderFont` or
-`HeaderForeColor` properties on one `OLVColumn` to change just that column.
-
-These properties should no longer to be used, since `HeaderFormatStyles` provide
-much more. These properties will be marked obsolete in v2.5 and removed some
-time after that.
 
 
 .. _recipe-hyperlink:
@@ -1315,7 +1276,7 @@ they allow any or all of the group information to be altered, not just the
 28. How do I use that little clicky thing next to a group header?
 -----------------------------------------------------------------
 
-That "little clicky thing" is called the group task.  You set it through  the
+That "little clicky thing" is called the group task.  You set it through the
 `GroupTask` property during the `AboutToCreateGroups` event or  `GroupFormatter`
 delegate (see :ref:`recipe-groupformatting`).
 
@@ -1426,7 +1387,7 @@ This gives a slightly more interesting control:
 There are two ways you can do this:
 
 1. You can set `UseTransluscentSelection` and `UseTranslucentHotItem` to  *true*.
-   This will give a selection and hot item mechanism that is *similiar* to that
+   This will give a selection and hot item mechanism that is *similar* to that
    used by Vista. It is not the same, I know. Do not complain.
 
    This works best when the control is owner drawn. When the list is not owner
@@ -1437,11 +1398,11 @@ There are two ways you can do this:
    Vista, this is your property. But it has quite a few limitations (and may mess
    up other things I haven't yet discovered):
 
-   * It only works on Vista and later.
-   * It does nothing when `OwnerDraw` is *true*. Owner drawn lists are (naturally) controlled by their renderers.
-   * It does not work well with `AlternateRowBackColors`.
-   * It does not play well with `HotItemStyles`.
-   * It looks a bit silly when `FullRowSelect` is *false*.
+* It only works on Vista and later.
+* It does nothing when `OwnerDraw` is *true*. Owner drawn lists are (naturally) controlled by their renderers.
+* It does not work well with `AlternateRowBackColors`.
+* It does not play well with `HotItemStyles`.
+* It looks a bit silly when `FullRowSelect` is *false*.
 
 
 .. _recipe-virtualgroups:
@@ -1505,14 +1466,14 @@ They have to be fast. They cannot do database lookup or queries against DNS.
 They can do a couple of indexed lookups and that is all!
 
 Even then, the grouping on virtual lists will still hit limits. It works
-perfectly with 10,000 rows, works acceptibly with 50,000, but on my laptop,
+perfectly with 10,000 rows, works acceptably with 50,000, but on my laptop,
 showing groups on virtual lists with more than 100,000 rows was not usable. It
 seems that in some situations (for example, while scrolling) the control runs
 through all the rows (or a good chunk of them), asking which group each row
 belongs to. It does this quickly, but running through a 100,000 rows still takes
 some time.
 
-One other problem is caused by the normal behavior of a grouped listview:
+One other problem is caused by the normal behaviour of a grouped listview:
 when the user clicks a group header, the listview control selects
 all the members of that group. This is fine if the group has 100 or even 200 rows,
 but if the group has 20,000 items in it, it will select each one,
@@ -1521,7 +1482,7 @@ triggering 20,000 `SelectedIndexChanged` events -- which is a pain!
 Caveat emptor
 ^^^^^^^^^^^^^
 
-Implementating this feature required the use of undocumented features. That means
+Implementing this feature required the use of undocumented features. That means
 there is no guarantee that it will continue working in later versions of Windows
 (or even on current versions). You have been warned.
 
@@ -1569,7 +1530,7 @@ you can make a column invisible to text filters by setting `Searchable` to *fals
 
 Alternatively, the filter can be configured to only consider some of the columns in the `ObjectListView` by
 setting the `Columns` property. This is useful for avoiding searching on columns that you
-know will return non-sensical results (like checkboxes above).
+know will return nonsensical results (like checkboxes above).
 
 It can also be set up to do regular expression searching::
 
@@ -1597,8 +1558,8 @@ would give something that looks like this:
 You can change the highlighting by playing with the `CornerRoundness`, `FramePen` and `FillBrush` properties
 on the `HighlightTextRenderer.`
 
-If you just want to highlight the text without actually filtering the rows, just don't
-set the `ModelFilter` property.
+If you just want to highlight the text without actually filtering the rows, set the
+`DefaultRenderer` but don't set the `ModelFilter` property.
 
 Remember: the list has to be owner drawn for the renderer to have any effect.
 
@@ -1627,11 +1588,11 @@ run your app, reload this byte array and give it to `RestoreState()`.
 
 These methods store the following characteristics:
 
-  * current view (i.e. Details, Tile, Large Icon...)
-  * sort column and direction
-  * column order
-  * column widths
-  * column visibility
+* current view (i.e. Details, Tile, Large Icon...)
+* sort column and direction
+* column order
+* column widths
+* column visibility
 
 It does not include selection or scroll position.
 
@@ -1733,19 +1694,19 @@ fashion.
 
 There must be a thousand variations on this question, but the two most common are:
 
-  1. how to make `[Tab]` change rows when editing the last cell.
+1. how to make `[Tab]` change rows when editing the last cell.
 
-  2. how to make `[Enter]` change rows, not just commit the change.
+2. how to make `[Enter]` change rows, not just commit the change.
 
 To address these two most common case, ObjectListView now has `CellEditTabChangesRows`
-and `CellEditEnterChangesRows` properies.
+and `CellEditEnterChangesRows` properties.
 
-  * `CellEditTabChangesRows` makes ObjectListView
-    change the row being edited when the user presses `[Tab]` while editing the last
-    editable cell on a row.
+* `CellEditTabChangesRows` makes ObjectListView
+  change the row being edited when the user presses `[Tab]` while editing the last
+  editable cell on a row.
 
-  * `CellEditEnterChangesRows` makes ObjectListView
-    try to edit the cell below the cell being edited when the user press `[Enter]`.
+* `CellEditEnterChangesRows` makes ObjectListView
+  try to edit the cell below the cell being edited when the user press `[Enter]`.
 
 These behaviours are achieved by modifying the `CellEditKeyEngine` settings.
 This engine allows you to completely
@@ -1770,7 +1731,7 @@ By default, the clustering strategy copies the grouping behaviour of that column
 this, you must set `ClusteringStrategy` to a strategy that does what you want.
 
 To create your own strategy, you must implement `IClusteringStrategy` or subclass
-the safe base clas `ClusteringStrategy`. If you are showing dates or times in a column,
+the safe base class `ClusteringStrategy`. If you are showing dates or times in a column,
 the `DateTimeClusteringStrategy` can probably be configured to do exactly what you want.
 
 To hide the 'Filter' menu item for all columns, set `ShowFilterMenuOnRightClick` to *false*.
@@ -1814,7 +1775,7 @@ If there are some columns that you do not want the user to be able to hide, set
 `OLVColumn.Hideable` to *false*. This will prevent the user from hiding that column.
 
 Note: Column 0 can never be hidden. This is a limit of the underlying Windows control.
-If you wish to make your first column hideable, move it to anywhere else in the column list,
+If you wish to make your first column hide-able, move it to anywhere else in the column list,
 and then set its `DisplayIndex` to 0, so that it appears first.
 
 
@@ -1959,6 +1920,9 @@ Automatic column creation
 
 Using data binding will create columns in the `ObjectListView` for all columns in the data source.
 
+If you don't want any automatic column creation, set `AutoGenerateColumns` to `false` *before*
+setting the `DataSource`.
+
 ListView columns will only be created if one doesn't already exist for that dataset column. If
 you want to set up a fancy column to show the "UserName" column from the database, you could create
 a column in the `ObjectListView` in the IDE's Designer, and set `AspectName` to "UserName." The data binding
@@ -2027,6 +1991,19 @@ The rows that have "0" in the "ParentId" column are the roots of the tree, so
 All rows that have "1" (the "Id" of "Jonathan Piper") in their "ParentId" cell
 will appear as child rows of "Jonthan Piper". Similarly, all rows that have "6"
 in their "ParentId" cell will appear as child rows of "Bill Gates".
+
+Performance
+^^^^^^^^^^^
+
+`DataTreeListView` are slow! 
+
+Since the control know nothing about the underlying data structures,
+it has to do linear searches for every get children or get parent operation. This is fine 
+for a table with a couple of hundred rows, but will be painful if there are a couple of thousand.
+
+If you are going to have thousands of rows, don't use a `DataTreeListView`. Do the work of creating
+model objects and display them in a normal `TreeListView`. That control *is* fast, and can handle
+tens of thousands of rows without breaking into a sweat :)
 
 Other bits and pieces
 ^^^^^^^^^^^^^^^^^^^^^
@@ -2165,10 +2142,10 @@ In action
 
 Once a column has a checkbox in its header, you control it through:
 
-    - `ObjectListView.CheckHeaderCheckBox(OLVColumn col)`
-    - `ObjectListView.CheckIndeterminateHeaderCheckBox(OLVColumn col)`
-    - `ObjectListView.ToggleHeaderCheckBox(OLVColumn col)`
-    - `ObjectListView.UncheckHeaderCheckBox(OLVColumn col)`
+- `ObjectListView.CheckHeaderCheckBox(OLVColumn col)`
+- `ObjectListView.CheckIndeterminateHeaderCheckBox(OLVColumn col)`
+- `ObjectListView.ToggleHeaderCheckBox(OLVColumn col)`
+- `ObjectListView.UncheckHeaderCheckBox(OLVColumn col)`
 
 When the user clicks on the checkbox (or when you call the above methods), ObjectListView will fire a `HeaderCheckBoxChanging`
 event. This message can be cancelled.
@@ -2195,12 +2172,170 @@ Hit testing and CellOver events
 Hit testing on a ObjectListView has been extended to include information about the header. The hit testing
 logic can now report header locations:
 
-    - `HitTestLocation.Header`
-    - `HitTestLocation.HeaderCheckBox`
-    - `HitTestLocation.HeaderDivider`
+- `HitTestLocation.Header`
+- `HitTestLocation.HeaderCheckBox`
+- `HitTestLocation.HeaderDivider`
 
 On `OlvListViewHitTestInfo`, `ColumnIndex` and `HeaderDividerIndex` tell exactly which column or divider was hit.
 
 Changed in mouse location are primarily reported through `CellOver` events. These events are now also raised
 when the mouse moves over the header. Since this is different from previous versions, this behaviour can be 
 disabled by setting `ObjectListView.TriggerCellOverEventsWhenOverHeader` to `false`.
+
+.. _recipe-auto-updates:
+
+51. Can I get rid of the `RefreshObject()` calls?
+-------------------------------------------------
+
+    *Whenever my model object changes, I have to call RefreshObject().
+    Can't you do something so that I don't have to remember to do that?*
+
+Of course I can -- but I'll still needs your help. `ObjectListView` will happily
+update itself when your model object is updated -- but it has to know
+when your model is updated. In the WPF world, the `INotifyPropertyChanged` interface is used for exactly this purpose, so `ObjectListView` uses that too.
+
+[If you aren't familiar with the `INotifyPropertyChanged` interface, do a quick Google search
+and read up on what it's for and how it works. Then come back and continue with this recipe. 
+It's OK... I'll wait]
+
+To use this "auto updating" mechanism, you must:
+
+* implement `INotifyPropertyChanged` on your model class
+* set `ObjectListView.UseNotifyPropertyChanged` to `true`
+* call `ObjectListView.SetObjects()`
+
+Now you will only have to modify a property in your model class, and `ObjectListView` will automatically
+reflect that change. 
+
+`ObjectListView` will continue to listen for changes to your model objects until they are removed
+from the list, either by changing its contents via `Objects` or `SetObjects()`, or by explicitly
+removing a model using `RemoveObject()`. 
+
+Objects that are added through `AddObject()` or `InsertObject()`
+will be subscribed to for future notifications.
+
+Caveats
+^^^^^^^
+
+If you set `UseNotifyPropertyChanged` on a virtual lists (e.g. `FastObjectListView`), the 
+subscription mechanism will dutifully subscribe to all models in the control, even if there 
+are 10,000,000 of them. This may take some time :)
+
+Don't use this mechanism on data-bound versions of `ObjectListView`. They have their own way
+of staying in sync with changes.
+
+The notification mechanism is a convenience device, not a performance optimization. It is not
+particularly smart. If you change eight properties, `ObjectListView` will refresh the 
+corresponding item eight times.
+
+
+.. _recipe-buttons:
+
+52. How can I put a button into a cell?
+---------------------------------------
+
+To make a button appear in a cell, set `OLVColumn.IsButton` to `true`. The column will then draw its aspect
+as a system-themed button (complete with hot highlighting).
+
+.. image:: images/button-states.png
+
+When the user clicks on a button, the `ObjectListView` will trigger a `ButtonClicked` event::
+
+    this.olv.ButtonClick += delegate(object sender, CellClickEventArgs e) {
+        Debug.WriteLine(String.Format("Button clicked: ({0}, {1}, {2})", e.RowIndex, e.SubItem, e.Model));
+
+        // Take some action on e.Model based on which button (e.ColumnIndex) was clicked
+
+        // ...
+
+        // If something about the object changed, you probably want to refresh the model
+        this.olv.RefreshObject(e.Model);
+    };
+
+Button sizing
+^^^^^^^^^^^^^
+
+Buttons can either be fixed size, cell sized or resized to match their text. This is control by
+the `ButtonSizing` property:
+
+* `ButtonSizingMode.FixedBounds` -- Each button will be the same size, as set by `ButtonSize` property.
+
+* `ButtonSizingMode.CellBounds` -- Each button will be the size of the cell, inset by `CellPadding`
+
+* `ButtonSizingMode.TextBounds` -- Each button will be resized to hold the contents, expanded by `ButtonPadding`. The size is limited by `ButtonMinWidth` and `ButtonMaxWidth`.
+
+Other bits
+^^^^^^^^^^
+
+If the aspect for a cell is null or empty, no button will be drawn. 
+Use this to produce rows without buttons.
+
+Buttons are normally disabled when the row is disabled. If you want the button to still be clickable,
+even when the row is disabled, set `EnableButtonWhenItemIsDisabled` to `true`.
+
+Buttons are drawn using instances of `ColumnButtonRenderer`. You can create your own subclass of this and
+install it as the `Renderer` for the column to draw buttons as you want. You have to install your renderer
+*before* setting `IsButton` to `true`, otherwise your renderer may not be correctly configured.
+
+
+.. _recipe-cpu-onmousemove:
+
+53. How can I reduce the CPU usage on mouse move?
+-------------------------------------------------
+
+   *When I move the mouse back and forth quickly over the control, the CPU usage
+   jumps to about 8%! What's that all about and how can I stop it?*
+
+This CPU usge is caused by "hot" items -- things that look different when the mouse is over them. 
+Things like hot rows, or hyperlinks, or inline checkboxes and buttons.
+For ObjectListView to handle "hot" items, whenever the mouse moves to a new point, the
+control has to:
+
+1. figure out what is the mouse is over now
+2. if the mouse is over something different (or nothing at all), it has to remove the previous hot effect (if any)
+3. if the mouse is over something hot, it has to redraw that thing in a hot state.
+
+Each of these are somewhat expensive operations, but it doesn't normally matter since mouse move
+events are low priority events -- almost idle events.
+
+But if you want to remove this CPU usage, you just have to turn off all "hot" formatting.
+
+* UseHotItem
+* UseHyperlinks
+* UseHotControls
+
+With all these set to *false*, the control will no longer draw anything different when the mouse
+moves over it, but you will save all those CPU cycles.
+
+54. How can I put a description under something that looks like a title?
+------------------------------------------------------------------------
+
+If you want to make something that looks pretty like this, ObjectListView can help:
+
+.. image:: images/described-task-row.png
+
+The format shown in the "Task" column is done via a renderer called a `DecribedTaskRenderer` 
+(not a very elegant name, I admit).
+
+It consists of three parts: the normal `Aspect`, the normal `Image` and a description. The first two
+are setup in the normal way, but the third is done via a property on the renderer `DescriptionAspectName`.
+
+In Use
+------
+
+You will normally have to give the ObjectListView a specific `RowHeight` that allows for both 
+the title and description. This is not auto calculated for you.
+
+The images for the renderer will normally come from specific `ImageList` that contains larger than
+normal icons. You can give this specific `ImageList` to the renderer by setting the `ImageList` property.
+[All renderers can do this, but with a `DescribedTaskRenderer` you will almost always want to have
+larger icons and will need to set the image list explicitly.] 
+
+You can control the color and font of the title (`TitleColor` and `TitleFont`) and description -- guess :).
+
+You can also change the space between the image and the text (`ImageTextSpace`), and between the title and 
+the description (`TitleDescriptionSpace`)
+
+When using a text filter on the `ObjectListView`, both the title and the description will be searched.
+
+
