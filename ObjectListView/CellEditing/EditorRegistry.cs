@@ -23,7 +23,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * If you wish to use this code in a closed source application, please contact phillip_piper@bigfoot.com.
+ * If you wish to use this code in a closed source application, please contact phillip.piper@gmail.com.
  */
 
 using System;
@@ -137,6 +137,16 @@ namespace BrightIdeasSoftware {
         /// <param name="creator">The delegate that will create a control</param>
         public void RegisterFirstChance(EditorCreatorDelegate creator) {
             this.firstChanceCreator = creator;
+        }
+
+        /// <summary>
+        /// Remove the registered handler for the given type
+        /// </summary>
+        /// <remarks>Does nothing if the given type doesn't exist</remarks>
+        /// <param name="type">The type whose registration is to be removed</param>
+        public void Unregister(Type type) {
+            if (this.creatorMap.ContainsKey(type))
+                this.creatorMap.Remove(type);
         }
 
         #endregion
