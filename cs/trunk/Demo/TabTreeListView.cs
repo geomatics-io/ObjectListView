@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
@@ -16,6 +17,7 @@ namespace ObjectListViewDemo
         {
             InitializeComponent();
             this.ListView = treeListView;
+            this.ListView.CellClick += (sender, args) => Debug.WriteLine("CellClicked: {0}", args);
         }
 
         protected override void InitializeTab() {

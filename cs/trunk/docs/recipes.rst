@@ -2291,7 +2291,7 @@ Things like hot rows, or hyperlinks, or inline checkboxes and buttons.
 For ObjectListView to handle "hot" items, whenever the mouse moves to a new point, the
 control has to:
 
-1. figure out what is the mouse is over now
+1. figure out what the mouse is over now
 2. if the mouse is over something different (or nothing at all), it has to remove the previous hot effect (if any)
 3. if the mouse is over something hot, it has to redraw that thing in a hot state.
 

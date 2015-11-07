@@ -5,6 +5,8 @@
  * Date: 20/09/2010 7:42 AM
  *
  * Change log:
+ * v2.9
+ * 2015-10-31  JPP  - Put back sanity check on upper limit of source items
  * 2015-02-02  JPP  - Made CreateColumnsFromSource() only rebuild columns when new ones were added
  * v2.8.1
  * 2014-11-23  JPP  - Honour initial CurrencyManager.Position when setting DataSource.
@@ -525,7 +527,7 @@ namespace BrightIdeasSoftware
             int index = this.CurrencyManager.Position;
 
             // Make sure the index is sane (-1 pops up from time to time)
-            if (index < 0)
+            if (index < 0 || index >= this.ListView.GetItemCount())
                 return;
 
             // Avoid recursion. If we are currently changing the index, don't

@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Bright Ideas Software")]
 [assembly: AssemblyProduct("ObjectListViewDemo")]
-[assembly: AssemblyCopyright("Copyright 2006-2014 All Rights Reserved")]
+[assembly: AssemblyCopyright("Copyright 2006-2015 All Rights Reserved")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -28,6 +28,6 @@ using System.Runtime.InteropServices;
 // You can specify all values by your own or you can build default build and revision
 // numbers with the '*' character (the default):
 
-[assembly: AssemblyVersion("2.8.1.*")]
-[assembly: AssemblyFileVersionAttribute("2.8.1")]
+[assembly: AssemblyVersion("2.9.0.*")]
+[assembly: AssemblyFileVersionAttribute("2.9.0")]
 [assembly: System.CLSCompliant(true)]
