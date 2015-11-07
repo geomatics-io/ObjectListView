@@ -7,8 +7,8 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
-August 2015 - Version 2.9.0
----------------------------
+November 2015 - Version 2.9.0
+-----------------------------
 
 New features
 ^^^^^^^^^^^^
@@ -35,7 +35,9 @@ Large-ish Improvements
   See "Pretty Tasks" tab in the demo.
 * Lists are now owner drawn by default. About one-quarter of all complaints I receive are
   from someone trying to use a feature that only works when `OwnerDraw` is true.
-  This allows all the great features of ObjectListView to work correctly at the slight cost of more processing at render time. It also avoids the annoying "hot item background ignored in column 0" behaviour that the native ListView has. You can still set it back to *false* if you wish. 
+  This allows all the great features of ObjectListView to work correctly at the slight cost of 
+  more processing at render time. It also avoids the annoying "hot item background ignored 
+  in column 0" behaviour that the native ListView has. You can still set it back to *false* if you wish. 
 
 
 Small improvments
@@ -62,6 +64,7 @@ Bug fixes
 * Setting `View` to `LargeIcon` in the designer is now persisted
 * Check more rigourously for a dead control when performing animations
 * Corrected small UI glitch in `TreeListView` when focus was lost and `HideSelection` was *false*.
+
 
 November 2014 - Version 2.8.1
 -----------------------------

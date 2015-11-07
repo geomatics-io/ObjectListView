@@ -324,6 +324,9 @@ namespace BrightIdeasSoftware
             if (i < 0)
                 return;
 
+            if (ReferenceEquals(this.fullObjectList[i], modelObject))
+                return;
+
             this.fullObjectList[i] = modelObject;
             this.filteredObjectList[index] = modelObject;
             this.objectsToIndexMap[modelObject] = index;
