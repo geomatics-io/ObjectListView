@@ -23,7 +23,7 @@
  *                    The last strategy (fake right click) worked, but had nasty side effects. This one works
  *                    by intercepting a HITTEST message so that it fails. It no longer creates fake right mouse events.
  *                  - Trigger SelectionChanged when filter is changed
- * 2015-06-23  JPP  - Added support for Buttons
+ * 2015-06-23  JPP  - [BIG] Added support for Buttons
  * 2015-06-22  JPP  - Added OLVColumn.SearchValueGetter to allow the text used when text filtering to be customised
  *                  - The default DefaultRenderer is now a HighlightTextRenderer, since that seems more generally useful
  * 2015-06-17  JPP  - Added FocusedObject property
@@ -7367,7 +7367,7 @@ namespace BrightIdeasSoftware
             if (column == null)
                 return;
 
-            ChangeHeaderCheckBoxState(column, CheckState.Unchecked);
+            ChangeHeaderCheckBoxState(column, CheckState.Checked);
         }
 
         /// <summary>

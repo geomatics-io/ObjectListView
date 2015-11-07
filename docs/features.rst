@@ -465,8 +465,8 @@ A normal `ListView` triggers mouse events for the list as a whole.
 to easily know what the user clicked (or what the mouse is over), and
 then react appropriately.
 
-Header checkboxes
------------------
+Header check boxes
+------------------
 
 Each column header can show a checkbox. Checking or uncheckeding this checkbox
 can change the checkedness of all checkboxes in the column.
@@ -538,7 +538,7 @@ INotifyPropertyChanged support
 
 Yet more slothful!
 
-If you set `UseNotifyPropertyChanged`, then `ObjectListView` will listen
+If you set `UseNotifyPropertyChanged` to *true*, then `ObjectListView` will listen
 for changes on your model classes, and automatically update the rows when
 properties on the model classes changed.
 
