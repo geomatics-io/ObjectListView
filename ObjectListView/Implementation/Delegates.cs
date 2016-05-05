@@ -5,9 +5,12 @@
  * Date: 31-March-2011 5:53 pm
  *
  * Change log:
+ * v2.10
+ * 2015-12-30  JPP  - Added CellRendererGetterDelegate
+ * v2.?
  * 2011-03-31  JPP  - Split into its own file
  * 
- * Copyright (C) 2011-2014 Phillip Piper
+ * Copyright (C) 2011-2015 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,8 +29,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
 
@@ -90,6 +91,11 @@ namespace BrightIdeasSoftware {
     public delegate bool BooleanCheckStatePutterDelegate(Object rowObject, bool newValue);
 
     /// <summary>
+    /// These delegates are used to get the renderer for a particular cell
+    /// </summary>
+    public delegate IRenderer CellRendererGetterDelegate(Object rowObject, OLVColumn column);
+
+    /// <summary>
     /// The callbacks for RightColumnClick events
     /// </summary>
     public delegate void ColumnRightClickEventHandler(object sender, ColumnClickEventArgs e);
@@ -120,7 +126,7 @@ namespace BrightIdeasSoftware {
     /// These delegates are used to get the tooltip for a column header
     /// </summary>
     public delegate String HeaderToolTipGetterDelegate(OLVColumn column);
-
+        
     /// <summary>
     /// These delegates are used to fetch the image selector that should be used
     /// to choose an image for this column.
