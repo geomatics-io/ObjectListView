@@ -249,7 +249,7 @@ namespace BrightIdeasSoftware {
         /// </summary>
         protected OLVListItem ItemBeingEdited {
             get {
-                return this.ListView.CellEditEventArgs.ListViewItem;
+                return (this.ListView == null || this.ListView.CellEditEventArgs == null) ? null : this.ListView.CellEditEventArgs.ListViewItem;
             }
         }
 
@@ -258,7 +258,7 @@ namespace BrightIdeasSoftware {
         /// </summary>
         protected int SubItemIndexBeingEdited {
             get {
-                return this.ListView.CellEditEventArgs.SubItemIndex;
+                return (this.ListView == null || this.ListView.CellEditEventArgs == null) ? -1 : this.ListView.CellEditEventArgs.SubItemIndex;
             }
         }
 

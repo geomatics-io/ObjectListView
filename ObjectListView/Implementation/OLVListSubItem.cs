@@ -140,11 +140,22 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// Gets or sets the url that should be invoked when this subitem is clicked
         /// </summary>
-        public string Url {
+        public string Url
+        {
             get { return this.url; }
             set { this.url = value; }
         }
         private string url;
+
+        /// <summary>
+        /// Gets or sets whether this cell is selected
+        /// </summary>
+        public bool Selected
+        {
+            get { return this.selected; }
+            set { this.selected = value; }
+        }
+        private bool selected;
 
         #endregion
 

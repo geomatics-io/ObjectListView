@@ -5,6 +5,10 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * v2.9.1
+ * 2015-12-30  JPP  - Added CellRendererGetter to allow each cell to have a different renderer.
+ *                  - Obsolete properties are no longer code-gen'ed.
+ *
  * v2.9.0
  * 2015-08-22  JPP  - Allow selected row back/fore colours to be specified for each row
  *                  - Renamed properties related to selection colours:
@@ -548,7 +552,7 @@
  * TO DO:
  * - Support undocumented group features: subseted groups, group footer items
  *
- * Copyright (C) 2006-2015 Phillip Piper
+ * Copyright (C) 2006-2016 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1035,7 +1039,7 @@ namespace BrightIdeasSoftware
             get { return cellEditUseWholeCell; }
             set { cellEditUseWholeCell = value; }
         }
-        private bool cellEditUseWholeCell = false;
+        private bool cellEditUseWholeCell;
 
         /// <summary>
         /// Gets or sets the engine that will handle key presses during a cell edit operation.
@@ -1409,6 +1413,17 @@ namespace BrightIdeasSoftware
             set { this.defaultRenderer = value ?? new HighlightTextRenderer(); }
         }
         private IRenderer defaultRenderer = new HighlightTextRenderer();
+
+        /// <summary>
+        /// Get the renderer to be used to draw the given cell.
+        /// </summary>
+        /// <param name="model">The row model for the row</param>
+        /// <param name="column">The column to be drawn</param>
+        /// <returns>The renderer used for drawing a cell. Must not return null.</returns>
+        public IRenderer GetCellRenderer(object model, OLVColumn column) {
+            IRenderer renderer = this.CellRendererGetter == null ? null : this.CellRendererGetter(model, column);
+            return renderer ?? column.Renderer ?? this.DefaultRenderer;
+        }
 
         /// <summary>
         /// Gets or sets the style that will be applied to disabled items.
@@ -2141,29 +2156,33 @@ namespace BrightIdeasSoftware
             }
         }
 
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [Obsolete("Use SelectedBackColor instead")]
         public virtual Color HighlightBackgroundColor { get { return this.SelectedBackColor; } set { this.SelectedBackColor = value; } }
 
         [Obsolete("Use SelectedBackColorOrDefault instead")]
         public virtual Color HighlightBackgroundColorOrDefault { get { return this.SelectedBackColorOrDefault; } }
 
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [Obsolete("Use SelectedForeColor instead")]
         public virtual Color HighlightForegroundColor { get { return this.SelectedForeColor; } set { this.SelectedForeColor = value; } }
 
         [Obsolete("Use SelectedForeColorOrDefault instead")]
         public virtual Color HighlightForegroundColorOrDefault { get { return this.SelectedForeColorOrDefault; } }
 
-//        [Obsolete("Use UnfocusedSelectedBackColor instead")]
-//        public virtual Color UnfocusedHighlightBackgroundColor { get { return this.UnfocusedSelectedBackColor; } set { this.UnfocusedSelectedBackColor = value; } }
-//
-//        [Obsolete("Use UnfocusedSelectedBackColorOrDefault instead")]
-//        public virtual Color UnfocusedHighlightBackgroundColorOrDefault { get { return this.UnfocusedSelectedBackColorOrDefault; } }
-//
-//        [Obsolete("Use UnfocusedSelectedForeColor instead")]
-//        public virtual Color UnfocusedHighlightForegroundColor { get { return this.UnfocusedSelectedForeColor; } set { this.UnfocusedSelectedForeColor = value; } }
-//
-//        [Obsolete("Use UnfocusedSelectedForeColorOrDefault instead")]
-//        public virtual Color UnfocusedHighlightForegroundColorOrDefault { get { return this.UnfocusedSelectedForeColorOrDefault; } }
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [Obsolete("Use UnfocusedSelectedBackColor instead")]
+        public virtual Color UnfocusedHighlightBackgroundColor { get { return this.UnfocusedSelectedBackColor; } set { this.UnfocusedSelectedBackColor = value; } }
+
+        [Obsolete("Use UnfocusedSelectedBackColorOrDefault instead")]
+        public virtual Color UnfocusedHighlightBackgroundColorOrDefault { get { return this.UnfocusedSelectedBackColorOrDefault; } }
+
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [Obsolete("Use UnfocusedSelectedForeColor instead")]
+        public virtual Color UnfocusedHighlightForegroundColor { get { return this.UnfocusedSelectedForeColor; } set { this.UnfocusedSelectedForeColor = value; } }
+
+        [Obsolete("Use UnfocusedSelectedForeColorOrDefault instead")]
+        public virtual Color UnfocusedHighlightForegroundColorOrDefault { get { return this.UnfocusedSelectedForeColorOrDefault; } }
 
         /// <summary>
         /// Gets or sets whether or not hidden columns should be included in the text representation
@@ -3373,6 +3392,7 @@ namespace BrightIdeasSoftware
          DefaultValue(false)]
         public bool UseCustomSelectionColors {
             get { return false; }
+            // ReSharper disable once ValueParameterNotUsed
             set { }
         }
 
@@ -3721,6 +3741,27 @@ namespace BrightIdeasSoftware
             set { this.canUseApplicationIdle = value; }
         }
         private bool canUseApplicationIdle = true;
+
+        /// <summary>
+        /// This delegate fetches the renderer for a particular cell. 
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If this returns null (or is not installed), the renderer for the column will be used.
+        /// If the column renderer is null, then <seealso cref="DefaultRenderer"/> will be used.
+        /// </para>
+        /// <para>
+        /// This is called every time any cell is drawn. It must be efficient! 
+        /// </para>
+        /// </remarks>
+        [Browsable(false),
+        DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public virtual CellRendererGetterDelegate CellRendererGetter
+        {
+            get { return this.cellRendererGetter; }
+            set { this.cellRendererGetter = value; }
+        }
+        private CellRendererGetterDelegate cellRendererGetter;
 
         /// <summary>
         /// This delegate is called when the list wants to show a tooltip for a particular cell.
@@ -4229,7 +4270,7 @@ namespace BrightIdeasSoftware
                     this.TopItemIndex = previousTopIndex;
             }
 
-            System.Diagnostics.Debug.WriteLine(String.Format("PERF - Building list for {2} objects took {0}ms / {1} ticks", sw.ElapsedMilliseconds, sw.ElapsedTicks, this.GetItemCount()));
+            // System.Diagnostics.Debug.WriteLine(String.Format("PERF - Building list for {2} objects took {0}ms / {1} ticks", sw.ElapsedMilliseconds, sw.ElapsedTicks, this.GetItemCount()));
         }
 
         /// <summary>
@@ -4909,7 +4950,9 @@ namespace BrightIdeasSoftware
                 return;
 
             // Which renderer was responsible for drawing that point
-            IRenderer renderer = this.View == View.Details ? (hti.Column.Renderer ?? this.DefaultRenderer) : this.ItemRenderer;
+            IRenderer renderer = this.View == View.Details
+                ? this.GetCellRenderer(hti.RowObject, hti.Column)
+                : this.ItemRenderer;
 
             // We can't decide who was responsible. Give up
             if (renderer == null)
@@ -9039,12 +9082,14 @@ namespace BrightIdeasSoftware
                 return;
             }
 
+            object rowObject = ((OLVListItem)e.Item).RowObject;
+
             // Calculate where the subitem should be drawn
             Rectangle r = e.Bounds;
 
             // Get the special renderer for this column. If there isn't one, use the default draw mechanism.
             OLVColumn column = this.GetColumn(e.ColumnIndex);
-            IRenderer renderer = column.Renderer ?? this.DefaultRenderer;
+            IRenderer renderer = this.GetCellRenderer(rowObject, column);
 
             // Get a graphics context for the renderer to use.
             // But we have more complications. Virtual lists have a nasty habit of drawing column 0
@@ -9060,7 +9105,7 @@ namespace BrightIdeasSoftware
             g.SmoothingMode = ObjectListView.SmoothingMode;
 
             // Finally, give the renderer a chance to draw something
-            e.DrawDefault = !renderer.RenderSubItem(e, g, r, ((OLVListItem)e.Item).RowObject);
+            e.DrawDefault = !renderer.RenderSubItem(e, g, r, rowObject);
 
             if (!e.DrawDefault)
                 buffer.Render();
@@ -9507,7 +9552,7 @@ namespace BrightIdeasSoftware
         /// <returns>A rectangle that is the bounds of the cell editor</returns>
         protected Rectangle CalculateCellEditorBoundsOwnerDrawn(OLVListItem item, int subItemIndex, Rectangle r, Size preferredSize) {
             IRenderer renderer = this.View == View.Details
-                ? (this.GetColumn(subItemIndex).Renderer ?? this.DefaultRenderer)
+                ? this.GetCellRenderer(item.RowObject, this.GetColumn(subItemIndex))
                 : this.ItemRenderer;
 
             if (renderer == null)
