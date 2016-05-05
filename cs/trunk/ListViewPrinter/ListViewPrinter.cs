@@ -1178,7 +1178,6 @@ namespace BrightIdeasSoftware
         {
         }
 
-#if !WITHOUT_OBJECTLISTVIEW
         /// <summary>
         /// Get the nth item from the given listview, which is in virtual mode.
         /// </summary>
@@ -1237,10 +1236,11 @@ namespace BrightIdeasSoftware
                 return;
             }
 
+            // Decide which renderer should be used for drawing the cell
+            ObjectListView listView = (ObjectListView)lv;
             OLVColumn olvc = (OLVColumn)this.GetColumn(column);
-            BaseRenderer renderer = olvc.Renderer as BaseRenderer;
-            if (renderer == null) 
-                renderer = ((ObjectListView)lv).DefaultRenderer as BaseRenderer;
+            OLVListItem olvItem = (OLVListItem)lvi;
+            BaseRenderer renderer = listView.GetCellRenderer(olvItem.RowObject, olvc) as BaseRenderer;
 
             // We couldn't find a renderer we could use. Just use the default rendering
             if (renderer == null) {
@@ -1248,15 +1248,16 @@ namespace BrightIdeasSoftware
                 return;
             }
 
+            // Configure the renderer
             renderer.IsPrinting = true;
             renderer.Aspect = null;
             renderer.Column = olvc;
             renderer.IsItemSelected = false;
             renderer.Font = this.CellFormat.Font;
             renderer.TextBrush = this.CellFormat.TextBrush;
-            renderer.ListItem = (OLVListItem)lvi;
-            renderer.ListView = (ObjectListView)lv;
-            renderer.RowObject = ((OLVListItem)lvi).RowObject;
+            renderer.ListItem = olvItem;
+            renderer.ListView = listView;
+            renderer.RowObject = olvItem.RowObject;
             renderer.SubItem = (OLVListSubItem)this.GetSubItem(lvi, column);
             renderer.CanWrap = this.CellFormat.CanWrap;
 
@@ -1274,7 +1275,6 @@ namespace BrightIdeasSoftware
 
             renderer.IsPrinting = false;
         }
-#endif
     }
 
     /// <summary>
