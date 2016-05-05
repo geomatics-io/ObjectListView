@@ -2327,7 +2327,8 @@ You will normally have to give the ObjectListView a specific `RowHeight` that al
 the title and description. This is not auto calculated for you.
 
 The images for the renderer will normally come from specific `ImageList` that contains larger than
-normal icons. You can give this specific `ImageList` to the renderer by setting the `ImageList` property.
+normal icons. You can give this specific `ImageList` to the renderer by setting the 
+`DescribedTaskRenderer.ImageList` property.
 [All renderers can do this, but with a `DescribedTaskRenderer` you will almost always want to have
 larger icons and will need to set the image list explicitly.] 
 
