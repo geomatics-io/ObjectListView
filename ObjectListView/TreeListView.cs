@@ -5,6 +5,8 @@
  * Date: 23/09/2008 11:15 AM
  * 
  * Change log:
+ * v2.9.2
+ * 2016-06-02  JPP  - Added bounds check to GetNthObject().
  * v2.9
  * 2015-08-02  JPP  - Fixed buy with hierarchical checkboxes where setting the checkedness of a deeply
  *                    nested object would sometimes not correctly calculate the changes in the hierarchy. SF #150.
@@ -39,7 +41,7 @@
  *                    If some children are checked and some are not, the parent is indeterminate.
  * v2.6
  * 2012-10-25  JPP  - Circumvent annoying issue in ListView control where changing
- *                    selection would leave artifacts on the control.
+ *                    selection would leave artefacts on the control.
  * 2012-08-10  JPP  - Don't trigger selection changed events during expands
  * 
  * v2.5.1
@@ -396,7 +398,7 @@ namespace BrightIdeasSoftware
 
         /// <summary>
         /// After expanding a branch, should the TreeListView attempts to show as much of the 
-        /// revealed descendents as possible.
+        /// revealed descendants as possible.
         /// </summary>
         [Category("ObjectListView"),
          Description("Should the parent of an expand subtree be scrolled to the top revealing the children?"),
@@ -633,9 +635,9 @@ namespace BrightIdeasSoftware
                 try {
                     int countPerPage = NativeMethods.GetCountPerPage(this);
                     int descedentCount = this.TreeModel.GetVisibleDescendentCount(model);
-                    // If all of the descendents can be shown in the window, make sure that last one is visible.
-                    // If all the descendents can't fit into the window, move the model to the top of the window
-                    // (which will show as many of the descendents as possible)
+                    // If all of the descendants can be shown in the window, make sure that last one is visible.
+                    // If all the descendants can't fit into the window, move the model to the top of the window
+                    // (which will show as many of the descendants as possible)
                     if (descedentCount < countPerPage) {
                         this.EnsureVisible(index + descedentCount);
                     } else {
@@ -994,7 +996,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Reinitialize the Tree structure
+        /// Reinitialise the Tree structure
         /// </summary>
         protected virtual void RegenerateTree() {
             this.TreeModel = this.TreeFactory == null ? new Tree(this) : this.TreeFactory(this);
@@ -1339,7 +1341,7 @@ namespace BrightIdeasSoftware
                 int count = br.NumberVisibleDescendents;
                 br.Collapse();
 
-                // Remove the visible descendents from after the branch itself
+                // Remove the visible descendants from after the branch itself
                 int index = this.GetObjectIndex(model);
                 this.objectList.RemoveRange(index + 1, count);
                 this.RebuildObjectMap(0);
@@ -1408,10 +1410,10 @@ namespace BrightIdeasSoftware
             }
 
             /// <summary>
-            /// Return the number of visible descendents that are below the given model.
+            /// Return the number of visible descendants that are below the given model.
             /// </summary>
             /// <param name="model">The model whose descendent count is to be returned</param>
-            /// <returns>The number of visible descendents. 0 if the model doesn't exist or is collapsed</returns>
+            /// <returns>The number of visible descendants. 0 if the model doesn't exist or is collapsed</returns>
             public virtual int GetVisibleDescendentCount(object model)
             {
                 Branch br = this.GetBranch(model);
@@ -1430,7 +1432,7 @@ namespace BrightIdeasSoftware
 
                 int count = br.NumberVisibleDescendents;
 
-                // Remove the visible descendents from after the branch itself
+                // Remove the visible descendants from after the branch itself
                 int index = this.GetObjectIndex(model);
                 if (count > 0)
                     this.objectList.RemoveRange(index + 1, count);
@@ -1489,7 +1491,7 @@ namespace BrightIdeasSoftware
                 br.Expand();
                 br.Sort(this.GetBranchComparer());
 
-                // Insert the branch's visible descendents after the branch itself
+                // Insert the branch's visible descendants after the branch itself
                 this.objectList.InsertRange(index, br.Flatten());
                 this.RebuildObjectMap(index);
             }
@@ -1543,7 +1545,9 @@ namespace BrightIdeasSoftware
             /// <param name="n"></param>
             /// <returns></returns>
             public virtual object GetNthObject(int n) {
-                return this.objectList[n];
+                if (n >= 0 && n < this.objectList.Count)
+                    return this.objectList[n];
+                return null;
             }
 
             /// <summary>
@@ -1975,7 +1979,7 @@ namespace BrightIdeasSoftware
             private Object model;
 
             /// <summary>
-            /// Return the number of descendents of this branch that are currently visible
+            /// Return the number of descendants of this branch that are currently visible
             /// </summary>
             /// <returns></returns>
             public virtual int NumberVisibleDescendents {
@@ -2104,7 +2108,7 @@ namespace BrightIdeasSoftware
             }
 
             /// <summary>
-            /// Collapse the visible descendents of this branch into list of model objects
+            /// Collapse the visible descendants of this branch into list of model objects
             /// </summary>
             /// <returns></returns>
             public virtual IList Flatten() {
@@ -2115,7 +2119,7 @@ namespace BrightIdeasSoftware
             }
 
             /// <summary>
-            /// Flatten this branch's visible descendents onto the given list.
+            /// Flatten this branch's visible descendants onto the given list.
             /// </summary>
             /// <param name="flatList"></param>
             /// <remarks>The branch itself is <b>not</b> included in the list.</remarks>
@@ -2152,7 +2156,7 @@ namespace BrightIdeasSoftware
             }
 
             /// <summary>
-            /// Sort the sub-branches and their descendents so they are ordered according
+            /// Sort the sub-branches and their descendants so they are ordered according
             /// to the given comparer.
             /// </summary>
             /// <param name="comparer">The comparer that orders the branches</param>
