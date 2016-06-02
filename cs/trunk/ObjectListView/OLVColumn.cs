@@ -371,7 +371,7 @@ namespace BrightIdeasSoftware {
         /// If this is null, a useful default will be chosen. 
         /// </para>
         /// <para>
-        /// To disable filtering on this colummn, set UseFiltering to false.
+        /// To disable filtering on this column, set UseFiltering to false.
         /// </para>
         /// <para>
         /// Cluster strategies belong to a particular column. The same instance
@@ -440,7 +440,7 @@ namespace BrightIdeasSoftware {
         /// </para>
         /// <para>
         /// A space filling column is resized to occupy a proportion of the unoccupied width of the listview (the
-        /// unoccupied width is the width left over once all the the non-filling columns have been given their space).
+        /// unoccupied width is the width left over once all the non-filling columns have been given their space).
         /// This property indicates the relative proportion of that unoccupied space that will be given to this column.
         /// The actual value of this property is not important -- only its value relative to the value in other columns.
         /// For example:
@@ -528,7 +528,7 @@ namespace BrightIdeasSoftware {
 
         /// <summary>
         /// When the listview is grouped by this column and group title has an item count,
-        /// how should the lable be formatted?
+        /// how should the label be formatted?
         /// </summary>
         /// <remarks>
         /// The given format string can/should have two placeholders:
@@ -565,7 +565,7 @@ namespace BrightIdeasSoftware {
                     return cachedGroupWithItemCountFormat;
                 }
 
-                // There is one rare but pathelogically possible case where the ListView can
+                // There is one rare but pathologically possible case where the ListView can
                 // be null (if the column is grouping a ListView, but is not one of the columns
                 // for that ListView) so we have to provide a workable default for that rare case.
                 return cachedGroupWithItemCountFormat ?? "{0} [{1} items]";
@@ -575,7 +575,7 @@ namespace BrightIdeasSoftware {
 
         /// <summary>
         /// When the listview is grouped by this column and a group title has an item count,
-        /// how should the lable be formatted if there is only one item in the group?
+        /// how should the label be formatted if there is only one item in the group?
         /// </summary>
         /// <remarks>
         /// The given format string can/should have two placeholders:
@@ -612,7 +612,7 @@ namespace BrightIdeasSoftware {
                     return cachedGroupWithItemCountSingularFormat;
                 }
 
-                // There is one rare but pathelogically possible case where the ListView can
+                // There is one rare but pathologically possible case where the ListView can
                 // be null (if the column is grouping a ListView, but is not one of the columns
                 // for that ListView) so we have to provide a workable default for that rare case.
                 return cachedGroupWithItemCountSingularFormat ?? "{0} [{1} item]";
@@ -697,7 +697,7 @@ namespace BrightIdeasSoftware {
         }
 
         /// <summary>
-        /// Gets or sets whether the text values in this column will act like hyperlinks
+        /// Gets or sets the ImageList key of the image that will be drawn in the header of this column.
         /// </summary>
         /// <remarks>This is only taken into account when HeaderUsesThemes is false.</remarks>
         [Category("ObjectListView"),
@@ -822,7 +822,7 @@ namespace BrightIdeasSoftware {
         /// </para>
         /// </remarks>
         [Category("ObjectListView"),
-         Description("Update row checkboxs when the header checkbox is clicked by the user"),
+         Description("Update row checkboxes when the header checkbox is clicked by the user"),
          DefaultValue(true)]
         public bool HeaderCheckBoxUpdatesRowCheckBoxes {
             get { return headerCheckBoxUpdatesRowCheckBoxes; }
@@ -1274,7 +1274,7 @@ namespace BrightIdeasSoftware {
         private HorizontalAlignment? textAlign;
 
         /// <summary>
-        /// Gets the StringAlignment equivilent of the column text alignment
+        /// Gets the StringAlignment equivalent of the column text alignment
         /// </summary>
         [Browsable(false)]
         public StringAlignment TextStringAlign {
