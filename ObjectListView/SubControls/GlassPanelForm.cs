@@ -10,7 +10,7 @@
  * v2.4
  * 2010-03-11   JPP  - Work correctly in MDI applications -- more or less. Actually, less than more.
  *                     They don't crash but they don't correctly handle overlapping MDI children.
- *                     Overlays from one control are shown on top of other other windows.
+ *                     Overlays from one control are shown on top of the other windows.
  * 2010-03-09   JPP  - Correctly Unbind() when the related ObjectListView is disposed.
  * 2009-10-28   JPP  - Use FindForm() rather than TopMostControl, since the latter doesn't work
  *                     as I expected when the OLV is part of an MDI child window. Thanks to
@@ -126,7 +126,7 @@ namespace BrightIdeasSoftware
             this.objectListView.VisibleChanged += new EventHandler(objectListView_VisibleChanged);
             this.objectListView.ParentChanged += new EventHandler(objectListView_ParentChanged);
 
-            // Collect our ancestors in the widget hierachy
+            // Collect our ancestors in the widget hierarchy
             if (this.ancestors == null)
                 this.ancestors = new List<Control>();
             Control parent = this.objectListView.Parent;
@@ -135,7 +135,7 @@ namespace BrightIdeasSoftware
                 parent = parent.Parent;
             } 
 
-            // Listen for changes in the hierachy
+            // Listen for changes in the hierarchy
             foreach (Control ancestor in this.ancestors) {
                 ancestor.ParentChanged += new EventHandler(objectListView_ParentChanged);
                 TabControl tabControl = ancestor as TabControl;
