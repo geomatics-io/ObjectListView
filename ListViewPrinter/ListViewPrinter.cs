@@ -355,7 +355,7 @@ namespace BrightIdeasSoftware
         /// What pen will be used to draw the cells within the list?
         /// If this is null, no grid will be drawn
         /// </summary>
-        /// <remarks>This is just a conviencence wrapper around CellFormat.SetBorderPen</remarks>
+        /// <remarks>This is just a convenience wrapper around CellFormat.SetBorderPen</remarks>
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Pen ListGridPen
         {
@@ -558,7 +558,7 @@ namespace BrightIdeasSoftware
 
         /// <summary>
         /// Return the i'th subitem of the given row, in the order 
-        /// that coumns are presented in the report
+        /// that columns are presented in the report
         /// </summary>
         /// <param name="lvi">The row from which a subitem is to be fetched</param>
         /// <param name="i">The index of the subitem in display order</param>
@@ -926,7 +926,7 @@ namespace BrightIdeasSoftware
                 if (this.currentOrigin.Y + rowHeight > this.listBounds.Bottom)
                     break;
 
-                // If we are printing group and there is a group begining at the current position,
+                // If we are printing group and there is a group beginning at the current position,
                 // print it so long as the group header and at least one following row will fit on the page
                 if (this.IsShowingGroups) {
                     int groupIndex = this.GetGroupAtPosition(this.rowIndex);
@@ -1125,7 +1125,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// What color will all the borders be drawn in? 
         /// </summary>
-        /// <remarks>This is just a conviencence wrapper around ListGridPen</remarks>
+        /// <remarks>This is just a convenience wrapper around ListGridPen</remarks>
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Obsolete("Use ListGridPen instead")]
         public Color ListGridColor
         {
@@ -1536,11 +1536,11 @@ namespace BrightIdeasSoftware
 
         #endregion
 
-        #region Compatibilty
+        #region Compatibility
 
         /// <summary>
         /// What color will be used to draw the background?
-        /// This is a convience method used by the IDE.
+        /// This is a convenience method used by the IDE.
         /// </summary>
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Obsolete("Use BackgroundBrush instead")] 
         public Color BackgroundColor
@@ -1560,7 +1560,7 @@ namespace BrightIdeasSoftware
 
         /// <summary>
         /// What color will be used to draw the text?
-        /// This is a convience method. Programmers should call TextBrush directly.
+        /// This is a convenience method. Programmers should call TextBrush directly.
         /// </summary>
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Color TextColor
@@ -1796,7 +1796,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Calculate how height this block will be when its printed on one line
         /// </summary>
-        /// <param name="g">The Graphic to use for renderering</param>
+        /// <param name="g">The Graphic to use for rendering</param>
         /// <returns></returns>
         public float CalculateHeight(Graphics g)
         {
@@ -1807,7 +1807,7 @@ namespace BrightIdeasSoftware
         /// Calculate how height this block will be when it prints the given string 
         /// to a maximum of the given width
         /// </summary>
-        /// <param name="g">The Graphic to use for renderering</param>
+        /// <param name="g">The Graphic to use for rendering</param>
         /// <param name="s">The string to be considered</param>
         /// <param name="width">The max width for the rendering</param>
         /// <returns>The height that will be used</returns>
@@ -1880,7 +1880,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Apply paddeding and text insets to the given rectangle
+        /// Apply padding and text insets to the given rectangle
         /// </summary>
         /// <param name="cell"></param>
         /// <returns></returns>
