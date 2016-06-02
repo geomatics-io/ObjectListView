@@ -5,13 +5,16 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log: 
+ * v2.9.2
+ * 2016-06-02   JPP  - CalculateImageWidth() no longer adds 2 to the image width
+ * 2016-05-29   JPP  - Fix calculation of cell edit boundaries on TreeListView controls
  * v2.9
  * 2015-08-22   JPP  - Allow selected row back/fore colours to be specified for each row
  * 2015-06-23   JPP  - Added ColumnButtonRenderer plus general support for Buttons
  * 2015-06-22   JPP  - Added BaseRenderer.ConfigureItem() and ConfigureSubItem() to easily allow
  *                     other renderers to be chained for use within a primary renderer.
  *                   - Lots of tightening of hit tests and edit rectangles
- * 2015-05-15   JPP  - Handle renderering an Image when that Image is returned as an aspect.
+ * 2015-05-15   JPP  - Handle rendering an Image when that Image is returned as an aspect.
  * v2.8
  * 2014-09-26   JPP  - Dispose of animation timer in a more robust fashion.
  * 2014-05-20   JPP  - Handle rendering disabled rows
@@ -305,7 +308,7 @@ namespace BrightIdeasSoftware {
         private Rectangle? cellPadding;
 
         /// <summary>
-        /// Gets the horiztonal alignment of the column
+        /// Gets the horizontal alignment of the column
         /// </summary>
         [Browsable(false)]
         public HorizontalAlignment CellHorizontalAlignment
@@ -825,7 +828,7 @@ namespace BrightIdeasSoftware {
         /// <returns></returns>
         protected virtual int CalculateImageWidth(Graphics g, object imageSelector)
         {
-            return this.CalculateImageSize(g, imageSelector).Width + 2;
+            return this.CalculateImageSize(g, imageSelector).Width;
         }
 
         /// <summary>
@@ -909,7 +912,7 @@ namespace BrightIdeasSoftware {
                 return TextRenderer.MeasureText(g, txt, this.Font, proposedSize, NormalTextFormatFlags);
             }
             
-            // Using GDI+ renderering
+            // Using GDI+ rendering
             using (StringFormat fmt = new StringFormat()) {
                 fmt.Trimming = StringTrimming.EllipsisCharacter;
                 SizeF sizeF = g.MeasureString(txt, this.Font, width, fmt);
@@ -1319,7 +1322,7 @@ namespace BrightIdeasSoftware {
             width = this.CalculateImageWidth(g, this.GetImageSelector());
             Rectangle rTwo = r;
             rTwo.Width = width;
-            // g.DrawRectangle(Pens.Red, rTwo);
+            //g.DrawRectangle(Pens.Red, rTwo);
             if (rTwo.Contains(x, y)) {
                 if (this.Column != null && (this.Column.Index > 0 && this.Column.CheckBoxes))
                     hti.HitTestLocation = HitTestLocation.CheckBox;
@@ -1362,12 +1365,12 @@ namespace BrightIdeasSoftware {
             Size checkBoxSize = this.CalculatePrimaryCheckBoxSize(g);
             int imageWidth = this.CalculateImageWidth(g, this.GetImageSelector());
 
-            int width = checkBoxSize.Width + imageWidth;
+            int width = checkBoxSize.Width + imageWidth + 2;
 
             // Indent the primary column by the required amount
-            if (this.ListItem.IndentCount > 0) {
+            if (this.ColumnIsPrimary && this.ListItem.IndentCount > 0) {
                 int indentWidth = this.ListView.SmallImageSize.Width * this.ListItem.IndentCount;
-                width += indentWidth;
+                editControlBounds.X += indentWidth;
             }
 
             editControlBounds.X += width;
@@ -3496,7 +3499,7 @@ namespace BrightIdeasSoftware {
         /// Gets or sets the number of pixels that will be left between the image and the text
         /// </summary>
         [Category("ObjectListView"),
-         Description("The number of pixels that that will be left between the image and the text"),
+         Description("The number of pixels that will be left between the image and the text"),
          DefaultValue(4)]
         public int ImageTextSpace
         {
