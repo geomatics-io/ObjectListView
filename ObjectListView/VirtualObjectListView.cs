@@ -101,7 +101,7 @@ namespace BrightIdeasSoftware
     /// </para>
     /// <para>Due to the limits of the underlying Windows control, virtual lists do not trigger ItemCheck/ItemChecked events. 
     /// Use a CheckStatePutter instead.</para>
-    /// <para>To enable grouping, you must provide an implmentation of IVirtualGroups interface, via the GroupingStrategy property.</para>
+    /// <para>To enable grouping, you must provide an implementation of IVirtualGroups interface, via the GroupingStrategy property.</para>
     /// <para>Similarly, to enable filtering on the list, your VirtualListDataSource must also implement the IFilterableDataSource interface.</para>
     /// </remarks>
     public class VirtualObjectListView : ObjectListView
@@ -130,7 +130,7 @@ namespace BrightIdeasSoftware
         #region Public Properties
 
         /// <summary>
-        /// Gets whether or not this listview is capabale of showing groups
+        /// Gets whether or not this listview is capable of showing groups
         /// </summary>
         [Browsable(false)]
         public override bool CanShowGroups {
@@ -144,7 +144,7 @@ namespace BrightIdeasSoftware
         /// Get or set the collection of model objects that are checked.
         /// When setting this property, any row whose model object isn't
         /// in the given collection will be unchecked. Setting to null is
-        /// equivilent to unchecking all.
+        /// equivalent to unchecking all.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -617,7 +617,7 @@ namespace BrightIdeasSoftware
         /// <para>Nulls and model objects that are not in the ListView are silently ignored.</para>
         /// <para>Due to problems in the underlying ListView, if you remove all the objects from
         /// the control using this method and the list scroll vertically when you do so,
-        /// then when you subsequenially add more objects to the control,
+        /// then when you subsequently add more objects to the control,
         /// the vertical scroll bar will become confused and the control will draw one or more
         /// blank lines at the top of the list. </para>
         /// </remarks>
@@ -1111,7 +1111,7 @@ namespace BrightIdeasSoftware
         /// <para>
         /// This method
         /// separates the 'objects' instance variable from its source, so that any AddObject/RemoveObject
-        /// calls will modify our collection and not the original colleciton.
+        /// calls will modify our collection and not the original collection.
         /// </para>
         /// <para>
         /// VirtualObjectListViews always own their collections, so this is a no-op.
@@ -1190,7 +1190,7 @@ namespace BrightIdeasSoftware
         /// <param name="e"></param>
         protected virtual void HandleSearchForVirtualItem(object sender, SearchForVirtualItemEventArgs e) {
             // The event has e.IsPrefixSearch, but as far as I can tell, this is always false (maybe that's different under Vista)
-            // So we ignore IsPrefixSearch and IsTextSearch and always to a case insensitve prefix match.
+            // So we ignore IsPrefixSearch and IsTextSearch and always to a case insensitive prefix match.
 
             // We can't do anything if we don't have a data source
             if (this.VirtualListDataSource == null)
@@ -1232,7 +1232,7 @@ namespace BrightIdeasSoftware
 
         #endregion
 
-        #region Variable declaractions
+        #region Variable declarations
 
         private OLVListItem lastRetrieveVirtualItem;
         private int lastRetrieveVirtualItemIndex = -1;

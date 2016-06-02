@@ -144,7 +144,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// <para>
         /// The test condition for deciding if one row is the parent of another is functionally
-        /// equivilent to this:
+        /// equivalent to this:
         /// <code>
         /// Object.Equals(candidateParentRow[this.KeyAspectName], row[this.ParentKeyAspectName])
         /// </code>
@@ -168,7 +168,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// <para>
         /// The test condition for deciding a root object is functionally
-        /// equivilent to this:
+        /// equivalent to this:
         /// <code>
         /// Object.Equals(candidateRow[this.ParentKeyAspectName], this.RootKeyValue)
         /// </code>
