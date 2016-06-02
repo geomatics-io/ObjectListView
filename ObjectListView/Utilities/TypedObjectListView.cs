@@ -441,7 +441,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// <para>
         /// If you have an AspectName of "Owner.Address.Postcode", this will generate
-        /// the equivilent of: <code>this.AspectGetter = delegate (object x) {
+        /// the equivalent of: <code>this.AspectGetter = delegate (object x) {
         ///     return x.Owner.Address.Postcode;
         /// }
         /// </code>
@@ -500,7 +500,7 @@ namespace BrightIdeasSoftware
         private Type GeneratePart(ILGenerator il, Type type, string pathPart, bool isLastPart) {
             // TODO: Generate check for null
 
-            // Find the first member with the given nam that is a field, property, or parameter-less method
+            // Find the first member with the given name that is a field, property, or parameter-less method
             List<MemberInfo> infos = new List<MemberInfo>(type.GetMember(pathPart));
             MemberInfo info = infos.Find(delegate(MemberInfo x) {
                 if (x.MemberType == MemberTypes.Field || x.MemberType == MemberTypes.Property)

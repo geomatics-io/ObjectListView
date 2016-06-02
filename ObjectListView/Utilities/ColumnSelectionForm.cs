@@ -103,7 +103,7 @@ namespace BrightIdeasSoftware
         private Dictionary<OLVColumn, bool> MapColumnToVisible = new Dictionary<OLVColumn, bool>();
 
         /// <summary>
-        /// The user has pressed OK. Do what's requied.
+        /// The user has pressed OK. Do what's required.
         /// </summary>
         /// <param name="olv"></param>
         /// <param name="view"></param>
