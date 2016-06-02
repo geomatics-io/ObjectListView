@@ -124,7 +124,7 @@ namespace BrightIdeasSoftware
 
     /// <summary>
     /// Instances of this class specify how should "hot items" (non-selected
-    /// rows under the cursor) be renderered.
+    /// rows under the cursor) be rendered.
     /// </summary>
     public class HotItemStyle : SimpleItemStyle
     {
