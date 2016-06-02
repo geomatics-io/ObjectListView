@@ -370,7 +370,7 @@ namespace BrightIdeasSoftware
 
         #endregion
 
-        #region Implementation utlities
+        #region Implementation utilities
 
         /// <summary>
         /// Do the actual work of drawing the filled border

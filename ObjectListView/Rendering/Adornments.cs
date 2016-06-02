@@ -14,7 +14,7 @@
  *
  * To do:
  * - Use IPointLocator rather than Corners
- * - Add RotationCenter property ratherr than always using middle center
+ * - Add RotationCenter property rather than always using middle center
  * 
  * Copyright (C) 2009-2014 Phillip Piper
  *
@@ -43,7 +43,7 @@ using System.Drawing.Imaging;
 namespace BrightIdeasSoftware
 {
     /// <summary>
-    /// An adorment is the common base for overlays and decorations.
+    /// An adornment is the common base for overlays and decorations.
     /// </summary>
     public class GraphicAdornment
     {
@@ -61,9 +61,9 @@ namespace BrightIdeasSoftware
         private System.Drawing.ContentAlignment adornmentCorner = System.Drawing.ContentAlignment.MiddleCenter;
 
         /// <summary>
-        /// Gets or sets location within the reference rectange where the adornment will be drawn
+        /// Gets or sets location within the reference rectangle where the adornment will be drawn
         /// </summary>
-        /// <remarks>This is a simplied interface to ReferenceCorner and AdornmentCorner </remarks>
+        /// <remarks>This is a simplified interface to ReferenceCorner and AdornmentCorner </remarks>
         [Category("ObjectListView"),
          Description("How will the adornment be aligned"),
          DefaultValue(System.Drawing.ContentAlignment.BottomRight),
@@ -394,7 +394,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Utility to draw a bitmap transparenly.
+        /// Utility to draw a bitmap transparently.
         /// </summary>
         /// <param name="g"></param>
         /// <param name="r"></param>
@@ -713,7 +713,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="rect">The rectangle</param>
         /// <param name="diameter">The diameter of the corners</param>
-        /// <returns>A round cornered rectagle path</returns>
+        /// <returns>A round cornered rectangle path</returns>
         /// <remarks>If I could rely on people using C# 3.0+, this should be
         /// an extension method of GraphicsPath.</remarks>
         protected virtual GraphicsPath GetRoundedRect(Rectangle rect, float diameter) {
