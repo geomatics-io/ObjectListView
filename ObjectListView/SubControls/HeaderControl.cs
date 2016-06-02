@@ -352,7 +352,7 @@ namespace BrightIdeasSoftware {
         public Rectangle GetHeaderDrawRect(int itemIndex) {
             Rectangle r = this.GetItemRect(itemIndex);
 
-            // Tweak the text rectangle a little to improve aethestics
+            // Tweak the text rectangle a little to improve aesthetics
             r.Inflate(-3, 0);
             r.Y -= 2;
 
@@ -731,7 +731,7 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// Does this header need to be custom drawn?
         /// </summary>
-        /// <remarks>Word wrapping and colored text require custom drawning. Funnily enough, we
+        /// <remarks>Word wrapping and colored text require custom drawing. Funnily enough, we
         /// can change the font natively.</remarks>
         protected bool NeedsCustomDraw() {
             if (this.WordWrap)

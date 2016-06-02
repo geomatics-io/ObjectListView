@@ -173,7 +173,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Get or set if the tooltip should be shown as a ballon
+        /// Get or set if the tooltip should be shown as a balloon
         /// </summary>
         public bool IsBalloon {
             get {
@@ -186,7 +186,7 @@ namespace BrightIdeasSoftware
                 int windowStyle = this.WindowStyle;
                 if (value) {
                     windowStyle |= (TTS_BALLOON | TTS_USEVISUALSTYLE);
-                    // On XP, a border makes the ballon look wrong
+                    // On XP, a border makes the balloon look wrong
                     if (!ObjectListView.IsVistaOrLater)
                         windowStyle &= ~WS_BORDER; 
                 } else {
@@ -203,7 +203,7 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
-        /// Get or set if the tooltip should be shown as a ballon
+        /// Get or set if the tooltip should be shown as a balloon
         /// </summary>
         public bool HasBorder {
             get {
@@ -377,7 +377,7 @@ namespace BrightIdeasSoftware
 
         /// <summary>
         /// Take a copy of the current settings and restore them when the 
-        /// tooltip is poppped.
+        /// tooltip is popped.
         /// </summary>
         /// <remarks>
         /// This call cannot be nested. Subsequent calls to this method will be ignored
