@@ -151,7 +151,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>
         /// Handlers for this event should set the Effect argument and optionally the
-        /// InfoMsg property. They can also change any of the DropTarget* setttings to change
+        /// InfoMsg property. They can also change any of the DropTarget* settings to change
         /// the target of the drop.
         /// </remarks>
         [Category("ObjectListView"),
@@ -180,7 +180,7 @@ namespace BrightIdeasSoftware
         /// Triggered when a cell is about to be edited.
         /// </summary>
         /// <remarks>Set Cancel to true to prevent the cell being edited.
-        /// You can change the the Control to be something completely different.</remarks>
+        /// You can change the Control to be something completely different.</remarks>
         [Category("ObjectListView"),
         Description("This event is triggered when cell edit is about to begin.")]
         public event CellEditEventHandler CellEditStarting;
@@ -260,10 +260,10 @@ namespace BrightIdeasSoftware
         public event EventHandler<FormatCellEventArgs> FormatCell;
 
         /// <summary>
-        /// This event is triggered when the frozeness of the control changes.
+        /// This event is triggered when the frozenness of the control changes.
         /// </summary>
         [Category("ObjectListView"),
-        Description("This event is triggered when frozeness of the control changes.")]
+        Description("This event is triggered when frozenness of the control changes.")]
         public event EventHandler<FreezeEventArgs> Freezing;
 
         /// <summary>
@@ -368,7 +368,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>
         /// Handlers for this event should set the Effect argument and optionally the
-        /// InfoMsg property. They can also change any of the DropTarget* setttings to change
+        /// InfoMsg property. They can also change any of the DropTarget* settings to change
         /// the target of the drop.
         /// </remarks>
         [Category("ObjectListView"),
@@ -1482,7 +1482,7 @@ namespace BrightIdeasSoftware
         private OlvListViewHitTestInfo hitTest;
 
         /// <summary>
-        /// Gets or set if this event completelely handled. If it was, no further processing
+        /// Gets or set if this event completely handled. If it was, no further processing
         /// will be done for it.
         /// </summary>
         public bool Handled;
@@ -1695,7 +1695,7 @@ namespace BrightIdeasSoftware
         private string url;
 
         /// <summary>
-        /// Gets or set if this event completelely handled. If it was, no further processing
+        /// Gets or set if this event completely handled. If it was, no further processing
         /// will be done for it.
         /// </summary>
         public bool Handled
@@ -1919,7 +1919,7 @@ namespace BrightIdeasSoftware
     public class HotItemChangedEventArgs : EventArgs
     {
         /// <summary>
-        /// Gets or set if this event completelely handled. If it was, no further processing
+        /// Gets or set if this event completely handled. If it was, no further processing
         /// will be done for it.
         /// </summary>
         public bool Handled

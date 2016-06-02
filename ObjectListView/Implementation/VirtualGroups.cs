@@ -286,7 +286,7 @@ namespace BrightIdeasSoftware
         /// Get the index of the group to which the given item belongs
         /// </summary>
         /// <param name="itemIndex">Index of the item within the whole list</param>
-        /// <param name="occurrenceCount">Which occurences of the item is wanted</param>
+        /// <param name="occurrenceCount">Which occurrences of the item is wanted</param>
         /// <param name="groupIndex">Index of the group</param>
         void GetItemGroup(int itemIndex, int occurrenceCount, out int groupIndex);
 

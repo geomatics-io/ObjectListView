@@ -864,7 +864,7 @@ namespace BrightIdeasSoftware
         /// If the image index is -1, any previous image is cleared
         /// </summary>
         /// <param name="list">The listview to send a m to</param>
-        /// <param name="columnIndex">Index of the column to modifiy</param>
+        /// <param name="columnIndex">Index of the column to modify</param>
         /// <param name="order"></param>
         /// <param name="imageIndex">Index into the small image list</param>
         public static void SetColumnImage(ListView list, int columnIndex, SortOrder order, int imageIndex) {

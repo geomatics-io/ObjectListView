@@ -46,7 +46,7 @@ namespace BrightIdeasSoftware
     /// class that should be noticed by Generator class.
     /// </summary>
     /// <remarks>
-    /// All the attributes of this class match their equivilent properties on OLVColumn.
+    /// All the attributes of this class match their equivalent properties on OLVColumn.
     /// </remarks>
     [AttributeUsage(AttributeTargets.Property)]
     public class OLVColumnAttribute : Attribute

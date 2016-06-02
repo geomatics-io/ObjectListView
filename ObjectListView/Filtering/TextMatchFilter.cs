@@ -174,7 +174,7 @@ namespace BrightIdeasSoftware {
         /// </summary>
         /// <remarks>
         /// You cannot really rebase a filter after it is created, so do not change this value.
-        /// It is included so that it can be set in an object initializer.
+        /// It is included so that it can be set in an object initialiser.
         /// </remarks>
         public ObjectListView ListView {
             get { return listView; }
@@ -550,7 +550,7 @@ namespace BrightIdeasSoftware {
             }
 
             /// <summary>
-            /// Gets or sets a compilex regular expression, based on our current Text and RegexOptions.
+            /// Gets or sets a compiled regular expression, based on our current Text and RegexOptions.
             /// </summary>
             /// <remarks>
             /// If Text fails to compile as a regular expression, this will return a Regex object

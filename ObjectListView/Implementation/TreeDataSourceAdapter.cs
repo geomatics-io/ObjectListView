@@ -58,7 +58,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// <para>
         /// The test condition for deciding if one row is the parent of another is functionally
-        /// equivilent to this:
+        /// equivalent to this:
         /// <code>
         /// Object.Equals(candidateParentRow[this.KeyAspectName], row[this.ParentKeyAspectName])
         /// </code>
@@ -86,7 +86,7 @@ namespace BrightIdeasSoftware
         /// <remarks>
         /// <para>
         /// The test condition for deciding a root object is functionally
-        /// equivilent to this:
+        /// equivalent to this:
         /// <code>
         /// Object.Equals(candidateRow[this.ParentKeyAspectName], this.RootKeyValue)
         /// </code>
@@ -186,7 +186,7 @@ namespace BrightIdeasSoftware
         protected override void ChangePosition(int index) {
             // We can't use our base method directly, since the normal position management
             // doesn't know about our tree structure. They treat our dataset as a flat list
-            // but we have a collapsable structure. This means that the 5'th row to them
+            // but we have a collapsible structure. This means that the 5'th row to them
             // may not even be visible to us
 
             // To display the n'th row, we have to make sure that all its ancestors

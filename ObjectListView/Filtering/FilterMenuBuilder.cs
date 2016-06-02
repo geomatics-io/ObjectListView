@@ -301,7 +301,7 @@ namespace BrightIdeasSoftware {
             // If no clusters are checked, the uncheck the Select All.
             // For everything else, Select All is set to indeterminate.
 
-            // How many items are currenty checked? 
+            // How many items are currently checked? 
             int count = checkedList.CheckedItems.Count;
 
             // First complication.
