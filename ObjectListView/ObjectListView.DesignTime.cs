@@ -67,7 +67,7 @@ namespace BrightIdeasSoftware.Design
         #region Initialize & Dispose
 
         /// <summary>
-        /// Initializes the designer with the specified component.
+        /// Initialises the designer with the specified component.
         /// </summary>
         /// <param name="component">The <see cref="T:System.ComponentModel.IComponent"/> to associate the designer with. This component must always be an instance of, or derive from, <see cref="T:System.Windows.Forms.Control"/>. </param>
         public override void Initialize(IComponent component) {
@@ -107,7 +107,7 @@ namespace BrightIdeasSoftware.Design
         }
 
         /// <summary>
-        /// Initializes a newly created component.
+        /// Initialises a newly created component.
         /// </summary>
         /// <param name="defaultValues">A name/value dictionary of default values to apply to properties. May be null if no default values are specified.</param>
         public override void InitializeNewComponent(IDictionary defaultValues) {
@@ -362,7 +362,7 @@ namespace BrightIdeasSoftware.Design
         /// </summary>
         /// <remarks>
         /// <para>
-        /// That class is internal, so we cannot simply subclass it, which would be simplier.
+        /// That class is internal, so we cannot simply subclass it, which would be simpler.
         /// </para>
         /// <para>
         /// Action lists use reflection to determine if that action can be executed, so we not
