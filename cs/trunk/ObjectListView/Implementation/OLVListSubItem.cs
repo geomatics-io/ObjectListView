@@ -162,7 +162,7 @@ namespace BrightIdeasSoftware {
         #region Implementation Properties
 
         /// <summary>
-        /// Return the state of the animatation of the image on this subitem.
+        /// Return the state of the animation of the image on this subitem.
         /// Null means there is either no image, or it is not an animation
         /// </summary>
         internal ImageRenderer.AnimationState AnimationState;

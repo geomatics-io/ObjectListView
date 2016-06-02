@@ -241,7 +241,7 @@ namespace BrightIdeasSoftware {
         private Object imageSelector;
 
         /// <summary>
-        /// Gets or sets the the model object that is source of the data for this list item.
+        /// Gets or sets the model object that is source of the data for this list item.
         /// </summary>
         public object RowObject {
             get { return rowObject; }

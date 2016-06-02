@@ -182,13 +182,13 @@ namespace BrightIdeasSoftware
         /// Which operations are allowed in the operation? By default, all operations are supported.
         /// </summary>
         /// <param name="data"></param>
-        /// <returns>All opertions are supported</returns>
+        /// <returns>All operations are supported</returns>
         public virtual DragDropEffects GetAllowedEffects(Object data) {
             return DragDropEffects.All | DragDropEffects.Link; // why didn't MS include 'Link' in 'All'??
         }
 
         /// <summary>
-        /// The drag operation is finished. Refreshe the dragged rows if so configured.
+        /// The drag operation is finished. Refreshes the dragged rows if so configured.
         /// </summary>
         /// <param name="dragObject"></param>
         /// <param name="effect"></param>

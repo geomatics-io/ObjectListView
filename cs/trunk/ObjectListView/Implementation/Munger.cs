@@ -102,7 +102,7 @@ namespace BrightIdeasSoftware
 
                 // Normally, we would never just silently ignore an exception.
                 // However, in this case, this is a utility method that explicitly 
-                // contracts to catch and ignore errors. If this is not acceptible,
+                // contracts to catch and ignore errors. If this is not acceptable,
                 // the programmer should not use this method.
             } 
 

@@ -102,7 +102,7 @@ namespace BrightIdeasSoftware {
         #region Properties
 
         /// <summary>
-        /// Gets or sets the format string will will be used to create a user-presentable
+        /// Gets or sets the format string that will be used to create a user-presentable
         /// version of the cluster key.
         /// </summary>
         /// <remarks>The format should use the date/time format strings, as documented
@@ -141,7 +141,7 @@ namespace BrightIdeasSoftware {
             if (!dateTime.HasValue)
                 return null;
 
-            // Extract the parts of the datetime that we are intereted in.
+            // Extract the parts of the datetime that we are interested in.
             // Even if we aren't interested in a particular portion, we still have to give it a reasonable default
             // otherwise we won't be able to build a DateTime object for it
             int year = ((this.Portions & DateTimePortion.Year) == DateTimePortion.Year) ? dateTime.Value.Year : 1;
