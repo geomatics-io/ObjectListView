@@ -60,14 +60,14 @@ namespace BrightIdeasSoftware {
 
         /// <summary>
         /// The key press will wrap, but the column will be changed to the 
-        /// appropiate adjacent column. This only makes sense for keys where
+        /// appropriate adjacent column. This only makes sense for keys where
         /// the normal action is ChangeRow.
         /// </summary>
         ChangeColumn,
 
         /// <summary>
         /// The key press will wrap, but the row will be changed to the 
-        /// appropiate adjacent row. This only makes sense for keys where
+        /// appropriate adjacent row. This only makes sense for keys where
         /// the normal action is ChangeColumn.
         /// </summary>        
         ChangeRow,

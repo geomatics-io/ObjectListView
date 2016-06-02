@@ -32,7 +32,7 @@ using System.Text;
 namespace BrightIdeasSoftware {
 
     /// <summary>
-    /// This class provides a useful base implemention of a clustering
+    /// This class provides a useful base implementation of a clustering
     /// strategy where the clusters are grouped around the value of a given column.
     /// </summary>
     public class ClusteringStrategy : IClusteringStrategy {

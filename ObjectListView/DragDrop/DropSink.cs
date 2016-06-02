@@ -79,7 +79,7 @@ namespace BrightIdeasSoftware
         /// The user has released the drop over this control
         /// </summary>
         /// <remarks>
-        /// Implementators should set args.Effect to the appropriate DragDropEffects. This value is returned
+        /// Implementors should set args.Effect to the appropriate DragDropEffects. This value is returned
         /// to the originator of the drag.
         /// </remarks>
         /// <param name="args"></param>
@@ -88,7 +88,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// A drag has entered this control.
         /// </summary>
-        /// <remarks>Implementators should set args.Effect to the appropriate DragDropEffects.</remarks>
+        /// <remarks>Implementors should set args.Effect to the appropriate DragDropEffects.</remarks>
         /// <param name="args"></param>
         void Enter(DragEventArgs args);
 
@@ -107,7 +107,7 @@ namespace BrightIdeasSoftware
         /// The drag is moving over this control.
         /// </summary>
         /// <remarks>This is where any drop target should be calculated.
-        /// Implementators should set args.Effect to the appropriate DragDropEffects.
+        /// Implementors should set args.Effect to the appropriate DragDropEffects.
         /// </remarks>
         /// <param name="args"></param>
         void Over(DragEventArgs args);
@@ -153,7 +153,7 @@ namespace BrightIdeasSoftware
         /// The user has released the drop over this control
         /// </summary>
         /// <remarks>
-        /// Implementators should set args.Effect to the appropriate DragDropEffects. This value is returned
+        /// Implementors should set args.Effect to the appropriate DragDropEffects. This value is returned
         /// to the originator of the drag.
         /// </remarks>
         /// <param name="args"></param>
@@ -164,7 +164,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// A drag has entered this control.
         /// </summary>
-        /// <remarks>Implementators should set args.Effect to the appropriate DragDropEffects.</remarks>
+        /// <remarks>Implementors should set args.Effect to the appropriate DragDropEffects.</remarks>
         /// <param name="args"></param>
         public virtual void Enter(DragEventArgs args) {
         }
@@ -180,7 +180,7 @@ namespace BrightIdeasSoftware
         /// The drag is moving over this control.
         /// </summary>
         /// <remarks>This is where any drop target should be calculated.
-        /// Implementators should set args.Effect to the appropriate DragDropEffects.
+        /// Implementors should set args.Effect to the appropriate DragDropEffects.
         /// </remarks>
         /// <param name="args"></param>
         public virtual void Over(DragEventArgs args) {
@@ -551,7 +551,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>
         /// Handlers should set Effect to indicate what is possible.
-        /// Handlers can change any of the DropTarget* setttings to change
+        /// Handlers can change any of the DropTarget* settings to change
         /// the target of the drop.
         /// </remarks>
         public event EventHandler<OlvDropEventArgs> CanDrop;
@@ -567,7 +567,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <remarks>
         /// Handlers should set Effect to indicate what is possible.
-        /// Handlers can change any of the DropTarget* setttings to change
+        /// Handlers can change any of the DropTarget* settings to change
         /// the target of the drop.
         /// </remarks>
         public event EventHandler<ModelDropEventArgs> ModelCanDrop;
@@ -641,7 +641,7 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// A drag has entered this control.
         /// </summary>
-        /// <remarks>Implementators should set args.Effect to the appropriate DragDropEffects.</remarks>
+        /// <remarks>Implementors should set args.Effect to the appropriate DragDropEffects.</remarks>
         /// <param name="args"></param>
         public override void Enter(DragEventArgs args) {
             //System.Diagnostics.Debug.WriteLine("Enter");
@@ -784,7 +784,7 @@ namespace BrightIdeasSoftware
                 return;
             }
 
-            // Auto scrolling will continune while the mouse is close to the ListView
+            // Auto scrolling will continue while the mouse is close to the ListView
             const int GRACE_PERIMETER = 30;
 
             Point pt = this.ListView.PointToClient(Cursor.Position);
@@ -1059,9 +1059,9 @@ namespace BrightIdeasSoftware
 
             // Allow for indent
             if (item.IndentCount > 0) {
-                int indentWidth = this.ListView.SmallImageSize.Width;
-                r.X += (indentWidth * item.IndentCount);
-                r.Width -= (indentWidth * item.IndentCount);
+                int indentWidth = this.ListView.SmallImageSize.Width * item.IndentCount;
+                r.X += indentWidth;
+                r.Width -= indentWidth;
             }
 
             return r;
@@ -1144,7 +1144,7 @@ namespace BrightIdeasSoftware
     /// <para>
     /// This class works when the OLV is sorted, but it is up to the programmer
     /// to decide what rearranging such lists "means". Example: if the control is sorting
-    /// students by academic grade, and the user drags a "Fail" grade student up amonst the "A+"
+    /// students by academic grade, and the user drags a "Fail" grade student up amongst the "A+"
     /// students, it is the responsibility of the programmer to makes the appropriate changes
     /// to the model and redraw/rebuild the control so that the users action makes sense.
     /// </para>
@@ -1237,7 +1237,7 @@ namespace BrightIdeasSoftware
 
     /// <summary>
     /// When a drop sink needs to know if something can be dropped, or
-    /// to notify that a drop has occured, it uses an instance of this class.
+    /// to notify that a drop has occurred, it uses an instance of this class.
     /// </summary>
     public class OlvDropEventArgs : EventArgs
     {

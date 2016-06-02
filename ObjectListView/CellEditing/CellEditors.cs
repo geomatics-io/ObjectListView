@@ -1,5 +1,5 @@
 /*
- * CellEditors - Several slightly modified controls that are used as celleditors within ObjectListView.
+ * CellEditors - Several slightly modified controls that are used as cell editors within ObjectListView.
  *
  * Author: Phillip Piper
  * Date: 20/10/2008 5:15 PM
@@ -86,7 +86,7 @@ namespace BrightIdeasSoftware
     // In many cases, you can intercept the CellEditStarting event to 
     // change the characteristics of the editor. For example, changing
     // the acceptable range for a numeric editor or changing the strings
-    // that respresent true and false values for a boolean editor.
+    // that represent true and false values for a boolean editor.
 
     /// <summary>
     /// This editor shows and auto completes values from the given listview column.
@@ -118,7 +118,7 @@ namespace BrightIdeasSoftware
     }
 
     /// <summary>
-    /// This combo box is specialised to allow editing of an enum.
+    /// This combo box is specialized to allow editing of an enum.
     /// </summary>
     [ToolboxItem(false)]
     public class EnumCellEditor : ComboBox
