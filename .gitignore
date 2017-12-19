@@ -5,6 +5,9 @@
 *.suo
 *.user
 *.sln.docstates
+*.sln.ide/
+*.userprefs
+*.GhostDoc.xml
 
 # Build results
 [Dd]ebug/
@@ -180,3 +183,6 @@ UpgradeLog*.htm
 # Microsoft Fakes
 FakesAssemblies/
 *.gdb
+
+# Windows
+Thumbs.db
