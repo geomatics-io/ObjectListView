@@ -5,6 +5,8 @@
  * Date: 2009-03-17 5:15 PM
  *
  * Change log:
+ * 2018-04-26   JPP  - Implemented LeftOfItem and RightOfItem target locations
+ *                   - Added support for rearranging on non-Detail views.
  * v2.9
  * 2015-07-08   JPP  - Added SimpleDropSink.EnableFeedback to allow all the pretty and helpful
  *                     user feedback during drags to be turned off
@@ -268,12 +270,12 @@ namespace BrightIdeasSoftware
         SubItem = 0x20,
 
         /// <summary>
-        /// On the right of an item is the target (not currently used)
+        /// On the right of an item is the target 
         /// </summary>
         RightOfItem = 0x40,
 
         /// <summary>
-        /// On the left of an item is the target (not currently used)
+        /// On the left of an item is the target
         /// </summary>
         LeftOfItem = 0x80
     }
@@ -619,6 +621,12 @@ namespace BrightIdeasSoftware
                     case DropTargetLocation.BelowItem:
                         this.DrawFeedbackBelowItemTarget(g, bounds);
                         break;
+                    case DropTargetLocation.LeftOfItem:
+                        this.DrawFeedbackLeftOfItemTarget(g, bounds);
+                        break;
+                    case DropTargetLocation.RightOfItem:
+                        this.DrawFeedbackRightOfItemTarget(g, bounds);
+                        break;
                 }
             }
 
@@ -812,7 +820,6 @@ namespace BrightIdeasSoftware
 
             // Which item is the mouse over?
             // If it is not over any item, it's over the background.
-            //ListViewHitTestInfo info = this.ListView.HitTest(pt.X, pt.Y);
             OlvListViewHitTestInfo info = this.ListView.OlvHitTest(pt.X, pt.Y);
             if (info.Item != null && this.CanDropOnItem) {
                 location = DropTargetLocation.Item;
@@ -822,32 +829,82 @@ namespace BrightIdeasSoftware
             }
 
             // Check to see if the mouse is "between" rows.
-            // ("between" is somewhat loosely defined)
+            // ("between" is somewhat loosely defined).
+            // If the view is Details or List, then "between" is considered vertically.
+            // If the view is SmallIcon, LargeIcon or Tile, then "between" is considered horizontally.
             if (this.CanDropBetween && this.ListView.GetItemCount() > 0) {
 
-                // If the mouse is over an item, check to see if it is near the top or bottom
-                if (location == DropTargetLocation.Item) {
-                    if (pt.Y - SMALL_VALUE <= info.Item.Bounds.Top)
-                        location = DropTargetLocation.AboveItem;
-                    if (pt.Y + SMALL_VALUE >= info.Item.Bounds.Bottom)
-                        location = DropTargetLocation.BelowItem;
-                } else {
-                    // Is there an item a little below the mouse?
-                    // If so, we say the drop point is above that row
-                    info = this.ListView.OlvHitTest(pt.X, pt.Y + SMALL_VALUE);
-                    if (info.Item != null) {
-                        targetIndex = info.Item.Index;
-                        location = DropTargetLocation.AboveItem;
-                    } else {
-                        // Is there an item a little above the mouse?
-                        info = this.ListView.OlvHitTest(pt.X, pt.Y - SMALL_VALUE);
+                switch (this.ListView.View) {
+                    case View.LargeIcon:
+                    case View.Tile:
+                    case View.SmallIcon:
+                        // If the mouse is over an item, check to see if it is near the left or right edge.
                         if (info.Item != null) {
-                            targetIndex = info.Item.Index;
-                            location = DropTargetLocation.BelowItem;
+                            System.Diagnostics.Debug.WriteLine($"target item. pt: {pt}. bounds: {info.Item.Bounds}");
+                            int delta = this.CanDropOnItem ? SMALL_VALUE : info.Item.Bounds.Width / 2;
+                            if (pt.X <= info.Item.Bounds.Left + delta) {
+                                targetIndex = info.Item.Index;
+                                location = DropTargetLocation.LeftOfItem;
+                            } else if (pt.X >= info.Item.Bounds.Right - delta) {
+                                targetIndex = info.Item.Index;
+                                location = DropTargetLocation.RightOfItem;
+                            }
+                        } else {
+                            // Is there an item a little to the *right* of the mouse?
+                            // If so, we say the drop point is *left* that item
+                            int probeWidth = SMALL_VALUE * 2;
+                            info = this.ListView.OlvHitTest(pt.X + probeWidth, pt.Y);
+                            if (info.Item != null) {
+                                targetIndex = info.Item.Index;
+                                location = DropTargetLocation.LeftOfItem;
+                            } else {
+                                // Is there an item a little to the left of the mouse?
+                                info = this.ListView.OlvHitTest(pt.X - probeWidth, pt.Y);
+                                if (info.Item != null) {
+                                    targetIndex = info.Item.Index;
+                                    location = DropTargetLocation.RightOfItem;
+                                }
+                            }
                         }
-                    }
+                        break;
+                    case View.Details:
+                    case View.List:
+                        // If the mouse is over an item, check to see if it is near the top or bottom
+                        if (info.Item != null) {
+                            int delta = this.CanDropOnItem ? SMALL_VALUE : this.ListView.RowHeightEffective / 2;
+                            System.Diagnostics.Debug.WriteLine($"target item. pt: {pt}. bounds: {info.Item.Bounds}. delta={delta}");
+
+                            if (pt.Y <= info.Item.Bounds.Top + delta) {
+                                targetIndex = info.Item.Index;
+                                location = DropTargetLocation.AboveItem;
+                            } else if (pt.Y >= info.Item.Bounds.Bottom - delta) {
+                                targetIndex = info.Item.Index;
+                                location = DropTargetLocation.BelowItem;
+                            }
+                        } else {
+                            // Is there an item a little below the mouse?
+                            // If so, we say the drop point is above that row
+                            info = this.ListView.OlvHitTest(pt.X, pt.Y + SMALL_VALUE);
+                            if (info.Item != null) {
+                                targetIndex = info.Item.Index;
+                                location = DropTargetLocation.AboveItem;
+                            } else {
+                                // Is there an item a little above the mouse?
+                                info = this.ListView.OlvHitTest(pt.X, pt.Y - SMALL_VALUE);
+                                if (info.Item != null) {
+                                    targetIndex = info.Item.Index;
+                                    location = DropTargetLocation.BelowItem;
+                                }
+                            }
+                        }
+
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
+            System.Diagnostics.Debug.WriteLine($"location: {location}");
+            System.Diagnostics.Debug.WriteLine($"targetIndex: {targetIndex}");
 
             args.DropTargetLocation = location;
             args.DropTargetIndex = targetIndex;
@@ -1014,12 +1071,41 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="g"></param>
         /// <param name="bounds"></param>
-        protected virtual void DrawFeedbackBelowItemTarget(Graphics g, Rectangle bounds) {
+        protected virtual void DrawFeedbackBelowItemTarget(Graphics g, Rectangle bounds)
+        {
             if (this.DropTargetItem == null)
                 return;
 
             Rectangle r = this.CalculateDropTargetRectangle(this.DropTargetItem, this.DropTargetSubItemIndex);
             this.DrawBetweenLine(g, r.Left, r.Bottom, r.Right, r.Bottom);
+        }
+
+        /// <summary>
+        /// Draw the feedback that shows the drop will occur to the left of target
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="bounds"></param>
+        protected virtual void DrawFeedbackLeftOfItemTarget(Graphics g, Rectangle bounds)
+        {
+            if (this.DropTargetItem == null)
+                return;
+
+            Rectangle r = this.CalculateDropTargetRectangle(this.DropTargetItem, this.DropTargetSubItemIndex);
+            this.DrawBetweenLine(g, r.Left, r.Top, r.Left, r.Bottom);
+        }
+
+        /// <summary>
+        /// Draw the feedback that shows the drop will occur to the right of target
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="bounds"></param>
+        protected virtual void DrawFeedbackRightOfItemTarget(Graphics g, Rectangle bounds)
+        {
+            if (this.DropTargetItem == null)
+                return;
+
+            Rectangle r = this.CalculateDropTargetRectangle(this.DropTargetItem, this.DropTargetSubItemIndex);
+            this.DrawBetweenLine(g, r.Right, r.Top, r.Right, r.Bottom);
         }
 
         /// <summary>
@@ -1077,48 +1163,63 @@ namespace BrightIdeasSoftware
         /// <param name="y2"></param>
         protected virtual void DrawBetweenLine(Graphics g, int x1, int y1, int x2, int y2) {
             using (Brush b = new SolidBrush(this.FeedbackColor)) {
-                int x = x1;
-                int y = y1;
-                using (GraphicsPath gp = new GraphicsPath()) {
-                    gp.AddLine(
-                        x, y + 5,
-                        x, y - 5);
-                    gp.AddBezier(
-                        x, y - 6,
-                        x + 3, y - 2,
-                        x + 6, y - 1,
-                        x + 11, y);
-                    gp.AddBezier(
-                        x + 11, y,
-                        x + 6, y + 1,
-                        x + 3, y + 2,
-                        x, y + 6);
-                    gp.CloseFigure();
-                    g.FillPath(b, gp);
-                }
-                x = x2;
-                y = y2;
-                using (GraphicsPath gp = new GraphicsPath()) {
-                    gp.AddLine(
-                        x, y + 6,
-                        x, y - 6);
-                    gp.AddBezier(
-                        x, y - 7,
-                        x - 3, y - 2,
-                        x - 6, y - 1,
-                        x - 11, y);
-                    gp.AddBezier(
-                        x - 11, y,
-                        x - 6, y + 1,
-                        x - 3, y + 2,
-                        x, y + 7);
-                    gp.CloseFigure();
-                    g.FillPath(b, gp);
+                if (y1 == y2) {
+                    // Put right and left arrow on a horizontal line
+                    DrawClosedFigure(g, b, RightPointingArrow(x1, y1));
+                    DrawClosedFigure(g, b, LeftPointingArrow(x2, y2));
+                } else {
+                    // Put up and down arrows on a vertical line
+                    DrawClosedFigure(g, b, DownPointingArrow(x1, y1));
+                    DrawClosedFigure(g, b, UpPointingArrow(x2, y2));
                 }
             }
+
             using (Pen p = new Pen(this.FeedbackColor, 3.0f)) {
                 g.DrawLine(p, x1, y1, x2, y2);
             }
+        }
+
+        private const int ARROW_SIZE = 6;
+
+        private static void DrawClosedFigure(Graphics g, Brush b, Point[] pts) {
+            using (GraphicsPath gp = new GraphicsPath()) {
+                gp.StartFigure();
+                gp.AddLines(pts);
+                gp.CloseFigure();
+                g.FillPath(b, gp);
+            }
+        }
+
+        private static Point[] RightPointingArrow(int x, int y) {
+            return new Point[] {
+                new Point(x, y - ARROW_SIZE),
+                new Point(x, y + ARROW_SIZE),
+                new Point(x + ARROW_SIZE, y)
+            };
+        }
+
+        private static Point[] LeftPointingArrow(int x, int y) {
+            return new Point[] {
+                new Point(x, y - ARROW_SIZE),
+                new Point(x, y + ARROW_SIZE),
+                new Point(x - ARROW_SIZE, y)
+            };
+        }
+
+        private static Point[] DownPointingArrow(int x, int y) {
+            return new Point[] {
+                new Point(x - ARROW_SIZE, y),
+                new Point(x + ARROW_SIZE, y),
+                new Point(x, y + ARROW_SIZE)
+            };
+        }
+
+        private static Point[] UpPointingArrow(int x, int y) {
+            return new Point[] {
+                new Point(x - ARROW_SIZE, y),
+                new Point(x + ARROW_SIZE, y),
+                new Point(x, y - ARROW_SIZE)
+            };
         }
 
         #endregion
@@ -1192,7 +1293,7 @@ namespace BrightIdeasSoftware
                 args.InfoMessage = "This list doesn't accept drops from other lists";
             }
 
-            // If we are rearranging a list, don't allow drops on the background
+            // If we are rearranging the same list, don't allow drops on the background
             if (args.DropTargetLocation == DropTargetLocation.Background && args.SourceListView == this.ListView) {
                 args.Effect = DragDropEffects.None;
                 args.DropTargetLocation = DropTargetLocation.None;
@@ -1217,9 +1318,11 @@ namespace BrightIdeasSoftware
         public virtual void RearrangeModels(ModelDropEventArgs args) {
             switch (args.DropTargetLocation) {
                 case DropTargetLocation.AboveItem:
+                case DropTargetLocation.LeftOfItem:
                     this.ListView.MoveObjects(args.DropTargetIndex, args.SourceModels);
                     break;
                 case DropTargetLocation.BelowItem:
+                case DropTargetLocation.RightOfItem:
                     this.ListView.MoveObjects(args.DropTargetIndex + 1, args.SourceModels);
                     break;
                 case DropTargetLocation.Background:
@@ -1231,6 +1334,15 @@ namespace BrightIdeasSoftware
 
             if (args.SourceListView != this.ListView) {
                 args.SourceListView.RemoveObjects(args.SourceModels);
+            }
+
+            // Some views have to be "encouraged" to show the changes
+            switch (this.ListView.View) {
+                case View.LargeIcon:
+                case View.SmallIcon:
+                case View.Tile:
+                    this.ListView.BuildList();
+                    break;
             }
         }
     }
