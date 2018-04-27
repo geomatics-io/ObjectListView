@@ -257,7 +257,12 @@ namespace BrightIdeasSoftware
         /// Gets or sets the bottom description of the group
         /// </summary>
         /// <remarks>
+        /// <para>
         /// Descriptions only appear when group is centered and there is a title image
+        /// </para>
+        /// <para>
+        /// THIS PROPERTY IS CURRENTLY NOT USED.
+        /// </para>
         /// </remarks>
         public string BottomDescription {
             get { return this.bottomDescription; }
@@ -280,6 +285,15 @@ namespace BrightIdeasSoftware
             get { return this.GetOneState(GroupState.LVGS_COLLAPSIBLE); }
             set { this.SetOneState(value, GroupState.LVGS_COLLAPSIBLE); }
         }
+
+        /// <summary>
+        /// Gets or sets the column that was used to construct this group.
+        /// </summary>
+        public OLVColumn Column {
+            get { return this.column; }
+            set { this.column = value; }
+        }
+        private OLVColumn column;
 
         /// <summary>
         /// Gets or sets some representation of the contents of this group

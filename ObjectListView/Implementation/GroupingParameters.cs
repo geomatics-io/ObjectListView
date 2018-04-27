@@ -171,5 +171,34 @@ namespace BrightIdeasSoftware {
             set { this.sortItemsByPrimaryColumn = value; }
         }
         private bool sortItemsByPrimaryColumn;
+
+        /// <summary>
+        /// Create an OLVGroup for the given information
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="count"></param>
+        /// <param name="hasCollapsibleGroups"></param>
+        /// <returns></returns>
+        public OLVGroup CreateGroup(object key, int count, bool hasCollapsibleGroups) {
+            string title = GroupByColumn.ConvertGroupKeyToTitle(key);
+            if (!String.IsNullOrEmpty(TitleFormat))
+            {
+                string format = (count == 1 ? TitleSingularFormat : TitleFormat);
+                try
+                {
+                    title = String.Format(format, title, count);
+                }
+                catch (FormatException)
+                {
+                    title = "Invalid group format: " + format;
+                }
+            }
+            OLVGroup lvg = new OLVGroup(title);
+            lvg.Column = GroupByColumn;
+            lvg.Collapsible = hasCollapsibleGroups;
+            lvg.Key = key;
+            lvg.SortValue = key as IComparable;
+            return lvg;
+        }
     }
 }

@@ -144,21 +144,21 @@ namespace BrightIdeasSoftware
         /// <summary>
         /// Create groups for FastListView
         /// </summary>
-        /// <param name="parmameters"></param>
+        /// <param name="parameters"></param>
         /// <returns></returns>
-        public override IList<OLVGroup> GetGroups(GroupingParameters parmameters) {
+        public override IList<OLVGroup> GetGroups(GroupingParameters parameters) {
 
             // There is a lot of overlap between this method and ObjectListView.MakeGroups()
             // Any changes made here may need to be reflected there
 
             // This strategy can only be used on FastObjectListViews
-            FastObjectListView folv = (FastObjectListView)parmameters.ListView;
+            FastObjectListView folv = (FastObjectListView)parameters.ListView;
 
             // Separate the list view items into groups, using the group key as the descrimanent
             int objectCount = 0;
             NullableDictionary<object, List<object>> map = new NullableDictionary<object, List<object>>();
             foreach (object model in folv.FilteredObjects) {
-                object key = parmameters.GroupByColumn.GetGroupKey(model);
+                object key = parameters.GroupByColumn.GetGroupKey(model);
                 if (!map.ContainsKey(key))
                     map[key] = new List<object>();
                 map[key].Add(model);
@@ -166,10 +166,9 @@ namespace BrightIdeasSoftware
             }
 
             // Sort the items within each group
-            // TODO: Give parameters a ModelComparer property
-            OLVColumn primarySortColumn = parmameters.SortItemsByPrimaryColumn ? parmameters.ListView.GetColumn(0) : parmameters.PrimarySort;
-            ModelObjectComparer sorter = new ModelObjectComparer(primarySortColumn, parmameters.PrimarySortOrder,
-                parmameters.SecondarySort, parmameters.SecondarySortOrder);
+            OLVColumn primarySortColumn = parameters.SortItemsByPrimaryColumn ? parameters.ListView.GetColumn(0) : parameters.PrimarySort;
+            ModelObjectComparer sorter = new ModelObjectComparer(primarySortColumn, parameters.PrimarySortOrder,
+                parameters.SecondarySort, parameters.SecondarySortOrder);
             foreach (object key in map.Keys) {
                 map[key].Sort(sorter);
             }
@@ -177,30 +176,17 @@ namespace BrightIdeasSoftware
             // Make a list of the required groups
             List<OLVGroup> groups = new List<OLVGroup>();
             foreach (object key in map.Keys) {
-                string title = parmameters.GroupByColumn.ConvertGroupKeyToTitle(key);
-                if (!String.IsNullOrEmpty(parmameters.TitleFormat)) {
-                    int count = map[key].Count;
-                    string format = (count == 1 ? parmameters.TitleSingularFormat : parmameters.TitleFormat);
-                    try {
-                        title = String.Format(format, title, count);
-                    } catch (FormatException) {
-                        title = "Invalid group format: " + format;
-                    }
-                }
-                OLVGroup lvg = new OLVGroup(title);
-                lvg.Collapsible = folv.HasCollapsibleGroups;
-                lvg.Key = key;
-                lvg.SortValue = key as IComparable;
+                OLVGroup lvg = parameters.CreateGroup(key, map[key].Count, folv.HasCollapsibleGroups);
                 lvg.Contents = map[key].ConvertAll<int>(delegate(object x) { return folv.IndexOf(x); });
                 lvg.VirtualItemCount = map[key].Count;
-                if (parmameters.GroupByColumn.GroupFormatter != null)
-                    parmameters.GroupByColumn.GroupFormatter(lvg, parmameters);
+                if (parameters.GroupByColumn.GroupFormatter != null)
+                    parameters.GroupByColumn.GroupFormatter(lvg, parameters);
                 groups.Add(lvg);
             }
 
             // Sort the groups
-            if (parmameters.GroupByOrder != SortOrder.None)
-                groups.Sort(parmameters.GroupComparer ?? new OLVGroupComparer(parmameters.GroupByOrder));
+            if (parameters.GroupByOrder != SortOrder.None)
+                groups.Sort(parameters.GroupComparer ?? new OLVGroupComparer(parameters.GroupByOrder));
 
             // Build an array that remembers which group each item belongs to.
             this.indexToGroupMap = new List<int>(objectCount);

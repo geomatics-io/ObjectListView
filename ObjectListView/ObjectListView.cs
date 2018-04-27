@@ -5,12 +5,13 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2018-04-27  JPP  - Sorting now works when grouping is locked on a column AND SortGroupItemsByPrimaryColumn is true
  * v2.9.2
  * 2016-06-02  JPP  - Cell editors now respond to mouse wheel events. Set AllowCellEditorsToProcessMouseWheel
  *                    to false revert to previous behaviour.
  *                  - Fixed issue in PauseAnimations() that prevented it from working until
  *                    after the control had been rendered at least once.
- *                  - cellEditUseWholeCell now has correct default value (true).
+ *                  - CellEditUseWholeCell now has correct default value (true).
  *                  - Dropping on a subitem when CellEditActivation is set to SingleClick no longer 
  *                    initiates a cell edit
  * v2.9.1
@@ -2182,31 +2183,55 @@ namespace BrightIdeasSoftware
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [Obsolete("Use SelectedBackColor instead")]
         public virtual Color HighlightBackgroundColor { get { return this.SelectedBackColor; } set { this.SelectedBackColor = value; } }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [Obsolete("Use SelectedBackColorOrDefault instead")]
         public virtual Color HighlightBackgroundColorOrDefault { get { return this.SelectedBackColorOrDefault; } }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [Obsolete("Use SelectedForeColor instead")]
         public virtual Color HighlightForegroundColor { get { return this.SelectedForeColor; } set { this.SelectedForeColor = value; } }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [Obsolete("Use SelectedForeColorOrDefault instead")]
         public virtual Color HighlightForegroundColorOrDefault { get { return this.SelectedForeColorOrDefault; } }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [Obsolete("Use UnfocusedSelectedBackColor instead")]
         public virtual Color UnfocusedHighlightBackgroundColor { get { return this.UnfocusedSelectedBackColor; } set { this.UnfocusedSelectedBackColor = value; } }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [Obsolete("Use UnfocusedSelectedBackColorOrDefault instead")]
         public virtual Color UnfocusedHighlightBackgroundColorOrDefault { get { return this.UnfocusedSelectedBackColorOrDefault; } }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [Obsolete("Use UnfocusedSelectedForeColor instead")]
         public virtual Color UnfocusedHighlightForegroundColor { get { return this.UnfocusedSelectedForeColor; } set { this.UnfocusedSelectedForeColor = value; } }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [Obsolete("Use UnfocusedSelectedForeColorOrDefault instead")]
         public virtual Color UnfocusedHighlightForegroundColorOrDefault { get { return this.UnfocusedSelectedForeColorOrDefault; } }
 
@@ -3157,6 +3182,11 @@ namespace BrightIdeasSoftware
         /// When the listview is grouped, should the items be sorted by the primary column?
         /// If this is false, the items will be sorted by the same column as they are grouped.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The primary column is always column 0 and is unrelated to the PrimarySort column.
+        /// </para>
+        /// </remarks>
         [Category("ObjectListView"),
          Description("When the listview is grouped, should the items be sorted by the primary column? If this is false, the items will be sorted by the same column as they are grouped."),
          DefaultValue(true)]
@@ -4150,7 +4180,8 @@ namespace BrightIdeasSoftware
             string titleSingularFormat = this.ShowItemCountOnGroups ? groupByColumn.GroupWithItemCountSingularFormatOrDefault : null;
             GroupingParameters parms = new GroupingParameters(this, groupByColumn, groupByOrder,
                 sortByColumn, sortByOrder, secondaryColumn, secondaryOrder,
-                titleFormat, titleSingularFormat, this.SortGroupItemsByPrimaryColumn);
+                titleFormat, titleSingularFormat, 
+                this.SortGroupItemsByPrimaryColumn && this.AlwaysGroupByColumn == null);
             return parms;
         }
 
@@ -4188,21 +4219,7 @@ namespace BrightIdeasSoftware
             // Make a list of the required groups
             List<OLVGroup> groups = new List<OLVGroup>();
             foreach (object key in map.Keys) {
-                string title = parms.GroupByColumn.ConvertGroupKeyToTitle(key);
-                if (!String.IsNullOrEmpty(parms.TitleFormat)) {
-                    int count = map[key].Count;
-                    string format = (count == 1 ? parms.TitleSingularFormat : parms.TitleFormat);
-                    try {
-                        title = String.Format(format, title, count);
-                    } catch (FormatException) {
-                        title = "Invalid group format: " + format;
-                    }
-                }
-
-                OLVGroup lvg = new OLVGroup(title);
-                lvg.Collapsible = this.HasCollapsibleGroups;
-                lvg.Key = key;
-                lvg.SortValue = key as IComparable;
+                OLVGroup lvg = parms.CreateGroup(key, map[key].Count, HasCollapsibleGroups);
                 lvg.Items = map[key];
                 if (parms.GroupByColumn.GroupFormatter != null)
                     parms.GroupByColumn.GroupFormatter(lvg, parms);
