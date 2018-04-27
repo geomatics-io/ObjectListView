@@ -6,6 +6,7 @@
  *
  * Change log
  * 2018-04-27  JPP  - Sorting now works when grouping is locked on a column AND SortGroupItemsByPrimaryColumn is true
+ *                  - Correctly report right clicks on group headers via CellRightClick events.
  * v2.9.2
  * 2016-06-02  JPP  - Cell editors now respond to mouse wheel events. Set AllowCellEditorsToProcessMouseWheel
  *                    to false revert to previous behaviour.
@@ -5696,10 +5697,12 @@ namespace BrightIdeasSoftware
                         base.WndProc(ref m);
                     break;
                 case 0x0201: // WM_LBUTTONDOWN
+                    // System.Diagnostics.Debug.WriteLine("WM_LBUTTONDOWN");
                     if (this.PossibleFinishCellEditing() && !this.HandleLButtonDown(ref m))
                         base.WndProc(ref m);
                     break;
                 case 0x202:  // WM_LBUTTONUP
+                    // System.Diagnostics.Debug.WriteLine("WM_LBUTTONUP");
                     if (this.PossibleFinishCellEditing() && !this.HandleLButtonUp(ref m))
                         base.WndProc(ref m);
                     break;
@@ -5708,8 +5711,13 @@ namespace BrightIdeasSoftware
                         base.WndProc(ref m);
                     break;
                 case 0x0204: // WM_RBUTTONDOWN
-                    if (this.PossibleFinishCellEditing() && !this.HandleRButtonDown(ref m))
+                    // System.Diagnostics.Debug.WriteLine("WM_RBUTTONDOWN");
+                    if (this.PossibleFinishCellEditing() && !this.HandleRButtonDown(ref m)) 
                         base.WndProc(ref m);
+                    break;
+                case 0x0205: // WM_RBUTTONUP
+                    // System.Diagnostics.Debug.WriteLine("WM_RBUTTONUP");
+                    base.WndProc(ref m);
                     break;
                 case 0x0206: // WM_RBUTTONDBLCLK
                     if (this.PossibleFinishCellEditing() && !this.HandleRButtonDoubleClick(ref m))
@@ -6204,7 +6212,7 @@ namespace BrightIdeasSoftware
             NativeMethods.NMLVGROUP nmlvgroup = (NativeMethods.NMLVGROUP)m.GetLParam(typeof(NativeMethods.NMLVGROUP));
 
             //System.Diagnostics.Debug.WriteLine(String.Format("group: {0}, old state: {1}, new state: {2}",
-            //    nmlvgroup.iGroupId, OLVGroup.StateToString(nmlvgroup.uOldState), OLVGroup.StateToString(nmlvgroup.uNewState)));
+            //    nmlvgroup.iGroupId, StateToString(nmlvgroup.uOldState), StateToString(nmlvgroup.uNewState)));
 
             // Ignore state changes that aren't related to selection, focus or collapsedness
             const uint INTERESTING_STATES = (uint) (GroupState.LVGS_COLLAPSED | GroupState.LVGS_FOCUSED | GroupState.LVGS_SELECTED);
@@ -6226,7 +6234,7 @@ namespace BrightIdeasSoftware
         //{
         //    if (state == 0)
         //        return Enum.GetName(typeof(GroupState), 0);
-
+        //
         //    List<string> names = new List<string>();
         //    foreach (int value in Enum.GetValues(typeof(GroupState)))
         //    {
@@ -9172,10 +9180,13 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="e"></param>
         protected override void OnMouseDown(MouseEventArgs e) {
+            //System.Diagnostics.Debug.WriteLine(String.Format("OnMouseDown: {0}, {1}", e.Button, e.Clicks));
             this.lastMouseDownClickCount = e.Clicks;
+            this.lastMouseDownButton = e.Button;
             base.OnMouseDown(e);
         }
         private int lastMouseDownClickCount;
+        private MouseButtons lastMouseDownButton;
 
         /// <summary>
         /// When the mouse leaves the control, remove any hot item highlighting
@@ -9210,7 +9221,6 @@ namespace BrightIdeasSoftware
         }
 
         internal void HandleMouseMove(Point pt) {
-
             //System.Diagnostics.Debug.WriteLine(String.Format("HandleMouseMove: {0}", pt));
 
             CellOverEventArgs args = new CellOverEventArgs();
@@ -9227,15 +9237,19 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="e"></param>
         protected override void OnMouseUp(MouseEventArgs e) {
-
-            //System.Diagnostics.Debug.WriteLine(String.Format("OnMouseUp"));
+            //System.Diagnostics.Debug.WriteLine(String.Format("OnMouseUp: {0}, {1}", e.Button, e.Clicks));
 
             base.OnMouseUp(e);
 
             if (!this.Created)
                 return;
 
-            if (e.Button == MouseButtons.Right) {
+            // Sigh! More complexity. e.Button is not reliable when clicking on group headers.
+            // The mouse up event for first click on a group header always reports e.Button as None.
+            // Subsequent mouse up events report the button from the previous event.
+            // However, mouse down events are correctly reported, so we use the button value from
+            // the last mouse down event.
+            if (this.lastMouseDownButton == MouseButtons.Right) {
                 this.OnRightMouseUp(e);
                 return;
             }
