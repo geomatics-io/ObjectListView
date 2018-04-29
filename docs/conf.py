@@ -11,14 +11,15 @@
 # All configuration values have a default value; values that are commented out
 # serve to show the default value.
 
-import sys, os
+import sys
+import os
 
 # sys.path.append(os.path.abspath(".."))
 
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
-#sys.path.append(os.path.abspath("sphinxext"))
+# sys.path.append(os.path.abspath("sphinxext"))
 
 # General configuration
 # ---------------------
@@ -38,7 +39,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'ObjectListView'
-copyright = '2006-2015, Phillip Piper'
+copyright = '2006-2018, Phillip Piper'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
@@ -46,7 +47,7 @@ copyright = '2006-2015, Phillip Piper'
 # The short X.Y version.
 version = '2.9'
 # The full version, including alpha/beta/rc tags.
-release = '2.9.0'
+release = '2.9.3'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -144,7 +145,7 @@ htmlhelp_basename = 'ObjectListViewDoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('index', 'ObjectListView.tex', 'ObjectListView Documentation', 'Phillip Piper', 'manual'),
+    ('index', 'ObjectListView.tex', 'ObjectListView Documentation', 'Phillip Piper', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

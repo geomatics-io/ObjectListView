@@ -7,6 +7,16 @@ What's New?
 
 For the (mostly) complete change log, :ref:`see here <changelog>`.
 
+
+May 2016 - Version 2.9.1
+------------------------
+
+- Added `ObjectListView.CellRendererGetter` property. Install a delegate here to choose which renderer
+  a particular cell will use.
+- Obsolete properties are no longer code-gen'ed.
+- Small bug fixes
+
+
 November 2015 - Version 2.9.0
 -----------------------------
 

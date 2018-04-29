@@ -432,11 +432,12 @@ setting the `UseInitialLetterForGroup` property to *true*.
 .. image:: images/gettingstarted-example3.png
 
 Quite a lot happens under the hood when grouping is enabled. When the `ObjectListView` is rebuilt:
-	1. A group "key" is calculated for each model object.
-	2. All model objects that return the same "key" are placed in the same group.
-	3. That group "key" is then converted to a string. This string becomes the label for the group.
-	4. Each group of model objects is then sorted
-	5. The sorted objects added beneath their group's label.
+
+1. A group "key" is calculated for each model object.
+2. All model objects that return the same "key" are placed in the same group.
+3. That group "key" is then converted to a string. This string becomes the label for the group.
+4. Each group of model objects is then sorted
+5. The sorted objects added beneath their group's label.
 
 The crucial part to understand is that all model objects that have the same
 "key" are placed in the same group. By default, the "key" is the aspect of the

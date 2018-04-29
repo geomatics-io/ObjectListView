@@ -24,19 +24,19 @@ There are a couple of other ObjectListView packages but they are not managed by 
 Stable releases
 ---------------
 
-v2.9.0 released in July 2015 is the most recent stable release.
+v2.9.1 released in May 2016 is the most recent stable release.
 
-`Click here to download the full package`_, which includes the ObjectListView control, demos, documentation and unit tests (2.9 MB).
+`Click here to download the full package`_, which includes the ObjectListView control, demos, documentation and unit tests (3.3 MB).
 
-.. _Click here to download the full package: http://sourceforge.net/projects/objectlistview/files/objectlistview/2.9.0/ObjectListViewFull-2.9.0.zip/download
+.. _Click here to download the full package: http://sourceforge.net/projects/objectlistview/files/objectlistview/2.9.1/ObjectListViewFull-2.9.1.zip/download
 
 `Click here`_ to download just the source code of the ObjectListView project (740 KB).
 
-.. _Click here: http://sourceforge.net/projects/objectlistview/files/objectlistview/2.8.0/ObjectListView-2.9.0.zip/download
+.. _Click here: http://sourceforge.net/projects/objectlistview/files/objectlistview/2.9.1/ObjectListView-2.9.1.zip/download
 
 `Click here to download a CHM`_ documentation file built from the source code (4.6 MB). This is a reference only and not particularly readable.
 
-.. _Click here to download a CHM: http://sourceforge.net/projects/objectlistview/files/objectlistview/2.9.0/ObjectListView-Documentation.chm/download
+.. _Click here to download a CHM: http://sourceforge.net/projects/objectlistview/files/objectlistview/2.9.1/ObjectListView-Documentation.chm/download
 
 `Click here to see all releases`_.
 

@@ -250,7 +250,7 @@ For example, this::
     this.titleColumn.MinimumWidth = 30
 
 will stop the "Title" column from becoming less than 30 pixels in width. This is useful
-for preventing users from shrinking columns to 0 width and then not being about to find
+for preventing users from shrinking columns to 0 width and then not being able to find
 them again.
 
 
@@ -342,12 +342,12 @@ and they can interact in complex fashions.
 The various formatting options are applied in this order, with later formatting
 overriding earlier formatting:
 
- 1. Disabled
- 2. AlternateBackColors (not applied if row is disabled)
- 3. FormatRow
- 4. FormatCell
- 5. Hyperlinks
- 6. Selection
+1. Disabled
+2. AlternateBackColors (not applied if row is disabled)
+3. FormatRow
+4. FormatCell
+5. Hyperlinks
+6. Selection
 
 
 .. _recipe-listviewprinter:
@@ -1359,10 +1359,12 @@ Most properties of
         [OLVColumn("To", DisplayIndex = 3, Width = 50, TextAlign = HorizontalAlignment.Center)]
         public string ToCurrency { get; set; }
 
-        [OLVColumn("Amount", DisplayIndex = 2, AspectToStringFormat = "{0:C}", Width = 75, TextAlign = HorizontalAlignment.Right)]
+        [OLVColumn("Amount", DisplayIndex = 2, 
+         AspectToStringFormat = "{0:C}", Width = 75, TextAlign = HorizontalAlignment.Right)]
         public decimal FromValue { get; set; }
 
-        [OLVColumn("Amount", DisplayIndex = 4, AspectToStringFormat = "{0:C}", Width = 75, TextAlign = HorizontalAlignment.Right)]
+        [OLVColumn("Amount", DisplayIndex = 4, 
+         AspectToStringFormat = "{0:C}", Width = 75, TextAlign = HorizontalAlignment.Right)]
         public decimal ToValue { get; set; }
 
         [OLVColumn(IsVisible = false)]
@@ -1386,17 +1388,21 @@ This gives a slightly more interesting control:
 
 There are two ways you can do this:
 
-1. You can set `UseTransluscentSelection` and `UseTranslucentHotItem` to  *true*.
-   This will give a selection and hot item mechanism that is *similar* to that
-   used by Vista. It is not the same, I know. Do not complain.
+1. Via  `UseTransluscentSelection`
 
-   This works best when the control is owner drawn. When the list is not owner
-   drawn, the native control uses its default selection scheme in addition to
-   those use by these settings. It's still acceptable, but doesn't look quite so good.
+You can set `UseTransluscentSelection` and `UseTranslucentHotItem` to  *true*.
+This will give a selection and hot item mechanism that is *similar* to that
+used by Vista. It is not the same, I know. Do not complain.
 
-2. You can set `UseExplorerTheme` to *true*. If you absolutely have to look like
-   Vista, this is your property. But it has quite a few limitations (and may mess
-   up other things I haven't yet discovered):
+This works best when the control is owner drawn. When the list is not owner
+drawn, the native control uses its default selection scheme in addition to
+those use by these settings. It's still acceptable, but doesn't look quite so good.
+
+2. Via `UseExplorerTheme`
+
+You can set `UseExplorerTheme` to *true*. If you absolutely have to look like
+Vista, this is your property. But it has quite a few limitations (and may mess
+up other things I haven't yet discovered):
 
 * It only works on Vista and later.
 * It does nothing when `OwnerDraw` is *true*. Owner drawn lists are (naturally) controlled by their renderers.
@@ -1714,7 +1720,10 @@ customise the behaviour of keys during a cell edit operation.
 
 For example, to make [Ctrl-Up] start editing the cell above the current cell::
 
-    olv1.CellEditKeyEngine.SetKeyBehaviour(Keys.Up|Keys.Control, CellEditCharacterBehaviour.ChangeRowUp, CellEditAtEdgeBehaviour.ChangeRow);
+    olv1.CellEditKeyEngine.SetKeyBehaviour(
+        Keys.Up|Keys.Control, 
+        CellEditCharacterBehaviour.ChangeRowUp, 
+        CellEditAtEdgeBehaviour.ChangeRow);
 
 NOTE: The interface to `CellEditKeyEngine` will almost certainly change in the next version.
 
@@ -1995,7 +2004,7 @@ in their "ParentId" cell will appear as child rows of "Bill Gates".
 Performance
 ^^^^^^^^^^^
 
-`DataTreeListView` are slow! 
+Fair warning -- `DataTreeListView` are slow! 
 
 Since the control know nothing about the underlying data structures,
 it has to do linear searches for every get children or get parent operation. This is fine 
