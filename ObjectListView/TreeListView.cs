@@ -5,6 +5,7 @@
  * Date: 23/09/2008 11:15 AM
  * 
  * Change log:
+ * 2018-04-30  JPP  - Fix small visual glitch where connecting lines were not correctly drawn when filters changed
  * v2.9.2
  * 2016-06-02  JPP  - Added bounds check to GetNthObject().
  * v2.9
@@ -2127,7 +2128,7 @@ namespace BrightIdeasSoftware
                 Branch lastBranch = null;
                 foreach (Branch br in this.FilteredChildBranches) {
                     lastBranch = br;
-                    br.IsLastChild = false;
+                    br.IsFirstBranch = br.IsOnlyBranch = br.IsLastChild = false;
                     flatList.Add(br.Model);
                     if (br.IsExpanded) {
                         br.FetchChildren(); // make sure we have the branches children
