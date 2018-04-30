@@ -5,6 +5,8 @@
  * Date: 20/09/2010 7:42 AM
  *
  * Change log:
+ * 2018-04-30  JPP  - Sanity check upper limit against CurrencyManager rather than ListView just in
+ *                    case the CurrencyManager has gotten ahead of the ListView's contents.
  * v2.9
  * 2015-10-31  JPP  - Put back sanity check on upper limit of source items
  * 2015-02-02  JPP  - Made CreateColumnsFromSource() only rebuild columns when new ones were added
@@ -527,7 +529,7 @@ namespace BrightIdeasSoftware
             int index = this.CurrencyManager.Position;
 
             // Make sure the index is sane (-1 pops up from time to time)
-            if (index < 0 || index >= this.ListView.GetItemCount())
+            if (index < 0 || index >= this.CurrencyManager.Count)
                 return;
 
             // Avoid recursion. If we are currently changing the index, don't
