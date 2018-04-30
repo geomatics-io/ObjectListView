@@ -5,6 +5,9 @@
  * Date: 19/08/2009 10:56 PM
  *
  * Change log:
+ * 2018-04-30   JPP  - Added ColumnEdgeDecoration.
+ *                     TintedColumnDecoration now uses common base class, ColumnDecoration.
+ * v2.5
  * 2011-04-04   JPP  - Added ability to have a gradient background on BorderDecoration
  * v2.4
  * 2010-04-15   JPP  - Tweaked LightBoxDecoration a little
@@ -15,7 +18,7 @@
  *
  * To do:
  *
- * Copyright (C) 2009-2014 Phillip Piper
+ * Copyright (C) 2009-2018 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -128,14 +131,128 @@ namespace BrightIdeasSoftware
         #endregion
     }
 
+
+    /// <summary>
+    /// This decoration draws something over a given column.
+    /// Subclasses must override DrawDecoration()
+    /// </summary>
+    public class ColumnDecoration : AbstractDecoration {
+        #region Constructors
+
+        /// <summary>
+        /// Create a ColumnDecoration
+        /// </summary>
+        public ColumnDecoration() {
+        }
+
+        /// <summary>
+        /// Create a ColumnDecoration
+        /// </summary>
+        /// <param name="column"></param>
+        public ColumnDecoration(OLVColumn column)
+            : this() {
+            this.ColumnToDecorate = column ?? throw new ArgumentNullException("column");
+        }
+
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// Gets or sets the column that will be decorated
+        /// </summary>
+        public OLVColumn ColumnToDecorate {
+            get { return this.columnToDecorate; }
+            set { this.columnToDecorate = value; }
+        }
+        private OLVColumn columnToDecorate;
+
+        /// <summary>
+        /// Gets or sets the pen that will be used to draw the column decoration
+        /// </summary>
+        public Pen Pen {
+            get {
+                return this.pen ?? Pens.DarkRed;
+            }
+            set {
+                if (this.pen == value)
+                    return;
+
+                if (this.pen != null) {
+                    this.pen.Dispose();
+                }
+
+                this.pen = value;
+            }
+        }
+        private Pen pen;
+
+        #endregion
+
+        #region IOverlay Members
+
+        /// <summary>
+        /// Draw a decoration over our  column
+        /// </summary>
+        /// <remarks>
+        /// This overlay only works when:
+        /// - the list is in Details view
+        /// - there is at least one row
+        /// - there is a selected column (or a specified tint column)
+        /// </remarks>
+        /// <param name="olv"></param>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        public override void Draw(ObjectListView olv, Graphics g, Rectangle r) {
+
+            if (olv.View != System.Windows.Forms.View.Details)
+                return;
+
+            if (olv.GetItemCount() == 0)
+                return;
+
+            if (this.ColumnToDecorate == null)
+                return;
+
+            Point sides = NativeMethods.GetScrolledColumnSides(olv, this.ColumnToDecorate.Index);
+            if (sides.X == -1)
+                return;
+
+            Rectangle columnBounds = new Rectangle(sides.X, r.Top, sides.Y - sides.X, r.Bottom);
+
+            // Find the bottom of the last item. The decoration should extend only to there.
+            OLVListItem lastItem = olv.GetLastItemInDisplayOrder();
+            if (lastItem != null) {
+                Rectangle lastItemBounds = lastItem.Bounds;
+                if (!lastItemBounds.IsEmpty && lastItemBounds.Bottom < columnBounds.Bottom)
+                    columnBounds.Height = lastItemBounds.Bottom - columnBounds.Top;
+            }
+
+            // Delegate the drawing of the actual decoration
+            this.DrawDecoration(olv, g, r, columnBounds);
+        }
+
+        /// <summary>
+        /// Subclasses should override this to draw exactly what they want
+        /// </summary>
+        /// <param name="olv"></param>
+        /// <param name="g"></param>
+        /// <param name="r"></param>
+        /// <param name="columnBounds"></param>
+        public virtual void DrawDecoration(ObjectListView olv, Graphics g, Rectangle r, Rectangle columnBounds) {
+            g.DrawRectangle(this.Pen, columnBounds);
+        }
+
+        #endregion
+    }
+
     /// <summary>
     /// This decoration draws a slight tint over a column of the
     /// owning listview. If no column is explicitly set, the selected
     /// column in the listview will be used.
     /// The selected column is normally the sort column, but does not have to be.
     /// </summary>
-    public class TintedColumnDecoration : AbstractDecoration
-    {
+    public class TintedColumnDecoration : ColumnDecoration {
         #region Constructors
 
         /// <summary>
@@ -151,21 +268,12 @@ namespace BrightIdeasSoftware
         /// <param name="column"></param>
         public TintedColumnDecoration(OLVColumn column)
             : this() {
-            this.ColumnToTint = column;
+            this.ColumnToDecorate = column;
         }
 
         #endregion
 
         #region Properties
-
-        /// <summary>
-        /// Gets or sets the column that will be tinted
-        /// </summary>
-        public OLVColumn ColumnToTint {
-            get { return this.columnToTint; }
-            set { this.columnToTint = value; }
-        }
-        private OLVColumn columnToTint;
 
         /// <summary>
         /// Gets or sets the color that will be 'tinted' over the selected column
@@ -192,44 +300,124 @@ namespace BrightIdeasSoftware
 
         #region IOverlay Members
 
-        /// <summary>
-        /// Draw a slight colouring over our tinted column
-        /// </summary>
-        /// <remarks>
-        /// This overlay only works when:
-        /// - the list is in Details view
-        /// - there is at least one row
-        /// - there is a selected column (or a specified tint column)
-        /// </remarks>
-        /// <param name="olv"></param>
-        /// <param name="g"></param>
-        /// <param name="r"></param>
-        public override void Draw(ObjectListView olv, Graphics g, Rectangle r) {
-
-            if (olv.View != System.Windows.Forms.View.Details)
-                return;
-
-            if (olv.GetItemCount() == 0)
-                return;
-
-            OLVColumn column = this.ColumnToTint ?? olv.SelectedColumn;
-            if (column == null)
-                return;
-
-            Point sides = NativeMethods.GetScrolledColumnSides(olv, column.Index);
-            if (sides.X == -1)
-                return;
-
-            Rectangle columnBounds = new Rectangle(sides.X, r.Top, sides.Y - sides.X, r.Bottom);
-
-            // Find the bottom of the last item. The tinting should extend only to there.
-            OLVListItem lastItem = olv.GetLastItemInDisplayOrder();
-            if (lastItem != null) {
-                Rectangle lastItemBounds = lastItem.Bounds;
-                if (!lastItemBounds.IsEmpty && lastItemBounds.Bottom < columnBounds.Bottom)
-                    columnBounds.Height = lastItemBounds.Bottom - columnBounds.Top;
-            }
+        public override void DrawDecoration(ObjectListView olv, Graphics g, Rectangle r, Rectangle columnBounds) {
             g.FillRectangle(this.tintBrush, columnBounds);
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Specify on which side edge the decoration will be drawn
+    /// </summary>
+    public enum ColumnEdge {
+        Left,
+        Right
+    }
+
+    /// <summary>
+    /// Specify if the decoration will be inside the column,
+    /// overlap the column edge, or outside the column.
+    /// </summary>
+    public enum ColumnEdgeAlignment {
+        Inside,
+        Middle,
+        Outside
+    }
+
+    /// <summary>
+    /// This decoration draws a line on the edge(s) of its given column
+    /// </summary>
+    /// <remarks>
+    /// Like all decorations, this draws over the contents of list view.
+    /// If you set the Pen too wide enough, you may overwrite the contents
+    /// of the column (if alignment is Inside) or the surrounding columns (if alignment is Outside)
+    /// </remarks>
+    public class ColumnEdgeDecoration : ColumnDecoration {
+        #region Constructors
+
+        /// <summary>
+        /// Create a ColumnEdgeDecoration
+        /// </summary>
+        public ColumnEdgeDecoration() {
+        }
+
+        /// <summary>
+        /// Create a ColumnEdgeDecoration which draws a line over the right edges of the column (by default)
+        /// </summary>
+        /// <param name="column"></param>
+        /// <param name="pen"></param>
+        /// <param name="edge"></param>
+        /// <param name="alignment"></param>
+        public ColumnEdgeDecoration(OLVColumn column, Pen pen = null, ColumnEdge edge = ColumnEdge.Right, ColumnEdgeAlignment alignment = ColumnEdgeAlignment.Middle)
+            : this() {
+            this.ColumnToDecorate = column;
+            this.Pen = pen;
+            this.Edge = edge;
+            this.Alignment = alignment;
+        }
+
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// Gets or sets whether this decoration will draw a line on the left or right edge of the column
+        /// </summary>
+        public ColumnEdge Edge {
+            get { return edge; }
+            set { edge = value; }
+        }
+        private ColumnEdge edge = ColumnEdge.Right;
+
+        /// <summary>
+        /// Gets or sets whether this decoration will draw a line inside the column, overlapping the edge,
+        /// or outside of the column.
+        /// </summary>
+        public ColumnEdgeAlignment Alignment {
+            get { return alignment; }
+            set { alignment = value; }
+        }
+        private ColumnEdgeAlignment alignment = ColumnEdgeAlignment.Middle;
+
+        #endregion
+
+        #region IOverlay Members
+
+        public override void DrawDecoration(ObjectListView olv, Graphics g, Rectangle r, Rectangle columnBounds) {
+            float left = CalculateEdge(columnBounds);
+            g.DrawLine(this.Pen, left, columnBounds.Top, left, columnBounds.Bottom);
+            
+        }
+
+        private float CalculateEdge(Rectangle columnBounds) {
+            int tweak = this.Pen.Width <= 2 ? 0 : 1;
+            switch (this.Edge) {
+                case ColumnEdge.Left:
+                    switch (this.Alignment) {
+                        case ColumnEdgeAlignment.Inside:
+                            return tweak + columnBounds.Left;
+                        case ColumnEdgeAlignment.Middle:
+                            return tweak + columnBounds.Left - this.Pen.Width / 2;
+                        case ColumnEdgeAlignment.Outside:
+                            return tweak + columnBounds.Left - this.Pen.Width;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                case ColumnEdge.Right:
+                    switch (this.Alignment) {
+                        case ColumnEdgeAlignment.Inside:
+                            return tweak + columnBounds.Right - this.Pen.Width;
+                        case ColumnEdgeAlignment.Middle:
+                            return tweak + columnBounds.Right - this.Pen.Width / 2;
+                        case ColumnEdgeAlignment.Outside:
+                            return tweak + columnBounds.Right;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         #endregion

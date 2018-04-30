@@ -2349,3 +2349,24 @@ the description (`TitleDescriptionSpace`)
 When using a text filter on the `ObjectListView`, both the title and the description will be searched.
 
 
+
+.. _recipe-column-border:
+
+54. How can I draw a dividing line down the edge of one column?
+---------------------------------------------------------------
+
+    *I need to visually separate groups of adjacent columns.
+    Is there a way to draw vertical border between columns?*
+
+There is a `ColumnEdgeDecoration` which does this. Tell it which column you want to have the edge,
+and the `Pen` you want to use for the drawing::
+
+    var column = this.ListView.GetColumn(0);
+    this.ListView.AddDecoration(new ColumnEdgeDecoration(column, new Pen(Brushes.DarkCyan, 3)));
+
+This will give an effect like this:
+
+.. image:: images/column-edge-decoration-1.png
+
+Like all decorations, this draws over the control itself. If you make the pen too wide, you
+might overdraw the column contents.
