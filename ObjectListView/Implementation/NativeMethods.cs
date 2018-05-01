@@ -1212,10 +1212,7 @@ namespace BrightIdeasSoftware
 
         public static void SetGroupImageList(ObjectListView olv, ImageList il) {
             const int LVSIL_GROUPHEADER = 3;
-            IntPtr handle = IntPtr.Zero;
-            if (il != null)
-                handle = il.Handle;
-            NativeMethods.SendMessage(olv.Handle, LVM_SETIMAGELIST, LVSIL_GROUPHEADER, handle);
+            NativeMethods.SendMessage(olv.Handle, LVM_SETIMAGELIST, LVSIL_GROUPHEADER, il == null ? IntPtr.Zero : il.Handle);
         }
 
         public static int HitTest(ObjectListView olv, ref LVHITTESTINFO hittest)

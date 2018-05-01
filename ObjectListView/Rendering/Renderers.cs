@@ -4,7 +4,8 @@
  * Author: Phillip Piper
  * Date: 27/09/2008 9:15 AM
  *
- * Change log: 
+ * Change log:
+ * 2018-05-01   JPP  - Use ITextMatchFilter interface rather than TextMatchFilter concrete class.
  * v2.9.2
  * 2016-06-02   JPP  - CalculateImageWidth() no longer adds 2 to the image width
  * 2016-05-29   JPP  - Fix calculation of cell edit boundaries on TreeListView controls
@@ -81,7 +82,7 @@
  * 2008-10-26   JPP  - Don't owner draw when in Design mode
  * 2008-09-27   JPP  - Separated from ObjectListView.cs
  * 
- * Copyright (C) 2006-2014 Phillip Piper
+ * Copyright (C) 2006-2018 Phillip Piper
  * 
  * TO DO:
  * - Hit detection on renderers doesn't change the controls standard selection behavior
@@ -170,6 +171,9 @@ namespace BrightIdeasSoftware {
     /// </summary>
     public interface IFilterAwareRenderer
     {
+        /// <summary>
+        /// Gets or sets the filter that is currently active
+        /// </summary>
         IModelFilter Filter { get; set; }
     }
 
@@ -1288,7 +1292,7 @@ namespace BrightIdeasSoftware {
         /// </summary>
         /// <param name="g"></param>
         /// <param name="hti"></param>
-        /// <param name="bounds"></param>
+        /// <param name="alignedContentRectangle"></param>
         /// <param name="x"></param>
         /// <param name="y"></param>
         protected virtual void StandardHitTest(Graphics g, OlvListViewHitTestInfo hti, Rectangle alignedContentRectangle, int x, int y) {
@@ -1827,7 +1831,7 @@ namespace BrightIdeasSoftware {
         /// Create a HighlightTextRenderer
         /// </summary>
         /// <param name="filter"></param>
-        public HighlightTextRenderer(TextMatchFilter filter)
+        public HighlightTextRenderer(ITextMatchFilter filter)
             : this() {
             this.Filter = filter;
         }
@@ -1875,12 +1879,11 @@ namespace BrightIdeasSoftware {
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public TextMatchFilter Filter {
+        public ITextMatchFilter Filter {
             get { return filter; }
             set { filter = value; }
         }
-
-        private TextMatchFilter filter;
+        private ITextMatchFilter filter;
 
         /// <summary>
         /// When a filter changes, keep track of the text matching filters
@@ -2107,7 +2110,7 @@ namespace BrightIdeasSoftware {
         /// Gets whether the renderer should actually draw highlighting
         /// </summary>
         protected bool ShouldDrawHighlighting {
-            get { return this.Column == null || (this.Column.Searchable && this.Filter != null && this.Filter.HasComponents); }
+            get { return this.Column == null || (this.Column.Searchable && this.Filter != null); }
         }
 
         /// <summary>
@@ -3096,6 +3099,7 @@ namespace BrightIdeasSoftware {
         }
     }
 
+
     /// <summary>
     /// An ImagesRenderer draws zero or more images depending on the data returned by its Aspect.
     /// </summary>
@@ -3543,7 +3547,7 @@ namespace BrightIdeasSoftware {
         /// </summary>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public TextMatchFilter Filter
+        public ITextMatchFilter Filter
         {
             get { return this.highlightTextRenderer.Filter; }
             set { this.highlightTextRenderer.Filter = value; }
@@ -3581,6 +3585,12 @@ namespace BrightIdeasSoftware {
 
         #region Rendering
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
+        /// <param name="cellBounds"></param>
+        /// <param name="model"></param>
         public override void ConfigureSubItem(DrawListViewSubItemEventArgs e, Rectangle cellBounds, object model) {
             base.ConfigureSubItem(e, cellBounds, model);
             this.highlightTextRenderer.ConfigureSubItem(e, cellBounds, model);

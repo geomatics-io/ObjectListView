@@ -5,6 +5,8 @@
  * Date: 31/05/2011 7:45am 
  *
  * Change log:
+ * 2018-05-01  JPP  - Added ITextMatchFilter to allow for alternate implementations
+ *                  - Made several classes public so they can be subclassed
  * v2.6
  * 2012-10-13  JPP  Allow filtering to consider additional columns
  * v2.5.1
@@ -14,7 +16,7 @@
  *
  * TO DO:
  *
- * Copyright (C) 2011-2014 Phillip Piper
+ * Copyright (C) 2011-2018 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,13 +42,24 @@ using System.Drawing;
 
 namespace BrightIdeasSoftware {
 
+    public interface ITextMatchFilter: IModelFilter {
+        /// <summary>
+        /// Find all the ways in which this filter matches the given string.
+        /// </summary>
+        /// <remarks>This is used by the renderer to decide which bits of
+        /// the string should be highlighted</remarks>
+        /// <param name="cellText"></param>
+        /// <returns>A list of character ranges indicating the matched substrings</returns>
+        IEnumerable<CharacterRange> FindAllMatchedRanges(string cellText);
+    }
+
     /// <summary>
     /// Instances of this class include only those rows of the listview
     /// that match one or more given strings.
     /// </summary>
     /// <remarks>This class can match strings by prefix, regex, or simple containment.
     /// There are factory methods for each of these matching strategies.</remarks>
-    public class TextMatchFilter : AbstractModelFilter {
+    public class TextMatchFilter : AbstractModelFilter, ITextMatchFilter {
 
         #region Life and death
 
@@ -362,7 +375,7 @@ namespace BrightIdeasSoftware {
 
         #region Implementation members
 
-        private List<TextMatchingStrategy> MatchingStrategies = new List<TextMatchingStrategy>();
+        protected List<TextMatchingStrategy> MatchingStrategies = new List<TextMatchingStrategy>();
 
         #endregion
 
@@ -371,7 +384,7 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// Base class for the various types of string matching that TextMatchFilter provides
         /// </summary>
-        abstract protected class TextMatchingStrategy {
+        public abstract class TextMatchingStrategy {
 
             /// <summary>
             /// Gets how the filter will match text
@@ -410,7 +423,7 @@ namespace BrightIdeasSoftware {
             /// </remarks>
             /// <param name="cellText">The text of the cell we want to search</param>
             /// <returns>A list of character ranges indicating the matched substrings</returns>
-            abstract public IEnumerable<CharacterRange> FindAllMatchedRanges(string cellText);
+            public abstract IEnumerable<CharacterRange> FindAllMatchedRanges(string cellText);
 
             /// <summary>
             /// Does the given text match the filter
@@ -420,13 +433,13 @@ namespace BrightIdeasSoftware {
             /// </remarks>
             /// <param name="cellText">The text of the cell we want to search</param>
             /// <returns>Return true if the given cellText matches our strategy</returns>
-            abstract public bool MatchesText(string cellText);
+            public abstract bool MatchesText(string cellText);
         }
 
         /// <summary>
         /// This component provides text contains matching strategy.
         /// </summary>
-        protected class TextContainsMatchingStrategy : TextMatchingStrategy {
+        public class TextContainsMatchingStrategy : TextMatchingStrategy {
 
             /// <summary>
             /// Create a text contains strategy
@@ -446,7 +459,7 @@ namespace BrightIdeasSoftware {
             /// </remarks>
             /// <param name="cellText">The text of the cell we want to search</param>
             /// <returns>Return true if the given cellText matches our strategy</returns>
-            override public bool MatchesText(string cellText) {
+            public override bool MatchesText(string cellText) {
                 return cellText.IndexOf(this.Text, this.StringComparison) != -1;
             }
 
@@ -462,7 +475,7 @@ namespace BrightIdeasSoftware {
             /// </remarks>
             /// <param name="cellText">The text of the cell we want to search</param>
             /// <returns>A list of character ranges indicating the matched substrings</returns>
-            override public IEnumerable<CharacterRange> FindAllMatchedRanges(string cellText) {
+            public override IEnumerable<CharacterRange> FindAllMatchedRanges(string cellText) {
                 List<CharacterRange> ranges = new List<CharacterRange>();
 
                 int matchIndex = cellText.IndexOf(this.Text, this.StringComparison);
@@ -478,7 +491,7 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// This component provides text begins with matching strategy.
         /// </summary>
-        protected class TextBeginsMatchingStrategy : TextMatchingStrategy {
+        public class TextBeginsMatchingStrategy : TextMatchingStrategy {
 
             /// <summary>
             /// Create a text begins strategy
@@ -498,7 +511,7 @@ namespace BrightIdeasSoftware {
             /// </remarks>
             /// <param name="cellText">The text of the cell we want to search</param>
             /// <returns>Return true if the given cellText matches our strategy</returns>
-            override public bool MatchesText(string cellText) {
+            public override bool MatchesText(string cellText) {
                 return cellText.StartsWith(this.Text, this.StringComparison);
             }
 
@@ -514,7 +527,7 @@ namespace BrightIdeasSoftware {
             /// </remarks>
             /// <param name="cellText">The text of the cell we want to search</param>
             /// <returns>A list of character ranges indicating the matched substrings</returns>
-            override public IEnumerable<CharacterRange> FindAllMatchedRanges(string cellText) {
+            public override IEnumerable<CharacterRange> FindAllMatchedRanges(string cellText) {
                 List<CharacterRange> ranges = new List<CharacterRange>();
 
                 if (cellText.StartsWith(this.Text, this.StringComparison))
@@ -528,7 +541,7 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// This component provides regex matching strategy.
         /// </summary>
-        protected class TextRegexMatchingStrategy : TextMatchingStrategy {
+        public class TextRegexMatchingStrategy : TextMatchingStrategy {
 
             /// <summary>
             /// Creates a regex strategy
@@ -582,7 +595,7 @@ namespace BrightIdeasSoftware {
                     return this.Regex == TextRegexMatchingStrategy.InvalidRegexMarker;
                 }
             }
-            static private Regex InvalidRegexMarker = new Regex(".*");
+            private static Regex InvalidRegexMarker = new Regex(".*");
 
             /// <summary>
             /// Does the given text match the filter
@@ -610,7 +623,7 @@ namespace BrightIdeasSoftware {
             /// </remarks>
             /// <param name="cellText">The text of the cell we want to search</param>
             /// <returns>A list of character ranges indicating the matched substrings</returns>
-            override public IEnumerable<CharacterRange> FindAllMatchedRanges(string cellText) {
+            public override IEnumerable<CharacterRange> FindAllMatchedRanges(string cellText) {
                 List<CharacterRange> ranges = new List<CharacterRange>();
 
                 if (!this.IsRegexInvalid) {
