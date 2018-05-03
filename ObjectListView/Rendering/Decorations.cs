@@ -172,7 +172,7 @@ namespace BrightIdeasSoftware
         /// </summary>
         public Pen Pen {
             get {
-                return this.pen ?? Pens.DarkRed;
+                return this.pen ?? Pens.DarkSlateBlue;
             }
             set {
                 if (this.pen == value)
@@ -316,16 +316,6 @@ namespace BrightIdeasSoftware
     }
 
     /// <summary>
-    /// Specify if the decoration will be inside the column,
-    /// overlap the column edge, or outside the column.
-    /// </summary>
-    public enum ColumnEdgeAlignment {
-        Inside,
-        Middle,
-        Outside
-    }
-
-    /// <summary>
     /// This decoration draws a line on the edge(s) of its given column
     /// </summary>
     /// <remarks>
@@ -348,13 +338,13 @@ namespace BrightIdeasSoftware
         /// <param name="column"></param>
         /// <param name="pen"></param>
         /// <param name="edge"></param>
-        /// <param name="alignment"></param>
-        public ColumnEdgeDecoration(OLVColumn column, Pen pen = null, ColumnEdge edge = ColumnEdge.Right, ColumnEdgeAlignment alignment = ColumnEdgeAlignment.Middle)
+        /// <param name="xOffset"></param>
+        public ColumnEdgeDecoration(OLVColumn column, Pen pen = null, ColumnEdge edge = ColumnEdge.Right, float xOffset = 0)
             : this() {
             this.ColumnToDecorate = column;
             this.Pen = pen;
             this.Edge = edge;
-            this.Alignment = alignment;
+            this.XOffset = xOffset;
         }
 
         #endregion
@@ -371,14 +361,13 @@ namespace BrightIdeasSoftware
         private ColumnEdge edge = ColumnEdge.Right;
 
         /// <summary>
-        /// Gets or sets whether this decoration will draw a line inside the column, overlapping the edge,
-        /// or outside of the column.
+        /// Gets or sets the horizontal offset from centered at which the line will be drawn
         /// </summary>
-        public ColumnEdgeAlignment Alignment {
-            get { return alignment; }
-            set { alignment = value; }
+        public float XOffset {
+            get { return xOffset; }
+            set { xOffset = value; }
         }
-        private ColumnEdgeAlignment alignment = ColumnEdgeAlignment.Middle;
+        private float xOffset;
 
         #endregion
 
@@ -391,33 +380,9 @@ namespace BrightIdeasSoftware
         }
 
         private float CalculateEdge(Rectangle columnBounds) {
-            int tweak = this.Pen.Width <= 2 ? 0 : 1;
-            switch (this.Edge) {
-                case ColumnEdge.Left:
-                    switch (this.Alignment) {
-                        case ColumnEdgeAlignment.Inside:
-                            return tweak + columnBounds.Left;
-                        case ColumnEdgeAlignment.Middle:
-                            return tweak + columnBounds.Left - this.Pen.Width / 2;
-                        case ColumnEdgeAlignment.Outside:
-                            return tweak + columnBounds.Left - this.Pen.Width;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                case ColumnEdge.Right:
-                    switch (this.Alignment) {
-                        case ColumnEdgeAlignment.Inside:
-                            return tweak + columnBounds.Right - this.Pen.Width;
-                        case ColumnEdgeAlignment.Middle:
-                            return tweak + columnBounds.Right - this.Pen.Width / 2;
-                        case ColumnEdgeAlignment.Outside:
-                            return tweak + columnBounds.Right;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            float tweak = this.XOffset + (this.Pen.Width <= 2 ? 0 : 1);
+            int x = this.Edge == ColumnEdge.Left ? columnBounds.Left : columnBounds.Right;
+            return tweak + x - this.Pen.Width / 2;
         }
 
         #endregion
