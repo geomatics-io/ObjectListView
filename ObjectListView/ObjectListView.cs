@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2018-05-03  JPP  - Extend OnColumnRightClick so the event handler can tweak the menu to be shown
  * 2018-04-27  JPP  - Sorting now works when grouping is locked on a column AND SortGroupItemsByPrimaryColumn is true
  *                  - Correctly report right clicks on group headers via CellRightClick events.
  * v2.9.2
@@ -6958,12 +6959,15 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <returns>Return true if this event has been handle</returns>
         protected virtual bool HandleHeaderRightClick(int columnIndex) {
-            ColumnClickEventArgs eventArgs = new ColumnClickEventArgs(columnIndex);
+            ToolStripDropDown menu = this.MakeHeaderRightClickMenu(columnIndex);
+            ColumnRightClickEventArgs eventArgs = new ColumnRightClickEventArgs(columnIndex, menu, Cursor.Position);
             this.OnColumnRightClick(eventArgs);
 
-            // TODO: Allow users to say they have handled this event
+            // Did the event handler stop any further processing?
+            if (eventArgs.Cancel)
+                return false;
             
-            return this.ShowHeaderRightClickMenu(columnIndex, Cursor.Position);
+            return this.ShowHeaderRightClickMenu(columnIndex, eventArgs.MenuStrip, eventArgs.Location);
         }
 
         /// <summary>
@@ -6973,10 +6977,9 @@ namespace BrightIdeasSoftware
         /// can be -1, indicating that the header was clicked outside of a column</param>
         /// <param name="pt">Where should the menu be shown</param>
         /// <returns>True if a menu was displayed</returns>
-        protected virtual bool ShowHeaderRightClickMenu(int columnIndex, Point pt) {
-            ToolStripDropDown m = this.MakeHeaderRightClickMenu(columnIndex);
-            if (m.Items.Count > 0) {
-                m.Show(pt);
+        protected virtual bool ShowHeaderRightClickMenu(int columnIndex, ToolStripDropDown menu, Point pt) {
+            if (menu.Items.Count > 0) {
+                menu.Show(pt);
                 return true;
             }
 
