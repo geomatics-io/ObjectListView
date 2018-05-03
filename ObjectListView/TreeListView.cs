@@ -5,6 +5,7 @@
  * Date: 23/09/2008 11:15 AM
  * 
  * Change log:
+ * 2018-05-03  JPP  - Added ITreeModel to allow models to provide the required information to TreeListView.
  * 2018-04-30  JPP  - Fix small visual glitch where connecting lines were not correctly drawn when filters changed
  * v2.9.2
  * 2016-06-02  JPP  - Added bounds check to GetNthObject().
@@ -262,7 +263,7 @@ namespace BrightIdeasSoftware
         [Browsable(false),
         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ParentGetterDelegate ParentGetter {
-            get { return parentGetter; }
+            get { return parentGetter ?? Tree.DefaultParentGetter; }
             set { parentGetter = value; }
         }
         private ParentGetterDelegate parentGetter;
@@ -1282,10 +1283,11 @@ namespace BrightIdeasSoftware
             /// This is the delegate that will be used to decide if a model object can be expanded.
             /// </summary>
             public CanExpandGetterDelegate CanExpandGetter {
-                get { return canExpandGetter; }
+                get { return canExpandGetter ?? DefaultCanExpandGetter; }
                 set { canExpandGetter = value; }
             }
             private CanExpandGetterDelegate canExpandGetter;
+
 
             /// <summary>
             /// This is the delegate that will be used to fetch the children of a model object
@@ -1293,11 +1295,10 @@ namespace BrightIdeasSoftware
             /// <remarks>This delegate will only be called if the CanExpand delegate has 
             /// returned true for the model object.</remarks>
             public ChildrenGetterDelegate ChildrenGetter {
-                get { return childrenGetter; }
+                get { return childrenGetter ?? DefaultChildrenGetter; }
                 set { childrenGetter = value; }
             }
             private ChildrenGetterDelegate childrenGetter;
-
 
             /// <summary>
             /// Get or return the top level model objects in the tree
@@ -1453,6 +1454,21 @@ namespace BrightIdeasSoftware
 
             //------------------------------------------------------------------------------------------
             // Implementation
+
+            private static bool DefaultCanExpandGetter(object model) {
+                ITreeModelWithChildren treeModel = model as ITreeModelWithChildren;
+                return treeModel != null && treeModel.TreeCanExpand;
+            }
+
+            private static IEnumerable DefaultChildrenGetter(object model) {
+                ITreeModelWithChildren treeModel = model as ITreeModelWithChildren;
+                return treeModel == null ? new ArrayList() : treeModel.TreeChildren;
+            }
+
+            internal static object DefaultParentGetter(object model) {
+                ITreeModelWithParent treeModel = model as ITreeModelWithParent;
+                return treeModel == null ? null : treeModel.TreeParent;
+            }
 
             /// <summary>
             /// Is the given model expanded?
@@ -2208,5 +2224,46 @@ namespace BrightIdeasSoftware
             private readonly IComparer actualComparer;
         }
 
+    }
+
+    /// <summary>
+    /// This interface should be implemented by model objects that can provide children,
+    /// but that don't have a parent. This is either because the model objects are always
+    /// root level, or because they are used in TreeListView that never uses parent
+    /// calculations. Parent calculations are only used when HierarchicalCheckBoxes is true.
+    /// </summary>
+    public interface ITreeModelWithChildren {
+        /// <summary>
+        /// Get whether this this model can be expanded? If true, an expand glyph will be drawn next to it.
+        /// </summary>
+        /// <remarks>This is called often! It must be fast. Don’t do a database lookup, calculate pi, or do linear searches – just return a property value.</remarks>
+        bool TreeCanExpand { get; }
+
+        /// <summary>
+        /// Get the models that will be shown under this model when it is expanded.
+        /// </summary>
+        /// <remarks>This is only called when CanExpand returns true.</remarks>
+        IEnumerable TreeChildren { get; }
+    }
+
+    /// <summary>
+    /// This interface should be implemented by model objects that can never have children,
+    /// but that are used in a TreeListView that uses parent calculations.
+    /// Parent calculations are only used when HierarchicalCheckBoxes is true.
+    /// </summary>
+    public interface ITreeModelWithParent {
+
+        /// <summary>
+        /// Get the hierarchical parent of this model.
+        /// </summary>
+        object TreeParent { get; }
+    }
+
+    /// <summary>
+    /// ITreeModel allows model objects to provide the required information to TreeListView
+    /// without using the normal Getter delegates.
+    /// </summary>
+    public interface ITreeModel: ITreeModelWithChildren, ITreeModelWithParent {
+        
     }
 }

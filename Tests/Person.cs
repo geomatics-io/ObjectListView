@@ -9,6 +9,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 
@@ -18,7 +19,7 @@ namespace BrightIdeasSoftware.Tests
     /// Description of Person.
     /// </summary>
 
-    public class Person : INotifyPropertyChanged
+    public class Person : INotifyPropertyChanged, ITreeModel
     {
         public bool? IsActive = null;
 
@@ -172,6 +173,21 @@ namespace BrightIdeasSoftware.Tests
 
         public override int GetHashCode() {
             return (name != null ? name.GetHashCode() : 0);
+        }
+
+        #endregion
+
+        #region Implementation of ITreeModel
+
+        // These are used when the TreeListView doesn't have getter delegates installed
+        public bool TreeCanExpand {
+            get { return Children.Count > 0; }
+        }
+        public IEnumerable TreeChildren {
+            get { return Children; }
+        }
+        public object TreeParent {
+            get { return Parent; }
         }
 
         #endregion

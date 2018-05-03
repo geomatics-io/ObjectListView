@@ -16,11 +16,9 @@ using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 using NUnit.Framework;
 
-namespace BrightIdeasSoftware.Tests
-{
+namespace BrightIdeasSoftware.Tests {
     [TestFixture]
-    public class TestTreeView
-    {
+    public class TestTreeView {
         [SetUp]
         public void InitEachTest() {
             PersonDb.Reset();
@@ -30,16 +28,7 @@ namespace BrightIdeasSoftware.Tests
             mainForm.Show();
             this.olv = mainForm.treeListView1;
 
-            this.olv.CanExpandGetter = delegate(Object x) {
-                return ((Person)x).Children.Count > 0;
-            };
-            this.olv.ChildrenGetter = delegate(Object x) {
-                return ((Person)x).Children;
-            };
-            // this is only used when HierarchicalCheckboxes is true
-            this.olv.ParentGetter = delegate(object child) {
-                return ((Person)child).Parent;
-            };
+            this.SetupDelegates();
 
             this.olv.UseFiltering = false;
             this.olv.ModelFilter = null;
@@ -47,13 +36,21 @@ namespace BrightIdeasSoftware.Tests
             this.olv.Roots = PersonDb.All.GetRange(0, NumberOfRoots);
             this.olv.DiscardAllState();
         }
+
+        protected virtual void SetupDelegates() {
+            this.olv.CanExpandGetter = delegate(Object x) { return ((Person)x).Children.Count > 0; };
+            this.olv.ChildrenGetter = delegate(Object x) { return ((Person)x).Children; };
+            // this is only used when HierarchicalCheckboxes is true
+            this.olv.ParentGetter = delegate(object child) { return ((Person)child).Parent; };
+        }
+
         private const int NumberOfRoots = 2;
         protected TreeListView olv;
         private MainForm mainForm;
 
         [TearDown]
         public void TearDownEachTest() {
-           mainForm.Close();
+            mainForm.Close();
         }
 
         [Test]
@@ -171,6 +168,7 @@ namespace BrightIdeasSoftware.Tests
                 Assert.AreEqual(x, p.Children[i]);
                 i++;
             }
+
             Assert.AreEqual(i, p.Children.Count);
         }
 
@@ -204,7 +202,7 @@ namespace BrightIdeasSoftware.Tests
             this.olv.CheckBoxes = true;
             this.olv.SelectedObject = PersonDb.All[0];
             this.olv.Expand(PersonDb.All[1]);
-            this.olv.CheckedObjects = new Person[] { PersonDb.All[0] };
+            this.olv.CheckedObjects = new Person[] {PersonDb.All[0]};
             this.olv.RebuildAll(true);
             Assert.AreEqual(PersonDb.All[0], this.olv.SelectedObject);
             Assert.Contains(PersonDb.All[1], this.olv.ExpandedObjects as ICollection);
@@ -270,7 +268,7 @@ namespace BrightIdeasSoftware.Tests
             this.olv.ExpandAll();
             int count = this.olv.GetItemCount();
             ArrayList expanded = ObjectListView.EnumerableToArray(this.olv.ExpandedObjects, false);
-            Person lastExpanded = (Person) expanded[expanded.Count - 1];
+            Person lastExpanded = (Person)expanded[expanded.Count - 1];
             object parentOfLastExpanded = this.olv.GetParent(lastExpanded);
             this.olv.RefreshObject(parentOfLastExpanded);
             Assert.IsTrue(this.olv.IsExpanded(lastExpanded));
@@ -290,7 +288,7 @@ namespace BrightIdeasSoftware.Tests
             ArrayList checkedObjects = new ArrayList(this.olv.CheckedObjects);
             Assert.AreEqual(firstRoot.Children.Count, checkedObjects.Count);
         }
-        
+
         [Test]
         public void Test_CheckedObjects_CheckingHiddenObjects() {
             this.olv.CheckBoxes = true;
@@ -476,7 +474,7 @@ namespace BrightIdeasSoftware.Tests
 
             ArrayList checkedObjects = new ArrayList(this.olv.CheckedObjects);
             Assert.AreEqual(1, checkedObjects.Count);
-            Assert.AreEqual(((Person)checkedObjects[0]).Name,  newGuy.Name);
+            Assert.AreEqual(((Person)checkedObjects[0]).Name, newGuy.Name);
         }
 
         [Test]
@@ -498,8 +496,7 @@ namespace BrightIdeasSoftware.Tests
         }
 
         [Test]
-        public void Test_HierarchicalCheckBoxes_CheckedObjects_Set_DeeplyNestedObject()
-        {
+        public void Test_HierarchicalCheckBoxes_CheckedObjects_Set_DeeplyNestedObject() {
             this.olv.HierarchicalCheckboxes = true;
             Assert.IsEmpty(this.olv.CheckedObjects);
 
@@ -576,6 +573,13 @@ namespace BrightIdeasSoftware.Tests
 
             this.olv.RefreshObject(child);
             Assert.AreEqual(2, this.olv.GetItemCount());
+        }
+    }
+
+    [TestFixture]
+    public class TestTreeViewViaInterface : TestTreeView {
+        protected override void SetupDelegates() {
+            // Don't setup delegates. This forces TreeListView to use the ITreeModel interface
         }
     }
 }

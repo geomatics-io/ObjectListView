@@ -761,6 +761,9 @@ two essential delegates for using a `TreeListView` are:
   model after it is expanded. This delegate is only called if `CanExpandGetter` has
   returned true for that model object.
 
+[v2.10] You can replace these getters with an interface on your model classes. See 
+:ref:`recipe-treelistview-interface` 
+
 In the demo, there is an Explorer like example, which navigates the disks on the
 local computer. The tree list view in that demo is configured so that only
 directories can be expanded. It looks like this::
@@ -2323,14 +2326,14 @@ If you want to make something that looks pretty like this, ObjectListView can he
 
 .. image:: images/described-task-row.png
 
-The format shown in the "Task" column is done via a renderer called a `DecribedTaskRenderer` 
+The format shown in the "Task" column is done via a renderer called a `DescribedTaskRenderer` 
 (not a very elegant name, I admit).
 
 It consists of three parts: the normal `Aspect`, the normal `Image` and a description. The first two
 are setup in the normal way, but the third is done via a property on the renderer `DescriptionAspectName`.
 
 In Use
-------
+^^^^^^
 
 You will normally have to give the ObjectListView a specific `RowHeight` that allows for both 
 the title and description. This is not auto calculated for you.
@@ -2349,16 +2352,15 @@ the description (`TitleDescriptionSpace`)
 When using a text filter on the `ObjectListView`, both the title and the description will be searched.
 
 
-
 .. _recipe-column-border:
 
-54. How can I draw a dividing line down the edge of one column?
+55. How can I draw a dividing line down the edge of one column?
 ---------------------------------------------------------------
 
     *I need to visually separate groups of adjacent columns.
     Is there a way to draw vertical border between columns?*
 
-There is a `ColumnEdgeDecoration` which does this. Tell it which column you want to have the edge,
+[v2.10] There is a `ColumnEdgeDecoration` which does this. Tell it which column you want to have the edge,
 and the `Pen` you want to use for the drawing::
 
     var column = this.ListView.GetColumn(0);
@@ -2370,3 +2372,78 @@ This will give an effect like this:
 
 Like all decorations, this draws over the control itself. If you make the pen too wide, you
 might overdraw the column contents.
+
+
+.. _recipe-treelistview-interface:
+
+56. Can TreeListView read the models directly rather than using delegates?
+--------------------------------------------------------------------------
+
+    *My TreeListView shows customers, invoices, items and details. This
+    makes the CanExpandGetter and ChildrenGetter complicated with lots of casting.
+    Isn't there a better way?*
+
+[v2.10] Yes! If you have diverse models in your hierarchy, your `CanExpandGetter` (and `ChildrenGetter`) can be complicated::
+
+    public class Customer {
+        public List<Invoice> Invoices { get; }
+        ...
+    }
+    ...
+    this.treeListView.CanExpandGetter = delegate(Object model) {
+        Customer customer = model as Customer;
+        if (customer != null) {
+            return customer.Invoices.Count > 0;
+        }
+        Invoice invoice = model as Invoice;
+        if (invoice != null) {
+            return invoice.LineItems.Count > 0;
+        }
+        LineItem item = model as LineItem;
+        if (item != null) {
+            return item.Details.Count > 0;
+        }
+        return false;
+    };
+
+This works... but it's ugly and unnecessarily complex. 
+
+To solve this problem, your model objects can now implement `ITreeModel` interface::
+
+    public class Customer: ITreeModel {
+        public List<Invoice> Invoices { get; }
+
+        // ITreeModel
+        public bool TreeCanExpand {
+            get { return Invoices.Count > 0; }
+        }
+
+        public IEnumerable TreeChildren {
+            get { return Invoices; }
+        }
+
+        public object TreeParent {
+            get {
+                // Customers are always top level and thus have no parent
+                return null;
+            }
+        }
+    }
+
+To make `TreeListView` look for `ITreeModels`, simply don't set the normal
+`Getter` delegates. Wihout those delegates, `TreeListView` will examine every
+model to see if it implements `ITreeModel`, and use it if it's present.
+
+Just a few things to note:
+
+* You can't mix `Getter` delegates with `ITreeModel`. It's one or the other -- not both.
+
+* If you use `ITreeModel`, every model that is expandable *must* implement the interface. 
+
+* All the normal rules about `TreeListView` and `Getter` delegates still apply:
+
+  * Properties must run quickly and synchronously
+
+  * No cycles in the graph (each object must always have the same parent) 
+
+  * Something else very important -- just kidding to see if you're still paying attention :)
