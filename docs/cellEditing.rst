@@ -60,9 +60,9 @@ Deciding on a cell editor
 
 When a cell is to be edited, we need to decide what sort of editor to use.
 
-There are two ways this decision can be made:
+There are three ways this decision can be made:
 
-1. Registry based decision [v2.1]
+1. Registry based decision 
 
 In general, editors are created based on the type of value in the cell. Deciding what
 editor to use based on the type of the value is the responsibility of the `EditorRegistry`.
@@ -89,7 +89,22 @@ configuring what exact control to use for a given value::
         return c;
     });
 
-2. Event based decision
+2. `EditorCreator` delegate
+
+`OLVColumn` has an `EditorCreator` property, into which you can put a callback that
+decides on the control to edit a particular cell.
+
+    olvColumnAmt.EditorCreator = delegate(Object model, OLVColumn column, Object value) {
+        if (model is CustomerAccount)
+            return new IntUpDown();
+        else
+            return new FloatEditor();
+    }
+
+This is particularly useful if you are doing something clever with the columns `AspectGetter`
+and sourcing the cell's contents from different properties in the model.
+
+3. Event based decision
 
 If you want something more surgical, you can have complete control over the
 process by listening for a cell editing starting event, CellEditStarting. Within

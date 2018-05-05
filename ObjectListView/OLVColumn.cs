@@ -5,6 +5,7 @@
  * Date: 31-March-2011 5:53 pm
  *
  * Change log:
+ * 2018-05-05  JPP  - Added EditorCreator to OLVColumn
  * 2015-06-12  JPP  - HeaderTextAlign became nullable so that it can be "not set" (this was always the intent)
  * 2014-09-07  JPP  - Added ability to have checkboxes in headers
  * 
@@ -393,6 +394,21 @@ namespace BrightIdeasSoftware {
             }
         }
         private IClusteringStrategy clusteringStrategy;
+
+        /// <summary>
+        /// Gets or sets a delegate that will create an editor for a cell in this column. 
+        /// </summary>
+        /// <remarks>
+        /// If you need different editors for different cells in the same column, this
+        /// delegate is your solution. Return null to use the default editor for the cell.
+        /// </remarks>
+        [Browsable(false),
+         DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public EditorCreatorDelegate EditorCreator {
+            get { return editorCreator; }
+            set { editorCreator = value; }
+        }
+        private EditorCreatorDelegate editorCreator;
 
         /// <summary>
         /// Gets or sets whether the button in this column (if this column is drawing buttons) will be enabled

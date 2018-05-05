@@ -5,6 +5,9 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2018-05-05  JPP  - Added OLVColumn.EditorCreator to allow fine control over what control is used to edit
+ *                    a particular cell.
+ *                  - Added IOlvEditor to allow custom editor to easily integrate with our editing scheme
  * 2018-05-03  JPP  - Extend OnColumnRightClick so the event handler can tweak the menu to be shown
  * 2018-04-27  JPP  - Sorting now works when grouping is locked on a column AND SortGroupItemsByPrimaryColumn is true
  *                  - Correctly report right clicks on group headers via CellRightClick events.
@@ -7409,6 +7412,8 @@ namespace BrightIdeasSoftware
             if (this.Frozen)
                 return;
 
+            this.BeginUpdate();
+
             // Calculate the free space available
             int totalProportion = 0;
             List<OLVColumn> spaceFillingColumns = new List<OLVColumn>();
@@ -7446,6 +7451,8 @@ namespace BrightIdeasSoftware
             foreach (OLVColumn col in spaceFillingColumns) {
                 col.Width = (freeSpace*col.FreeSpaceProportion)/totalProportion;
             }
+
+            this.EndUpdate();
         }
 
         #endregion
@@ -9692,6 +9699,13 @@ namespace BrightIdeasSoftware
         /// <param name="value">The value to be given to the control</param>
         /// <param name="stringValue">The string to be given if the value doesn't work</param>
         protected virtual void SetControlValue(Control control, Object value, String stringValue) {
+            // Does the control implement our custom interface?
+            IOlvEditor olvEditor = control as IOlvEditor;
+            if (olvEditor != null) {
+                olvEditor.Value = value;
+                return;
+            }
+
             // Handle combobox explicitly
             ComboBox cb = control as ComboBox;
             if (cb != null) {
@@ -9734,6 +9748,10 @@ namespace BrightIdeasSoftware
         protected virtual Object GetControlValue(Control control) {
             if (control == null)
                 return null;
+
+            IOlvEditor olvEditor = control as IOlvEditor;
+            if (olvEditor != null)
+                return olvEditor.Value;
 
             TextBox box = control as TextBox;
             if (box != null)
@@ -9880,16 +9898,19 @@ namespace BrightIdeasSoftware
         /// <returns>A Control to edit the given cell</returns>
         protected virtual Control GetCellEditor(OLVListItem item, int subItemIndex) {
             OLVColumn column = this.GetColumn(subItemIndex);
-            Object value = column.GetValue(item.RowObject) ?? this.GetFirstNonNullValue(column);
+            Object value = column.GetValue(item.RowObject);
 
-            // TODO: What do we do if value is still null here?
+            // Does the column have its own special way of creating cell editors?
+            if (column.EditorCreator != null) {
+                Control customEditor = column.EditorCreator(item.RowObject, column, value);
+                if (customEditor != null)
+                    return customEditor;
+            }
 
             // Ask the registry for an instance of the appropriate editor.
             // Use a default editor if the registry can't create one for us.
-            Control editor = ObjectListView.EditorRegistry.GetEditor(item.RowObject, column, value) ??
-                             this.MakeDefaultCellEditor(column);
-
-            return editor;
+            Control editor = ObjectListView.EditorRegistry.GetEditor(item.RowObject, column, value ?? this.GetFirstNonNullValue(column));
+            return editor ?? this.MakeDefaultCellEditor(column);
         }
 
         /// <summary>
