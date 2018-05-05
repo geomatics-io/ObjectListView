@@ -21,7 +21,7 @@
     <TargetFrameworkProfile />
     <SccProjectName>%24/ObjectListView/trunk/ObjectListView</SccProjectName>
     <SccLocalPath>.</SccLocalPath>
-    <SccAuxPath>https://grammarian.visualstudio.com/defaultcollection</SccAuxPath>
+    <SccAuxPath>https://grammarian.visualstudio.com</SccAuxPath>
     <SccProvider>{4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}</SccProvider>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -83,9 +83,7 @@
     </Compile>
     <Compile Include="Rendering\Adornments.cs" />
     <Compile Include="Implementation\Attributes.cs" />
-    <Compile Include="CellEditing\CellEditors.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="CellEditing\CellEditors.cs" />
     <Compile Include="CellEditing\EditorRegistry.cs" />
     <Compile Include="DataListView.cs">
       <SubType>Component</SubType>

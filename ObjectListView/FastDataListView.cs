@@ -50,6 +50,10 @@ namespace BrightIdeasSoftware
     /// </remarks>
     public class FastDataListView : FastObjectListView
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
             if (this.adapter != null) {

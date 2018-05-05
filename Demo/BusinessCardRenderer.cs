@@ -18,7 +18,7 @@ namespace ObjectListViewDemo {
         public override bool RenderItem(DrawListViewItemEventArgs e, Graphics g, Rectangle itemBounds, object rowObject)
         {
             // If we're in any other view than Tile, return false to say that we haven't done
-            // the renderering and the default process should do it's stuff
+            // the rendering and the default process should do it's stuff
             ObjectListView olv = e.Item.ListView as ObjectListView;
             if (olv == null || olv.View != View.Tile)
                 return false;

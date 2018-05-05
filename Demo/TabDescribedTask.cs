@@ -151,7 +151,7 @@ namespace ObjectListViewDemo
             renderer.ImageTextSpace = 8;
             renderer.TitleDescriptionSpace = 1;
 
-            // Use older Gdi renderering, since most people think the text looks clearer
+            // Use older Gdi rendering, since most people think the text looks clearer
             renderer.UseGdiTextRendering = true;
 
             // If you like colours other than black and grey, you could uncomment these
