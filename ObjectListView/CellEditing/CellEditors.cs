@@ -5,6 +5,7 @@
  * Date: 20/10/2008 5:15 PM
  *
  * Change log:
+ * 2018-05-05   JPP  - Added ControlUtilities.AutoResizeDropDown()
  * v2.6
  * 2012-08-02   JPP  - Make most editors public so they can be reused/subclassed
  * v2.3
@@ -38,7 +39,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.Reflection;
 using System.Windows.Forms;
 
 namespace BrightIdeasSoftware
@@ -49,6 +49,31 @@ namespace BrightIdeasSoftware
     /// </summary>
     public interface IOlvEditor {
         object Value { get; set; }
+    }
+
+    public static class ControlUtilities {
+
+        /// <summary>
+        /// Configure the given ComboBox so that the dropped down menu is auto-sized to
+        /// be wide enough to show the widest item.
+        /// </summary>
+        /// <param name="dropDown"></param>
+        public static void AutoResizeDropDown(ComboBox dropDown) {
+            if (dropDown == null)
+                throw new ArgumentNullException("dropDown");
+
+            dropDown.DropDown += delegate(object sender, EventArgs args) {
+
+                // Calculate the maximum width of the drop down items
+                int newWidth = 0;
+                foreach (object item in dropDown.Items) {
+                    newWidth = Math.Max(newWidth, TextRenderer.MeasureText(item.ToString(), dropDown.Font).Width);
+                }
+
+                int vertScrollBarWidth = dropDown.Items.Count > dropDown.MaxDropDownItems ? SystemInformation.VerticalScrollBarWidth : 0;
+                dropDown.DropDownWidth = newWidth + vertScrollBarWidth;
+            };
+        }
     }
 
     /// <summary>
@@ -122,6 +147,8 @@ namespace BrightIdeasSoftware
             this.Sorted = true;
             this.AutoCompleteSource = AutoCompleteSource.ListItems;
             this.AutoCompleteMode = AutoCompleteMode.Append;
+
+            ControlUtilities.AutoResizeDropDown(this);
         }
     }
 
@@ -144,6 +171,8 @@ namespace BrightIdeasSoftware
                 values.Add(new ComboBoxItem(value, Enum.GetName(type, value)));
 
             this.DataSource = values;
+
+            ControlUtilities.AutoResizeDropDown(this);
         }
     }
 

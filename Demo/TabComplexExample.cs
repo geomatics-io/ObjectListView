@@ -431,6 +431,8 @@ namespace ObjectListViewDemo
             cb.SelectedIndexChanged += delegate(object o, EventArgs args) {
                 personBeingEdited.CulinaryRating = cb.SelectedIndex * 10;                
             };
+            ControlUtilities.AutoResizeDropDown(cb);
+
             e.Control = cb;
         }
 

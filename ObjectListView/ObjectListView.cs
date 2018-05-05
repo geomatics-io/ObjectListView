@@ -8,6 +8,7 @@
  * 2018-05-05  JPP  - Added OLVColumn.EditorCreator to allow fine control over what control is used to edit
  *                    a particular cell.
  *                  - Added IOlvEditor to allow custom editor to easily integrate with our editing scheme
+ *                  - ComboBoxes resize drop downs to show the widest entry via ControlUtilities.AutoResizeDropDown()
  * 2018-05-03  JPP  - Extend OnColumnRightClick so the event handler can tweak the menu to be shown
  * 2018-04-27  JPP  - Sorting now works when grouping is locked on a column AND SortGroupItemsByPrimaryColumn is true
  *                  - Correctly report right clicks on group headers via CellRightClick events.
