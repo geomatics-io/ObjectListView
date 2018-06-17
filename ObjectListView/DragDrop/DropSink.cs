@@ -840,7 +840,6 @@ namespace BrightIdeasSoftware
                     case View.SmallIcon:
                         // If the mouse is over an item, check to see if it is near the left or right edge.
                         if (info.Item != null) {
-                            System.Diagnostics.Debug.WriteLine($"target item. pt: {pt}. bounds: {info.Item.Bounds}");
                             int delta = this.CanDropOnItem ? SMALL_VALUE : info.Item.Bounds.Width / 2;
                             if (pt.X <= info.Item.Bounds.Left + delta) {
                                 targetIndex = info.Item.Index;
@@ -872,7 +871,6 @@ namespace BrightIdeasSoftware
                         // If the mouse is over an item, check to see if it is near the top or bottom
                         if (info.Item != null) {
                             int delta = this.CanDropOnItem ? SMALL_VALUE : this.ListView.RowHeightEffective / 2;
-                            System.Diagnostics.Debug.WriteLine($"target item. pt: {pt}. bounds: {info.Item.Bounds}. delta={delta}");
 
                             if (pt.Y <= info.Item.Bounds.Top + delta) {
                                 targetIndex = info.Item.Index;
@@ -903,8 +901,6 @@ namespace BrightIdeasSoftware
                         throw new ArgumentOutOfRangeException();
                 }
             }
-            System.Diagnostics.Debug.WriteLine($"location: {location}");
-            System.Diagnostics.Debug.WriteLine($"targetIndex: {targetIndex}");
 
             args.DropTargetLocation = location;
             args.DropTargetIndex = targetIndex;
