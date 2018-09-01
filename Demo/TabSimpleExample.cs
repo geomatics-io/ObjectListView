@@ -28,6 +28,7 @@ namespace ObjectListViewDemo {
         protected override void InitializeTab() {
             this.comboBoxEditable.SelectedIndex = 0;
 
+
             // Uncomment this to allow editing of salary column
 //            SetupEditingOnSalary();
 
@@ -36,6 +37,9 @@ namespace ObjectListViewDemo {
 
             // Uncomment to see debug output as the mouse moves
 //            SetupMouseMoveTracking();
+
+            // Uncomment to see how to do per-row formatting
+//            this.SetupFormatRowHandling();
 
             // Uncomment to see how to do per-cell formatting
 //            SetupFormatCellHandling();
@@ -79,6 +83,19 @@ namespace ObjectListViewDemo {
             };
         }
 
+        private void SetupFormatRowHandling() {
+
+            // We will format rows here the Person's name begins with "N" to have Pink background
+            this.olvSimple.FormatRow += delegate (object sender, FormatRowEventArgs args) {
+                Person p = args.Model as Person;
+                if (p == null)
+                    return;
+
+                if (p.Name.StartsWith("N"))
+                    args.Item.BackColor = Color.LightPink;
+            };
+        }
+
         private void SetupFormatCellHandling() {
             // Need to indicate that we want CellFormat events
             this.olvSimple.UseCellFormatEvents = true;
@@ -86,7 +103,7 @@ namespace ObjectListViewDemo {
             // We will format cells in the "Cooking Skill" column, such that people with
             // a rating of < 10 will get a red-ish background, whilst those with a rating
             // of >= 40 will get a greenish background.
-            this.olvSimple.FormatCell += delegate(object sender, FormatCellEventArgs args) {
+            this.olvSimple.FormatCell += delegate (object sender, FormatCellEventArgs args) {
 
                 // CellFormat is triggered for *every* cell. You must filter for only the column(s) you want
                 if (args.Column.Text != "Cooking Skill")
