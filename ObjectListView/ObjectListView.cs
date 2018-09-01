@@ -5,6 +5,8 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2018-09-01  JPP  - Hardened code against the rare case of the control having no columns (SF bug #174)
+ *                    The underlying ListView does not like having rows when there are no columns and throws exceptions.j
  * 2018-05-05  JPP  - Added OLVColumn.EditorCreator to allow fine control over what control is used to edit
  *                    a particular cell.
  *                  - Added IOlvEditor to allow custom editor to easily integrate with our editing scheme
@@ -4812,6 +4814,10 @@ namespace BrightIdeasSoftware
             if (!this.ClientRectangle.Contains(x, y))
                 return new OlvListViewHitTestInfo(null, null, 0, null, 0);
 
+            // If there are no columns, also don't bother with anything else
+            if (this.Columns.Count == 0)
+                return new OlvListViewHitTestInfo(null, null, 0, null, 0);
+
             // Is the point over the header?
             OlvListViewHitTestInfo.HeaderHitTestInfo headerHitTestInfo = this.HeaderControl.HitTest(x, y);
             if (headerHitTestInfo != null) 
@@ -6157,6 +6163,8 @@ namespace BrightIdeasSoftware
         /// search the every row until a match is found, wrapping at the end if needed.</remarks>
         public virtual int FindMatchingRow(string text, int start, SearchDirectionHint direction) {
             // We also can't do anything if we don't have data
+            if (this.Columns.Count == 0)
+                return -1;
             int rowCount = this.GetItemCount();
             if (rowCount == 0)
                 return -1;
@@ -6327,6 +6335,10 @@ namespace BrightIdeasSoftware
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the msg has been handled</returns>
         protected virtual bool HandleLButtonDown(ref Message m) {
+            // If there are no columns, the base ListView class can throw OutOfRange exceptions.
+            if (this.Columns.Count == 0)
+                return true;
+
             // We have to intercept this low level message rather than the more natural
             // overridding of OnMouseDown, since ListCtrl's internal mouse down behavior
             // is to select (or deselect) rows when the mouse is released. We don't
@@ -6395,6 +6407,10 @@ namespace BrightIdeasSoftware
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the msg has been handled</returns>
         protected virtual bool HandleLButtonUp(ref Message m) {
+            // If there are no columns, the base ListView class can throw OutOfRange exceptions.
+            if (this.Columns.Count == 0)
+                return true;
+
             if (this.MouseMoveHitTest == null)
                 return false;
 
@@ -6446,6 +6462,10 @@ namespace BrightIdeasSoftware
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the msg has been handled</returns>
         protected virtual bool HandleRButtonDown(ref Message m) {
+            // If there are no columns, the base ListView class can throw OutOfRange exceptions.
+            if (this.Columns.Count == 0)
+                return true;
+
             int x = m.LParam.ToInt32() & 0xFFFF;
             int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
 
@@ -6458,7 +6478,7 @@ namespace BrightIdeasSoftware
         /// <remarks>Subclasses can override this to do something unique</remarks>
         /// <param name="hti"></param>
         /// <returns>True if the message has been handled</returns>
-        protected virtual bool ProcessRButtonDown(OlvListViewHitTestInfo hti) {
+        protected virtual bool ProcessRButtonDown(OlvListViewHitTestInfo hti) {            
             if (hti.Item == null)
                 return false;
 
@@ -6472,6 +6492,10 @@ namespace BrightIdeasSoftware
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the msg has been handled</returns>
         protected virtual bool HandleLButtonDoubleClick(ref Message m) {
+            // If there are no columns, the base ListView class can throw OutOfRange exceptions.
+            if (this.Columns.Count == 0)
+                return true;
+
             int x = m.LParam.ToInt32() & 0xFFFF;
             int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
 
@@ -6485,7 +6509,6 @@ namespace BrightIdeasSoftware
         /// <param name="hti"></param>
         /// <returns>True if the message has been handled</returns>
         protected virtual bool ProcessLButtonDoubleClick(OlvListViewHitTestInfo hti) {
-
             // If the user double clicked on a checkbox, ignore it
             return (hti.HitTestLocation == HitTestLocation.CheckBox);
         }
@@ -6496,6 +6519,11 @@ namespace BrightIdeasSoftware
         /// <param name="m">The m to be processed</param>
         /// <returns>bool to indicate if the msg has been handled</returns>
         protected virtual bool HandleRButtonDoubleClick(ref Message m) {
+
+            // If there are no columns, the base ListView class can throw OutOfRange exceptions.
+            if (this.Columns.Count == 0)
+                return true;
+
             int x = m.LParam.ToInt32() & 0xFFFF;
             int y = (m.LParam.ToInt32() >> 16) & 0xFFFF;
 
@@ -6602,7 +6630,7 @@ namespace BrightIdeasSoftware
                     //System.Diagnostics.Debug.WriteLine("LVN_GETINFOTIP");
                     // When virtual lists are in SmallIcon view, they generates tooltip message with invalid item indices.
                     NativeMethods.NMLVGETINFOTIP nmGetInfoTip = (NativeMethods.NMLVGETINFOTIP)m.GetLParam(typeof(NativeMethods.NMLVGETINFOTIP));
-                    isMsgHandled = nmGetInfoTip.iItem >= this.GetItemCount();
+                    isMsgHandled = nmGetInfoTip.iItem >= this.GetItemCount() || this.Columns.Count == 0;
                     break;
 
                 case NM_RELEASEDCAPTURE:
@@ -7804,9 +7832,9 @@ namespace BrightIdeasSoftware
         /// Return the column at the given index
         /// </summary>
         /// <param name="index">Index of the column to be returned</param>
-        /// <returns>An OLVColumn</returns>
+        /// <returns>An OLVColumn, or null if the index is out of bounds</returns>
         public virtual OLVColumn GetColumn(int index) {
-            return (OLVColumn)this.Columns[index];
+            return (index >=0 && index < this.Columns.Count) ? (OLVColumn)this.Columns[index] : null;
         }
 
         /// <summary>
@@ -8714,6 +8742,8 @@ namespace BrightIdeasSoftware
         /// Do the work required after one item in a listview have been created
         /// </summary>
         protected virtual void PostProcessOneRow(int rowIndex, int displayIndex, OLVListItem olvi) {
+            if (this.Columns.Count == 0)
+                return;
             if (this.UseAlternatingBackColors && this.View == View.Details && olvi.Enabled) {
                 olvi.UseItemStyleForSubItems = true;
                 olvi.BackColor = displayIndex % 2 == 1 ? this.AlternateRowBackColorOrDefault : this.BackColor;
@@ -8882,7 +8912,7 @@ namespace BrightIdeasSoftware
             Color backColor = olvi.BackColor;
             Color foreColor = olvi.ForeColor;
             Font font = olvi.Font;
-            foreach (OLVListSubItem subitem in olvi.SubItems) {
+            foreach (ListViewItem.ListViewSubItem subitem in olvi.SubItems) {
                 subitem.BackColor = backColor;
                 subitem.ForeColor = foreColor;
                 subitem.Font = font;
@@ -9536,7 +9566,8 @@ namespace BrightIdeasSoftware
                 return;
 
             for (int i = 0; i < olvItem.SubItems.Count; i++) {
-                if (this.GetColumn(i).IsEditable) {
+                var olvColumn = this.GetColumn(i);
+                if (olvColumn != null && olvColumn.IsEditable) {
                     this.StartCellEdit(olvItem, i);
                     return;
                 }
@@ -9573,6 +9604,8 @@ namespace BrightIdeasSoftware
         /// <param name="subItemIndex">The index of the cell to be edited</param>
         public virtual void StartCellEdit(OLVListItem item, int subItemIndex) {
             OLVColumn column = this.GetColumn(subItemIndex);
+            if (column == null)
+                return;
             Control c = this.GetCellEditor(item, subItemIndex);
             Rectangle cellBounds = this.CalculateCellBounds(item, subItemIndex);
             c.Bounds = this.CalculateCellEditorBounds(item, subItemIndex, c.PreferredSize);
@@ -10258,7 +10291,7 @@ namespace BrightIdeasSoftware
             if (this.UseHyperlinks) {
                 OLVColumn column = this.GetColumn(columnIndex);
                 OLVListSubItem subItem = olvi.GetSubItem(columnIndex);
-                if (column.Hyperlink && hitLocation == HitTestLocation.Text && !String.IsNullOrEmpty(subItem.Url)) {
+                if (column != null && column.Hyperlink && hitLocation == HitTestLocation.Text && !String.IsNullOrEmpty(subItem.Url)) {
                     this.ApplyCellStyle(olvi, columnIndex, this.HyperlinkStyle.Over);
                     this.Cursor = this.HyperlinkStyle.OverCursor ?? Cursors.Default;
                 } else {

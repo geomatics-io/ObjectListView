@@ -5,6 +5,8 @@
  * Date: 31-March-2011 5:53 pm
  *
  * Change log:
+ * 2018-09-01  JPP  - Handle rare case of getting subitems when there are no columns
+ * v2.9
  * 2015-08-22  JPP  - Added OLVListItem.SelectedBackColor and SelectedForeColor
  * 2015-06-09  JPP  - Added HasAnyHyperlinks property
  * v2.8
@@ -13,7 +15,7 @@
  * vOld
  * 2011-03-31  JPP  - Split into its own file
  * 
- * Copyright (C) 2011-2015 Phillip Piper
+ * Copyright (C) 2011-2018 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -293,7 +295,9 @@ namespace BrightIdeasSoftware {
         /// <returns>An OLVListSubItem</returns>
         public virtual OLVListSubItem GetSubItem(int index) {
             if (index >= 0 && index < this.SubItems.Count)
-                return (OLVListSubItem)this.SubItems[index];
+                // If the control has 0 columns, ListViewItem.SubItems will auto create a
+                // SubItem of the wrong type. Casting using 'as' handles this rare case. 
+                return this.SubItems[index] as OLVListSubItem;
             
             return null;
         }
