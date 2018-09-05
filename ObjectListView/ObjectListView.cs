@@ -1310,7 +1310,7 @@ namespace BrightIdeasSoftware
                 }
                 this.EndUpdate();
 
-                Debug.WriteLine(String.Format("PERF - Setting CheckedObjects on {2} objects took {0}ms / {1} ticks", sw.ElapsedMilliseconds, sw.ElapsedTicks, this.GetItemCount()));
+                // Debug.WriteLine(String.Format("PERF - Setting CheckedObjects on {2} objects took {0}ms / {1} ticks", sw.ElapsedMilliseconds, sw.ElapsedTicks, this.GetItemCount()));
 
             }
         }
@@ -6691,7 +6691,7 @@ namespace BrightIdeasSoftware
                                         if (modelIndex >= 0)
                                             NativeMethods.DeselectOneItem(this, modelIndex);
                                     }
-                                    System.Diagnostics.Debug.WriteLine(String.Format("PERF - Deselecting took {0}ms / {1} ticks", sw.ElapsedMilliseconds, sw.ElapsedTicks));
+                                    // System.Diagnostics.Debug.WriteLine(String.Format("PERF - Deselecting took {0}ms / {1} ticks", sw.ElapsedMilliseconds, sw.ElapsedTicks));
                                 }
                                 else
                                 {
@@ -7724,7 +7724,7 @@ namespace BrightIdeasSoftware
                     this.UpdateAllSubItemCheckBoxes(column);
             }
 
-            Debug.WriteLine(String.Format("PERF - Changing row checkboxes on {2} objects took {0}ms / {1} ticks", sw.ElapsedMilliseconds, sw.ElapsedTicks, this.GetItemCount()));
+            // Debug.WriteLine(String.Format("PERF - Changing row checkboxes on {2} objects took {0}ms / {1} ticks", sw.ElapsedMilliseconds, sw.ElapsedTicks, this.GetItemCount()));
         }
 
         private void UpdateAllPrimaryCheckBoxes(OLVColumn column) {
@@ -9441,6 +9441,17 @@ namespace BrightIdeasSoftware
 
             base.OnSelectedIndexChanged(e);
 
+            this.TriggerDeferredSelectionChangedEvent();
+        }
+
+        /// <summary>
+        /// Schedule a SelectionChanged event to happen after the next idle event,
+        /// unless we've already scheduled that to happen.
+        /// </summary>
+        protected virtual void TriggerDeferredSelectionChangedEvent() {
+            if (this.SelectionEventsSuspended)
+                return;
+
             // If we haven't already scheduled an event, schedule it to be triggered
             // By using idle time, we will wait until all select events for the same
             // user action have finished before triggering the event.
@@ -9505,8 +9516,6 @@ namespace BrightIdeasSoftware
 
             if ((Control.ModifierKeys & (Keys.Shift | Keys.Control | Keys.Alt)) != 0)
                 return false;
-
-            Debug.WriteLine(String.Format("this.lastMouseDownClickCount={0}", this.lastMouseDownClickCount));
 
             if (this.lastMouseDownClickCount == 1 && (
                 this.CellEditActivation == CellEditActivateMode.SingleClick ||

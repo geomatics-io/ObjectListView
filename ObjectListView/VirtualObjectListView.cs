@@ -118,7 +118,7 @@ namespace BrightIdeasSoftware
             this.SearchForVirtualItem += new SearchForVirtualItemEventHandler(this.HandleSearchForVirtualItem);
 
             // At the moment, we don't need to handle this event. But we'll keep this comment to remind us about it.
-            //this.VirtualItemsSelectionRangeChanged += new ListViewVirtualItemsSelectionRangeChangedEventHandler(VirtualObjectListView_VirtualItemsSelectionRangeChanged);
+            this.VirtualItemsSelectionRangeChanged += new ListViewVirtualItemsSelectionRangeChangedEventHandler(this.HandleVirtualItemsSelectionRangeChanged);
 
             this.VirtualListDataSource = new VirtualListVersion1DataSource(this);
 
@@ -231,7 +231,7 @@ namespace BrightIdeasSoftware
 
                 this.EndUpdate();
 
-                Debug.WriteLine(String.Format("PERF - Setting virtual CheckedObjects on {2} objects took {0}ms / {1} ticks", sw.ElapsedMilliseconds, sw.ElapsedTicks, this.GetItemCount()));
+                // Debug.WriteLine(String.Format("PERF - Setting virtual CheckedObjects on {2} objects took {0}ms / {1} ticks", sw.ElapsedMilliseconds, sw.ElapsedTicks, this.GetItemCount()));
             }
         }
 
@@ -1217,6 +1217,18 @@ namespace BrightIdeasSoftware
             // If we found a match, tell the event
             if (i != -1)
                 e.Index = i;
+        }
+
+        /// <summary>
+        /// Handle the VirtualItemsSelectionRangeChanged event, which is called "when the selection state of a range of items has changed"
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <remarks>This method is not called whenever the selection changes on a virtual list. It only seems to be triggered when
+        /// the user uses Shift-Ctrl-Click to change the selection</remarks>
+        protected virtual void HandleVirtualItemsSelectionRangeChanged(object sender, ListViewVirtualItemsSelectionRangeChangedEventArgs e) {
+            // System.Diagnostics.Debug.WriteLine(string.Format("HandleVirtualItemsSelectionRangeChanged: {0}->{1}, selected: {2}", e.StartIndex, e.EndIndex, e.IsSelected));
+            this.TriggerDeferredSelectionChangedEvent();
         }
 
         /// <summary>

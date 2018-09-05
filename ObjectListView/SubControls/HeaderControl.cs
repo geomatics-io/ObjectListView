@@ -457,7 +457,7 @@ namespace BrightIdeasSoftware {
         private bool HandleReflectNotify(ref Message m)
         {
             NativeMethods.NMHDR nmhdr = (NativeMethods.NMHDR)m.GetLParam(typeof(NativeMethods.NMHDR));
-            System.Diagnostics.Debug.WriteLine(String.Format("rn: {0}", nmhdr.code));
+            // System.Diagnostics.Debug.WriteLine(String.Format("rn: {0}", nmhdr.code));
             return true;
         }
 
