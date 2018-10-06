@@ -5,6 +5,7 @@
  * Date: 27/09/2008 9:15 AM
  *
  * Change log:
+ * 2018-10-06   JPP  - Fix rendering so that OLVColumn.WordWrap works when using customised Renderers 
  * 2018-05-01   JPP  - Use ITextMatchFilter interface rather than TextMatchFilter concrete class.
  * v2.9.2
  * 2016-06-02   JPP  - CalculateImageWidth() no longer adds 2 to the image width
@@ -279,20 +280,32 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// Can the renderer wrap lines that do not fit completely within the cell?
         /// </summary>
-        /// <remarks>Wrapping text doesn't work with the GDI renderer.</remarks>
+        /// <remarks>
+        /// <para>If this is not set specifically, the value will be taken from Column.WordWrap</para>
+        /// <para>
+        /// Wrapping text doesn't work with the GDI renderer, so if this set to true, GDI+ rendering will used.
+        /// The difference between GDI and GDI+ rendering can give word wrapped columns a slight different appearance.
+        /// </para>
+        /// </remarks>
         [Category("Appearance"),
          Description("Can the renderer wrap text that does not fit completely within the cell"),
-         DefaultValue(false)]
-        public bool CanWrap {
+         DefaultValue(null)]
+        public bool? CanWrap {
             get { return canWrap; }
-            set {
-                canWrap = value;
-                if (canWrap)
-                    this.UseGdiTextRendering = false;
+            set { canWrap = value; }
+        }
+
+        private bool? canWrap;
+
+        /// <summary>
+        /// Get the actual value that should be used right now for CanWrap
+        /// </summary>
+        [Browsable(false)]
+        protected bool CanWrapOrDefault {
+            get {
+                return this.CanWrap ?? this.Column != null && this.Column.WordWrap;
             }
         }
-        private bool canWrap;
-
         /// <summary>
         /// Gets or sets how many pixels will be left blank around this cell
         /// </summary>
@@ -419,13 +432,15 @@ namespace BrightIdeasSoftware {
         /// Should text be rendered using GDI routines? This makes the text look more
         /// like a native List view control.
         /// </summary>
+        /// <remarks>Even if this is set to true, it will return false if the renderer
+        /// is set to word wrap, since GDI doesn't handle wrapping.</remarks>
         [Category("Appearance"),
          Description("Should text be rendered using GDI routines?"),
          DefaultValue(true)]
         public virtual bool UseGdiTextRendering {
             get {
-                // Can't use GDI routines on a GDI+ printer context
-                return !this.IsPrinting && useGdiTextRendering;
+                // Can't use GDI routines on a GDI+ printer context or when word wrapping is required
+                return !this.IsPrinting && !this.CanWrapOrDefault && useGdiTextRendering;
             }
             set { useGdiTextRendering = value; }
         }
@@ -502,6 +517,16 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// Gets or  sets the font to be used for text in this cell
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// In general, this property should be treated as internal.
+        /// If you do set this, the given font will be used without any other consideration.
+        /// All other factors -- selection state, hot item, hyperlinks -- will be ignored.
+        /// </para>
+        /// <para>
+        /// A better way to set the font is to change either ListItem.Font or SubItem.Font
+        /// </para>
+        /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Font Font {
@@ -622,6 +647,14 @@ namespace BrightIdeasSoftware {
         /// <summary>
         /// The brush that will be used to paint the text
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// In general, this property should be treated as internal. It will be reset after each render.
+        /// </para>
+        /// <para>
+        /// </para>
+        /// In particular, don't set it to configure the color of the text on the control. That should be done via SubItem.ForeColor
+        /// </remarks>
         [Browsable(false),
          DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Brush TextBrush {
@@ -661,7 +694,6 @@ namespace BrightIdeasSoftware {
             this.Event = null;
             this.DrawItemEvent = null;
             this.Aspect = null;
-            this.Font = null;
             this.TextBrush = null;
         }
 
@@ -1733,7 +1765,7 @@ namespace BrightIdeasSoftware {
 
             // I think there is a bug in the TextRenderer. Setting or not setting SingleLine doesn't make 
             // any difference -- it is always single line.
-            if (!this.CanWrap)
+            if (!this.CanWrapOrDefault)
                 flags |= TextFormatFlags.SingleLine;
             TextRenderer.DrawText(g, txt, this.Font, r, this.GetForegroundColor(), backColor, flags);
         }
@@ -1770,7 +1802,7 @@ namespace BrightIdeasSoftware {
                 fmt.LineAlignment = this.EffectiveCellVerticalAlignment;
                 fmt.Trimming = StringTrimming.EllipsisCharacter;
                 fmt.Alignment = this.Column == null ? StringAlignment.Near : this.Column.TextStringAlign;
-                if (!this.CanWrap)
+                if (!this.CanWrapOrDefault)
                     fmt.FormatFlags = StringFormatFlags.NoWrap;
                 return fmt;
             }
@@ -1816,6 +1848,13 @@ namespace BrightIdeasSoftware {
     /// <summary>
     /// This renderer highlights substrings that match a given text filter. 
     /// </summary>
+    /// <remarks>
+    /// Implementation note:
+    /// This renderer uses the functionality of BaseRenderer to draw the text, and
+    /// then draws a translucent frame over the top of the already rendered text glyphs.
+    /// There's no way to draw the matching text in a different font or color in this
+    /// implementation.
+    /// </remarks>
     public class HighlightTextRenderer : BaseRenderer, IFilterAwareRenderer {
         #region Life and death
 

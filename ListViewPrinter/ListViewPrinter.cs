@@ -5,6 +5,7 @@
  * Date: 2007-11-01 11:15 AM
  *
  * Change log:
+ * 2018-10-06  JPP  - Fix rendering so that OLVColumn.WordWrap works when using the ListViewPrinter
  * 2009-02-24  JPP  - Correctly use new renderer scheme :)
  * 2009-01-26  JPP  - Use new renderer scheme
  *                  - Removed ugly hack about BarRenderer when printing.
@@ -41,7 +42,7 @@
  * 
  * To Do:
  * 
- * Copyright (C) 2006-2008 Phillip Piper
+ * Copyright (C) 2006-2018 Phillip Piper
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1248,32 +1249,42 @@ namespace BrightIdeasSoftware
                 return;
             }
 
-            // Configure the renderer
-            renderer.IsPrinting = true;
-            renderer.Aspect = null;
-            renderer.Column = olvc;
-            renderer.IsItemSelected = false;
-            renderer.Font = this.CellFormat.Font;
-            renderer.TextBrush = this.CellFormat.TextBrush;
-            renderer.ListItem = olvItem;
-            renderer.ListView = listView;
-            renderer.RowObject = olvItem.RowObject;
-            renderer.SubItem = (OLVListSubItem)this.GetSubItem(lvi, column);
-            renderer.CanWrap = this.CellFormat.CanWrap;
+            // Store renderer state
+            Font originalFont = renderer.Font;
+            bool? originalCanWrap = renderer.CanWrap;
 
-            // Use the cell block format to draw the background and border of the cell
-            bool bkChanged = this.ApplyCellSpecificBackground(this.CellFormat, renderer.ListItem, renderer.SubItem);
-            this.CellFormat.Draw(g, cell, "", "", "");
-            if (bkChanged)
-                this.CellFormat.BackgroundBrush = null;
+            try {
+                // Configure the renderer
+                renderer.IsPrinting = true;
+                renderer.Font = this.CellFormat.Font;
+                renderer.TextBrush = this.CellFormat.TextBrush;
+                renderer.CanWrap = this.CellFormat.CanWrap;
+                renderer.Aspect = null;
+                renderer.Column = olvc;
+                renderer.IsItemSelected = false;
+                renderer.ListItem = olvItem;
+                renderer.ListView = listView;
+                renderer.RowObject = olvItem.RowObject;
+                renderer.SubItem = (OLVListSubItem)this.GetSubItem(lvi, column);
 
-            // The renderer draws into the text area of the block. Unfortunately, the renderer uses Rectangle's 
-            // rather than RectangleF's, so we have to convert, trying to prevent rounding errors
-            RectangleF r = this.CellFormat.CalculatePaddedTextBox(cell);
-            Rectangle r2 = new Rectangle((int)r.X + 1, (int)r.Y + 1, (int)r.Width - 1, (int)r.Height - 1);
-            renderer.Render(g, r2);
+                // Use the cell block format to draw the background and border of the cell
+                bool bkChanged = this.ApplyCellSpecificBackground(this.CellFormat, renderer.ListItem, renderer.SubItem);
+                this.CellFormat.Draw(g, cell, "", "", "");
+                if (bkChanged)
+                    this.CellFormat.BackgroundBrush = null;
 
-            renderer.IsPrinting = false;
+                // The renderer draws into the text area of the block. Unfortunately, the renderer uses Rectangle's 
+                // rather than RectangleF's, so we have to convert, trying to prevent rounding errors
+                RectangleF r = this.CellFormat.CalculatePaddedTextBox(cell);
+                Rectangle r2 = new Rectangle((int)r.X + 1, (int)r.Y + 1, (int)r.Width - 1, (int)r.Height - 1);
+                renderer.Render(g, r2);
+            }
+            finally {
+                // Restore the original state
+                renderer.IsPrinting = false;
+                renderer.Font = originalFont;
+                renderer.CanWrap = originalCanWrap;
+            }
         }
     }
 

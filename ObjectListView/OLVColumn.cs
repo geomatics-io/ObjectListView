@@ -1416,7 +1416,7 @@ namespace BrightIdeasSoftware {
         [Category("ObjectListView"),
         Description("The width in pixels of this column"),
         DefaultValue(60)]
-        new public int Width {
+        public new int Width {
             get { return base.Width; }
             set {
                 if (this.MaximumWidth != -1 && value > this.MaximumWidth)
@@ -1436,27 +1436,9 @@ namespace BrightIdeasSoftware {
          DefaultValue(false)]
         public bool WordWrap {
             get { return wordWrap; }
-            set {
-                wordWrap = value;
-
-                // If there isn't a renderer and they are turning word wrap off, we don't need to do anything
-                if (this.Renderer == null && !wordWrap)
-                    return;
-
-                // All other cases require a renderer of some sort
-                if (this.Renderer == null)
-                    this.Renderer = new HighlightTextRenderer();
-
-                BaseRenderer baseRenderer = this.Renderer as BaseRenderer;
-
-                // If there is a custom renderer (not descended from BaseRenderer), 
-                // we leave it up to them to implement wrapping
-                if (baseRenderer == null)
-                    return;
-
-                baseRenderer.CanWrap = wordWrap;
-            }
+            set { wordWrap = value; }
         }
+
         private bool wordWrap;
 
         #endregion

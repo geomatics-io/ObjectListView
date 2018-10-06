@@ -296,6 +296,7 @@ namespace ObjectListViewDemo
             this.olvComplex.BackColor = Color.FromArgb(30, 30, 40);
             this.olvComplex.AlternateRowBackColor = Color.FromArgb(35, 35, 42);
             this.olvComplex.ForeColor = Color.WhiteSmoke;
+            this.olvComplex.DefaultRenderer = new HighlightTextRenderer {FillBrush = Brushes.Transparent, FramePen = new Pen(Color.PaleGreen, 3)};
 
             HyperlinkStyle hls = new HyperlinkStyle();
             hls.Normal = new CellStyle();
