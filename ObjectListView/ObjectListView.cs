@@ -5,6 +5,7 @@
  * Date: 9/10/2006 11:15 AM
  *
  * Change log
+ * 2018-10-06  JPP  - InsertObjects() when in a non-Detail View now correctly positions the items (SF bug #154)
  * 2018-09-01  JPP  - Hardened code against the rare case of the control having no columns (SF bug #174)
  *                    The underlying ListView does not like having rows when there are no columns and throws exceptions.j
  * 2018-05-05  JPP  - Added OLVColumn.EditorCreator to allow fine control over what control is used to edit
@@ -4661,7 +4662,10 @@ namespace BrightIdeasSoftware
 
                 // If we are filtering the list, there is no way to efficiently
                 // insert the objects, so just put them into our collection and rebuild.
-                if (this.IsFiltering) {
+                // Sigh -- yet another ListView anomoly. In every view except Details, an item
+                // inserted into the Items collection always appear at the end regardless of
+                // their actual insertion index.
+                if (this.IsFiltering || this.View != View.Details) {
                     index = Math.Max(0, Math.Min(index, ourObjects.Count));
                     ourObjects.InsertRange(index, modelObjects);
                     this.BuildList(true);
