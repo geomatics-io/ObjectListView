@@ -593,6 +593,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 using System.Runtime.Serialization.Formatters;
 using System.Threading;
+using BrightIdeasSoftware.SubControls;
 
 namespace BrightIdeasSoftware
 {
@@ -648,14 +649,23 @@ namespace BrightIdeasSoftware
     /// </list>
     /// </remarks>
     [Designer(typeof(BrightIdeasSoftware.Design.ObjectListViewDesigner))]   
-    public partial class ObjectListView : ListView, ISupportInitialize {
+    public partial class ObjectListView : FastListView, ISupportInitialize {
+
         
+
         #region Life and death
-        
+
         /// <summary>
         /// Create an ObjectListView
         /// </summary>
         public ObjectListView() {
+
+//            this.SetStyle(
+//                ControlStyles.AllPaintingInWmPaint |
+//                ControlStyles.UserPaint |
+//                ControlStyles.DoubleBuffer,
+//                true);
+
             this.ColumnClick += new ColumnClickEventHandler(this.HandleColumnClick);
             this.Layout += new LayoutEventHandler(this.HandleLayout);
             this.ColumnWidthChanging += new ColumnWidthChangingEventHandler(this.HandleColumnWidthChanging);
