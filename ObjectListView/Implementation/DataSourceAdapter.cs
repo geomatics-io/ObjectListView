@@ -552,7 +552,11 @@ namespace BrightIdeasSoftware
         /// <param name="index">The index of the row to be selected</param>
         protected virtual void ChangePosition(int index) {
             // We can't use the index directly, since our listview may be sorted
-            this.ListView.SelectedObject = this.CurrencyManager.List[index];
+            // Only assign if not null
+            if (this.ListView.SelectedObject != null) {
+                this.ListView.SelectedObject = this.CurrencyManager.List[index];
+            }
+            
 
             // THINK: Do we always want to bring it into view?
             if (this.ListView.SelectedIndices.Count > 0)
