@@ -60,13 +60,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataTreeListView.cs" />
+    <Compile Include="DataTreeListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="DragDrop\OLVDataObject.cs" />
     <Compile Include="Filtering\DateTimeClusteringStrategy.cs" />
     <Compile Include="Filtering\FlagClusteringStrategy.cs" />
     <Compile Include="Filtering\TextMatchFilter.cs" />
     <Compile Include="Implementation\Delegates.cs" />
-    <Compile Include="Implementation\Enums.cs" />
+    <Compile Include="Implementation\Enums.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Implementation\GroupingParameters.cs" />
     <Compile Include="Implementation\NullableDictionary.cs" />
     <Compile Include="Implementation\OLVListItem.cs" />
@@ -85,22 +89,35 @@
     <Compile Include="Implementation\Attributes.cs" />
     <Compile Include="CellEditing\CellEditors.cs" />
     <Compile Include="CellEditing\EditorRegistry.cs" />
-    <Compile Include="DataListView.cs" />
+    <Compile Include="DataListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Implementation\DataSourceAdapter.cs" />
     <Compile Include="Rendering\Decorations.cs" />
     <Compile Include="DragDrop\DragSource.cs" />
     <Compile Include="DragDrop\DropSink.cs" />
-    <Compile Include="Implementation\Events.cs" />
-    <Compile Include="FastDataListView.cs" />
+    <Compile Include="Implementation\Events.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="FastDataListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Filtering\ClusteringStrategy.cs" />
     <Compile Include="Filtering\Cluster.cs" />
     <Compile Include="Filtering\ClustersFromGroupsStrategy.cs" />
-    <Compile Include="FastObjectListView.cs" />
+    <Compile Include="FastObjectListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Filtering\FilterMenuBuilder.cs" />
     <Compile Include="Filtering\Filters.cs" />
     <Compile Include="Filtering\ICluster.cs" />
     <Compile Include="Filtering\IClusteringStrategy.cs" />
-    <Compile Include="Rendering\TreeRenderer.cs" />
+    <Compile Include="Rendering\TreeRenderer.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="SubControls\FastListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="SubControls\ToolStripCheckedListBox.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -136,19 +153,20 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="SubControls\ToolTipControl.cs" />
-    <Compile Include="TreeListView.cs" />
+    <Compile Include="TreeListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Utilities\OLVExporter.cs" />
     <Compile Include="Utilities\TypedObjectListView.cs" />
     <Compile Include="Implementation\VirtualGroups.cs" />
     <Compile Include="Implementation\VirtualListDataSource.cs" />
-    <Compile Include="VirtualObjectListView.cs" />
+    <Compile Include="VirtualObjectListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="CustomDictionary.xml" />
     <None Include="FullClassDiagram.cd" />
-    <None Include="ObjectListView2015.nuspec">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="Resources\sort-descending.png" />
     <None Include="Resources\sort-ascending.png" />
     <None Include="Resources\filter.png" />
