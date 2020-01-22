@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>ObjectListView</id>
+    <version>2.9.3</version>
+    <title>ObjectListView (Inoffical)</title>
+    <authors>Phillip Piper, Christian Junk</authors>
+    <owners>Christian Junk</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>https://www.gnu.org/licenses/gpl-3.0.html</licenseUrl>
+    <projectUrl>https://github.com/geomatics-io/ObjectListView</projectUrl>
+    <repository type="git" url="https://github.com/geomatics-io/ObjectListView.git" branch="development" />
+    <iconUrl>https://github.com/geomatics-io/ObjectListView/blob/development/.assets/index-icon.png</iconUrl>
+    <description>ObjectListView is a .NET ListView wired on caffeine, guarana and steroids. More calmly, it is a C# wrapper around a .NET ListView, which makes the ListView much easier to use and teaches it lots of neat new tricks.</description>
+    <summary>ObjectListView is a .NET ListView wired on caffeine, guarana and steroids.</summary>
+    <releaseNotes>v2.9.2 fixed an issue with performance problems using a large list with many columns.
+v2.9.1 Added CellRendererGetter to allow each cell to have a different renderer, plus Fixes a few small bugs. 
+v2.9 adds buttons to cells, fixed some formatting bugs, and completely rewrote the demo to be much easier to understand.</releaseNotes>
+    <copyright>©Copyright 2006-2016 Bright Ideas Software</copyright>
+    <tags>.Net WinForms Net20 Net40 ListView Controls</tags>
+    <dependencies>
+      <group targetFramework=".NETFramework2" />
+    </dependencies>
+  </metadata>
+  <files>
+  	<file src=".assets\index-icon.png" target="images\icon.png" />
+    <file src="build\bin\Debug\ObjectListView.dll" target="lib\net20\ObjectListView.dll" />
+    <file src="build\bin\Debug\ObjectListView.pdb" target="lib\net20\ObjectListView.pdb" />
+    <file src="build\bin\Debug\ObjectListView.XML" target="lib\net20\ObjectListView.XML" />
+  </files>
+</package>

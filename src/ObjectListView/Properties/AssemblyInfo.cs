@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Bright Ideas Software")]
 [assembly: AssemblyProduct("ObjectListView")]
-[assembly: AssemblyCopyright("©Copyright 2006-2016")]
+[assembly: AssemblyCopyright("©Copyright 2006-2016 Bright Ideas Software")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
