@@ -7054,9 +7054,42 @@ namespace BrightIdeasSoftware
         [Category("Labels - ObjectListView"), DefaultValue("Group by '{0}'"), Localizable(true)]
         public string MenuLabelGroupBy {
             get { return this.menuLabelGroupBy; }
-            set { this.menuLabelGroupBy = value; }
+            set
+            {
+                this.menuLabelGroupBy = value;
+            }
         }
         private string menuLabelGroupBy = "Group by '{0}'";
+
+
+
+        [Category("Labels - ObjectListView"), DefaultValue("Filtering"), Localizable(true)]
+        public string MenuLabelFilter
+        {
+            get { return FilterMenuBuilder.FILTERING_LABEL; }
+            set { FilterMenuBuilder.FILTERING_LABEL = value;  }
+        }
+
+        [Category("Labels - ObjectListView"), DefaultValue("Clear All Filters"), Localizable(true)]
+        public string MenuLabelClearFilter
+        {
+            get { return FilterMenuBuilder.CLEAR_ALL_FILTERS_LABEL; }
+            set { FilterMenuBuilder.CLEAR_ALL_FILTERS_LABEL = value; }
+        }
+
+        [Category("Labels - ObjectListView"), DefaultValue("Apply"), Localizable(true)]
+        public string MenuLabelApplyFilter
+        {
+            get { return FilterMenuBuilder.APPLY_LABEL; }
+            set { FilterMenuBuilder.APPLY_LABEL = value; }
+        }
+
+        [Category("Labels - ObjectListView"), DefaultValue("Select All"), Localizable(true)]
+        public string MenuLabelSelectAllFilter
+        {
+            get { return FilterMenuBuilder.SELECT_ALL_LABEL; }
+            set { FilterMenuBuilder.SELECT_ALL_LABEL = value; }
+        }
 
         /// <summary>
         /// 
