@@ -5398,6 +5398,11 @@ namespace BrightIdeasSoftware
                 olvState.SortColumn = this.AllColumns.IndexOf(this.PrimarySortColumn);
             olvState.LastSortOrder = this.PrimarySortOrder;
             olvState.IsShowingGroups = this.ShowGroups;
+            if (this.AlwaysGroupByColumn != null)
+            {
+                olvState.AlwaysGroupByColumn = this.AllColumns.IndexOf(this.AlwaysGroupByColumn);
+                olvState.AlwaysGroupBySortOrder = this.AlwaysGroupBySortOrder;
+            }
 
             if (this.AllColumns.Count > 0 && this.AllColumns[0].LastDisplayIndex == -1)
                 this.RememberDisplayIndicies();
@@ -5443,6 +5448,11 @@ namespace BrightIdeasSoftware
                     this.PrimarySortColumn = this.AllColumns[olvState.SortColumn];
                     this.PrimarySortOrder = olvState.LastSortOrder;
                 }
+                if (olvState.AlwaysGroupByColumn != -1)
+                {
+                    this.AlwaysGroupByColumn = this.AllColumns[olvState.AlwaysGroupByColumn];
+                    this.AlwaysGroupBySortOrder = olvState.AlwaysGroupBySortOrder;
+                }
                 for (int i = 0; i < olvState.NumberOfColumns; i++) {
                     OLVColumn column = this.AllColumns[i];
                     column.Width = (int)olvState.ColumnWidths[i];
@@ -5476,7 +5486,9 @@ namespace BrightIdeasSoftware
             public int SortColumn = -1;
             public bool IsShowingGroups;
             public SortOrder LastSortOrder = SortOrder.None;
-// ReSharper disable FieldCanBeMadeReadOnly.Global
+            public int AlwaysGroupByColumn = -1;
+            public SortOrder AlwaysGroupBySortOrder = SortOrder.Ascending;
+            // ReSharper disable FieldCanBeMadeReadOnly.Global
             public ArrayList ColumnIsVisible = new ArrayList();
             public ArrayList ColumnDisplayIndicies = new ArrayList();
             public ArrayList ColumnWidths = new ArrayList();
