@@ -169,7 +169,7 @@ namespace BrightIdeasSoftware {
                 foreach (OLVColumn col in columns) 
                     strings.Add(col.Text);
 
-                WriteOneRow(sbText, strings, "", "\t", "", null);
+                WriteOneRow(sbText, strings, "", "\t", "", TabEncode);
                 WriteOneRow(sbHtml, strings, "<tr><td>", "</td><td>", "</td></tr>", HtmlEncode);
                 WriteOneRow(sbCsv, strings, "", ",", "", CsvEncode);
             }
@@ -179,7 +179,7 @@ namespace BrightIdeasSoftware {
                 foreach (OLVColumn col in columns)
                     strings.Add(col.GetStringValue(modelObject));
 
-                WriteOneRow(sbText, strings, "", "\t", "", null);
+                WriteOneRow(sbText, strings, "", "\t", "", TabEncode);
                 WriteOneRow(sbHtml, strings, "<tr><td>", "</td><td>", "</td></tr>", HtmlEncode);
                 WriteOneRow(sbCsv, strings, "", ",", "", CsvEncode);
             }
@@ -210,6 +210,17 @@ namespace BrightIdeasSoftware {
         #endregion
 
         #region Encoding
+
+        /// <summary>
+        /// Encode a string such that it can be used as a value in a TAB file.
+        /// This basically means replacing any quote mark with two quote marks,
+        /// and enclosing the whole string in quotes.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        private static string TabEncode(string text) {
+            return CsvEncode(text);
+        }
 
         /// <summary>
         /// Encode a string such that it can be used as a value in a CSV file.
