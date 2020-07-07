@@ -1439,14 +1439,17 @@ namespace BrightIdeasSoftware
 
                 // Refresh our knowledge of our children (do this even if CanExpand is false, because
                 // the branch have already collected some children and that information could be stale)
-                    br.RefreshChildren();
-
-                // Insert the refreshed children if the branch can expand and is expanded
-                if (br.CanExpand && br.IsExpanded)
-                    this.InsertChildren(br, index + 1);
-                else
-                    this.RebuildObjectMap(index);
-
+                br.RefreshChildren();
+                
+                if (index >= 0)
+                {
+                    // Insert the refreshed children if the branch can expand and is expanded
+                    if (br.CanExpand && br.IsExpanded)
+                        this.InsertChildren(br, index + 1);
+                    else
+                        this.RebuildObjectMap(index);
+                }
+                
                 return index;
             }
 
