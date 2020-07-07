@@ -906,17 +906,25 @@ namespace BrightIdeasSoftware {
             if (String.IsNullOrEmpty(txt))
                 return Size.Empty;
 
-            if (this.UseGdiTextRendering)
+            try
             {
-                Size proposedSize = new Size(width, Int32.MaxValue);
-                return TextRenderer.MeasureText(g, txt, this.Font, proposedSize, NormalTextFormatFlags);
+                if (this.UseGdiTextRendering)
+                {
+                    Size proposedSize = new Size(width, Int32.MaxValue);
+                    return TextRenderer.MeasureText(g, txt, this.Font, proposedSize, NormalTextFormatFlags);
+                }
+                else
+                { // Using GDI+ rendering
+                    using (StringFormat fmt = new StringFormat()) {
+                        fmt.Trimming = StringTrimming.EllipsisCharacter;
+                        SizeF sizeF = g.MeasureString(txt, this.Font, width, fmt);
+                        return new Size(1 + (int)sizeF.Width, 1 + (int)sizeF.Height);
+                    }
+                }
             }
-            
-            // Using GDI+ rendering
-            using (StringFormat fmt = new StringFormat()) {
-                fmt.Trimming = StringTrimming.EllipsisCharacter;
-                SizeF sizeF = g.MeasureString(txt, this.Font, width, fmt);
-                return new Size(1 + (int)sizeF.Width, 1 + (int)sizeF.Height);
+            catch (ArgumentException ex)
+            { // Handle undocumented exception in MeasureText that can occur in certain conditions
+				return Size.Empty;
             }
         }
 
