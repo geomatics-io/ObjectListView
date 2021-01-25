@@ -2986,6 +2986,11 @@ namespace BrightIdeasSoftware
         }
 
         /// <summary>
+        /// When it is true the SelectionChange will bypassed.
+        /// </summary>
+        public bool BypassSelectionChange { get; set; } = false;
+
+        /// <summary>
         /// When the user right clicks on the column headers, should a menu be presented which will allow
         /// them to choose common tasks to perform on the listview?
         /// </summary>
@@ -9407,11 +9412,11 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="e"></param>
         protected override void OnSelectedIndexChanged(EventArgs e) {
-            if (this.SelectionEventsSuspended)
+            if (this.SelectionEventsSuspended || this.BypassSelectionChange)
                 return;
 
             base.OnSelectedIndexChanged(e);
-
+            
             // If we haven't already scheduled an event, schedule it to be triggered
             // By using idle time, we will wait until all select events for the same
             // user action have finished before triggering the event.
@@ -10620,7 +10625,7 @@ namespace BrightIdeasSoftware
         }
 
         private bool ShouldShowOverlays() {
-            // If we are in design mode, we don’t show the overlays
+            // If we are in design mode, we donï¿½t show the overlays
             if (this.DesignMode)
                 return false;
 

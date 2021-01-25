@@ -816,7 +816,15 @@ namespace BrightIdeasSoftware
 
             this.ClearCachedInfo();
             this.UpdateVirtualListSize();
-            this.SelectedObjects = selection;
+            try
+            {
+                BypassSelectionChange = true;
+                this.SelectedObjects = selection;
+            }
+            finally
+            {
+                BypassSelectionChange = false;
+            }
 
             // Redraw everything from the first update to the end of the list
             this.RedrawItems(firstChange, this.GetItemCount() - 1, true);
