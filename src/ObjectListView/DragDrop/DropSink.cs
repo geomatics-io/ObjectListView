@@ -632,10 +632,18 @@ namespace BrightIdeasSoftware
         /// </summary>
         /// <param name="args"></param>
         public override void Drop(DragEventArgs args) {
-            this.dropEventArgs.DragEventArgs = args;
-            this.TriggerDroppedEvent(args);
-            this.timer.Stop();
-            this.Cleanup();
+            var modelDropEventArgs = this.dropEventArgs;
+            if (modelDropEventArgs != null)
+            {
+                modelDropEventArgs.DragEventArgs = args;
+                this.TriggerDroppedEvent(args);
+                this.timer.Stop();
+                this.Cleanup();
+            }
+            else
+            {
+                throw new ArgumentNullException("dropEventArgs is null.");
+            }
         }
 
         /// <summary>
