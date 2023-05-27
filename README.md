@@ -6,16 +6,10 @@ ObjectListView is a powerful .NET library for creating interactive, data-driven 
 
 ObjectListView is a .NET ListView wired on caffeine, guarana and steroids. More calmly, it is a C# wrapper around a .NET ListView, which makes the ListView much easier to use and teaches it lots of neat new tricks.
 
-## Usage
-
-To use ObjectListView in your WinForms application, follow these steps:
-
-1. Clone or download this repository.
-2. Add the ObjectListView project to your Visual Studio solution.
-3. Reference the ObjectListView project in your WinForms project.
-4. In your form designer, add an instance of the `ObjectListView` control to your form.
-5. Bind the `ObjectListView` control to a data source by setting the `DataSource` property.
-6. Customize the columns, formatting, sorting, grouping, and other features as needed using the provided properties and methods.
+Introduction
+https://objectlistview.sourceforge.net/cs/index.html
+Original Author
+https://github.com/grammarian
 
 ## Why I Forked It
 
