@@ -1,11 +1,10 @@
 # ObjectListView
-ObjectListView is a .NET ListView wired on caffeine, guarana and steroids. More calmly, it is a C# wrapper around a .NET ListView, which makes the ListView much easier to use and teaches it lots of neat new tricks.
-
------------ Added by me ----------- 
-
-# ObjectListView
 
 ObjectListView is a powerful .NET library for creating interactive, data-driven WinForms ListView controls. It provides advanced features and customization options that go beyond the capabilities of the standard ListView control.
+
+## About
+
+ObjectListView is a .NET ListView wired on caffeine, guarana and steroids. More calmly, it is a C# wrapper around a .NET ListView, which makes the ListView much easier to use and teaches it lots of neat new tricks.
 
 ## Usage
 
@@ -17,8 +16,6 @@ To use ObjectListView in your WinForms application, follow these steps:
 4. In your form designer, add an instance of the `ObjectListView` control to your form.
 5. Bind the `ObjectListView` control to a data source by setting the `DataSource` property.
 6. Customize the columns, formatting, sorting, grouping, and other features as needed using the provided properties and methods.
-
-For detailed usage examples and documentation, please refer to the [official ObjectListView documentation](link_to_documentation).
 
 ## Why I Forked It
 
