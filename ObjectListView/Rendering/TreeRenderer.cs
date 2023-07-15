@@ -267,8 +267,12 @@ namespace BrightIdeasSoftware {
             /// <param name="x"></param>
             /// <param name="y"></param>
             protected override void HandleHitTest(Graphics g, OlvListViewHitTestInfo hti, int x, int y) {
-                Branch br = this.Branch;
 
+                if (g == null || hti == null) return;
+                
+                Branch br = this.Branch;
+                if (br == null) return;
+                
                 Rectangle r = this.ApplyCellPadding(this.Bounds);
                 if (br.CanExpand) {
                     r.Offset((br.Level - 1) * PIXELS_PER_LEVEL, 0);
