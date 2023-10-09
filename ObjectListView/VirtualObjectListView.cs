@@ -885,7 +885,7 @@ namespace BrightIdeasSoftware
 
             int groupIndex = this.GroupingStrategy.GetGroup(itemIndex);
             int displayIndex = 0;
-            for (int i = 0; i < groupIndex - 1; i++)
+            for (int i = 0; i < groupIndex; i++)
                 displayIndex += this.OLVGroups[i].VirtualItemCount;
             displayIndex += this.GroupingStrategy.GetIndexWithinGroup(this.OLVGroups[groupIndex], itemIndex);
 
